@@ -1,0 +1,30 @@
+{% extends "templates/index.html" %} {% load static %} {% block settings %}
+<div id="settings-container">
+    <form class='settings-form' enctype='multipart/form-data' method='POST' action='/settings/' data-url='{{ request.build_absolute_uri|safe }}'>
+        {% csrf_token %}
+        
+        {{ form.non_field_errors }}
+        <p class="fieldWrapper">
+            {{ form.url.errors }}
+
+            <label for="{{ form.url.id_for_label }}">You can change your identifier. This is how your profile will appear when users search for you</label>
+            <div style="text-align: left; display: -moz-flex;
+            display: -webkit-flex;
+            display: -ms-flex;
+            display: flex;">
+                    
+                    <span class="create-name-span" style="margin-right:2px;">www.subranch.com/</span>
+                    <input name="url" maxlength="60" value="{{user.profile.url}}" required="" id="id_url" type="text">
+            </div>
+            
+            
+        </p>
+        <p>
+            {{ form.profile_image.errors }}
+            <label for="{{ form.profile_image.id_for_label }}">Change your profile picture</label>
+            <input name="profile_image" id="id_profile_image" type="file">
+        </p>
+        <button type='submit'>Submit</button>
+    </form>
+</div>
+{% endblock %}

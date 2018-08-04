@@ -1,0 +1,14 @@
+from django.contrib.auth import get_user_model
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views.generic import TemplateView
+
+
+class CoreView(TemplateView):
+    def dispatch(self, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            self.template_name = "core/content.html"
+        else:
+            self.template_name = "core/content_anon.html"
+        return super().dispatch(*args,**kwargs)
+

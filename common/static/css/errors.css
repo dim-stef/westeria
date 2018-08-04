@@ -1,0 +1,8 @@
+.errorlist{
+    width: 60%;
+    background-color: #f900007d;
+    box-shadow: inset 0px 0px 1px 0px rgba(0, 0, 0, 0.48);
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+}

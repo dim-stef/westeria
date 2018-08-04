@@ -1,0 +1,27 @@
+/*.settings-button{
+    margin: 10px;
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+    padding: 0;
+    border: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}*/
+
+
+#id_url{
+    font-size: 20px;
+}
+
+@media all and (max-width: 1200px) {
+    .settings-btn-container{
+        display: none;
+    }
+
+    #id_url{
+        font-size: 15px;
+    }
+}

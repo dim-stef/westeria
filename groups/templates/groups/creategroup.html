@@ -1,0 +1,42 @@
+{% load static %}
+
+<div id="group-container" class="create-container">
+    <script type="text/javascript" src="{% static 'groups/js/creategroupajax.js' %}"></script>
+    <form class='group-form' enctype='multipart/form-data' method='POST' action='/creategroup/' data-url='/creategroup/'>
+        {% csrf_token %}
+        <ul class="errorlist">
+
+        </ul>
+        {{ form.non_field_errors }} {{ form.name.errors }}
+        <div class ="name-container">
+            <p class="name-label" for="id_name" id = "name-label" style="display: block;">Group name</p>
+            <p style="text-align: left; display: -moz-flex;
+            display: -webkit-flex;
+            display: -ms-flex;
+            display: flex;" id="name-container">
+                <span class="create-name-span" style="margin-right:2px;">www.subranch.com/</span>
+                <input class="create-inputs" name="name" maxlength="30" required="" id="id_name" type="text">
+                <span class="create-name-span" style="margin-right:2px;">tag</span>
+                
+            </p>
+            <p style="text-align:left;">
+                    <label style="display:inline;" for="id_accessibility">Accessibility</label>
+                    <select id="id_accessibility" name="accessibility">
+                        <option value="PU">Public</option>
+                        <option value="IO">Invite only</option>
+                    </select>
+            </p>
+            <p style="text-align:left;">
+                    <label for="id_description">Description</label>
+                    <textarea class="" rows="5" cols="60" name="description" maxlength="200" required="" id="id_description" type=""></textarea>
+            </p>
+
+            <p style="text-align:left;">
+                    <label style="display:inline;" for="id_over_18">Users must be over 18</label>
+                    <input style="display:inline;" type="checkbox" name="over_18" id="id_over_18">
+            </p>
+            
+        </div>
+        <button class="create-button" type='submit'>create</button>
+    </form>
+</div>

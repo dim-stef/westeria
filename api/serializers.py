@@ -1,0 +1,39 @@
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+from accounts.models import UserProfile
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ['id', 'last_login', 'email', 'is_active', 'is_staff']  #'__all__'
+        read_only_fields = ['id', 'last_login', 'email', 'is_active', 'is_staff']
+
+
+class UserAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = '__all__'
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'url', 'profile_image', 'fake_count']  #'__all__'
+        read_only_fields = ['user', 'fake_count']
+
+    def update(self, instance, validated_data):
+        instance.profile_image = validated_data.get('profile_image', instance.profile_image)
+        instance.save()
+        return instance
+
+
+class UserAdminProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
+
+    def update(self, instance, validated_data):
+        instance.profile_image = validated_data.get('profile_image', instance.profile_image)
+        instance.save()
+        return instance

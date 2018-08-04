@@ -1,0 +1,139 @@
+{% load static %}
+<!DOCTYPE html>
+
+
+<html lang="en">
+
+<head>
+
+    <link rel="stylesheet" type="text/css" href="{% static 'accounts/register.css' %}">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
+        crossorigin="anonymous">
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
+        crossorigin="anonymous"></script>-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+</head>
+
+<body onload="">
+    <div class="bar-container">
+        
+            <span class="centerer"></span>
+            <a href="http://localhost:8000/signup/"><img id="logo-img" src="{% static 'accounts/logo2.png' %}" alt=""></a>
+            
+       
+
+    </div>
+    <!--<div class="top-bar"></div>-->
+    <!--<svg viewBox="0 0 1280 70" preserveAspectRatio="none" id="headerCurve" fill="blue" role="presentation" aria-hidden="true"><polygon points="1280 0 1280 70 0 70" fill="rgb(34,34,34)"></polygon></svg>
+    -->
+
+    <div class="container-fluid">
+
+        <div class="row" style="margin-top:4%;">
+            <div class="col-md-4"></div>   <!--4 kai 4 gia mikrotera form-->
+            <div class="col-md-4 main-div">
+
+                <!--<form method="POST" id="register-form">-->
+                {% load i18n %}
+
+                <h1 style="text-align: center;">{% trans "Sign Up" %}</h1>
+
+
+
+                <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                    {% csrf_token %}
+                    <div class="col-sm-12">
+                        <p>{{form.first_name}}</p>
+                        <p>{{form.last_name}}</p>
+                        <p>{{form.email}}</p>
+                        <p>{{form.password1}}</p>
+                        <p>{{form.password2}}</p>
+                        
+                    </div>
+
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" /> {% endif %} {% if form.errors %} {% for field in form %} {% for error in field.errors %}
+                    <!--default error class :::: alert alert-error -->
+                    <div class="error alert">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                    {% endfor %} {% endfor %} {% for error in form.non_field_errors %}
+                    <div class="error alert">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                    {% endfor %} {% endif %}
+                    <div class="col-sm-12 text-align">
+                        <button class="register" type="submit">{% trans "Sign Up" %} &raquo;</button>
+                    </div>
+                </form>
+
+
+                <p class="text-align">{% blocktrans %}Already have an account?
+                    <a href="{{ login_url }}" style="color:rgb(0, 128, 202);">sign in</a>.{% endblocktrans %}</p>
+
+            </div>
+        </div>
+        
+
+    </div>
+    <footer class="_s5vm9" style="margin-top:20px;">
+        <!--<div class="row">
+            <div class="col-sm-3"></div>
+            <div class="col-sm-1"><a  href="" style="color:rgb(0, 155, 238);">text</a></div>
+            <div class="col-sm-1"><a  href="" style="color:rgb(0, 155, 238);">text</a></div>
+            <div class="col-sm-1"><a  href="" style="color:rgb(0, 155, 238);">text</a></div>
+            <div class="col-sm-1"><a  href="" style="color:rgb(0, 155, 238);">text</a></div>
+            <div class="col-sm-1"><a  href="" style="color:rgb(0, 155, 238);">text</a></div>
+            <div class="col-sm-1"><a  href="" style="color:rgb(0, 155, 238);">text</a></div>
+            <div class="col-sm-3"></div>
+        </div>-->
+        <!--<a class="_538w0" href="" style="color:rgb(0, 155, 238);">text</a>
+                <a class="_538w0" href="" style="color:rgb(0, 155, 238);">text</a>
+                <a class="_538w0" href="" style="color:rgb(0, 155, 238);">text</a>
+                <a class="_538w0" href="" style="color:rgb(0, 155, 238);">text</a>
+                <a class="_538w0" href="" style="color:rgb(0, 155, 238);">text</a>
+                <a class="_538w0" href="" style="color:rgb(0, 155, 238);">text</a> -->
+
+        <div class="_g7lf5">
+            <nav>
+                <ul>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                    <li class="_538w0">
+                        <a href="text"></a>
+                    </li>
+                </ul>
+            </nav>
+
+        </div>
+        <p class="text-align">copyrights</p>
+    </footer>
+    </div>
+    </div>
+    <script src="{% static 'accounts/jquery-3.2.1.js' %}" defer="defer"></script>
+    <script src="{% static 'accounts/events.js' %}" defer="defer"></script>
+    <script src="{% static 'accounts/formValidation.js' %}" defer="defer"></script>
+</body>
+
+
+</html>

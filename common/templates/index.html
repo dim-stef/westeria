@@ -1,0 +1,120 @@
+{% load static %}
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Subranch</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--<link rel="stylesheet" type="text/css" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.css" />-->
+    <link rel="stylesheet" type="text/css" href="{% static 'settings/settings.css' %}">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/croppie.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'css/errors.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'core/css/modal.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'groups/css/creategroup.css' %}" />
+
+</head>
+
+
+<body>
+
+
+    <div class="page">
+        <div id="modal-window"></div>
+        <div id = "creategroup-container">
+
+        </div>
+        <div id="mobile-content-container" class="main content">
+            <!--Small screen content-->
+        </div>
+
+        <div class="closed-drawer-container">
+            <button name="drawer" class="material-icons drawer-btn closed-drawer-btn">menu</button>
+            <!--<div class="closed-drawer">
+                <button class="material-icons closed-drawer-btn ripple">menu</button>
+            </div>-->
+        </div>
+
+        <div class="mobile-buttons-container">
+            <button id="feed-mobile" class="mobile-buttons material-icons" style="border-right: 1px solid rgba(0, 0, 0, 0.15);">home</button>
+            <button id="create-mobile" class="mobile-buttons material-icons" style="border-right: 1px solid rgba(0, 0, 0, 0.15); border-left: 1px solid rgba(0, 0, 0, 0.15);">create</button>
+            <button id="settings-mobile" class="mobile-buttons material-icons" style="border-right: 1px solid rgba(0, 0, 0, 0.15); border-left: 1px solid rgba(0, 0, 0, 0.15);">settings</button>
+            <button name="drawer" id="mobile-drawer" class="mobile-buttons mobile-drawer material-icons">menu</button>
+        </div>
+
+        <div class="container-side" id="container-side">
+            <button name="drawer" class="material-icons drawer-btn">menu</button>
+            <!--<div class="drawer-container">
+                <div class="drawer">
+                    <button class="material-icons drawer-btn ripple">menu</button>
+                </div>
+            </div>-->
+
+            <a class="prof" id="prof">
+                <!--<div id="img-container" class="img-container"></div>
+                <img src="upload/{{ user.profile.profile_image }}" class="prof-pic noselect" style="width:100%">-->
+            </a>
+
+            <div id="inner-container" class="inner-container">
+                <a class="feed" href="/" id="feed">
+                    <span class="main-buttons">Feed</span>
+                </a>
+                <a class="my-groups" href="/" id="my-groups">
+                    <span class="main-buttons">My groups</span>
+                </a>
+                <a class="map" href="/" id="map">
+                    <span class="main-buttons">Map</span>
+                </a>
+
+            </div>
+
+            <div class="utility-buttons-container">
+                <button id="settings" class="material-icons settings-button utility-buttons">settings</button>
+                <button id="create" class="material-icons utility-buttons">create</button>
+                <form method="post" action="/logout/">
+                    {% csrf_token %}
+                    <button type="submit" id="signout" class="fa fa-sign-out settings-button utility-buttons" style="font-size: 20px;"></button>
+                </form>
+            </div>
+
+
+        </div>
+
+
+        <div id="main-wrapper" class="main-wrapper">
+            <!--<div id="top-bar" style="visibility: hidden;" class="top-bar"></div>-->
+            <div id="wide-content-container">
+                <div id="content" class="content">
+                    <!--Wide screen content-->
+                    {% block content %} {% endblock %} {% block settings %} {% endblock %}
+
+                </div>
+            </div>
+        </div>
+        <div class="success-message-container" style="display:none;">
+            <p id="success-message"></p>
+        </div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="{% static 'js/csrf.js' %}"></script>
+        <script src="{% static 'js/uicontrol.js' %}"></script>
+        <script src="{% static 'js/ajax-related.js' %}"></script>
+        <script src="{% static 'settings/settings.js' %}"></script>
+        <script src="{% static 'js/croppie.js' %}"></script>
+        <!--<script src="{% static 'groups/js/creategroupajax.js' %}"></script>-->
+        
+    </div>
+
+
+
+
+
+
+
+</body>
+
+</html>
