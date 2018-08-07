@@ -25,7 +25,6 @@ $(document).ready(function () {
         $.ajax({
             url: "/settings",
             success: function () {
-                console.log("in");
                 $("#content").load("settings #settings-container",function(){
                     console.log("inner");
                 });
@@ -48,6 +47,20 @@ $(document).ready(function () {
 
         window.history.pushState({ page: '/' }, 'Subranch', '/');
     });
+
+    $("#map, #map-mobile").click(function (event) {
+        event.preventDefault();
+
+        $.ajax({
+            url: "/map",
+            success: function () {
+                $("#content").load("/map #content");
+            },
+        });
+
+        window.history.pushState({ page: '/map' }, 'Subranch', '/map');
+    });
+
 
     $("#create,#create-mobile").click(function (event) {
         event.preventDefault();

@@ -1,16 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from django.urls import reverse
+
 from django.views.generic.edit import UpdateView
 from accounts.models import UserProfile
 from .forms import SettingsUserProfileForm
 from .mixins import AjaxFormMixin
-
-
-
-def settings(request):
-    if request.method == 'GET':
-        return render(request, 'settings/settings.html')
 
 
 class SettingsUserProfileFormView(AjaxFormMixin, UpdateView):

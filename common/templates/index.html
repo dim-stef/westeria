@@ -17,6 +17,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/errors.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'core/css/modal.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'groups/css/creategroup.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'groups/css/index.css' %}" />
 
 </head>
 
@@ -67,7 +68,7 @@
                 <a class="my-groups" href="/" id="my-groups">
                     <span class="main-buttons">My groups</span>
                 </a>
-                <a class="map" href="/" id="map">
+                <a class="map" href="/map" id="map">
                     <span class="main-buttons">Map</span>
                 </a>
 
@@ -91,7 +92,7 @@
             <div id="wide-content-container">
                 <div id="content" class="content">
                     <!--Wide screen content-->
-                    {% block content %} {% endblock %} {% block settings %} {% endblock %}
+                    {% block content %} {% endblock %} {% block settings %} {% endblock %} {% block groups %} {% endblock %}
 
                 </div>
             </div>

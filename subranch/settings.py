@@ -39,14 +39,14 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 AUTH_USER_MODEL = 'accounts.User'
 
+LOGIN_URL = "/login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/signup"
-
-
 
 ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
 # ACCOUNT_FORMS = {'signup':'accounts.forms.SignupForm'}
 
+ASGI_APPLICATION = "subranch.routing.application"
 
 # Application definition
 
@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'widget_tweaks',
     'django_extensions',
+    'channels',
     'api',
     'core',
     'groups',

@@ -10,5 +10,5 @@ class CoreView(TemplateView):
             self.template_name = "core/content.html"
         else:
             self.template_name = "core/content_anon.html"
-        return super().dispatch(*args,**kwargs)
+        return super().dispatch(*args, **kwargs)
 
