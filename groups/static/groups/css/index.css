@@ -1,0 +1,18 @@
+.map-container{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.group{
+    border-radius:  50%;
+    background-color:  gray;
+    height:  100px;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    max-width: 140px;
+    align-items: center;
+    min-width: 100px;
+    word-break: break-all;
+}

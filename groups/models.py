@@ -23,8 +23,24 @@ class Group(models.Model):
     over_18 = models.BooleanField(default=False)
     tag = models.IntegerField(blank=True, null=True)
 
-    def __str__(self):
+    @property
+    def uri(self):
         return '%s.%d' % (self.name, self.tag)
+
+    def __str__(self):
+        return self.uri
+
+
+class GroupMessage(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
+    message = models.TextField(max_length=300)
+    message_html = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.message
 
 
 class Subscription(models.Model):

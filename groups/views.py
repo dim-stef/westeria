@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.views.generic.edit import FormView
+from django.views.generic import ListView
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db import IntegrityError
 from .models import Group
@@ -61,3 +61,9 @@ class GroupFormView(FormView):
         if not request.is_ajax():
             return HttpResponseRedirect(reverse("core:home"))
         return super().get(self)
+
+
+class GroupView(ListView):
+    model = Group
+    context_object_name = "groups"
+    template_name = "groups/index.html"

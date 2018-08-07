@@ -1,0 +1,16 @@
+{% extends "templates/index.html" %} {% block groups %}
+
+<div id="content" class="content">
+    <!--Wide screen content-->
+    <div class="map-container">
+
+{% for group in groups %}
+        <a class="group" >
+            
+    <p>{{ group.name }}</p>
+
+</a>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
