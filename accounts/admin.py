@@ -15,7 +15,7 @@ class CustomUserAdminForm(forms.ModelForm):
 
     permissions = forms.ModelMultipleChoiceField(
         Permission.objects.all(),
-        widget=FilteredSelectMultiple("permissions",is_stacked=False),required=False)
+        widget=FilteredSelectMultiple("permissions", is_stacked=False),required=False)
 
 
 class CustomUserAdmin(admin.ModelAdmin):
