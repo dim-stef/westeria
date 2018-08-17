@@ -1,0 +1,27 @@
+
+    {% for parent in parents.children.all %}
+        
+            <li>
+                <div class="group"><p>{{parent.name}}</p></div>
+                <ul>
+                    {% for child in parent.children.all %}
+                        <li><div class="group"><p>{{child.name}}</p></div></li>
+                    {% endfor %}
+                    <ul>
+                    {% for child in parent.children.all %}
+                        {% include 'groups/recursion.html' with parents=child %}
+                    {% endfor %}
+                    </ul>
+                </ul>
+            </li>
+        
+    {% endfor %}
+
+    
+        
+    
+
+
+
+
+
