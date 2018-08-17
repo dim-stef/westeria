@@ -4,6 +4,7 @@ from django.views.generic import ListView
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.http import JsonResponse
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from .models import Group
 from .forms import GroupForm
@@ -24,8 +25,17 @@ class GroupFormView(FormView):
     model = Group
     template_name = "groups/creategroup.html"
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
+
     def form_valid(self, form):
         group = form.save(commit=False)
+        group.owner = self.request.user
+        group.tag = unique_tag()
+        group.save()
+        '''group = form.save(commit=False)
         if Group.objects.filter(name=group.name).count() is 100:
             data = {
                 'error': "Too many groups with the same name"
@@ -36,11 +46,11 @@ class GroupFormView(FormView):
 
         try:
             group.save()
-        except IntegrityError:
+        except ValidationError:
             data = {
                 'error': "You already have a group named '%s'" % group.name
             }
-            return JsonResponse(data)
+            return JsonResponse(data, safe=False, status=400)'''
 
         if self.request.is_ajax():
             print(form.cleaned_data)
@@ -53,7 +63,7 @@ class GroupFormView(FormView):
 
     def form_invalid(self, form):
         if self.request.is_ajax():
-            return JsonResponse(form.errors, status=400)
+            return JsonResponse(form.errors, safe=False, status=400)
         else:
             return super().form_invalid(form)
 
@@ -65,5 +75,13 @@ class GroupFormView(FormView):
 
 class GroupView(ListView):
     model = Group
-    context_object_name = "groups"
+    #context_object_name = "groups"
     template_name = "groups/index.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['groups'] = Group.objects.all()
+        context['global'] = Group.objects.get(name='global', tag=None)
+        context['children'] = context['global'].children.all()
+
+        return context
