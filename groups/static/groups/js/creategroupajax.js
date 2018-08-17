@@ -28,25 +28,22 @@ $(document).ready(function () {
     })
 
     function handleFormSuccess(data, textStatus, jqXHR){
-    
-        if(data.success){
-            $('#success-message').html(data.success);
-        }
-        else{
-            if($("#name-error").length){
-                $('#name-error').html(data.error);
-            }else{
-                $( '<p id = "name-error">' + data.error + '</p>' ).insertAfter( "#name-container" );
-            }
-            document.getElementById("name-label").classList.add("name-label-error");
-            document.getElementById("id_name").classList.add("name-error");
-        }
+        $('#success-message').html(data.success);
+
         
         //$myForm.reset(); // reset form data
     }
 
     function handleFormError(jqXHR, textStatus, errorThrown){
         console.log(jqXHR)
+        console.log(jqXHR.responseJSON.name[0])
+        if($("#name-error").length){
+            $('#name-error').html(jqXHR.responseJSON.name[0]);
+        }else{
+            $( '<p id = "name-error">' + jqXHR.responseJSON.name[0] + '</p>' ).insertAfter( "#name-container" );
+        }
+        document.getElementById("name-label").classList.add("name-label-error");
+        document.getElementById("id_name").classList.add("name-error");
         console.log(textStatus)
         console.log(errorThrown)
     }
