@@ -1,16 +1,20 @@
 {% extends "templates/index.html" %} {% block groups %}
 
-<div id="content" class="content">
-    <!--Wide screen content-->
-    <div class="map-container">
+<div class="map-container">
+    <div>
 
-{% for group in groups %}
-        <a class="group" >
+                {% with parents=global %}
+                <ul class="tree">
+                        <li>
+                            <div class="group"><p>Global</p></div>
+                            <ul>
+                            {% include "groups/recursion.html" %}
+                            </ul>
+                        </li>
+                </ul>
+                {% endwith %}
             
-    <p>{{ group.name }}</p>
-
-</a>
-        {% endfor %}
+            
     </div>
 </div>
 {% endblock %}
