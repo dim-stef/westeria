@@ -12,3 +12,6 @@ class CoreView(TemplateView):
             self.template_name = "core/content_anon.html"
         return super().dispatch(*args, **kwargs)
 
+
+class GoogleView(TemplateView):
+    template_name = "core/google0677b618caac6923.html"
