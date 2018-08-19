@@ -1,20 +1,27 @@
 
     {% for parent in parents.children.all %}
-        
+
+        <script>arr.push("{{parent.name}}")</script>
             <li>
-                <div class="group"><p>{{parent.name}}</p></div>
+                    <a class="group"><p>{{parent.name}}</p></a>
+                    <span>{{parent.name}}</span>
                 <ul>
                     {% for child in parent.children.all %}
-                        <li><div class="group"><p>{{child.name}}</p></div></li>
+                        <script>arr.push("{{child.name}}")</script>
+                        <li>
+                            <a class="group"><p>{{child.name}}</p></a>
+                            <span>{{child.name}}</span>
+                            <ul>
+                                {% include 'groups/recursion.html' with parents=child %}
+                            </ul>
+                        </li>
                     {% endfor %}
-                    <ul>
-                    {% for child in parent.children.all %}
-                        {% include 'groups/recursion.html' with parents=child %}
-                    {% endfor %}
-                    </ul>
+
+
+
                 </ul>
             </li>
-        
+
     {% endfor %}
 
     
