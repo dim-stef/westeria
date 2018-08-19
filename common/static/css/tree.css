@@ -10,9 +10,11 @@ ul.tree ul {
   list-style-type: none;
 }
 ul.tree li {
-  display: block;
+  /*display: block;
+  float: left; old*/
+  display: inline-block;
   width: auto;
-  float: left;
+  
   vertical-align: top;
   padding: 0;
   margin: 0;
@@ -35,11 +37,6 @@ ul.tree li span {
   letter-spacing: normal;
 }
 
-body {
-  font-family:sans-serif;
-  color: #666;
-  text-align: center;
-}
 /*A, A:visited, A:active {
   color: #c00;
   text-decoration: none;
@@ -49,7 +46,7 @@ A:hover {
 }*/
 ul.tree,
 #wrapper {
-  /*width: 960px;*/
+  width: 960px;
   margin: 0 auto;
 }
 ul.tree {
@@ -57,7 +54,4 @@ ul.tree {
 }
 .clearer {
   clear: both;
-}
-p {
-  margin-top: 2em;
 }
