@@ -1,12 +1,19 @@
-{% extends "templates/index.html" %} {% block groups %}
+{% extends "templates/index.html" %}
+{% block mapMeta %}
+    <meta name="description" content="The subranch map is the easiest way to find your favorite communities. Due to the nature of its tree-like shape, finding what you like and what you might like is just a matter
+of visual exploration and navigation."></meta>
+{% endblock %}
+
+{% block groups %}
 
 <div class="map-container">
     <div>
 
                 {% with parents=global %}
+                    <script>var arr = []</script>
                 <ul class="tree">
                         <li>
-                            <div class="group"><p>Global</p></div>
+                            <a class="group"><p>Global</p></a>
                             <ul>
                             {% include "groups/recursion.html" %}
                             </ul>
