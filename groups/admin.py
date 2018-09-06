@@ -8,6 +8,7 @@ class GroupAdminForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = "__all__"
+        exclude = ['id']
 
     def clean(self):
         super().clean()
