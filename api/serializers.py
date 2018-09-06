@@ -1,6 +1,7 @@
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework import serializers
 from accounts.models import UserProfile
+from groups.models import Group
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,3 +38,10 @@ class UserAdminProfileSerializer(serializers.ModelSerializer):
         instance.profile_image = validated_data.get('profile_image', instance.profile_image)
         instance.save()
         return instance
+
+
+class GroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'owner', 'parents', 'children', 'name', 'uri']
+        read_only_fields = ['id', 'owner', 'parents', 'children', 'name', 'uri']
