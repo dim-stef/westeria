@@ -17,7 +17,7 @@ ul.tree li {
   
   vertical-align: top;
   padding: 0;
-  margin: 0;
+  margin: 15px 20px 15px 20px;
 }
 /*ul.tree ul li {
   background-image: url(data:image/gif;base64,R0lGODdhAQABAIABAAAAAP///ywAAAAAAQABAAACAkQBADs=);
@@ -46,7 +46,7 @@ A:hover {
 }*/
 ul.tree,
 #wrapper {
-  width: 960px;
+  width: 100%;
   margin: 0 auto;
 }
 ul.tree {
