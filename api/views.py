@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
-from accounts.models import UserProfile
-from rest_framework import viewsets
+import json
 from django.contrib.auth.mixins import UserPassesTestMixin
-from rest_framework import authentication, permissions
-from . import serializers
+from rest_framework import viewsets
 from rest_framework import viewsets, mixins
+from rest_framework import authentication, permissions
+from accounts.models import UserProfile
+from groups.models import Group
+from . import serializers
 
 
 class UserViewSet(mixins.RetrieveModelMixin,
@@ -46,4 +48,28 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
             queryset = UserProfile.objects.all()
         else:'''
         queryset = UserProfile.objects.filter(user=user.profile.user)
+        return queryset
+
+
+class GroupViewSet(mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        viewsets.GenericViewSet):
+
+    serializer_class = serializers.GroupSerializer
+
+    def get_queryset(self):
+        queryset = Group.objects.none()
+        if self.kwargs['pk']:
+            queryset = Group.objects.filter(id=self.kwargs['pk'])
+
+        return queryset
+
+
+class GroupRootViewSet(viewsets.GenericViewSet,
+                       mixins.ListModelMixin):
+
+    serializer_class = serializers.GroupSerializer
+
+    def get_queryset(self):
+        queryset = Group.objects.filter(name="ROOT", tag=None)
         return queryset
