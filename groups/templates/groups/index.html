@@ -1,4 +1,4 @@
-{% extends "templates/index.html" %}
+{% extends "templates/index.html" %}{% load static %}
 {% block mapMeta %}
     <meta name="description" content="The subranch map is the easiest way to find your favorite communities. Due to the nature of its tree-like shape, finding what you like and what you might like is just a matter
 of visual exploration and navigation."></meta>
@@ -7,21 +7,38 @@ of visual exploration and navigation."></meta>
 {% block groups %}
 
 <div class="map-container">
-    <div>
+    <div style="width: 100%;">
 
                 {% with parents=global %}
                     <script>var arr = []</script>
-                <ul class="tree">
-                        <li>
-                            <a class="group"><p>Global</p></a>
-                            <ul>
+
+                <ul id = "tree" class="tree">
+                        <li id="tree-root">
+                            <a class="group-link">
+                                <div class="group-container" id="global">
+                                    <div class="group"></div>
+                                <span>global</span>
+                                </div>
+
+                            </a>
+
                             {% include "groups/recursion.html" %}
-                            </ul>
+
                         </li>
+
+                <script>
+                    document.addEventListener("DOMContentLoaded", function(event) {
+                        jsPlumb.ready(function() {
+                            jsPlumb.setContainer("body");
+                        });
+                    });</script>
                 </ul>
                 {% endwith %}
             
             
     </div>
+
+<script type="text/javascript" src="{% static 'js/groupApp.js' %}"></script>
 </div>
+
 {% endblock %}
