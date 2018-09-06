@@ -1,33 +1,33 @@
+{% load static %}
 
-    {% for parent in parents.children.all %}
+<ul>
+    {% for child in parents.children.all %}
 
-        <script>arr.push("{{parent.name}}")</script>
+        <script>arr.push("{{child.name}}")</script>
             <li>
-                    <a class="group"><p>{{parent.name}}</p></a>
-                    <span>{{parent.name}}</span>
+                <a class="group-link">
+                    <div class="group-container" id="{{ child }}">
+                        <div class="group"></div>
+                        <span>{{ child.name }}</span>
+                    </div>
+
+                </a>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function(event) {
+                        jsPlumb.ready(function() {
+                            jsPlumb.connect({
+                                connector: [ "Flowchart" ], source:"{{ child.parents.first }}", target:"{{ child }}", anchor: ["Bottom", "Top"], endpoint:"Blank",
+                            });
+                        });
+                    });
+                </script>
                 <ul>
-                    {% for child in parent.children.all %}
-                        <script>arr.push("{{child.name}}")</script>
-                        <li>
-                            <a class="group"><p>{{child.name}}</p></a>
-                            <span>{{child.name}}</span>
-                            <ul>
-                                {% include 'groups/recursion.html' with parents=child %}
-                            </ul>
-                        </li>
-                    {% endfor %}
-
-
-
+                    {% include 'groups/recursion.html' with parents=child %}
                 </ul>
-            </li>
+        <li></ul>
+
 
     {% endfor %}
-
-    
-        
-    
-
 
 
 
