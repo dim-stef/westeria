@@ -5,10 +5,6 @@ $(document).ready(function () {
     window.history.pushState({ page: pathname}, 'Subranch', pathname);
 });
 
-
-$( window ).resize(function() {
-   jsPlumb.repaintEverything(); //firstInstance.repaintEverything();
-});
 /*
 Profile picture control*/
 $(function () {
@@ -38,7 +34,6 @@ $(function () {
 $(function () {
     if ($(window).width() < 1200) {
         $("#content").appendTo("#mobile-content-container");
-        jsPlumb.repaintEverything();
     }
 });
 
@@ -59,13 +54,11 @@ $(document).on("touchstart", "#img-container", function () {
 
 
 $(function () {
-
     $('.drawer-btn, #mobile-drawer').click(function (event) {
         document.getElementById("mobile-content-container").classList.toggle("mobile-slider");
         document.getElementById("main-wrapper").classList.toggle("content-drawer");
         document.getElementById("container-side").classList.toggle("slider");
         document.getElementById("prof").classList.toggle("prof-remove-shadow");
-        jsPlumb.repaintEverything();
     });
 });
 
