@@ -4,26 +4,17 @@
     {% for child in parents.children.all %}
 
         <script>arr.push("{{child.name}}")</script>
-            <li>
-                <a class="group-link">
-                    <div class="group-container" id="{{ child }}">
-                        <div class="group"></div>
-                        <span>{{ child.name }}</span>
-                    </div>
+        <li>
+            <a class="group-link">
+                <div class="group-container" id="{{ child }}">
+                    <div class="group"></div>
+                    <span>{{ child.name }}</span>
+                </div>
 
-                </a>
-                <script>
-                    document.addEventListener("DOMContentLoaded", function(event) {
-                        jsPlumb.ready(function() {
-                            jsPlumb.connect({
-                                connector: [ "Flowchart" ], source:"{{ child.parents.first }}", target:"{{ child }}", anchor: ["Bottom", "Top"], endpoint:"Blank",
-                            });
-                        });
-                    });
-                </script>
-                <ul>
-                    {% include 'groups/recursion.html' with parents=child %}
-                </ul>
+            </a>
+            <ul>
+                {% include 'groups/recursion.html' with parents=child %}
+            </ul>
         <li></ul>
 
 
