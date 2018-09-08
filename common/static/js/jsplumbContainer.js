@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", function(event) {
     jsPlumb.ready(function() {
-        jsPlumb.setContainer("body");
+        jsPlumb.setContainer("map-container");
     });
 });
