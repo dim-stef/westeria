@@ -1,44 +1,18 @@
 {% extends "templates/index.html" %}{% load static %}
 {% block mapMeta %}
-    <meta name="description" content="The subranch map is the easiest way to find your favorite communities. Due to the nature of its tree-like shape, finding what you like and what you might like is just a matter
-of visual exploration and navigation."></meta>
+    <meta name="description" content="The subranch map is the easiest way to find your favorite communities. Due to the nature of its tree-like shape, finding what you like and what you might like is just a matter of visual exploration and navigation."></meta>
 {% endblock %}
 
 {% block groups %}
 
-<div class="map-container">
-    <div style="width: 100%;">
-
-                {% with parents=global %}
-                    <script>var arr = []</script>
-
-                <ul id = "tree" class="tree">
-                        <li id="tree-root">
-                            <a class="group-link">
-                                <div class="group-container" id="global">
-                                    <div class="group"></div>
-                                <span>global</span>
-                                </div>
-
-                            </a>
-
-                            {% include "groups/recursion.html" %}
-
-                        </li>
-
-                <script>
-                    document.addEventListener("DOMContentLoaded", function(event) {
-                        jsPlumb.ready(function() {
-                            jsPlumb.setContainer("body");
-                        });
-                    });</script>
+    <div class="map-container">
+        <div id="tree-container" style="position: relative;">
+                <ul id="tree" class="tree">
                 </ul>
-                {% endwith %}
-            
-            
-    </div>
+        </div>
 
-<script type="text/javascript" src="{% static 'js/groupApp.js' %}"></script>
-</div>
+        <script type="text/javascript" src="{% static 'js/groupApp.js' %}"></script>
+        <script type="text/javascript" src="{% static 'groups/js/jsPlumbContainer.js' %}"></script>
+    </div>
 
 {% endblock %}
