@@ -10,9 +10,9 @@ from . import serializers
 
 
 class UserViewSet(mixins.RetrieveModelMixin,
-                    #mixins.DestroyModelMixin,
-                    mixins.ListModelMixin,
-                    viewsets.GenericViewSet):
+                  # mixins.DestroyModelMixin,
+                  mixins.ListModelMixin,
+                  viewsets.GenericViewSet):
 
     def get_serializer_class(self):
         user = self.request.user
@@ -31,9 +31,9 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
 
 class UserProfileViewSet(mixins.RetrieveModelMixin,
-                        mixins.UpdateModelMixin,
-                        mixins.ListModelMixin,
-                        viewsets.GenericViewSet):
+                         mixins.UpdateModelMixin,
+                         mixins.ListModelMixin,
+                         viewsets.GenericViewSet):
 
     def get_serializer_class(self):
         user = self.request.user
@@ -52,9 +52,8 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
 
 
 class GroupViewSet(mixins.RetrieveModelMixin,
-                        mixins.ListModelMixin,
-                        viewsets.GenericViewSet):
-
+                   mixins.ListModelMixin,
+                   viewsets.GenericViewSet):
     serializer_class = serializers.GroupSerializer
 
     def get_queryset(self):
@@ -67,7 +66,6 @@ class GroupViewSet(mixins.RetrieveModelMixin,
 
 class GroupRootViewSet(viewsets.GenericViewSet,
                        mixins.ListModelMixin):
-
     serializer_class = serializers.GroupSerializer
 
     def get_queryset(self):
