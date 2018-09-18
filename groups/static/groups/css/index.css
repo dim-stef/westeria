@@ -26,3 +26,8 @@
 .group-container{
     display: inline-block;
 }
+
+.item-container{
+    align-items: center;
+    display: inline-flex;
+}
