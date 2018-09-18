@@ -61,13 +61,3 @@ $(function () {
         document.getElementById("prof").classList.toggle("prof-remove-shadow");
     });
 });
-
-
-$(function () {
-    var checkContents = setInterval(function(){
-        //console.log("in");
-        if ($("#global").length === 0){
-            jsPlumb.repaintEverything();
-        }
-    },1000);
-});
