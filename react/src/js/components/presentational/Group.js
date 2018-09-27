@@ -1,18 +1,23 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
+import {NodeContainer} from "../container/GroupContainer"
 const uuidv1 = require('uuid/v1');
 
+const REACT_VERSION = React.version;
+console.log(REACT_VERSION);
 
 function connector(parent, child) {
-    jsPlumb.ready(function () {
-        jsPlumb.connect({
-            connector: ["Flowchart"],
-            source: parent,
-            target: child,
-            anchor: ["Bottom", "Top"],
-            endpoint: "Blank",
+    if(parent && child){
+        jsPlumb.ready(function () {
+            jsPlumb.connect({
+                connector: ["Flowchart"],
+                source: parent,
+                target: child,
+                anchor: ["Bottom", "Top"],
+                endpoint: "Blank",
+            });
         });
-    });
+    }
 }
 
 function treeOverflow() {
@@ -29,16 +34,30 @@ class ExtendButton extends Component {
         super(props);
 
         this.state = {
-            visibility: this.props.visibility
+            newRoot: this.props.newRoot
         }
+        this.handleClick = this.handleClick.bind(this)
     }
-    componentDidUpdate() {
 
+    handleClick(){
+        console.log(this.state.newRoot);
+        this.props.updateNodeContainer(this.state.newRoot);
+    }
+
+    componentDidUpdate(){
+        if(this.props.visibility === "visible"){
+            
+        }
     }
 
     render() {
         return (
-            <button style={{ visibility: this.props.visibility }}></button>
+            //<NodeContainer root={null} msg={")))))"} key="1"/>
+            //<Node groups={null} key="1"/>
+            <button 
+            style={{ visibility: this.props.visibility }} 
+            onClick={this.handleClick}>
+            </button>
         )
     }
 }
@@ -48,12 +67,13 @@ class Group extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            group: this.props.group,
             name: this.props.name,
             childKey: this.props.childKey,
             display: "inline-block",
             visibility: "visible",
             hiddenChildren: 0,
-            buttonVisible: "hidden"
+            buttonVisible: "visible"
         }
         this.updateParent = this.updateParent.bind(this);
     }
@@ -66,19 +86,31 @@ class Group extends Component {
     }
 
     componentDidMount() {
+        if (this.state.name !== "ROOT" && this.state.name !== "global") {
+            connector(this.props.parentKey, this.state.childKey);  
+        }
+        if(this.domElement){
+            console.log(this.domElement.getBoundingClientRect())
+        }
+    }
+    /*componentDidMount(){
         if (treeOverflow() === true) {
             this.setState({ visibility: "hidden" }, () => {
-                this.props.updateParent();
+                //console.log(this.props)
+                if(this.props.updateParent){
+                    this.props.updateParent();
+                }
            });
-        }else{
-            if (this.state.name !== "ROOT" && this.state.name !== "global") {
-                connector(this.props.parentKey, this.state.childKey);
-            }
         }
-        
-    }
+
+        if (this.state.name !== "ROOT" && this.state.name !== "global") {
+            connector(this.props.parentKey, this.state.childKey);
+        }
+        jsPlumb.repaintEverything();
+    }*/
 
     componentDidUpdate() {
+        console.log("updated");
         if (this.state.hiddenChildren > 0 && this.state.buttonVisible === "hidden") {
             this.setState(prevState => ({
                 ...prevState,
@@ -99,9 +131,10 @@ class Group extends Component {
         if(this.state.visibility === "hidden"){
             return (null);
         }
-
+        
+        //console.log(this.props)
         return (
-            <li style={{ display: this.state.display }}>
+            <li style={{ display: this.state.display }} ref={(el) => {this.domElement = el}}>
                 <div class="item-container">
                     <a class="group-link">
                         <div class="group-container" id={this.state.childKey}>
@@ -109,7 +142,11 @@ class Group extends Component {
                             <span>{this.state.name}</span>
                         </div>
                     </a>
-                    <ExtendButton key={this.state.childKey} visibility={this.state.buttonVisible} />
+                    <ExtendButton 
+                    key={this.state.childKey}
+                    visibility={this.state.buttonVisible} 
+                    newRoot={this.state.group.id} 
+                    updateNodeContainer={this.props.updateNodeContainer} />
                 </div>
                 {React.cloneElement(this.props.children, { updateParent: this.updateParent })}
             </li>
@@ -122,10 +159,15 @@ export class Node extends Component {
         super(props);
 
         this.state = {
+            groups:null,
             root: this.props.groups,
         }
+
+        console.log("this.props");
+        console.log(this.props);
     }
 
+    
     collectGroups() {
         var key = this.state.root.key;
         if (this.state.root.name == "ROOT") {
@@ -135,33 +177,41 @@ export class Node extends Component {
         let groups = [];
         groups = this.state.root.children.map((c) => {
             var childKey = c.key;
-
             return (
                 <Group
+                    group={c}
                     key={childKey}
-                    updateParent={this.props.updateParent}
                     id={c.uri}
                     name={c.name}
                     childKey={childKey}
-                    parentKey={key}>
-                    <Node groups={c} key={c.uri} />
+                    parentKey={key}
+                    updateParent={this.props.updateParent}
+                    updateNodeContainer={this.props.updateNodeContainer}>
+                    <Node groups={c} updateNodeContainer={this.props.updateNodeContainer} key={c.uri}/>
                 </Group>
             );
         });
+        //this.setState({groups:groups})
         return groups;
     }
 
+    componentWillReceiveProps(nextProps){
+        jsPlumb.deleteEveryEndpoint();
+        this.setState({root:nextProps.groups});
+    }
+
+    componentDidMount(){
+        //this.collectGroups();
+    }
 
     render() {
-        if (this.collectGroups()) {
-            return (
-                <ul>
-                    {this.collectGroups()}
-                </ul>
-            );
-        }
-        else {
-            return (null);
-        }
+        var groups = this.collectGroups();
+        console.log(groups);
+        return (
+            <ul>
+                {groups}
+            </ul>
+        );
+    
     }
 }
