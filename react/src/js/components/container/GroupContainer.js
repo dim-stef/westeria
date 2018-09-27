@@ -1,9 +1,10 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import Group, { Node } from "../presentational/Group";
+import { resolve } from "url";
 const uuidv1 = require('uuid/v1');
 
-function fetchGroup(group) {
+function fetchGroup(group, callback) {
     var uri;
     if (group === 'ROOT') {
         uri = '/api/';
@@ -11,137 +12,123 @@ function fetchGroup(group) {
     else {
         uri = '/api/groups/'
     }
-    return fetch(uri + group, { credentials: 'same-origin' })
-        .then(results => {
-            return results.json();
-        })
-        .then(data => {
-            return data;
-        });
+    return new Promise(resolve => {
+        fetch(uri + group, { credentials: 'same-origin' })
+            .then(results => {
+                return results.json();
+            })
+            .then(data => {
+                if (data.constructor === Array) {  //If group is ROOT
+                    data = data[0];
+                }
+                callback(data);
+                resolve();
+            });
+    })
 }
 
 
-class GroupContainer extends Component {  //  UNUSED!!!
+export class NodeContainer extends Component {
+    constructor(props) {
+        super(props);
 
-    constructor() {
-        super();
-
+        this.groups = [];
         this.state = {
-            group: 'ROOT',
-            name: '',
-            childrenID: '',
-            children: {},
+            doneCollecting: false,
+            groups: [],
+            root: this.props.root,
         }
+
+        this.updateNodeContainer = this.updateNodeContainer.bind(this);
     }
 
-    saveGroup(data, callback) {
+    async collectGroupsWrapper(group, callback) {
+        var groups = [];
+        var results = await this.collectGroups(group, groups)
+        console.log(results);
+        callback(results);
+    }
+
+    async collectGroups(group, groups, parents = { key: '', uri: '', id: '', name: '', children: [] }, wrapper = { key: '', uri: '', id: '', name: '', children: [] }) {
+
+        var uri;
+        if (group === 'ROOT') {
+            uri = '/api/';
+        }
+        else {
+            uri = '/api/groups/'
+        }
+
+        var response = await fetch(uri + group, { credentials: 'same-origin' })
+        var data = await response.json();
+
+
         if (data.constructor === Array) {  //If group is ROOT
             data = data[0];
         }
+        wrapper.key = uuidv1();
+        wrapper.uri = data.uri
+        wrapper.id = data.id;
+        wrapper.name = data.name;
+        
 
-
-        var childrenData = [];
-        var route = [];
-        const requests = data.children.map((c) => {
-            return fetchGroup(c).then((results) => {
-                console.log("fetched data: ");
-                console.log(results);
-                childrenData.push(results);
-            });
-        })
-
-        Promise.all(requests).then(() => {
-            this.setState({
-                group: data.id,
-                name: data.name,
-                childrenID: data.children,
-                children: childrenData,
-            }, callback);
-        });
-
-
-    }
-
-
-    componentDidMount() {
-        console.log(this.state.group);
-        fetchGroup(this.state.group).then((data) => this.saveGroup(data, () => {
-            console.log("this.state");
-            console.log(this.state);
-            this.state.childrenID.map((c) => {
-                fetchGroup(c).then((data2) => this.saveGroup(data2)).then(() => {
-                    console.log("data2");
-                    console.log(data2);
-                    console.log("c2");
-                    console.log(c);
-                });
-            });
-        }))
-        //fetchNext ->map(x,i) data.children -> <GroupList />
-    }
-    render() {
-        if (this.state.children.length) {
-            return <Node parentName={this.state.name} children={this.state.children} />;
+        /*const children = [];   ALTERNATIVE
+        for (const c of data.children) {
+          children.push(this.collectGroups(c, groups, wrapper));
         }
-        return (null);
-    }
-}
+        await Promise.all(children);*/
 
-class NodeContainer extends Component {
-    constructor() {
-        super();
-
-        this.groups = [];
-        this.max_depth = 0;
-        this.state = {
-            groups: [],
-            root: 'ROOT'
-        }
-
-    }
-
-    collectGroups(group, callback, parents = { key:'', uri: '', id: '', name: '', children: [] }, wrapper = { key:'', uri: '', id: '', name: '', children: [] }) {
-
-        fetchGroup(group).then((data) => {
-            if (data.constructor === Array) {  //If group is ROOT
-                data = data[0];
-            }
-
-            wrapper.key = uuidv1();
-            wrapper.uri = data.uri
-            wrapper.id = data.id;
-            wrapper.name = data.name;
-
-            data.children.map((c) => {
-                this.collectGroups(c, callback, wrapper);
+        data.children = await Promise.all(
+            data.children.map(async (c) => {
+                return this.collectGroups(c, groups, wrapper);
             })
-            
-            this.max_depth++;
+        )
+        if(parents.children){
             parents.children.push(wrapper);
+        }
+        
+        groups = parents;
+        return groups;
+    }
 
-            if (this.max_depth === 1) {
-                this.groups = parents;
-                //setTimeout(callback, 1000)
-                //callback(this.groups);
+    updateNodeContainer(newRoot) {
+        this.collectGroupsWrapper(newRoot, (groups) => {
+            console.log(groups)
+            if (groups.constructor === Object) {
+                var tmp = [];
+                tmp.push(groups);
+                this.setState(prevState => ({
+                    ...prevState,
+                    groups: tmp,
+                    doneCollecting: true,
+                    root: newRoot,
+                }), () => {
+                    //console.log(this.state);
+                })
             }
-            callback(this.groups);
         })
-
-        return;
     }
 
     componentDidMount() {
-        this.collectGroups(this.state.root, (groups) => {
-            this.setState({
-                groups: groups,
-                root: 'ROOT'
-            });
-        })
+        if (this.state.root) {
+            this.collectGroupsWrapper(this.state.root, (groups) => {
+                if (groups.constructor === Object) {
+                    var tmp = [];
+                    tmp.push(groups);
+                    this.setState(prevState => ({
+                        ...prevState,
+                        doneCollecting: true,
+                        groups: tmp,
+                    }))
+                }
+            })
+        }
     }
 
     render() {
-        if (this.state.groups.length !== 0) {
-            return <Node groups={this.state.groups} />
+        if (this.state.doneCollecting === true) {
+            //console.log(this.state.groups[0]);
+            return <Node groups={this.state.groups[0]} updateNodeContainer={this.updateNodeContainer} />
         }
         return (null);
     }
@@ -149,7 +136,7 @@ class NodeContainer extends Component {
 
 
 
-export default GroupContainer;
+//export default GroupContainer;
 
 const wrapper = document.getElementById("tree");
-wrapper ? ReactDOM.render(<NodeContainer />, wrapper) : false;
+wrapper ? ReactDOM.render(<NodeContainer root={"ROOT"} key="1" />, wrapper) : false;
