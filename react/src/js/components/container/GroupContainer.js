@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import Group, { Node } from "../presentational/Group";
 import { resolve } from "url";
+import { jsPlumb } from 'jsplumb'
+import Group, { Node } from "../presentational/Group";
 const uuidv1 = require('uuid/v1');
 
 function fetchGroup(group, callback) {
@@ -36,7 +37,7 @@ export class NodeContainer extends Component {
         this.state = {
             doneCollecting: false,
             groups: [],
-            root: this.props.root,
+            root: null,
         }
 
         this.updateNodeContainer = this.updateNodeContainer.bind(this);
@@ -70,7 +71,7 @@ export class NodeContainer extends Component {
         wrapper.uri = data.uri
         wrapper.id = data.id;
         wrapper.name = data.name;
-        
+
 
         /*const children = [];   ALTERNATIVE
         for (const c of data.children) {
@@ -83,10 +84,10 @@ export class NodeContainer extends Component {
                 return this.collectGroups(c, groups, wrapper);
             })
         )
-        if(parents.children){
+        if (parents.children) {
             parents.children.push(wrapper);
         }
-        
+
         groups = parents;
         return groups;
     }
@@ -95,48 +96,81 @@ export class NodeContainer extends Component {
         this.collectGroupsWrapper(newRoot, (groups) => {
             console.log(groups)
             if (groups.constructor === Object) {
-                var tmp = [];
-                tmp.push(groups);
                 this.setState(prevState => ({
                     ...prevState,
-                    groups: tmp,
+                    groups: groups,
                     doneCollecting: true,
                     root: newRoot,
-                }), () => {
-                    //console.log(this.state);
-                })
+                }))
             }
         })
     }
 
-    componentDidMount() {
-        if (this.state.root) {
+    componentDidUpdate(prevProps, prevState) {
+        if (this.state.root != prevState.root) {
             this.collectGroupsWrapper(this.state.root, (groups) => {
                 if (groups.constructor === Object) {
-                    var tmp = [];
-                    tmp.push(groups);
                     this.setState(prevState => ({
                         ...prevState,
                         doneCollecting: true,
-                        groups: tmp,
+                        groups: groups,
                     }))
                 }
             })
         }
     }
 
-    render() {
+    componentDidMount() {
+        console.log("mount")
+        
+        jsPlumb.ready(function () {
+            jsPlumb.setContainer("tree-container");
+        });
+        this.setState({ root: this.props.root })
+    }
+
+    render() { //TODO : runs 2 times if group buttons pressed (1 from updateNodeContainer, 1 from didupdate)
         if (this.state.doneCollecting === true) {
-            //console.log(this.state.groups[0]);
-            return <Node groups={this.state.groups[0]} updateNodeContainer={this.updateNodeContainer} />
+            return <Node groups={this.state.groups} updateNodeContainer={this.updateNodeContainer} key="node"/>
         }
         return (null);
     }
 }
 
+export class Tree extends Component {
+    constructor(props){
+        super(props)
+        this.state = {
+            root:null
+        }
+        console.log("cons")
+    }
 
+    componentDidMount(){
+        this.setState({root:this.props.root})
+    }
 
-//export default GroupContainer;
+    render() {
+        console.log("tree rendered")
+        return (
+            <div id="map-container" class="map-container" >
+                <div id="tree-container" style={{ position: "relative" }}>
+                    <ul id="tree" class="tree">
+                        <NodeContainer root={this.props.root} key="NodeContainer"/>
+                    </ul>
+                </div>
+            </div>
+        )
+    }
+}
 
-const wrapper = document.getElementById("tree");
-wrapper ? ReactDOM.render(<NodeContainer root={"ROOT"} key="1" />, wrapper) : false;
+export class Test extends Component {
+    render(){
+        return(
+            <div>1</div>
+        )
+    }
+}
+
+/*const wrapper = document.getElementById("tree");
+wrapper ? ReactDOM.render(<NodeContainer root={"ROOT"} />, wrapper) : false;*/
