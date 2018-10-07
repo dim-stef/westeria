@@ -1,13 +1,17 @@
 import React, { Component } from "react";
+import { Link } from 'react-router-dom'
 import PropTypes from "prop-types";
-import {NodeContainer} from "../container/GroupContainer"
+import { NodeContainer, Tree } from "../container/GroupContainer"
 const uuidv1 = require('uuid/v1');
 
 const REACT_VERSION = React.version;
 console.log(REACT_VERSION);
 
 function connector(parent, child) {
-    if(parent && child){
+    parent = document.getElementById(parent)
+    child = document.getElementById(child)
+    if (parent && child) {
+        console.log("connect")
         jsPlumb.ready(function () {
             jsPlumb.connect({
                 connector: ["Flowchart"],
@@ -39,14 +43,14 @@ class ExtendButton extends Component {
         this.handleClick = this.handleClick.bind(this)
     }
 
-    handleClick(){
+    handleClick() {
         console.log(this.state.newRoot);
         this.props.updateNodeContainer(this.state.newRoot);
     }
 
-    componentDidUpdate(){
-        if(this.props.visibility === "visible"){
-            
+    componentDidUpdate() {
+        if (this.props.visibility === "visible") {
+
         }
     }
 
@@ -54,9 +58,9 @@ class ExtendButton extends Component {
         return (
             //<NodeContainer root={null} msg={")))))"} key="1"/>
             //<Node groups={null} key="1"/>
-            <button 
-            style={{ visibility: this.props.visibility }} 
-            onClick={this.handleClick}>
+            <button
+                style={{ visibility: this.props.visibility }}
+                onClick={this.handleClick}>
             </button>
         )
     }
@@ -87,10 +91,11 @@ class Group extends Component {
 
     componentDidMount() {
         if (this.state.name !== "ROOT" && this.state.name !== "global") {
-            connector(this.props.parentKey, this.state.childKey);  
+            connector(this.props.parentKey, this.state.childKey);
         }
-        if(this.domElement){
-            console.log(this.domElement.getBoundingClientRect())
+
+        if (this.domElement) {
+            //console.log(this.domElement.getBoundingClientRect())
         }
     }
     /*componentDidMount(){
@@ -106,11 +111,13 @@ class Group extends Component {
         if (this.state.name !== "ROOT" && this.state.name !== "global") {
             connector(this.props.parentKey, this.state.childKey);
         }
-        jsPlumb.repaintEverything();
     }*/
 
     componentDidUpdate() {
-        console.log("updated");
+        if (this.state.name !== "ROOT" && this.state.name !== "global") {
+            connector(this.props.parentKey, this.state.childKey);
+        }
+
         if (this.state.hiddenChildren > 0 && this.state.buttonVisible === "hidden") {
             this.setState(prevState => ({
                 ...prevState,
@@ -128,25 +135,27 @@ class Group extends Component {
             );
         }
 
-        if(this.state.visibility === "hidden"){
+        if (this.state.visibility === "hidden") {
             return (null);
         }
-        
-        //console.log(this.props)
+
         return (
-            <li style={{ display: this.state.display }} ref={(el) => {this.domElement = el}}>
+            <li style={{ display: this.state.display }} ref={(el) => { this.domElement = el }}>
                 <div class="item-container">
-                    <a class="group-link">
+                    <li id="id" class="group-link">
+                        <Link to={"/" + this.props.id}>Home</Link>
+                    </li>
+                    <a href="#" class="group-link">
                         <div class="group-container" id={this.state.childKey}>
                             <div class="group"></div>
                             <span>{this.state.name}</span>
                         </div>
                     </a>
-                    <ExtendButton 
-                    key={this.state.childKey}
-                    visibility={this.state.buttonVisible} 
-                    newRoot={this.state.group.id} 
-                    updateNodeContainer={this.props.updateNodeContainer} />
+                    <ExtendButton
+                        key={this.state.childKey}
+                        visibility={this.state.buttonVisible}
+                        newRoot={this.state.group.id}
+                        updateNodeContainer={this.props.updateNodeContainer} />
                 </div>
                 {React.cloneElement(this.props.children, { updateParent: this.updateParent })}
             </li>
@@ -159,15 +168,12 @@ export class Node extends Component {
         super(props);
 
         this.state = {
-            groups:null,
+            groups: null,
             root: this.props.groups,
         }
-
-        console.log("this.props");
-        console.log(this.props);
     }
 
-    
+
     collectGroups() {
         var key = this.state.root.key;
         if (this.state.root.name == "ROOT") {
@@ -187,31 +193,41 @@ export class Node extends Component {
                     parentKey={key}
                     updateParent={this.props.updateParent}
                     updateNodeContainer={this.props.updateNodeContainer}>
-                    <Node groups={c} updateNodeContainer={this.props.updateNodeContainer} key={c.uri}/>
+                    <Node groups={c} updateNodeContainer={this.props.updateNodeContainer} />
                 </Group>
             );
         });
+
         //this.setState({groups:groups})
+
+        
         return groups;
     }
 
-    componentWillReceiveProps(nextProps){
+    componentWillReceiveProps(nextProps) {
         jsPlumb.deleteEveryEndpoint();
-        this.setState({root:nextProps.groups});
+        this.setState({ root: nextProps.groups });
     }
 
-    componentDidMount(){
-        //this.collectGroups();
+    componentWillUnmount(){
+        console.log("unmount")
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        console.log(prevProps,this.props,prevState)
+        console.log("updated")
+        jsPlumb.repaintEverything();
     }
 
     render() {
+        console.log("node rendered")
+        jsPlumb.repaintEverything();
         var groups = this.collectGroups();
-        console.log(groups);
         return (
             <ul>
                 {groups}
             </ul>
         );
-    
+
     }
 }
