@@ -1,7 +1,3 @@
-from django.shortcuts import render
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-
 from django.views.generic.edit import UpdateView
 from accounts.models import UserProfile
 from .forms import SettingsUserProfileForm
