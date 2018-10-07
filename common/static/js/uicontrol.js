@@ -1,10 +1,5 @@
 
 
-$(document).ready(function () {
-    var pathname = window.location.pathname;
-    window.history.pushState({ page: pathname}, 'Subranch', pathname);
-});
-
 /*
 Profile picture control*/
 $(function () {
