@@ -1,10 +1,11 @@
     const path = require("path");
     const HtmlWebPackPlugin = require("html-webpack-plugin");
     module.exports = {
-      //entry: ["./src/js/profileApp.js"],
       entry: {
         'profileApp': './src/js/profileApp.js',
         'groupApp': './src/js/groupApp.js',
+        'Router': './src/js/Router.js',
+        'Buttons': './src/js/components/NavigationButtons.js'
       },
       output: {
         path: path.resolve(__dirname, "dist"),
