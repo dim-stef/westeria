@@ -1,11 +1,9 @@
-from django.shortcuts import render
 from django.views.generic.edit import FormView
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.http import JsonResponse
-from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.http import Http404
 from .models import Group
 from .forms import GroupForm
 from .mixins import AjaxFormMixin
@@ -73,9 +71,8 @@ class GroupFormView(FormView):
         return super().get(self)
 
 
-class GroupView(ListView):
+class GroupTreeView(ListView):
     model = Group
-    #context_object_name = "groups"
     template_name = "groups/index.html"
 
     def get_context_data(self, **kwargs):
@@ -85,3 +82,23 @@ class GroupView(ListView):
         context['children'] = context['global'].children.all()
 
         return context
+
+
+class GroupView(ListView):
+    model = Group
+    template_name = "groups/group.html"
+
+    def get_queryset(self):
+        group = Group.objects.none()
+        nametag = self.kwargs['uri']
+        if Group.objects.filter(name__iexact=nametag).exists():
+            group = Group.objects.filter(name__iexact=nametag)
+        else:
+            name = nametag[:-4]
+            tag = nametag[-3:]
+            if tag.isnumeric():
+                group = Group.objects.filter(name__iexact=name, tag=tag)
+        if group:
+            return group
+        else:
+            raise Http404
