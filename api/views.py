@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 import json
 from django.contrib.auth.mixins import UserPassesTestMixin
-from rest_framework import viewsets
 from rest_framework import viewsets, mixins
 from rest_framework import authentication, permissions
 from accounts.models import UserProfile
@@ -34,6 +33,7 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
                          mixins.UpdateModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
         user = self.request.user
@@ -54,6 +54,7 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
 class GroupViewSet(mixins.RetrieveModelMixin,
                    mixins.ListModelMixin,
                    viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.GroupSerializer
 
     def get_queryset(self):
