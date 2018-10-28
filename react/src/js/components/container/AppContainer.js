@@ -13,7 +13,7 @@ const Routes = () => (
         <Switch>
             <Route exact path='/' component={(props) => <Test {...props} />}  />
             <Route exact path='/settings' component={(props) => <SettingsContainer {...props} />}  />
-            <Route path='/map' component={(props) => <Tree {...props} root={"ROOT"} key="Tree" />} />
+            <Route path='/map/:uri?' component={(props) => <Tree {...props} root={"ROOT"} key="Tree" />} />
         </Switch>
     </SideBar>
 )
