@@ -2,8 +2,10 @@ import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { resolve } from "url";
 import { jsPlumb } from 'jsplumb'
-import Group, { Node } from "../presentational/Group";
+import MediaQuery from 'react-responsive';
 const uuidv1 = require('uuid/v1');
+import { Node, MobileGroups } from "../presentational/Group";
+
 
 function fetchGroup(group, callback) {
     var uri;
@@ -33,45 +35,43 @@ export class NodeContainer extends Component {
     constructor(props) {
         super(props);
 
-        this.groups = [];
         this.state = {
             doneCollecting: false,
             groups: [],
-            root: null,
+            root: this.props.root,
         }
 
         this.updateNodeContainer = this.updateNodeContainer.bind(this);
     }
 
     async collectGroupsWrapper(group, callback) {
-        var groups = [];
-        var results = await this.collectGroups(group, groups)
-        console.log(results);
-        callback(results);
+        const results = await this.collectGroups(group)
+        const uri = '/api/groups/' + group + '/'
+        const respone = await fetch(uri, { credentials: 'same-origin' })
+        var parentData = await respone.json()
+        parentData.children = results.children;
+        parentData['key'] = uuidv1();
+        var wrapper = {
+            key: '',
+            uri: '',
+            id: '', 
+            name: '', 
+            children: [parentData]
+        }
+        
+        callback(wrapper);
     }
 
-    async collectGroups(group, groups, parents = { key: '', uri: '', id: '', name: '', children: [] }, wrapper = { key: '', uri: '', id: '', name: '', children: [] }) {
+    async collectGroups(group, 
+        parents = { key: '', uri: '', id: '', name: '', children: [] }) {
 
         var uri;
-        if (group === 'ROOT') {
-            uri = '/api/';
-        }
-        else {
-            uri = '/api/groups/'
-        }
 
-        var response = await fetch(uri + group, { credentials: 'same-origin' })
+        //uri = '/api/groups/' + group +'/children/?limit=10'
+        uri = `/api/groups/${group}/children/?limit=10`
+        console.log(uri)
+        var response = await fetch(uri, { credentials: 'same-origin' })
         var data = await response.json();
-
-
-        if (data.constructor === Array) {  //If group is ROOT
-            data = data[0];
-        }
-        wrapper.key = uuidv1();
-        wrapper.uri = data.uri
-        wrapper.id = data.id;
-        wrapper.name = data.name;
-
 
         /*const children = [];   ALTERNATIVE
         for (const c of data.children) {
@@ -79,17 +79,22 @@ export class NodeContainer extends Component {
         }
         await Promise.all(children);*/
 
-        data.children = await Promise.all(
-            data.children.map(async (c) => {
-                return this.collectGroups(c, groups, wrapper);
+        data.results = await Promise.all(
+            data.results.map(async (c) => {
+                let child = {
+                    key:uuidv1(),
+                    uri:c.uri,
+                    id:c.id,
+                    name:c.name,
+                    children:[]
+                }
+                parents.children.push(child);
+                console.log(parents)
+                return this.collectGroups(c.uri, child);
             })
         )
-        if (parents.children) {
-            parents.children.push(wrapper);
-        }
 
-        groups = parents;
-        return groups;
+        return parents;
     }
 
     updateNodeContainer(newRoot) {
@@ -106,27 +111,21 @@ export class NodeContainer extends Component {
         })
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (this.state.root != prevState.root) {
-            this.collectGroupsWrapper(this.state.root, (groups) => {
-                if (groups.constructor === Object) {
-                    this.setState(prevState => ({
-                        ...prevState,
-                        doneCollecting: true,
-                        groups: groups,
-                    }))
-                }
-            })
-        }
-    }
 
     componentDidMount() {
         console.log("mount")
         
         jsPlumb.ready(function () {
-            jsPlumb.setContainer("tree-container");
+            jsPlumb.setContainer("tree");
         });
-        this.setState({ root: this.props.root })
+
+        this.collectGroupsWrapper(this.state.root, (groups) => {
+            this.setState(prevState => ({
+                ...prevState,
+                doneCollecting: true,
+                groups: groups,
+            }))
+        })
     }
 
     render() { //TODO : runs 2 times if group buttons pressed (1 from updateNodeContainer, 1 from didupdate)
@@ -137,26 +136,74 @@ export class NodeContainer extends Component {
     }
 }
 
+
+class MobileGroupsContainer extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            root:this.props.root,
+            groups:null,
+        }
+    }
+
+    async collectGroups(group, updateState){
+        let uri;
+
+        uri = `/api/groups/${group}/`
+        let parentResponse = await fetch(uri, { credentials: 'same-origin' })
+        let parentData = await parentResponse.json()
+
+        uri = `/api/groups/${group}/children/?limit=10`;
+        let response = await fetch(uri, { credentials: 'same-origin' })
+        let data = await response.json();
+        console.log(data)
+
+        let children = data.results.map(c => c)
+        let groups = {
+            parent:parentData,
+            children:children
+        }
+        updateState(groups)
+    }
+
+    componentDidMount(){
+        this.collectGroups(this.state.root, (groups)=>{
+            this.setState({groups:groups})
+        })
+        
+    }
+
+    render(){
+        if(this.state.groups){
+            console.log("state", this.state.groups)
+            return <MobileGroups groups={this.state.groups}/>
+        }
+        return (null);
+    }
+}
+
+
 export class Tree extends Component {
     constructor(props){
         super(props)
         this.state = {
-            root:null
+            root:this.props.match.params.uri ? this.props.match.params.uri : this.props.root
         }
-        console.log("cons")
-    }
-
-    componentDidMount(){
-        this.setState({root:this.props.root})
+        console.log("props location =",this.props.match.params.uri)
     }
 
     render() {
         console.log("tree rendered")
         return (
             <div id="map-container" class="map-container" >
-                <div id="tree-container" style={{ position: "relative" }}>
+                <div id="tree-container" style={{ position: "relative", width:"100%" }}>
                     <ul id="tree" class="tree">
-                        <NodeContainer root={this.props.root} key="NodeContainer"/>
+                    <MediaQuery query="(min-width: 1201px)">
+                        <NodeContainer root={this.state.root} key="NodeContainer"/>
+                    </MediaQuery>
+                    <MediaQuery query="(max-width: 1200px)">
+                        <MobileGroupsContainer root={this.state.root} key="MobileGroupsContainer"/>
+                    </MediaQuery>
                     </ul>
                 </div>
             </div>
