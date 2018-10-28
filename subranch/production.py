@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'groups',
     'settings',
     'rest_framework',
+    'rest_framework_nested',
     'webpack_loader',
     'allauth',
     'accounts',
