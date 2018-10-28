@@ -1,21 +1,24 @@
 .map-container{
-    position: relative;
-    display: flex;
-    justify-content: center;
     text-align: center;
 }
 
 .group{
-    margin: auto;
+    position:absolute;
+    margin-top: auto;
+    margin-bottom: auto;
+    top: 0;
+    bottom: 0;
+    margin-left: 10px;
+
+    float: left;
     border-radius:  50%;
     background-color: #d6d6d6;
-    height:  100px;
-    display: inline-block;
+    height:  144px;
+    width: 144px;
     max-width: 140px;
     align-items: center;
-    min-width: 100px;
+    min-width: 48px;
     word-break: break-all;
-    width:100px;
 }
 
 
@@ -30,4 +33,44 @@
 .item-container{
     align-items: center;
     display: inline-flex;
+}
+
+.parent{
+    width: 100% !important;
+}
+
+@media all and (min-width: 1201px) {
+    .group{
+        height: 48px;
+        width: 48px;
+    }
+}
+
+@media all and (max-width: 1200px) {
+    .item-container{
+        width: 90%;
+        display: block;
+    }
+
+    .group-link{
+        width: 100%;
+    }
+
+    .group-container{
+        width: 100%;
+    }
+}
+
+@media all and (max-width: 800px) {
+    .group{
+        height:  92px;
+        width: 92px;
+    }
+}
+
+@media all and (max-width: 400px) {
+    .group{
+        height: 48px;
+        width: 48px;
+    }
 }
