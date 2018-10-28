@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accounts.models import UserProfile
 from groups.models import Group
+import json
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -43,5 +44,22 @@ class UserAdminProfileSerializer(serializers.ModelSerializer):
 class GroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = Group
-        fields = ['id', 'owner', 'parents', 'children', 'name', 'uri']
-        read_only_fields = ['id', 'owner', 'parents', 'children', 'name', 'uri']
+        fields = ['id', 'owner', 'parents', 'children', 'name', 'uri', 'children_uri_field']
+        read_only_fields = ['id', 'owner', 'parents', 'children', 'name', 'uri', 'children_uri_field']
+
+    children_uri_field = serializers.SerializerMethodField('children_uri')
+
+    def children_uri(self, group):
+        _group = Group.objects.get(uri=group)
+        print(_group)
+        children = []
+        for child in _group.children.all():
+            children.append(child.uri)
+        return children
+
+
+class ChildrenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Group
+        fields = ['id', 'owner', 'parents', 'children', 'name', 'uri', 'children_uri_field']
+        read_only_fields = ['id', 'owner', 'parents', 'children', 'name', 'uri', 'children_uri_field']
