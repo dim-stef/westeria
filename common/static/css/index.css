@@ -1,63 +1,121 @@
 body {
-    margin: 0px;
-    padding: 0px;
+    overflow-y: hidden;
+    margin: 0;
+    padding: 0;
     height: 100vh;
     font-family: Arial, Helvetica, sans-serif;
 }
 
-.page{
-    height: 100%;
-    
-	display: -webkit-box;
-	display: -moz-box;
-	display: -ms-flexbox;
-	display: -webkit-flex;
-    display: flex;
 
+.mobile-menu{
+    display: none;
+    float:left;
+    width: 100%;
 }
-  
+/*leipeie ena edo*/
 
+.name-missing{
+    flex: 1 1 auto;
+    align-items: center;
+    display: flex;
+}
 
-/*.bar1, .bar2, .bar3 {
-    width: 35px;
-    height: 5px;
-    background-color: #333;
-    margin: 6px 0;
-    transition: 0.4s;
-}*/
+.mobile-top-bar-container{
+    display: flex;
+    border-bottom: 1px solid #0B4051;
+    height: 50%;
+    background: #19586D;
+}
 
+.mobile-top-bar{
+    flex: 1 1 auto;
+    align-items: center;
+    display: flex;
+}
 
-/*.inner-container{
-    margin-top:60px;
-}*/
+.search-container{
+    width: 100%;
+    display: flex;
+    padding: 2px;
+}
 
+.search{
+    flex-grow: 2;
+    border: none;
+    background: none;
+    color: whitesmoke;
+    padding-left: 30px;
+}
+
+.search-button{
+    background-color: #19586D;
+    width: 72px;
+    padding: 0;
+    border: none;
+    border-right: 1px solid #0B4051;
+}
+
+.side-bar-container{
+    float:left;
+    height: 100vh;
+    /*width: 12%;*/
+    display: flex;
+}
+
+.utility-side-bar{
+    background-color: #1B5163;
+    flex-shrink: 0;
+    -webkit-box-align: center;
+    align-items: center;
+    color: rgb(222, 235, 255);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    width: 64px;
+    padding: 16px 0px;
+}
+
+.utility-top{
+    -webkit-box-flex: 1;
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: 0px;
+    text-align: center;
+}
 
 .container-side{
-    order: 1;
-	
-	position:fixed;
+	position:relative;
 	z-index:5;
-	
+
 	-webkit-order: 1;
     background-color:/*#19586df7*/#19586D;
     height: 100%;
-    width:13%;
-	
+
+
+	/*
+	For mobile
+
+	position:fixed;
+	width:13%;
 	display: -webkit-box;
 	display: -moz-box;
 	display: -ms-flexbox;
 	display: -webkit-flex;
 	display: flex;
-	
+
     justify-content: center;
     flex-wrap: wrap;
     align-content: center;
 	-webkit-justify-content: center;
     -webkit-flex-wrap: wrap;
-    -webkit-align-content: center; 
-    text-align: center;
+    -webkit-align-content: center;*/
 
+    text-align: center;
     transition: transform 0.8s;
+}
+
+.content{
+    position: relative;
 }
 
 .content-drawer{
@@ -422,24 +480,16 @@ body {
 }
 
 .main{
+    overflow: auto;
     order: 3;
 	-webkit-order: 3;
-    position: absolute;
     transition: height 0.8s;
     transition: margin 0.8s;
-    float: right;
-    bottom: 0;
-    right: 0;
 }
 
 .main-wrapper{
-    width: 87%;
-    transition: width 0.8s;
-	position:absolute;
-	right:0;
+    height: 100vh;
     overflow: auto;
-    order: 2;
-	-webkit-order: 2;
 }
 
 .top-bar{
@@ -496,14 +546,23 @@ body {
         margin-top:200px;
         width: 80% !important;
     }
-    .container-side{
+    .container-side {
         display: block;
     }
-    
     
 }
 
 @media all and (max-width: 1200px) {
+    .root-wrapper{
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .utility-side-bar{
+        display: none;
+    }
+
     .utility-buttons{
         display: none;
     }
@@ -519,10 +578,11 @@ body {
      }
      
     .container-side {
+        display: none;
         width: 100% ;
 		position:fixed;
         height: 130px;
-        align-items: center; 
+        align-items: center;
     }
 
     .drawer-btn{
@@ -554,10 +614,14 @@ body {
     }
 
     .main{
-        width:100%;
-        top: 0;
-        margin-top: 130px;
+
+    }
+    .mobile-menu{
         display: block;
+    }
+
+    .side-bar-container{
+        display: none;
     }
   }
 
@@ -565,20 +629,13 @@ body {
     .container-side {
         width: 100% ;
         height : 80px;
-        align-items: center; 
+        align-items: center;
     }
 
 
     .main-wrapper{
         display: none;
 		position:static;
-    }
-
-    .main{
-        width:100%;
-        top: 0;
-        margin-top: 80px;
-        display: block;
     }
   }
 
