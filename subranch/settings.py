@@ -25,7 +25,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
 ALLOWED_HOSTS = ['*']
 
 ACCOUNT_AUTHENTICATION_METHOD = "email"
@@ -66,6 +65,7 @@ INSTALLED_APPS = [
     'groups',
     'settings',
     'rest_framework',
+    'rest_framework_nested',
     'webpack_loader',
     'allauth',
     'accounts',
