@@ -75,6 +75,15 @@ class GroupTreeView(ListView):
     model = Group
     template_name = "groups/index.html"
 
+    def get(self, request, *args, **kwargs):
+        if 'uri' in kwargs:
+            if not Group.objects.filter(uri__exact=kwargs['uri']).exists():
+                if Group.objects.filter(uri__iexact=kwargs['uri']).exists():
+                    return HttpResponseRedirect(Group.objects.get(uri__iexact=kwargs['uri']).uri)
+                else:
+                    raise Http404()
+        return super().get(self)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['groups'] = Group.objects.all()
