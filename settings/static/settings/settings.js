@@ -6,6 +6,7 @@ $(document).ready(function () {
     var $myForm = $('.settings-form')
     $myForm.submit(function(event){
         event.preventDefault()
+        console.log("form submitted")
 
         var formElement = document.querySelector(".settings-form");
         var formData = new FormData(formElement);
