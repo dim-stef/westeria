@@ -7,7 +7,7 @@ from .models import Group
 class GroupForm(forms.ModelForm):
     class Meta:
         model = Group
-        exclude = ['owner', 'id', 'tag']
+        exclude = ['owner', 'id', 'tag', 'uri']
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')
