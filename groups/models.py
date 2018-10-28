@@ -6,7 +6,7 @@ import uuid
 
 class Group(models.Model):
     class Meta:
-        unique_together = ('owner', 'name')
+        unique_together = (('owner', 'name'), ('name', 'tag'))
 
     PUBLIC = 'PU'
     INVITE_ONLY = 'IO'
@@ -23,25 +23,24 @@ class Group(models.Model):
     description = models.TextField(blank=False, null=False, default="No description.", max_length=200)
     over_18 = models.BooleanField(default=False)
     tag = models.IntegerField(blank=True, null=True)
+    uri = models.CharField(blank=False, null=False, default=uuid.uuid4, max_length=60)
 
-    @property
+    '''@property
     def uri(self):
         if self.tag:
             return '%s.%d' % (self.name, self.tag)
         else:
-            return '%s' % self.name
+            return '%s' % self.name'''
 
     def __str__(self):
         return self.uri
 
-'''
-class GroupBranch(models.Model):
-    class Meta:
-        verbose_name_plural = "group_branches"
-        
-    parent = models.ManyToManyField(Group, related_name="parents")
-    child = models.ManyToManyField(Group, related_name="children")
-'''
+    def save(self, *args, **kwargs):
+        if self.tag:
+            self.uri = '%s.%d' % (self.name, self.tag)
+        else:
+            self.uri = '%s' % self.name
+        super().save(*args, **kwargs)
 
 
 class GroupMessage(models.Model):
