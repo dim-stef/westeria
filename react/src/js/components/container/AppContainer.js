@@ -3,6 +3,8 @@ import { Switch, Route, Link  } from 'react-router-dom'
 import { withRouter } from 'react-router'
 import { SideBar } from '../home'
 import { Tree, Test } from "./GroupContainer"
+import GroupHomeContainer from "../container/GroupHomeContainer"
+import GroupChatContainer from "../container/GroupChatContainer"
 import { SettingsContainer } from "./SettingsContainer"
 
 
@@ -13,7 +15,10 @@ const Routes = () => (
         <Switch>
             <Route exact path='/' component={(props) => <Test {...props} />}  />
             <Route exact path='/settings' component={(props) => <SettingsContainer {...props} />}  />
-            <Route path='/map/:uri?' component={(props) => <Tree {...props} root={"ROOT"} key="Tree" />} />
+            <Route path='/map/:uri?' component={(props) => <Tree {...props} root={"global"} key="Tree" />} />
+            <Route path='/:uri?/chat/:roomName?' component={(props) => <GroupChatContainer {...props} />} />
+            <Route path='/:uri?' component={(props) => <GroupHomeContainer {...props} />} />
+            
         </Switch>
     </SideBar>
 )
