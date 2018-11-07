@@ -1,6 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from accounts.models import User
+from groupchat.models import GroupChat
 import uuid
 
 
@@ -15,6 +18,13 @@ class Group(models.Model):
         (INVITE_ONLY, 'Invite only'),
     )
 
+    group_image = models.ImageField(upload_to='images/group_images/profile',
+                                    default='/images/group_images/profile/default.jpeg',
+                                    blank=False)
+    group_banner = models.ImageField(upload_to='images/group_images/banner',
+                                     default='/images/group_images/banner/default.jpeg',
+                                     blank=False)
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
     parents = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="children")
@@ -24,13 +34,6 @@ class Group(models.Model):
     over_18 = models.BooleanField(default=False)
     tag = models.IntegerField(blank=True, null=True)
     uri = models.CharField(blank=False, null=False, default=uuid.uuid4, max_length=60)
-
-    '''@property
-    def uri(self):
-        if self.tag:
-            return '%s.%d' % (self.name, self.tag)
-        else:
-            return '%s' % self.name'''
 
     def __str__(self):
         return self.uri
@@ -43,16 +46,11 @@ class Group(models.Model):
         super().save(*args, **kwargs)
 
 
-class GroupMessage(models.Model):
-    group = models.ForeignKey(Group, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL)
-    message = models.TextField(max_length=300)
-    message_html = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.message
+@receiver(post_save, sender=Group)
+def create_group_chat(sender, instance, created, **kwargs):
+    if created:
+        print(instance)
+        GroupChat.objects.create(group=instance)
 
 
 class Subscription(models.Model):
