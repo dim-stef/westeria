@@ -1,12 +1,5 @@
 {% extends "templates/index.html" %}{% load static %}
-{% block mapMeta %}
-    <meta name="description" content="The subranch map is the easiest way to find your favorite communities. Due to the nature of its tree-like shape, finding what you like and what you might like is just a matter of visual exploration and navigation."></meta>
+{% block meta %}
+        <title>{{ group.name }}</title>
+        <meta name="description" content="{{ group.description }}"/>
 {% endblock %}
-
-{% block groups %}
-
-
-{% endblock %}
-
-
-
