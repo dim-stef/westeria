@@ -25,10 +25,12 @@ django-filter==1.1.0
 django-js-asset==1.1.0
 django-mptt==0.9.1
 django-registration==2.3
+django-rest-framework-nested==0.0.1
 django-webpack-loader==0.6.0
 django-widget-tweaks==1.4.1
 djangorestframework==3.7.7
 djangorestframework-jwt==1.11.0
+drf-nested-routers==0.91
 graphviz==0.8.4
 h2==3.0.1
 hiredis==0.2.0
