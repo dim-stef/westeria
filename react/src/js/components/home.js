@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Link } from 'react-router-dom'
+import {Helmet} from "react-helmet";
 import $ from "jquery";
 
 
@@ -45,7 +46,7 @@ export class SideBar extends Component {
                 <div id="creategroup-container">
                 </div>
                 <div class="mobile-menu">
-                    <div style={{width: '100%', position: 'relative', height: 130, backgroundColor: '#266277', zIndex: 5}}>
+                    <div style={{width: '100%', position: 'relative', height: 100, backgroundColor: '#266277', zIndex: 5}}>
                         <div className="mobile-top-bar-container">
                             <div className="mobile-top-bar">
                                 <div className="search-container">
