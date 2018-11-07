@@ -1,8 +1,6 @@
 import React, { Component } from "react";
 import { Link } from 'react-router-dom'
 import sizeMe from "react-sizeme"
-import { NodeContainer, Tree } from "../container/GroupContainer"
-import { timingSafeEqual } from "crypto";
 const uuidv1 = require('uuid/v1');
 
 const REACT_VERSION = React.version;
@@ -130,9 +128,8 @@ class Group extends Component {
             return (null);
         }
 
-        if(this.state.hidden){
-            return (null);
-        }
+        var matches = this.state.name.match(/\b(\w)/g);
+        var initials = matches.join('')
         return (
             <li ref={(el) => { this.domElement = el }} style={{ display: this.state.display }}>
                 <div class="item-container">
@@ -141,8 +138,12 @@ class Group extends Component {
                     </li>
                     <Link to={"/" + this.props.id} className="group-link">
                         <div class="group-container" id={this.state.childKey}>
-                            <div style={{width:200, backgroundColor:"#efefef", display:"inline-block",paddingTop: '40.25%',position: 'relative'}}>
-                                <div class="group" style={{float:"left"}}></div>
+                            <div style={{width:200, backgroundColor:"#e7e7e7", display:"inline-block",
+                            paddingTop: '40.25%',position: 'relative',
+                            backgroundImage:`url(${this.state.group.group_banner})`,backgroundRepeat: "no-repeat",backgroundSize: "cover"}}>
+                                <div class="group">
+                                    <span>{initials}</span>
+                                </div>
                             </div>
                             <span style={{display: 'block'}}>{this.state.name}</span>
                         </div>
@@ -265,7 +266,7 @@ const PureGroup = ({styleName, style, group}) => {
                     <div style={{width:'100%', backgroundColor:"#efefef", display:"inline-block", paddingTop: '27.25%', position: 'relative'}}>
                         <div class="group"></div>
                     </div>
-                    <span style={{display: 'block'}}>{group.name}</span>
+                    <span style={{display: 'block',fontSize: '1.8rem'}}>{group.name}</span>
                 </div>
             </Link>
             <ExtendButton
