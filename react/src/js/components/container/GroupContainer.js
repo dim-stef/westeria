@@ -2,33 +2,11 @@ import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { resolve } from "url";
 import { jsPlumb } from 'jsplumb'
+import axios from 'axios'
 import MediaQuery from 'react-responsive';
+import {Helmet} from "react-helmet";
 const uuidv1 = require('uuid/v1');
 import { Node, MobileGroups } from "../presentational/Group";
-
-
-function fetchGroup(group, callback) {
-    var uri;
-    if (group === 'ROOT') {
-        uri = '/api/';
-    }
-    else {
-        uri = '/api/groups/'
-    }
-    return new Promise(resolve => {
-        fetch(uri + group, { credentials: 'same-origin' })
-            .then(results => {
-                return results.json();
-            })
-            .then(data => {
-                if (data.constructor === Array) {  //If group is ROOT
-                    data = data[0];
-                }
-                callback(data);
-                resolve();
-            });
-    })
-}
 
 
 export class NodeContainer extends Component {
@@ -47,31 +25,34 @@ export class NodeContainer extends Component {
     async collectGroupsWrapper(group, callback) {
         const results = await this.collectGroups(group)
         const uri = '/api/groups/' + group + '/'
-        const respone = await fetch(uri, { credentials: 'same-origin' })
-        var parentData = await respone.json()
+        const respone = await axios.get(uri, {withCredentials: true})
+        var parentData = respone.data
         parentData.children = results.children;
         parentData['key'] = uuidv1();
         var wrapper = {
             key: '',
             uri: '',
             id: '', 
-            name: '', 
+            name: '',
+            description:'',
+            group_banner:'',
+            group_image:'', 
             children: [parentData]
         }
+        console.log(wrapper)
         
         callback(wrapper);
     }
 
     async collectGroups(group, 
-        parents = { key: '', uri: '', id: '', name: '', children: [] }) {
+        parents = { key: '', uri: '', id: '', name: '',group_banner:'', group_image:'',  children: [] }) {
 
         var uri;
 
         //uri = '/api/groups/' + group +'/children/?limit=10'
         uri = `/api/groups/${group}/children/?limit=10`
-        console.log(uri)
-        var response = await fetch(uri, { credentials: 'same-origin' })
-        var data = await response.json();
+        var response = await axios.get(uri, {withCredentials: true})
+        var data = response.data;
 
         /*const children = [];   ALTERNATIVE
         for (const c of data.children) {
@@ -86,10 +67,12 @@ export class NodeContainer extends Component {
                     uri:c.uri,
                     id:c.id,
                     name:c.name,
+                    description:c.description,
+                    group_banner:c.group_banner,
+                    group_image:c.group_image, 
                     children:[]
                 }
                 parents.children.push(child);
-                console.log(parents)
                 return this.collectGroups(c.uri, child);
             })
         )
@@ -128,9 +111,22 @@ export class NodeContainer extends Component {
         })
     }
 
+    componentWillUnmount(){
+        jsPlumb.deleteEveryEndpoint();
+    }
+
     render() { //TODO : runs 2 times if group buttons pressed (1 from updateNodeContainer, 1 from didupdate)
         if (this.state.doneCollecting === true) {
-            return <Node groups={this.state.groups} updateNodeContainer={this.updateNodeContainer} key="node"/>
+            console.log(this.state.groups.children[0].name)
+            return (
+                <div>
+                    <Node groups={this.state.groups} updateNodeContainer={this.updateNodeContainer} key="node"/>
+                    <Helmet>
+                        <title>{this.state.groups.children[0].name} - Subranch Map</title>
+                        <meta name="description" content={`Check out ${this.state.groups.children[0].name} on Subranch map.`}/>
+                    </Helmet>
+                </div>
+            )
         }
         return (null);
     }
@@ -150,13 +146,12 @@ class MobileGroupsContainer extends Component{
         let uri;
 
         uri = `/api/groups/${group}/`
-        let parentResponse = await fetch(uri, { credentials: 'same-origin' })
-        let parentData = await parentResponse.json()
+        let parentResponse = await axios.get(uri, {withCredentials: true});
+        let parentData = parentResponse.data;
 
         uri = `/api/groups/${group}/children/?limit=10`;
-        let response = await fetch(uri, { credentials: 'same-origin' })
-        let data = await response.json();
-        console.log(data)
+        let response = await axios.get(uri, {withCredentials: true});
+        let data = response.data;
 
         let children = data.results.map(c => c)
         let groups = {
