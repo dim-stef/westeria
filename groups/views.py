@@ -73,7 +73,7 @@ class GroupFormView(FormView):
 
 class GroupTreeView(ListView):
     model = Group
-    template_name = "groups/index.html"
+    template_name = "groups/tree.html"
 
     def get(self, request, *args, **kwargs):
         if 'uri' in kwargs:
@@ -86,28 +86,34 @@ class GroupTreeView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['groups'] = Group.objects.all()
-        context['global'] = Group.objects.get(name='global', tag=None)
-        context['children'] = context['global'].children.all()
-
+        if 'uri' in self.kwargs:
+            context['group'] = Group.objects.get(uri__exact=self.kwargs['uri'])
+        else:
+            context['group'] = Group.objects.get(uri__exact='global')
         return context
 
 
 class GroupView(ListView):
     model = Group
-    template_name = "groups/group.html"
+    template_name = "groups/index.html"
+    group = Group.objects.none()
 
     def get_queryset(self):
-        group = Group.objects.none()
         nametag = self.kwargs['uri']
         if Group.objects.filter(name__iexact=nametag).exists():
-            group = Group.objects.filter(name__iexact=nametag)
+            self.group = Group.objects.filter(name__iexact=nametag)
         else:
             name = nametag[:-4]
             tag = nametag[-3:]
             if tag.isnumeric():
-                group = Group.objects.filter(name__iexact=name, tag=tag)
-        if group:
-            return group
+                self.group = Group.objects.filter(name__iexact=name, tag=tag)
+        if self.group:
+            return self.group
         else:
             raise Http404
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['group'] = self.group.first()
+        print(context['group'])
+        return context
