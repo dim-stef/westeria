@@ -28,8 +28,12 @@ class User(AbstractUser):
     username = models.CharField(blank=True, null=True, max_length=150)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
 
+    @property
+    def full_name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
     def __str__(self):
-        return '%s' % self.id
+        return '%s' % self.email
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
@@ -44,8 +48,8 @@ class UserProfile(CommonUserTypeInfo):
         related_name='profile',
     )
 
-    profile_image = models.ImageField(upload_to='images',
-                                      default='images\default.jpeg',
+    profile_image = models.ImageField(upload_to='images/users/profile',
+                                      default='/images/users/profile/default.jpeg',
                                       blank=False)
     fake_count = models.IntegerField(default=0)
 
