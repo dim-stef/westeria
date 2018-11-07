@@ -34,9 +34,6 @@ export class SettingsContainer extends Component {
         var formData = new FormData(formElement);
 
         $.ajax({
-            headers: {
-                'X-HTTP-Method-Override': 'PATCH'
-            },
             type: "POST",
             url: "/settings/",
             data: formData,
