@@ -1,4 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from groupchat.models import GroupMessage, GroupChat
 import json
 
 
@@ -26,24 +28,44 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
+        room_name = text_data_json['room_name']
+        group = text_data_json['group']
 
         # Send message to room group
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'name': self.scope["user"].full_name,
-                'message': message
+                'author_name': self.scope["user"].full_name,
+                'author_url': self.scope["user"].profile.url,
+                'author': str(self.scope["user"].id),
+                'message': message,
+                'message_html': message,
             }
         )
+
+        await self.create_message(room_name, group, message)
+
+    @database_sync_to_async
+    def create_message(self, room_name, group, message):
+        group_chat = GroupChat.objects.get(name__iexact=room_name, group=group)
+        GroupMessage.objects.create(group_chat=group_chat,
+                                    author=self.scope["user"],
+                                    message=message,
+                                    message_html=message
+                                    )
 
     # Receive message from room group
     async def chat_message(self, event):
         message = event['message']
-        name = event['name']
+        author_name = event['author_name']
+        author_url = event['author_url']
+        author = event['author']
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'name': name,
+            'author_name': author_name,
+            'author_url': author_url,
+            'author': author,
             'message': message
         }))
