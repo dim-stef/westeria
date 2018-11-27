@@ -1,12 +1,10 @@
 import React, { Component } from "react";
-import ReactDOM from "react-dom";
-import { resolve } from "url";
 import { jsPlumb } from 'jsplumb'
 import axios from 'axios'
 import MediaQuery from 'react-responsive';
 import {Helmet} from "react-helmet";
 const uuidv1 = require('uuid/v1');
-import { Node, MobileGroups } from "../presentational/Group";
+import { Node, MobileGroups, Groups } from "../presentational/Group";
 
 
 export class NodeContainer extends Component {
@@ -18,8 +16,6 @@ export class NodeContainer extends Component {
             groups: [],
             root: this.props.root,
         }
-
-        this.updateNodeContainer = this.updateNodeContainer.bind(this);
     }
 
     async collectGroupsWrapper(group, callback) {
@@ -27,16 +23,12 @@ export class NodeContainer extends Component {
         const uri = '/api/groups/' + group + '/'
         const respone = await axios.get(uri, {withCredentials: true})
         var parentData = respone.data
+        var parent = Object.assign({}, respone.data); 
+        console.log(parent)
         parentData.children = results.children;
         parentData['key'] = uuidv1();
         var wrapper = {
-            key: '',
-            uri: '',
-            id: '', 
-            name: '',
-            description:'',
-            group_banner:'',
-            group_image:'', 
+            parent:parent,
             children: [parentData]
         }
         console.log(wrapper)
@@ -80,21 +72,6 @@ export class NodeContainer extends Component {
         return parents;
     }
 
-    updateNodeContainer(newRoot) {
-        this.collectGroupsWrapper(newRoot, (groups) => {
-            console.log(groups)
-            if (groups.constructor === Object) {
-                this.setState(prevState => ({
-                    ...prevState,
-                    groups: groups,
-                    doneCollecting: true,
-                    root: newRoot,
-                }))
-            }
-        })
-    }
-
-
     componentDidMount() {
         console.log("mount")
         
@@ -117,10 +94,9 @@ export class NodeContainer extends Component {
 
     render() { //TODO : runs 2 times if group buttons pressed (1 from updateNodeContainer, 1 from didupdate)
         if (this.state.doneCollecting === true) {
-            console.log(this.state.groups.children[0].name)
             return (
                 <div>
-                    <Node groups={this.state.groups} updateNodeContainer={this.updateNodeContainer} key="node"/>
+                    <Node groups={this.state.groups} updateNodeContainer={this.updateNodeContainer} parent={this.state.groups.parent} key="node"/>
                     <Helmet>
                         <title>{this.state.groups.children[0].name} - Subranch Map</title>
                         <meta name="description" content={`Check out ${this.state.groups.children[0].name} on Subranch map.`}/>
@@ -133,7 +109,51 @@ export class NodeContainer extends Component {
 }
 
 
-class MobileGroupsContainer extends Component{
+export class GroupsContainer extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            root:this.props.root,
+            groups:null,
+        }
+    }
+
+    async collectGroups(group, updateState){
+        let uri;
+
+        uri = `/api/groups/${group}/`
+        let parentResponse = await axios.get(uri, {withCredentials: true});
+        let parentData = parentResponse.data;
+
+        uri = `/api/groups/${group}/children/?limit=10`;
+        let response = await axios.get(uri, {withCredentials: true});
+        let data = response.data;
+
+        let children = data.results.map(c => c)
+        let groups = {
+            parent:parentData,
+            children:children
+        }
+        updateState(groups)
+    }
+
+    componentDidMount(){
+        this.collectGroups(this.state.root, (groups)=>{
+            this.setState({groups:groups})
+        })
+        
+    }
+
+    render(){
+        if(this.state.groups){
+            console.log("state", this.state.groups)
+            return <Groups groups={this.state.groups}/>
+        }
+        return (null);
+    }
+}
+
+export class MobileGroupsContainer extends Component{
     constructor(props){
         super(props);
         this.state = {
@@ -178,41 +198,6 @@ class MobileGroupsContainer extends Component{
 }
 
 
-export class Tree extends Component {
-    constructor(props){
-        super(props)
-        this.state = {
-            root:this.props.match.params.uri ? this.props.match.params.uri : this.props.root
-        }
-        console.log("props location =",this.props.match.params.uri)
-    }
-
-    render() {
-        console.log("tree rendered")
-        return (
-            <div id="map-container" class="map-container" >
-                <div id="tree-container" style={{ position: "relative", width:"100%" }}>
-                    <ul id="tree" class="tree">
-                    <MediaQuery query="(min-width: 1201px)">
-                        <NodeContainer root={this.state.root} key="NodeContainer"/>
-                    </MediaQuery>
-                    <MediaQuery query="(max-width: 1200px)">
-                        <MobileGroupsContainer root={this.state.root} key="MobileGroupsContainer"/>
-                    </MediaQuery>
-                    </ul>
-                </div>
-            </div>
-        )
-    }
-}
-
-export class Test extends Component {
-    render(){
-        return(
-            <div>1</div>
-        )
-    }
-}
 
 /*const wrapper = document.getElementById("tree");
 wrapper ? ReactDOM.render(<NodeContainer root={"ROOT"} />, wrapper) : false;*/
