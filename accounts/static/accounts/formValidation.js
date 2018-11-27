@@ -1,5 +1,5 @@
 (function () {
-    var username = document.getElementById("username");
+    var username = document.getElementById("id_login");
     var activeError = 0;
     username.addEventListener("input", function () {
         var namePattern = /^[a-zA-Z ]+$/;
@@ -19,6 +19,9 @@
         }
     });
 })();
+
+/*
+Full-name validation
 
 (function () {
     var fullName = document.getElementById("full-name");
@@ -53,10 +56,10 @@
             }
         }
     });
-})();
+})();*/
 
 (function () {
-    var password = document.getElementById("password");
+    var password = document.getElementById("id_password");
     var activeError = 0;
     password.addEventListener("input", function () {
         var pattern = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
@@ -78,8 +81,8 @@
 })();
 
 (function () {
-    var confPassword = document.getElementById("conf-password");
-    var password = document.getElementById("password");
+    var confPassword = document.getElementById("id_password1");
+    var password = document.getElementById("id_password2");
     var activeError = 0;
     confPassword.addEventListener("input", function () {
         var $div = $("<div>", {id: "conf-password-error", name: "conf-password-error", "class": "error"});
