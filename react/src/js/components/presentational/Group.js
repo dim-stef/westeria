@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Link } from 'react-router-dom'
 import sizeMe from "react-sizeme"
+import {PureGroup,PureMobileGroup, PureTestGroup} from "./PureGroup"
 const uuidv1 = require('uuid/v1');
 
 const REACT_VERSION = React.version;
@@ -18,6 +19,7 @@ function connector(parent, child) {
                 target: child,
                 anchor: ["Right", "Left"],
                 endpoint: "Blank",
+                paintStyle:{ outlineStroke:"rgb(206, 206, 206)"},
             });
         });
     }
@@ -29,43 +31,6 @@ function treeOverflow() {
     console.log(treeWidth, mapContainerWidth)
     if (treeWidth > mapContainerWidth) {
         return true;
-    }
-}
-
-
-class ExtendButton extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            newRoot: this.props.newRoot
-        }
-        this.handleClick = this.handleClick.bind(this)
-    }
-
-    handleClick() {
-        console.log(this.state.newRoot);
-        jsPlumb.deleteEveryEndpoint();
-        //this.props.updateNodeContainer(this.state.newRoot);
-    }
-
-    componentDidUpdate() {
-        if (this.props.visibility === "visible") {
-
-        }
-    }
-
-    render() {
-        return (
-            //<NodeContainer root={null} msg={")))))"} key="1"/>
-            //<Node groups={null} key="1"/>
-            <Link to={"/map/" + this.state.newRoot} onClick={this.handleClick}>
-                <button
-                    style={{ visibility: this.props.visibility }} onClick={this.handleClick}>
-
-                </button>
-            </Link>
-        )
     }
 }
 
@@ -97,9 +62,6 @@ class Group extends Component {
         if (this.state.name !== "ROOT" && this.state.name !== "global") {
             connector(this.props.parentKey, this.state.childKey);
         }
-        console.log("group mount")
-        console.log(this.domElement)
-        
     }
 
     componentDidUpdate() {
@@ -118,49 +80,40 @@ class Group extends Component {
     }
 
     render() {
+       
         if (this.props.name === 'ROOT') {
             return (
                 <div>{this.props.children}</div>
             );
         }
+        var NavigationArrows = null;
+        var parentClassName = ''
+        if(this.props.parent){
+            NavigationArrows = (
+                <div className="navigation-arrows-container">
+                    <button className="navigation-arrows ">
+                        <ArrowUp className="navigation-arrow-up"/>
+                    </button>
+                    <button className="navigation-arrows">
+                        <ArrowDown className="navigation-arrow-down"/>
+                    </button>
+                </div>
+            )
 
-        if (this.state.visibility === "hidden") {
-            return (null);
+            parentClassName = 'parent-group'
         }
 
         var matches = this.state.name.match(/\b(\w)/g);
         var initials = matches.join('')
         return (
-            <li ref={(el) => { this.domElement = el }} style={{ display: this.state.display }}>
-                <div class="item-container">
-                    <li id="id" class="group-link">
-
-                    </li>
-                    <Link to={"/" + this.props.id} className="group-link">
-                        <div class="group-container" id={this.state.childKey}>
-                            <div style={{width:200, backgroundColor:"#e7e7e7", display:"inline-block",
-                            paddingTop: '40.25%',position: 'relative',
-                            backgroundImage:`url(${this.state.group.group_banner})`,backgroundRepeat: "no-repeat",backgroundSize: "cover"}}>
-                                <div class="group">
-                                    <span>{initials}</span>
-                                </div>
-                            </div>
-                            <span style={{display: 'block'}}>{this.state.name}</span>
-                        </div>
-                    </Link>
-                    <ExtendButton
-                        key={this.state.childKey}
-                        visibility={this.state.buttonVisible}
-                        newRoot={this.state.group.uri}
-                        updateNodeContainer={this.props.updateNodeContainer} />
-                </div>
+            <PureGroup initials={initials} group={this.state.group} navigationArrows={NavigationArrows} className={parentClassName}>
                 {React.cloneElement(this.props.children, { updateParent: this.updateParent })}
-            </li>
+            </PureGroup>
+            
         );
-    }
-        
-    
+    }    
 }
+
 
 export class Node extends Component {
     constructor(props) {
@@ -175,11 +128,6 @@ export class Node extends Component {
 
 
     collectGroups() {
-        var key = this.state.root.key;
-        if (this.state.root.name == "ROOT") {
-            key = "ROOT";
-        }
-
         let groups = [];
         groups = this.state.root.children.map((c) => {
             var childKey = c.key;
@@ -191,9 +139,9 @@ export class Node extends Component {
                     name={c.name}
                     childKey={c.key}
                     parentKey={this.state.root.key}
-                    updateParent={this.props.updateParent}
-                    updateNodeContainer={this.props.updateNodeContainer}>
-                    <Node groups={c} updateNodeContainer={this.props.updateNodeContainer} />
+                    parent={this.props.parent}
+                    updateParent={this.props.updateParent}>
+                    <Node groups={c}/>
                 </Group>
             );
         });
@@ -208,20 +156,88 @@ export class Node extends Component {
     *///UNCOMMENT IF SUNCHRONOYS FETCHING
 
     componentWillUnmount() {
-        console.log("unmount")
         jsPlumb.repaintEverything();
     }
 
+    componentDidMount(){
+        var tree = document.getElementById("tree");
+        if(window.innerHeight > tree.clientHeight){
+            var mapContainer = document.getElementById("map-container")
+            mapContainer.classList.add("fix-middle");
+        }
+    }
+
     render() {
-        console.log("node rendered")
-        //jsPlumb.repaintEverything();
         var groups = this.collectGroups();
         return (
             <ul>
                 {groups}
             </ul>
         );
+    }
+}
 
+class GroupNavigation extends Component{
+    constructor(props){
+        super(props);
+    }
+
+    render(){
+        return(
+            <div style={{height:this.props.height, flexBasis:'40%'}}>
+
+            </div>
+        )
+    }
+
+}
+
+export class Groups extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            groups:this.props.groups,
+            height:0
+        }
+    }
+
+    collectGroups(){
+        let groups = this.state.groups.children.map((c)=>{
+            var styleName = '';
+            return (
+                <PureGroup styleName={styleName} style={{marginTop:10,marginBottom:0,width:'100%',bannerWidth:'100%',flexBasis:'33%'}} group={c}/>
+            )
+        })
+        return groups;
+    }
+
+    componentDidMount(){
+        var height = this.group.clientHeight;
+        this.setState({height:height})
+    }
+
+    render(){
+        var groups = this.collectGroups();
+        var parent = this.state.groups.parent;
+        var groupNavigation = null;
+        if(parent){
+            groupNavigation = (
+                <GroupNavigation height={this.state.height}/>
+            )
+        }
+        var styleName = 'parent';
+        return (
+            <div style={{display: 'flex',flexFlow:'row wrap', justifyContent:'space-between', width:'100%', alignItems:'center'}}>
+                <div ref={ (divElement) => {this.group = divElement}} style={{flexBasis:'100%'}}>
+                    <PureGroup 
+                        styleName={styleName} 
+                        style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', flexBasis:0}} 
+                        group={parent} 
+                        groupNavigation={groupNavigation} />
+                </div>
+                {groups}
+            </div>
+        )
     }
 }
 
@@ -237,7 +253,7 @@ export class MobileGroups extends Component{
         let groups = this.state.groups.children.map((c)=>{
             var styleName = '';
             return (
-                <PureGroup styleName={styleName} style={{marginTop:10,marginBottom:0}} group={c}/>
+                <PureMobileGroup styleName={styleName} style={{marginTop:10,marginBottom:0}} group={c}/>
             )
         })
         return groups;
@@ -245,12 +261,11 @@ export class MobileGroups extends Component{
 
     render(){
         var groups = this.collectGroups();
-        console.log(groups)
         var parent = this.state.groups.parent;
         var styleName = 'parent';
         return (
-            <div style={{display: 'flex', flexFlow:'column', width:'100%', alignItems:'center'}}>
-                <PureGroup styleName={styleName} style={{marginTop:0,marginBottom:30}} group={parent}/>
+            <div style={{display: 'flex', flexFlow:'column', width:'100%', alignItems:'center',marginTop: '100px'}}>
+                <PureMobileGroup styleName={styleName} style={{marginTop:0,marginBottom:30}} group={parent}/>
                 {groups}
             </div>
         )
@@ -258,19 +273,15 @@ export class MobileGroups extends Component{
 }
 
 
-const PureGroup = ({styleName, style, group}) => {
+const ArrowUp = (props) =>{
     return(
-        <div className={`item-container ${ styleName }`} style={{marginTop:style.marginTop,marginBottom:style.marginBottom}}>
-            <Link to={"/" + group.uri} className="group-link">
-                <div class="group-container" id={group.id}>
-                    <div style={{width:'100%', backgroundColor:"#efefef", display:"inline-block", paddingTop: '27.25%', position: 'relative'}}>
-                        <div class="group"></div>
-                    </div>
-                    <span style={{display: 'block',fontSize: '1.8rem'}}>{group.name}</span>
-                </div>
-            </Link>
-            <ExtendButton
-                newRoot={group.uri}/>
-        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={100} height={100} className={props.className} ><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" style={{fill: '#19586D'}} /></svg>
     )
 }
+
+const ArrowDown = (props) =>{
+    return(
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width={100} height={100} className={props.className} ><path d="M7.41 7.84L12 12.42l4.59-4.58L18 9.25l-6 6-6-6z" style={{fill: '#19586D'}} /></svg>
+    )
+}
+
