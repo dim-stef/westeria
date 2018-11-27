@@ -5,8 +5,9 @@ from rest_framework_nested import routers
 from . import views
 
 router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet, base_name='users')
+router.register(r'user', views.UserViewSet, base_name='user')
 router.register(r'profile', views.UserProfileViewSet, base_name='profile')
+router.register(r'public_profile', views.UserPublicProfileViewSet, base_name='public_profile')
 router.register(r'ROOT', views.GroupRootViewSet, base_name='grouproot')
 router.register(r'groups', views.GroupViewSet, base_name='group')  # lookup= 'groups'
 
@@ -24,4 +25,5 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^', include(group_router.urls)),
     url(r'^', include(groupchat_router.urls)),
+    path('token/', views.CreateToken.as_view())
 ]
