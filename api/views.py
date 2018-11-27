@@ -1,26 +1,31 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
-from rest_framework import viewsets, mixins
-from rest_framework import authentication, permissions
+from rest_framework import viewsets, views, mixins
+from rest_framework import permissions
+from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
+from rest_framework_jwt.serializers import (
+    JSONWebTokenSerializer)
+from rest_framework_jwt.settings import api_settings
 from accounts.models import UserProfile
 from groups.models import Group
 from groupchat.models import GroupChat, GroupMessage
 from . import serializers
 
+jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
+jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 
-class CaseInsensitiveLookupMixin(object):
-    """
-    Stole majority of this mixin
-    from http://www.django-rest-framework.org/api-guide/generic-views/
-    """
 
-    def get_object(self):
-        queryset = self.get_queryset()  # Get the base queryset
-        queryset = self.filter_queryset(queryset)  # Apply any filter backends
-        filter = {self.lookup_field: self.kwargs[self.lookup_field].lower()}
+class CreateToken(views.APIView):
 
-        return get_object_or_404(queryset, **filter)  # Lookup the object
+    def __init__(self):
+        super(CreateToken, self).__init__()
+
+    def get(self, request, format=None):
+        user_instance = get_user_model().objects.get(id=request.user.id)
+
+        payload = jwt_payload_handler(user_instance)
+        token = jwt_encode_handler(payload)
+        return Response({'token': token})
 
 
 class ChildrenPagination(PageNumberPagination):
@@ -34,11 +39,15 @@ class ChildrenLimitOffsetPagination(LimitOffsetPagination):
     max_limit = 10
 
 
+class GroupChatMessagePagination(CursorPagination):
+    page_size = 50
+
+
 class UserViewSet(mixins.RetrieveModelMixin,
                   # mixins.DestroyModelMixin,
                   mixins.ListModelMixin,
                   viewsets.GenericViewSet):
-
+    permission_classes = (permissions.IsAuthenticated,)
     def get_serializer_class(self):
         user = self.request.user
         if user.is_superuser:
@@ -48,9 +57,6 @@ class UserViewSet(mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         user = self.request.user
-        '''if user.is_superuser:
-            queryset = get_user_model().objects.all()
-        else:'''
         queryset = get_user_model().objects.filter(id=user.id)
         return queryset
 
@@ -70,10 +76,18 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         user = self.request.user
-        '''if user.is_superuser:
-            queryset = UserProfile.objects.all()
-        else:'''
         queryset = UserProfile.objects.filter(user=user.profile.user)
+        return queryset
+
+
+class UserPublicProfileViewSet(mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         viewsets.GenericViewSet):
+    serializer_class = serializers.UserPublicProfileSerializer
+
+    def get_queryset(self):
+        user = self.kwargs['pk']
+        queryset = UserProfile.objects.filter(user=user)
         return queryset
 
 
@@ -139,6 +153,7 @@ class GroupChatMessageViewSet(viewsets.GenericViewSet,
                            mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.GroupMessageSerializer
+    pagination_class = GroupChatMessagePagination
 
     def get_queryset(self):
         queryset = GroupMessage.objects.none()
