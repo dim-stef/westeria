@@ -1,12 +1,13 @@
 import React, { Component } from "react";
-import GroupChatContainer from "../container/GroupChatContainer"
+import GroupChatContainer,{GroupChatMessagesContainer} from "../container/GroupChatContainer"
 
 class GroupHome extends Component{
     constructor(props){
         super(props);
         this.state = {
             group:this.props.group,
-            params:this.props.params
+            params:this.props.params,
+            roomName:'general'
         }
     }
 
@@ -18,7 +19,7 @@ class GroupHome extends Component{
                         <img style={{width:"100%",height:"100%",objectFit:"cover"}} src={this.props.group.group_banner}></img>
                     </div>
                 </div>
-                <GroupChatContainer params={this.state.params}/>
+                <GroupChatMessagesContainer group={this.state.group} roomName={this.state.roomName}/>
             </div>
             
         )
