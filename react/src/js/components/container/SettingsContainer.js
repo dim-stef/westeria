@@ -90,7 +90,7 @@ export class SettingsContainer extends Component {
             return (
                 <form onSubmit={this.handleSubmit} className="settings-form" encType="multipart/form-data" method="POST" action="/settings/">
                 <CSRFToken />
-                    <p className="fieldWrapper">
+                    <p style={{margin: 0}}>
                         <label htmlFor={this.state.fields.url}>You can change your identifier. This is how your profile will appear when users search for you</label>
                     </p><div style={{ textAlign: 'left', display: 'flex' }}>
                         <span className="create-name-span" style={{ marginRight: 2 }}>www.subranch.com/</span>
