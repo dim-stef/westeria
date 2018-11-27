@@ -46,6 +46,14 @@ ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
 # ACCOUNT_FORMS = {'signup':'accounts.forms.SignupForm'}
 
 ASGI_APPLICATION = "subranch.routing.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Application definition
 
@@ -63,6 +71,7 @@ INSTALLED_APPS = [
     'api',
     'core',
     'groups',
+    'groupchat',
     'settings',
     'rest_framework',
     'rest_framework_nested',
@@ -76,6 +85,7 @@ INSTALLED_APPS = [
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -137,13 +147,12 @@ WSGI_APPLICATION = 'subranch.wsgi.application'
 }'''
 
 
-
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
 
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
