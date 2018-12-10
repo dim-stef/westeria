@@ -1,4 +1,4 @@
-$('.login').on('submit', function () {
+$('.login').on('submit', function (e) {
     let formData = new FormData(document.querySelector('.login'))
     let login = formData.get('login');
     let password = formData.get('password');
@@ -9,12 +9,16 @@ $('.login').on('submit', function () {
 
     $.ajax({
       type: "POST",
-      url: '/token/',
+      url: '/accounts/token/',
       data: data,
       success: function( data ) {
-          console.log(data);
           localStorage.setItem('token', data.token)
-      }});
+      },
+        error: function(xhr, textStatus, errorThrown){
+           alert('request failed');
+           console.log(xhr, textStatus, errorThrown)
+        }
+    });
 });
 
 $('.signup').on('submit', function () {
@@ -28,7 +32,7 @@ $('.signup').on('submit', function () {
 
     $.ajax({
       type: "POST",
-      url: '/token/',
+      url: '/accounts/token/',
       data: data,
       success: function( data ) {
           console.log(data);
