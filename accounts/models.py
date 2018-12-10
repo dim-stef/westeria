@@ -10,67 +10,56 @@ import string
 def uid_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
-
-class CommonUserTypeInfo(models.Model):
-    url = models.CharField(unique=True, null=False, max_length=60)
-
-    class Meta:
-        abstract = True
-
-
 class User(AbstractUser):
 
     class Meta:
         swappable = 'AUTH_USER_MODEL'
         db_table = 'auth_user'
 
+    username = models.CharField(blank=True, null=True, unique=False, max_length=24)
     email = models.EmailField(unique=True)
-    username = models.CharField(blank=True, null=True, max_length=150)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
-
-    @property
-    def full_name(self):
-        return "%s %s" % (self.first_name, self.last_name)
-
-    def __str__(self):
-        return '%s' % self.email
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
+    def __str__(self):
+        return '%s' % self.email
 
 
-class UserProfile(CommonUserTypeInfo):
+class UserProfile(models.Model):
 
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         primary_key=True,
         related_name='profile',
     )
-
+    url = models.CharField(unique=True, null=False, max_length=60)
+    name = models.CharField(blank=False, null=False, default="Anon", max_length=24)
     profile_image = models.ImageField(upload_to='images/users/profile',
                                       default='/images/users/profile/default.jpeg',
                                       blank=False)
     fake_count = models.IntegerField(default=0)
 
+    REQUIRED_FIELDS = ['name']
     def __str__(self):
-        return '%s' % self.user.id
+        return '%s' % self.name
 
 
-@receiver(post_save, sender=User)
+'''@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
         instance.profile.url = instance.id
-        instance.profile.save()
+        instance.profile.save()'''
 
 
-@receiver(post_save, sender=User)
+'''@receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()
+    instance.profile.save()'''
 
 
-class FakeProfile(CommonUserTypeInfo):
+class FakeProfile(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
 
