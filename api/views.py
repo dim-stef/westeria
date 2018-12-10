@@ -3,12 +3,10 @@ from rest_framework import viewsets, views, mixins
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
-from rest_framework_jwt.serializers import (
-    JSONWebTokenSerializer)
 from rest_framework_jwt.settings import api_settings
 from accounts.models import UserProfile
-from groups.models import Group
-from groupchat.models import GroupChat, GroupMessage
+from branches.models import Branch
+from branchchat.models import BranchChat, BranchMessage
 from . import serializers
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -39,7 +37,7 @@ class ChildrenLimitOffsetPagination(LimitOffsetPagination):
     max_limit = 10
 
 
-class GroupChatMessagePagination(CursorPagination):
+class BranchChatMessagePagination(CursorPagination):
     page_size = 50
 
 
@@ -80,40 +78,50 @@ class UserProfileViewSet(mixins.RetrieveModelMixin,
         return queryset
 
 
-class UserPublicProfileViewSet(mixins.RetrieveModelMixin,
+class BranchPublicProfileSerializer(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
-    serializer_class = serializers.UserPublicProfileSerializer
+    serializer_class = serializers.BranchPublicProfileSerializer
 
     def get_queryset(self):
-        user = self.kwargs['pk']
-        queryset = UserProfile.objects.filter(user=user)
+        branch = self.kwargs['pk']
+        queryset = Branch.objects.filter(id=branch)
         return queryset
 
 
-class GroupViewSet(mixins.RetrieveModelMixin,
-                   mixins.ListModelMixin,
-                   viewsets.GenericViewSet,
-                   ):
+class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
+                         mixins.ListModelMixin,
+                         viewsets.GenericViewSet):
+    serializer_class = serializers.BranchSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        queryset = user.owned_groups.all()
+        return queryset
+
+class BranchViewSet(mixins.RetrieveModelMixin,
+                    mixins.ListModelMixin,
+                    viewsets.GenericViewSet,
+                    ):
     lookup_value_regex = '(?i)[\w.@+-]+'
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = serializers.GroupSerializer
+    serializer_class = serializers.BranchSerializer
     lookup_field = 'uri'
 
     def get_queryset(self):
-        queryset = Group.objects.none()
+        queryset = Branch.objects.none()
         if self.kwargs['uri']:
-            queryset = Group.objects.filter(uri__iexact=self.kwargs['uri'])
+            queryset = Branch.objects.filter(uri__iexact=self.kwargs['uri'])
             print(queryset)
         return queryset
 
 
-class GroupRootViewSet(viewsets.GenericViewSet,
-                       mixins.ListModelMixin):
-    serializer_class = serializers.GroupSerializer
+class BranchRootViewSet(viewsets.GenericViewSet,
+                        mixins.ListModelMixin):
+    serializer_class = serializers.BranchSerializer
 
     def get_queryset(self):
-        queryset = Group.objects.filter(name="ROOT", tag=None)
+        queryset = Branch.objects.filter(name="ROOT", tag=None)
         return queryset
 
 
@@ -122,43 +130,46 @@ class ChildrenViewSet(viewsets.GenericViewSet,
                       mixins.ListModelMixin):
     lookup_value_regex = '(?i)[\w.@+-]+'
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = serializers.GroupSerializer
+    serializer_class = serializers.BranchSerializer
     pagination_class = ChildrenLimitOffsetPagination
 
     def get_queryset(self):
-        queryset = Group.objects.none()
-        if self.kwargs['nested_1__uri']:
-            children = Group.objects.get(uri__iexact=self.kwargs['nested_1__uri']).children.all()
+        queryset = Branch.objects.none()
+        print(self.kwargs)
+        if self.kwargs['nested_1_uri']:
+            children = Branch.objects.get(uri__iexact=self.kwargs['nested_1_uri']).children.all()
             queryset = children
         return queryset
 
 
-class GroupChatViewSet(viewsets.GenericViewSet,
-                       mixins.RetrieveModelMixin,
-                       mixins.ListModelMixin):
+class BranchChatViewSet(viewsets.GenericViewSet,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = serializers.GroupChatSerializer
+    serializer_class = serializers.BranchChatSerializer
     lookup_field = 'name'
 
     def get_queryset(self):
-        queryset = GroupChat.objects.none()
+        queryset = BranchChat.objects.none()
         if self.kwargs['name']:
-            group = Group.objects.get(uri__iexact=self.kwargs['nested_1__uri'])
-            queryset = GroupChat.objects.filter(name__iexact=self.kwargs['name'], group=group)
+            branch = Branch.objects.get(uri__iexact=self.kwargs['nested_1_uri'])
+            queryset = BranchChat.objects.filter(name__iexact=self.kwargs['branch'], branch=branch)
         return queryset
 
 
-class GroupChatMessageViewSet(viewsets.GenericViewSet,
-                           mixins.RetrieveModelMixin,
-                           mixins.ListModelMixin):
+class BranchChatMessageViewSet(viewsets.GenericViewSet,
+                               mixins.RetrieveModelMixin,
+                               mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = serializers.GroupMessageSerializer
-    pagination_class = GroupChatMessagePagination
+    serializer_class = serializers.BranchMessageSerializer
+    pagination_class = BranchChatMessagePagination
+    lookup_field = 'name'
 
     def get_queryset(self):
-        queryset = GroupMessage.objects.none()
-        if self.kwargs['nested_2__name']:
-            group = Group.objects.get(uri__iexact=self.kwargs['nested_1__uri'])
-            group_chat = GroupChat.objects.get(name__iexact=self.kwargs['nested_2__name'], group=group)
-            queryset = GroupMessage.objects.filter(group_chat=group_chat)
+        print("in")
+        queryset = BranchMessage.objects.none()
+        if self.kwargs['nested_2_name']:
+            branch = Branch.objects.get(uri__iexact=self.kwargs['nested_1_uri'])
+            branch_chat = BranchChat.objects.get(name__iexact=self.kwargs['nested_2_name'], branch=branch)
+            queryset = BranchMessage.objects.filter(branch_chat=branch_chat)
         return queryset
