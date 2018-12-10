@@ -1,17 +1,17 @@
 from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
-from groupchat.models import GroupChat
-from .models import Group, Subscription
+from branchchat.models import BranchChat
+from .models import Branch, Subscription
 
 
 class GroupChatInline(admin.TabularInline):
-    model = GroupChat
+    model = BranchChat
 
 
 class GroupAdminForm(forms.ModelForm):
     class Meta:
-        model = Group
+        model = Branch
         fields = "__all__"
         exclude = ['id']
 
@@ -41,5 +41,5 @@ class GroupAdmin(admin.ModelAdmin):
     filter_horizontal = ('parents',)
 
 
-admin.site.register(Group, GroupAdmin)
+admin.site.register(Branch, GroupAdmin)
 admin.site.register(Subscription)

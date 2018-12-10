@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.http import JsonResponse
 from django.http import Http404
-from .models import Group
+from .models import Branch
 from .forms import GroupForm
 from .mixins import AjaxFormMixin
 from random import randint
@@ -13,14 +13,14 @@ from random import randint
 def unique_tag():
     while True:
         tag = randint(100, 999)
-        if not Group.objects.filter(tag=tag).exists():
+        if not Branch.objects.filter(tag=tag).exists():
             return tag
 
 
 class GroupFormView(FormView):
     success_url = '/creategroup/'
     form_class = GroupForm
-    model = Group
+    model = Branch
     template_name = "groups/creategroup.html"
 
     def get_form_kwargs(self):
@@ -36,7 +36,7 @@ class GroupFormView(FormView):
         '''group = form.save(commit=False)
         if Group.objects.filter(name=group.name).count() is 100:
             data = {
-                'error': "Too many groups with the same name"
+                'error': "Too many branches with the same name"
             }
             return JsonResponse(data)
         group.owner = self.request.user
@@ -72,14 +72,14 @@ class GroupFormView(FormView):
 
 
 class GroupTreeView(ListView):
-    model = Group
+    model = Branch
     template_name = "groups/tree.html"
 
     def get(self, request, *args, **kwargs):
         if 'uri' in kwargs:
-            if not Group.objects.filter(uri__exact=kwargs['uri']).exists():
-                if Group.objects.filter(uri__iexact=kwargs['uri']).exists():
-                    return HttpResponseRedirect(Group.objects.get(uri__iexact=kwargs['uri']).uri)
+            if not Branch.objects.filter(uri__exact=kwargs['uri']).exists():
+                if Branch.objects.filter(uri__iexact=kwargs['uri']).exists():
+                    return HttpResponseRedirect(Branch.objects.get(uri__iexact=kwargs['uri']).uri)
                 else:
                     raise Http404()
         return super().get(self)
@@ -87,26 +87,26 @@ class GroupTreeView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if 'uri' in self.kwargs:
-            context['group'] = Group.objects.get(uri__exact=self.kwargs['uri'])
+            context['group'] = Branch.objects.get(uri__exact=self.kwargs['uri'])
         else:
-            context['group'] = Group.objects.get(uri__exact='global')
+            context['group'] = Branch.objects.get(uri__exact='global')
         return context
 
 
 class GroupView(ListView):
-    model = Group
+    model = Branch
     template_name = "groups/index.html"
-    group = Group.objects.none()
+    group = Branch.objects.none()
 
     def get_queryset(self):
         nametag = self.kwargs['uri']
-        if Group.objects.filter(name__iexact=nametag).exists():
-            self.group = Group.objects.filter(name__iexact=nametag)
+        if Branch.objects.filter(name__iexact=nametag).exists():
+            self.group = Branch.objects.filter(name__iexact=nametag)
         else:
             name = nametag[:-4]
             tag = nametag[-3:]
             if tag.isnumeric():
-                self.group = Group.objects.filter(name__iexact=name, tag=tag)
+                self.group = Branch.objects.filter(name__iexact=name, tag=tag)
         if self.group:
             return self.group
         else:

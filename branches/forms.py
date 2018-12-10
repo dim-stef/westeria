@@ -1,12 +1,12 @@
 from django import forms
 from django.forms import ValidationError
 from django.core.exceptions import NON_FIELD_ERRORS
-from .models import Group
+from .models import Branch
 
 
 class GroupForm(forms.ModelForm):
     class Meta:
-        model = Group
+        model = Branch
         exclude = ['owner', 'id', 'tag', 'uri']
 
     def __init__(self, *args, **kwargs):
@@ -15,13 +15,13 @@ class GroupForm(forms.ModelForm):
 
     def clean(self):
         super().clean()
-        if Group.objects.filter(owner=self.user, name=self.cleaned_data['name']).exists():
+        if Branch.objects.filter(owner=self.user, name=self.cleaned_data['name']).exists():
             self.add_error("name", "You already have a group named %s" % self.cleaned_data['name'])
 
 
 class GroupBranchForm(forms.ModelForm):
     class Meta:
-        model = Group
+        model = Branch
         fields = ['id']
 
     def clean(self):

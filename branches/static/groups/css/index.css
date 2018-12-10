@@ -34,7 +34,6 @@
 }
 
 .group-container{
-    display: inline-block;
 }
 
 .group-banner{
@@ -49,7 +48,6 @@
 
 .item-container{
     align-items: center;
-    display: inline-flex;
 }
 
 .parent{
@@ -74,6 +72,69 @@
     z-index: 5;
 }
 
+.group-name{
+    word-wrap: break-word;
+    word-break: break-all;
+    flex-basis: 30%;
+}
+
+.group-followers{
+    flex-basis: 20%;
+}
+
+.group-branches{
+    flex-basis: 30%;
+}
+
+.group-details{
+	background-color: #f3f3f3;
+	align-self: stretch;
+	width: 260px;
+    display: flex;
+    flex-flow: column;
+    font-size:2em;
+}
+
+.group-join{
+    border: 0;
+    background-color: #004796;
+    height: 40px;
+    font-size: initial;
+    font-weight: bold;
+    font-family: Arial;
+    color: #f8f8f8;
+    flex-basis: 20%;
+}
+
+.group-navigation-container{
+    display: flex;
+    flex-basis: 40%;
+    flex-flow: column;
+    align-self: stretch;
+}
+
+.group-navigation-button{
+    text-decoration: none;
+    color: #1b1e21;
+    flex-basis: 100%;
+    background-color: #19586D;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.navigation-icon{
+    font-size: 6em;
+    flex-basis: 30%;
+}
+
+.navigation-button-text{
+    font-size: 4em;
+    align-self: center;
+    position: absolute;
+    left: 0;
+    right: 0;
+}
 
 @media all and (min-width: 1201px) {
     .group{

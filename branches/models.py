@@ -2,12 +2,12 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from accounts.models import User
-from groupchat.models import GroupChat
+from accounts.models import User, UserProfile
+from branchchat.models import BranchChat
 import uuid
 
 
-class Group(models.Model):
+class Branch(models.Model):
     class Meta:
         unique_together = (('owner', 'name'), ('name', 'tag'))
 
@@ -18,15 +18,16 @@ class Group(models.Model):
         (INVITE_ONLY, 'Invite only'),
     )
 
-    group_image = models.ImageField(upload_to='images/group_images/profile',
+    branch_image = models.ImageField(upload_to='images/group_images/profile',
                                     default='/images/group_images/profile/default.jpeg',
                                     blank=False)
-    group_banner = models.ImageField(upload_to='images/group_images/banner',
+    branch_banner = models.ImageField(upload_to='images/group_images/banner',
                                      default='/images/group_images/banner/default.jpeg',
                                      blank=False)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
+    #owners_profile = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, related_name='profiles_owned_groups')
     parents = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="children")
     name = models.CharField(blank=False, null=False, default='unnamed', max_length=30)
     accessibility = models.CharField(default=PUBLIC, choices=ACCESSIBILITY, max_length=2)
@@ -39,20 +40,22 @@ class Group(models.Model):
         return self.uri
 
     def save(self, *args, **kwargs):
+        name = ''.join(self.name.split())
+        print("name=", name)
         if self.tag:
-            self.uri = '%s.%d' % (self.name, self.tag)
+            self.uri = '%s.%d' % (name, self.tag)
         else:
-            self.uri = '%s' % self.name
+            self.uri = '%s' % name
         super().save(*args, **kwargs)
 
 
-@receiver(post_save, sender=Group)
+@receiver(post_save, sender=Branch)
 def create_group_chat(sender, instance, created, **kwargs):
     if created:
         print(instance)
-        GroupChat.objects.create(group=instance)
+        BranchChat.objects.create(branch=instance)
 
 
 class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user')
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='group')
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='branch')
