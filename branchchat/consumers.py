@@ -1,17 +1,18 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from groupchat.models import GroupMessage, GroupChat
+from branches.models import Branch
+from branchchat.models import BranchMessage, BranchChat
 import json
 
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
-        self.room_group_name = 'chat_%s' % self.room_name
+        self.room_branch_name = 'chat_%s' % self.room_name
 
         # Join room group
         await self.channel_layer.group_add(
-            self.room_group_name,
+            self.room_branch_name,
             self.channel_name
         )
 
@@ -20,7 +21,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     async def disconnect(self, close_code):
         # Leave room group
         await self.channel_layer.group_discard(
-            self.room_group_name,
+            self.room_branch_name,
             self.channel_name
         )
 
@@ -29,31 +30,37 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
         room_name = text_data_json['room_name']
-        group = text_data_json['group']
+        branch = text_data_json['branch']
+        from_branch = await self.get_sender_branch(text_data_json['from_branch'])
 
         # Send message to room group
         await self.channel_layer.group_send(
-            self.room_group_name,
+            self.room_branch_name,
             {
                 'type': 'chat_message',
-                'author_name': self.scope["user"].full_name,
-                'author_url': self.scope["user"].profile.url,
-                'author': str(self.scope["user"].id),
+                'author_name': from_branch.name,
+                'author_url': from_branch.uri,
+                'author': str(from_branch.id),
                 'message': message,
                 'message_html': message,
             }
         )
 
-        await self.create_message(room_name, group, message)
+        await self.create_message(room_name, branch, message, from_branch)
 
     @database_sync_to_async
-    def create_message(self, room_name, group, message):
-        group_chat = GroupChat.objects.get(name__iexact=room_name, group=group)
-        GroupMessage.objects.create(group_chat=group_chat,
-                                    author=self.scope["user"],
-                                    message=message,
-                                    message_html=message
-                                    )
+    def create_message(self, room_name, branch, message, from_branch):
+        branch_chat = BranchChat.objects.get(name__iexact=room_name, branch=branch)
+        BranchMessage.objects.create(branch_chat=branch_chat,
+                                     author=from_branch,
+                                     message=message,
+                                     message_html=message
+                                     )
+
+    @database_sync_to_async
+    def get_sender_branch(self, id):
+        return Branch.objects.get(id=id)
+
 
     # Receive message from room group
     async def chat_message(self, event):

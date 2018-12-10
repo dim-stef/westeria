@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import GroupMessage, GroupChat
+from .models import BranchMessage, BranchChat
 
 
 class GroupMessageInline(admin.TabularInline):
-    model = GroupMessage
+    model = BranchMessage
 
 
 class GroupChatAdmin(admin.ModelAdmin):
@@ -12,5 +12,5 @@ class GroupChatAdmin(admin.ModelAdmin):
     ]
 
 
-admin.site.register(GroupChat, GroupChatAdmin)
-admin.site.register(GroupMessage)
+admin.site.register(BranchChat, GroupChatAdmin)
+admin.site.register(BranchMessage)
