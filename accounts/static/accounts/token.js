@@ -10,12 +10,12 @@ $('.login').on('submit', function (e) {
     $.ajax({
       type: "POST",
       url: '/accounts/token/',
+      async: false,
       data: data,
       success: function( data ) {
           localStorage.setItem('token', data.token)
       },
         error: function(xhr, textStatus, errorThrown){
-           alert('request failed');
            console.log(xhr, textStatus, errorThrown)
         }
     });
@@ -33,9 +33,9 @@ $('.signup').on('submit', function () {
     $.ajax({
       type: "POST",
       url: '/accounts/token/',
+      async: false,
       data: data,
       success: function( data ) {
-          console.log(data);
           localStorage.setItem('token', data.token)
       }});
 });

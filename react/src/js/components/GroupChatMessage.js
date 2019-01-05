@@ -10,13 +10,6 @@ export class GroupChatMessageBox extends Component {
         }
     }
 
-    async getAvatar(author) {
-        var response = await axios.get(`/api/public_profile/${author}/`, { withCredentials: true })
-        var data = response.data;
-        this.setState({ authorImageUrl: data.profile_image })
-    }
-
-
     render() {
         var messages = this.props.messageBox.messages.map((m, i) => {
             var endOfBox = false;
@@ -24,7 +17,7 @@ export class GroupChatMessageBox extends Component {
                 endOfBox = true;
             }
             return (
-                <GroupChatMessage message={m} endOfBox={endOfBox} />
+                <GroupChatMessage message={m} endOfBox={endOfBox} key={i}/>
             )
         })
         return (
@@ -32,7 +25,7 @@ export class GroupChatMessageBox extends Component {
                 <UserInfo author={this.props.messageBox.author} key={this.props.messageBox.author} />
                 <div className="message-box" >
                     <div>
-                        <span style={{ fontWeight: "bold", fontSize: "1em" }}>{this.props.messageBox.author_url}</span>
+                        <span style={{ fontWeight: "bold", fontSize: "1em" }}>{this.props.messageBox.author_name}</span>
                     </div>
                     <div style={{ lineHeight: '1.5em', borderLeft: '2px solid rgb(52, 53, 54)' }}> {/*backgroundColor: 'rgb(234, 234, 234)',padding:6,borderRadius:12,*/}
                         {messages}
@@ -62,21 +55,31 @@ class UserInfo extends Component {
     }
 
     async getAvatar(author) {
-        var response = await axios.get(`/api/public_profile/${author}/`, { withCredentials: true })
+        var response = await axios.get(`/api/public_profile/${author}/`)
         var data = response.data;
-        this.setState({ authorImageUrl: data.profile_image })
+        this.setState({ authorImageUrl: data.branch_image })
     }
 
     componentDidMount() {
         if (!this.state.authorImageUrl) {
-            this.getAvatar(this.state.author);
+            if(this.state.author){
+                this.getAvatar(this.state.author);
+            }
+            else{
+                this.setState({authorImageUrl:'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTd1zjD3CiZyqGWE8QTKM5XV0MI4CB53oFA2SB0ZNbXil4G3O8i'})
+            }
+            
         }
     }
 
     render() {
         if (this.state.authorImageUrl) {
             return (
-                <div className="profile-icon-container" style={{ backgroundImage: `url(${this.state.authorImageUrl})`, backgroundSize: 'cover' }}></div>
+                <div className="profile-icon-container" 
+                style={{ backgroundImage: `url(${this.state.authorImageUrl})`, 
+                backgroundSize: 'cover', 
+                backgroundRepeat:'no-repeat',
+                backgroundPosition:'center' }}></div>
             )
         }
         return (

@@ -1,24 +1,26 @@
 {% load static %}
 <!DOCTYPE html>
 
-<html>
+<html style="font-size: 10px;
+    font-family: Roboto, Arial, sans-serif;">
 
 <head>
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Subranch</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    {% block mapMeta %}{% endblock %}
-    <!--<link rel="stylesheet" type="text/css" media="screen" href="https://cdnjs.cloudflare.com/ajax/libs/flexboxgrid/6.3.1/flexboxgrid.css" />-->
+    {% block meta %}{% endblock %}
     <link rel="stylesheet" type="text/css" href="{% static 'settings/settings.css' %}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/settings.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'accounts/auth.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/croppie.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/errors.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'core/css/modal.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'groups/css/creategroup.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'groups/css/index.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'groupchat/css/groupchat.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/tree.css' %}"/>
 
 </head>
@@ -28,16 +30,16 @@
 
 
 <div class="page" style="height: 100%;">
+    {% block groups %} {% endblock %}
     <div id="react-root" style="height: 100%;">
 
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="{% static 'js/jsplumb.min.js' %}"></script>
     <script src="{% static 'js/csrf.js' %}"></script>
-    <script src="{% static 'js/ajax-related.js' %}"></script>
-    <script src="{% static 'settings/settings.js' %}"></script>
-    <script src="{% static 'js/croppie.js' %}"></script>
+    <script async src="{% static 'settings/settings.js' %}"></script>
+    <script async src="{% static 'js/croppie.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/Router.js' %}"></script>
+    <script src="{% static 'js/ajax-related.js' %}"></script>
     <script src="{% static 'js/uicontrol.js' %}"></script>
 
 </div>

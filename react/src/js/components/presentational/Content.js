@@ -16,7 +16,7 @@ export const Content = (props) => {
             <MediaQuery query="(min-width: 1201px)">
                 <WideScreenNavigation />
                 <div id="main-wrapper" className="main-wrapper">
-                    <div id="wide-content-container" style={{ marginLeft: 190 }}>
+                    <div id="wide-content-container">
                         {props.children}
                     </div>
                 </div>

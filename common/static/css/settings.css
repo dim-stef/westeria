@@ -1,0 +1,97 @@
+.settings-wrapper{
+    display: flex;
+}
+
+.settings-layout{
+    width: 100%;
+    background-color: #808080a1;
+    height: 100vh;
+    margin-left: 200px;
+    margin-right: 200px;
+    display: flex;
+    flex-flow: row;
+}
+
+.branch-selection-tab{
+    flex-basis: 20%;
+    background-color: #eaeaea;
+    border-right: 1px solid #e0e0e0;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.branch-settings-tab{
+    overflow: auto;
+    flex-basis: 80%;
+    background-color: #fffffff2;
+    display: flex;
+    flex-flow: column;
+}
+
+.branch-selector{
+    padding: 10px 0;
+    text-align:center;
+    position: relative;
+    width: 100%;
+}
+
+.selected-branch{
+    background-color: #bfbfbf7a;
+}
+
+.tab{
+    cursor:pointer;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    flex-basis: 50%;
+}
+
+.tab-slider{
+    width: 80%;
+    height: 100%;
+    position: absolute;
+    bottom: 0;
+    border-bottom: 3px solid #166a86;
+    transform: scaleX(0);
+    transition: transform 250ms ease-in-out;
+}
+
+.tab-slider-open{
+    transform: scaleX(1);
+}
+
+.tabs-list{
+    background-color: #f9f9f9;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    display: flex;
+}
+
+.tab-title{
+    color: rgb(56, 56, 56);
+    padding: 10px;
+    font-size: 3em;
+}
+
+.identifier-container{
+    margin: 20px;
+}
+
+.identifier-label{
+    font-size: 2em;
+    float: left;
+}
+
+.identifier{
+    font-size: 1.8em;
+    border-radius: 3px;
+    margin-left: 5px;
+    padding:5px;
+    display: inline-block;
+    border:1px solid #e6ecf0;
+    width:200px;
+}

@@ -44,7 +44,7 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 AUTH_USER_MODEL = 'accounts.User'
 
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/signup"
+LOGOUT_REDIRECT_URL = "/accounts/signup"
 
 
 # ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
@@ -158,7 +158,7 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
 
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.AllowAny',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',

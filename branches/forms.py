@@ -7,7 +7,7 @@ from .models import Branch
 class GroupForm(forms.ModelForm):
     class Meta:
         model = Branch
-        exclude = ['owner', 'id', 'tag', 'uri']
+        exclude = ['owner', 'id', 'uri']
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user')

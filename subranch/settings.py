@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import datetime
 from .settings_secret import *
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -38,12 +39,20 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 AUTH_USER_MODEL = 'accounts.User'
 
-LOGIN_URL = "/login"
+LOGIN_URL = "/accounts/login"
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/signup"
+LOGOUT_REDIRECT_URL = "/accounts/signup"
 
-ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
-# ACCOUNT_FORMS = {'signup':'accounts.forms.SignupForm'}
+#ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
+ACCOUNT_FORMS = {'signup':'accounts.forms.CustomSignupForm'}
+
+REST_AUTH_REGISTER_SERIALIZERS = {
+        'REGISTER_SERIALIZER': 'accounts.serializers.RegistrationSerializer',
+}
+REST_USE_JWT = True
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+}
 
 ASGI_APPLICATION = "subranch.routing.application"
 CHANNEL_LAYERS = {
@@ -70,11 +79,15 @@ INSTALLED_APPS = [
     'channels',
     'api',
     'core',
-    'groups',
-    'groupchat',
+    'branches',
+    'branchchat',
+    'branchsettings',
     'settings',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_nested',
+    'rest_auth',
+    'rest_auth.registration',
     'webpack_loader',
     'allauth',
     'accounts',
@@ -151,6 +164,10 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
 
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.MultiPartParser'
+    ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),

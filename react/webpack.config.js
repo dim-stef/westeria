@@ -1,9 +1,8 @@
     const path = require("path");
     const HtmlWebPackPlugin = require("html-webpack-plugin");
     module.exports = {
+      mode: 'development',
       entry: {
-        'profileApp': './src/js/profileApp.js',
-        'groupApp': './src/js/groupApp.js',
         'Router': './src/js/Router.js',
       },
       output: {
@@ -13,11 +12,16 @@
       module: {
         rules: [
           {
-            test: /\.js$/,
-            exclude: /node_modules/,
+            test: /\.m?js$/,
+            exclude: /(node_modules|bower_components)/,
             use: {
-              loader: "babel-loader"
-            }
+              loader: "babel-loader",
+              options: {
+                presets: ['@babel/preset-env'],
+                plugins: ['@babel/plugin-transform-runtime']
+              }
+            },
+            
           },
           {
             test: /\.html$/,

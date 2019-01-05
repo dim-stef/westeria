@@ -112,5 +112,3 @@ export class SettingsContainer extends Component {
         }
     }
 }
-
-

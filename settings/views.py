@@ -1,6 +1,6 @@
 from django.views.generic.edit import UpdateView
 from django.http import JsonResponse
-from accounts.models import UserProfile
+from branches.models import Branch
 from .forms import SettingsUserProfileForm
 from .mixins import AjaxFormMixin
 
@@ -8,11 +8,11 @@ from .mixins import AjaxFormMixin
 class SettingsUserProfileFormView(AjaxFormMixin, UpdateView):
     success_url = '/settings/'
     form_class = SettingsUserProfileForm
-    model = UserProfile
+    model = Branch
     template_name = 'settings/settings.html'
 
     def get_object(self, queryset=None):
-        obj = UserProfile.objects.get(user=self.request.user)
+        obj = Branch.objects.get(user=self.request.user)
         return obj
 
     def form_invalid(self, form):

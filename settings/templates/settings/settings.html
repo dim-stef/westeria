@@ -4,7 +4,7 @@
         {% csrf_token %}
         
         {{ form.non_field_errors }}
-        <p class="fieldWrapper">
+        <p style="margin: 0;">
             {{ form.url.errors }}
 
             <label for="{{ form.url.id_for_label }}">You can change your identifier. This is how your profile will appear when users search for you</label>

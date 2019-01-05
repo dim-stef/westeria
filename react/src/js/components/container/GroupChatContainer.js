@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import axios from "axios";
 import GroupChatMessage, { GroupChatMessageBox } from "../GroupChatMessage";
+import {UserContext} from "./ContextContainer"
+import axios from "axios";
 const uuidv1 = require('uuid/v1');
 
 
@@ -10,7 +11,7 @@ export class GroupChatMessagesContainer extends Component {
         this.state = {
             messages: [],
             ws: null,
-            group: this.props.group,//this.props.group,
+            branch: this.props.branch,//this.props.group,
             roomName: this.props.roomName,//this.props.roomName,
             hasMore: false,
             next: null,
@@ -25,10 +26,10 @@ export class GroupChatMessagesContainer extends Component {
             uri = next;
         }
         else {
-            uri = `/api/groups/${this.state.group.uri}/chat/${this.state.roomName}/messages/`;
+            uri = `/api/branches/${this.state.branch.uri}/chat/${this.state.roomName}/messages/`;
         }
 
-        var response = await axios.get(uri, { withCredentials: true });
+        var response = await axios.get(uri);
         return response.data;
     }
 
@@ -47,7 +48,7 @@ export class GroupChatMessagesContainer extends Component {
             messages: messages,
             next: next,
             hasMore: hasMore,
-            ws: new WebSocket(`ws://${window.location.host}/ws/chat/${this.state.group.uri}/`)
+            ws: new WebSocket(`ws://${window.location.host}/ws/chat/${this.state.branch.uri}/`)
         })
 
     }
@@ -73,7 +74,7 @@ export class GroupChatMessagesContainer extends Component {
         if (this.state.messages && this.state.ws) {
             console.log(this.state.messages)
             return (
-                <GroupChatContainer ws={this.state.ws} roomName={this.state.roomName} messages={this.state.messages} group={this.state.group.id} />
+                <GroupChatContainer ws={this.state.ws} roomName={this.state.roomName} messages={this.state.messages} branch={this.state.branch.id} />
             )
         }
         return null;
@@ -84,11 +85,12 @@ export class GroupChatMessagesContainer extends Component {
 
 
 class GroupChatContainer extends Component {
+    static contextType = UserContext;
     constructor(props) {
         super(props);
 
         this.state = {
-            group: this.props.group,
+            branch: this.props.branch,
             roomName: this.props.roomName,
             currentMessage: '',
             files:'',
@@ -135,7 +137,8 @@ class GroupChatContainer extends Component {
             this.state.ws.send(JSON.stringify({
                 'message': message,
                 'room_name': this.state.roomName,
-                'group': this.state.group
+                'branch': this.state.branch,
+                'from_branch': this.context.currentBranch.id
             }));
         }
     }
@@ -149,7 +152,8 @@ class GroupChatContainer extends Component {
                 this.state.ws.send(JSON.stringify({
                     'message': message,
                     'room_name': this.state.roomName,
-                    'group': this.state.group
+                    'branch': this.state.branch,
+                    'from_branch': this.context.currentBranch.id
                 }));
             }
             this.setState({ currentMessage: '' })
@@ -192,13 +196,17 @@ class GroupChatContainer extends Component {
     getMessageBoxes() {
         var chatBox = {
             author: null,
+            author_name: null,
             author_url: null,
+            created:null,
             messages: []
         };
         var messageBoxes = this.state.messages.map((m, i) => {
             var nextAuthor = null;
             chatBox.author = m.author;
+            chatBox.author_name = m.author_name;
             chatBox.author_url = m.author_url;
+            chatBox.created = m.created;
             chatBox.messages.push(m.message)
 
             if (i < this.state.messages.length - 1) {
@@ -217,7 +225,7 @@ class GroupChatContainer extends Component {
             return el != null;
         });
         messageBoxes = filtered.map(m => {
-            return <GroupChatMessageBox messageBox={m} />
+            return <GroupChatMessageBox messageBox={m} key={m.created}/>
         })
         return messageBoxes;
     }

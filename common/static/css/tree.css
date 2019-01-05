@@ -1,5 +1,10 @@
+.tree-container{
+  margin-left: 200px;
+  margin-right: 200px;
+}
+
 ul.tree {
-  /*overflow-x: auto;*/
+  overflow-x: hidden;
   display: table-cell;
   vertical-align: middle;
   align-items: center;
@@ -35,12 +40,9 @@ ul.tree li {
   background-position: left top;
 }*/
 ul.tree li span {
+  font-size: 1.8rem;
   display: block;
   word-break: break-all;
-  /*
-    uncomment to fix levels
-    height: 1.5em;
-  */
   margin: 0 auto;
   text-align: center;
   white-space: normal;

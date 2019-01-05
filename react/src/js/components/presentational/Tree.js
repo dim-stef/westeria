@@ -9,13 +9,16 @@ export class Tree extends Component {
         this.state = {
             root:this.props.match.params.uri ? this.props.match.params.uri : this.props.root
         }
-        console.log("props location =",this.props.match.params.uri)
+    }
+
+    componentDidMount(){
+        console.log("props",this.props)
     }
 
     render() {
         return (
-            <div id="map-container" class="map-container" >
-                <div id="tree-container" style={{ position: "relative", width:"100%" }}>
+            <div id="map-container" className="map-container" >
+                <div className="tree-container" id="tree-container" style={{ position: "relative", width:"100%" }}>
                     
                     <MediaQuery query="(min-width: 1201px)">
                         {/*<NodeContainer root={this.state.root} key="NodeContainer"/>*/}
@@ -24,14 +27,12 @@ export class Tree extends Component {
                     <MediaQuery query="(max-width: 1200px)">
                         <MobileGroupsContainer root={this.state.root} key="MobileGroupsContainer"/>
                     </MediaQuery>
-                    {/* For tree view 
-                    <ul id="tree" class="tree">
-                    </ul>*/}
                 </div>
             </div>
         )
     }
 }
+
 
 export class Test extends Component {
     render(){

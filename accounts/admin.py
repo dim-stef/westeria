@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.auth.admin import UserAdmin
-from .models import User, UserProfile, FakeProfile
+from .models import User, UserProfile
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
@@ -26,11 +26,6 @@ class UserProfileAdmin(admin.ModelAdmin):
     pass
 
 
-class FakeProfileAdmin(admin.ModelAdmin):
-    pass
-
-
 admin.site.register(User, CustomUserAdmin)
 admin.site.register(UserProfile, UserProfileAdmin)
-admin.site.register(FakeProfile, FakeProfileAdmin)
 admin.site.register(Permission)

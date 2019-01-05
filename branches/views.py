@@ -10,11 +10,11 @@ from .mixins import AjaxFormMixin
 from random import randint
 
 
-def unique_tag():
+'''def unique_tag():
     while True:
         tag = randint(100, 999)
         if not Branch.objects.filter(tag=tag).exists():
-            return tag
+            return tag'''
 
 
 class GroupFormView(FormView):
@@ -31,7 +31,6 @@ class GroupFormView(FormView):
     def form_valid(self, form):
         group = form.save(commit=False)
         group.owner = self.request.user
-        group.tag = unique_tag()
         group.save()
         '''group = form.save(commit=False)
         if Group.objects.filter(name=group.name).count() is 100:
@@ -73,9 +72,9 @@ class GroupFormView(FormView):
 
 class GroupTreeView(ListView):
     model = Branch
-    template_name = "groups/tree.html"
-
-    def get(self, request, *args, **kwargs):
+    #template_name = "groups/tree.html"
+    template_name = "templates/index.html"
+    '''def get(self, request, *args, **kwargs):
         if 'uri' in kwargs:
             if not Branch.objects.filter(uri__exact=kwargs['uri']).exists():
                 if Branch.objects.filter(uri__iexact=kwargs['uri']).exists():
@@ -90,7 +89,7 @@ class GroupTreeView(ListView):
             context['group'] = Branch.objects.get(uri__exact=self.kwargs['uri'])
         else:
             context['group'] = Branch.objects.get(uri__exact='global')
-        return context
+        return context'''
 
 
 class GroupView(ListView):

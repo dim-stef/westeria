@@ -46,13 +46,3 @@ $(document).on("touchstart", "#img-container", function () {
 });
 
 
-
-
-$(function () {
-    $('.drawer-btn, #mobile-drawer').click(function (event) {
-        document.getElementById("mobile-content-container").classList.toggle("mobile-slider");
-        document.getElementById("main-wrapper").classList.toggle("content-drawer");
-        document.getElementById("container-side").classList.toggle("slider");
-        document.getElementById("prof").classList.toggle("prof-remove-shadow");
-    });
-});

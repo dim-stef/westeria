@@ -41,6 +41,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterUniqueTogether(
             name='branch',
-            unique_together={('owner', 'name'), ('name', 'tag')},
+            unique_together={('owner', 'name')},
         ),
     ]

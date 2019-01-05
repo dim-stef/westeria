@@ -57,17 +57,3 @@ def create_user_profile(sender, instance, created, **kwargs):
 '''@receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()'''
-
-
-class FakeProfile(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
-
-    def save(self, *args, **kwargs):
-        user = User.objects.get(id=self.user)
-        user.fake_count += 1
-        user.save()
-        super(FakeProfile, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return '%s' % self.user_id

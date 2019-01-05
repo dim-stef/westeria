@@ -29,18 +29,6 @@ class UserAdminSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = ['user', 'url', 'name','profile_image', 'fake_count']  # '__all__'
-        read_only_fields = ['user', 'fake_count']
-
-    def update(self, instance, validated_data):
-        instance.profile_image = validated_data.get('profile_image', instance.profile_image)
-        instance.save()
-        return instance
-
-
 class BranchPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -62,12 +50,13 @@ class UserAdminProfileSerializer(serializers.ModelSerializer):
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ['id', 'owner', 'parents', 'children', 'name', 'uri', 'children_uri_field', 'description',
-                  'branch_image', 'branch_banner']
-        read_only_fields = ['id', 'owner', 'parents', 'children', 'name', 'uri', 'children_uri_field', 'description',
-                            'branch_image', 'branch_banner']
+        fields = ['id', 'owner', 'parents','parent_uri_field', 'children', 'name', 'uri', 'children_uri_field', 'description',
+                  'branch_image', 'branch_banner','default']
+        read_only_fields = ['id', 'owner', 'parents','parent_uri_field', 'children', 'name', 'uri', 'children_uri_field', 'description',
+                            'branch_image', 'branch_banner','default']
 
     children_uri_field = serializers.SerializerMethodField('children_uri')
+    parent_uri_field = serializers.SerializerMethodField('parents_uri')
 
     def children_uri(self, group):
         _branch = Branch.objects.get(uri=group)
@@ -76,6 +65,18 @@ class BranchSerializer(serializers.ModelSerializer):
             children.append(child.uri)
         return children
 
+    def parents_uri(self, group):
+        _branch = Branch.objects.get(uri=group)
+        parents = []
+        for parent in _branch.parents.all():
+            parents.append(parent.uri)
+        return parents
+
+
+class BranchUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ('branch_image', 'branch_banner', 'parents', 'name', 'accessibility', 'description', 'over_18')
 
 class BranchChatSerializer(serializers.ModelSerializer):
     class Meta:
@@ -101,8 +102,14 @@ class BranchMessageSerializer(serializers.ModelSerializer):
     author_url = serializers.SerializerMethodField('author_url_field')
 
     def author_name_field(self, branchmessage):
-        return branchmessage.author.name
+        try:
+            return branchmessage.author.name
+        except AttributeError:
+            return '[deleted]'
 
     def author_url_field(self, branchmessage):
-        return branchmessage.author.uri
+        try:
+            return branchmessage.author.uri
+        except AttributeError:
+            return 'deleted'
 

@@ -4,6 +4,7 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
 from rest_framework_jwt.settings import api_settings
+from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser
 from accounts.models import UserProfile
 from branches.models import Branch
 from branchchat.models import BranchChat, BranchMessage
@@ -59,28 +60,10 @@ class UserViewSet(mixins.RetrieveModelMixin,
         return queryset
 
 
-class UserProfileViewSet(mixins.RetrieveModelMixin,
-                         mixins.UpdateModelMixin,
-                         mixins.ListModelMixin,
-                         viewsets.GenericViewSet):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def get_serializer_class(self):
-        user = self.request.user
-        if user.is_superuser:
-            return serializers.UserAdminProfileSerializer
-        else:
-            return serializers.UserProfileSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        queryset = UserProfile.objects.filter(user=user.profile.user)
-        return queryset
-
-
 class BranchPublicProfileSerializer(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.BranchPublicProfileSerializer
 
     def get_queryset(self):
@@ -135,10 +118,48 @@ class ChildrenViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         queryset = Branch.objects.none()
-        print(self.kwargs)
         if self.kwargs['nested_1_uri']:
             children = Branch.objects.get(uri__iexact=self.kwargs['nested_1_uri']).children.all()
             queryset = children
+        return queryset
+
+class ParentViewSet(viewsets.GenericViewSet,
+                      mixins.RetrieveModelMixin,
+                      mixins.ListModelMixin):
+    lookup_value_regex = '(?i)[\w.@+-]+'
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchSerializer
+    pagination_class = ChildrenLimitOffsetPagination
+
+    def get_queryset(self):
+        queryset = Branch.objects.none()
+        if self.kwargs['nested_1_uri']:
+            parents = Branch.objects.get(uri__iexact=self.kwargs['nested_1_uri']).parents.all()
+            queryset = parents
+        return queryset
+
+
+class BranchUpdateViewSet(viewsets.GenericViewSet,
+                          mixins.UpdateModelMixin,):
+    lookup_field = 'uri'
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = serializers.BranchUpdateSerializer
+    parser_classes = (MultiPartParser,JSONParser,FileUploadParser,)
+
+    def partial_update(self,request, *args, **kwargs):
+        print('request',request.data)
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+
+
+    def get_queryset(self):
+        try:
+            queryset = Branch.objects.filter(owner=self.request.user,uri=self.kwargs['uri'])
+        except Branch.DoesNotExist:
+            queryset = Branch.objects.none()
         return queryset
 
 

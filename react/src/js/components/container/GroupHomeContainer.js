@@ -6,17 +6,17 @@ class GroupHomeContainer extends Component{
     constructor(props){
         super(props);
         this.state = {
-            group:null,
+            branch:null,
             uri:this.props.match.params.uri
         }
     }
 
     async getGroup(){
-        var uri = `/api/groups/${this.state.uri}/`;
+        var uri = `/api/branches/${this.state.uri}/`;
         var response = await axios.get(uri, {withCredentials:true})
         var data = response.data;
         console.log(data);
-        this.setState({group:data});
+        this.setState({branch:data});
     }
 
     componentDidMount(){
@@ -24,9 +24,9 @@ class GroupHomeContainer extends Component{
     }
 
     render(){
-        if(this.state.group){
+        if(this.state.branch){
             return(
-                <GroupHome group={this.state.group} params={this.props.match.params}/>
+                <GroupHome branch={this.state.branch} params={this.props.match.params}/>
             )
         }
         return (null);

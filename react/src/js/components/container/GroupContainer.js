@@ -7,6 +7,97 @@ const uuidv1 = require('uuid/v1');
 import { Node, MobileGroups, Groups } from "../presentational/Group";
 
 
+
+export class GroupsContainer extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            root:this.props.root,
+            branches:null,
+        }
+    }
+
+    async collectGroups(branch, updateState){
+        let uri;
+
+        uri = `/api/branches/${branch}/`
+        let parentResponse = await axios.get(uri, {withCredentials: true});
+        let parentData = parentResponse.data;
+
+        uri = `/api/branches/${branch}/children/?limit=10`;
+        let response = await axios.get(uri, {withCredentials: true});
+        let data = response.data;
+
+        let children = data.results.map(c => c)
+        let branches = {
+            parent:parentData,
+            children:children
+        }
+        updateState(branches)
+    }
+
+    componentDidMount(){
+        this.collectGroups(this.state.root, (branches)=>{
+            this.setState({branches:branches})
+        })
+        
+    }
+
+    render(){
+        if(this.state.branches){
+            console.log("state", this.state.branches)
+            return <Groups branches={this.state.branches}/>
+        }
+        return (null);
+    }
+}
+
+export class MobileGroupsContainer extends Component{
+    constructor(props){
+        super(props);
+        this.state = {
+            root:this.props.root,
+            branches:null,
+        }
+    }
+
+    async collectGroups(branch, updateState){
+        let uri;
+
+        uri = `/api/groups/${branch}/`
+        let parentResponse = await axios.get(uri, {withCredentials: true});
+        let parentData = parentResponse.data;
+
+        uri = `/api/groups/${branch}/children/?limit=10`;
+        let response = await axios.get(uri, {withCredentials: true});
+        let data = response.data;
+
+        let children = data.results.map(c => c)
+        let branches = {
+            parent:parentData,
+            children:children
+        }
+        updateState(branches)
+    }
+
+    componentDidMount(){
+        this.collectGroups(this.state.root, (branches)=>{
+            this.setState({branches:branches})
+        })
+        
+    }
+
+    render(){
+        if(this.state.branches){
+            console.log("state", this.state.branches)
+            return <MobileGroups branches={this.state.branches}/>
+        }
+        return (null);
+    }
+}
+
+
+
 export class NodeContainer extends Component {
     constructor(props) {
         super(props);
@@ -107,97 +198,6 @@ export class NodeContainer extends Component {
         return (null);
     }
 }
-
-
-export class GroupsContainer extends Component{
-    constructor(props){
-        super(props);
-        this.state = {
-            root:this.props.root,
-            groups:null,
-        }
-    }
-
-    async collectGroups(group, updateState){
-        let uri;
-
-        uri = `/api/groups/${group}/`
-        let parentResponse = await axios.get(uri, {withCredentials: true});
-        let parentData = parentResponse.data;
-
-        uri = `/api/groups/${group}/children/?limit=10`;
-        let response = await axios.get(uri, {withCredentials: true});
-        let data = response.data;
-
-        let children = data.results.map(c => c)
-        let groups = {
-            parent:parentData,
-            children:children
-        }
-        updateState(groups)
-    }
-
-    componentDidMount(){
-        this.collectGroups(this.state.root, (groups)=>{
-            this.setState({groups:groups})
-        })
-        
-    }
-
-    render(){
-        if(this.state.groups){
-            console.log("state", this.state.groups)
-            return <Groups groups={this.state.groups}/>
-        }
-        return (null);
-    }
-}
-
-export class MobileGroupsContainer extends Component{
-    constructor(props){
-        super(props);
-        this.state = {
-            root:this.props.root,
-            groups:null,
-        }
-    }
-
-    async collectGroups(group, updateState){
-        let uri;
-
-        uri = `/api/groups/${group}/`
-        let parentResponse = await axios.get(uri, {withCredentials: true});
-        let parentData = parentResponse.data;
-
-        uri = `/api/groups/${group}/children/?limit=10`;
-        let response = await axios.get(uri, {withCredentials: true});
-        let data = response.data;
-
-        let children = data.results.map(c => c)
-        let groups = {
-            parent:parentData,
-            children:children
-        }
-        updateState(groups)
-    }
-
-    componentDidMount(){
-        this.collectGroups(this.state.root, (groups)=>{
-            this.setState({groups:groups})
-        })
-        
-    }
-
-    render(){
-        if(this.state.groups){
-            console.log("state", this.state.groups)
-            return <MobileGroups groups={this.state.groups}/>
-        }
-        return (null);
-    }
-}
-
-
 
 /*const wrapper = document.getElementById("tree");
 wrapper ? ReactDOM.render(<NodeContainer root={"ROOT"} />, wrapper) : false;*/

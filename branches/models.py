@@ -4,12 +4,13 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from accounts.models import User, UserProfile
 from branchchat.models import BranchChat
+from .utils import generate_unique_uri
 import uuid
 
 
 class Branch(models.Model):
     class Meta:
-        unique_together = (('owner', 'name'), ('name', 'tag'))
+        unique_together = ('owner', 'name')
 
     PUBLIC = 'PU'
     INVITE_ONLY = 'IO'
@@ -25,27 +26,28 @@ class Branch(models.Model):
                                      default='/images/group_images/banner/default.jpeg',
                                      blank=False)
 
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
-    #owners_profile = models.ForeignKey(UserProfile, on_delete=models.SET_NULL, null=True, related_name='profiles_owned_groups')
     parents = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="children")
     name = models.CharField(blank=False, null=False, default='unnamed', max_length=30)
     accessibility = models.CharField(default=PUBLIC, choices=ACCESSIBILITY, max_length=2)
     description = models.TextField(blank=False, null=False, default="No description.", max_length=200)
     over_18 = models.BooleanField(default=False)
-    tag = models.IntegerField(blank=True, null=True)
     uri = models.CharField(blank=False, null=False, default=uuid.uuid4, max_length=60)
+    default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.uri
 
     def save(self, *args, **kwargs):
-        name = ''.join(self.name.split())
-        print("name=", name)
-        if self.tag:
-            self.uri = '%s.%d' % (name, self.tag)
+
+        if not Branch.objects.filter(pk=self.pk).first():  #in case of new model instance
+            self.uri = generate_unique_uri(self.name)
         else:
-            self.uri = '%s' % name
+            branch = Branch.objects.get(pk=self.pk)
+            if branch.uri != self.uri:                     #need validation if uri updated
+                self.uri = generate_unique_uri(self.name)
         super().save(*args, **kwargs)
 
 
