@@ -11,8 +11,8 @@ export class GroupChatMessagesContainer extends Component {
         this.state = {
             messages: [],
             ws: null,
-            branch: this.props.branch,//this.props.group,
-            roomName: this.props.roomName,//this.props.roomName,
+            branch: this.props.branches.parent,
+            roomName: 'general',
             hasMore: false,
             next: null,
         }
@@ -172,6 +172,7 @@ class GroupChatContainer extends Component {
     }
 
     componentDidMount() {
+        localStorage.setItem('profilePictures',JSON.stringify({}));
         var self = this;
         this.el.scrollIntoView({ behavior: "instant" });
         this.state.ws.onmessage = function (e) {
@@ -238,7 +239,7 @@ class GroupChatContainer extends Component {
                     {messageBoxes}
                 </div>
 
-                <div style={{ position: 'fixed', bottom: 0, height: 100, width: '100%' }}>
+                <div style={{ position: 'fixed', bottom: 0, height: 100, width: 1200 }}>
                     <textarea onDrop={this.drop} onDragOver={this.preventDefault} onChange={this.inputHandler} onKeyPress={this.handleKeyPress} className="text-wrapper" rows="1" value={this.state.currentMessage} id="chat-message-input"></textarea>
                 </div>
                 <div ref={el => { this.el = el; }}></div>

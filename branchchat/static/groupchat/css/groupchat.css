@@ -1,6 +1,8 @@
 .groupchat-container{
     display: flex;
     margin-top: 20px;
+    padding: 10px;
+    background-color: white;
 }
 
 .profile-icon-container{
@@ -33,7 +35,6 @@
 .chat-log{
     font-size: 1.7em;
     white-space: pre-line;
-    margin-left:30px;
     margin-bottom:130px;
 }
 

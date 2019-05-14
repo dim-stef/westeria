@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom"
 import axios from "axios";
 
 export class GroupChatMessageBox extends Component {
@@ -22,7 +23,7 @@ export class GroupChatMessageBox extends Component {
         })
         return (
             <div className="groupchat-container" >
-                <UserInfo author={this.props.messageBox.author} key={this.props.messageBox.author} />
+                <UserInfo author={this.props.messageBox.author} author_url={this.props.messageBox.author_url} key={this.props.messageBox.author} />
                 <div className="message-box" >
                     <div>
                         <span style={{ fontWeight: "bold", fontSize: "1em" }}>{this.props.messageBox.author_name}</span>
@@ -46,11 +47,21 @@ class UserInfo extends Component {
     }
 
     componentWillUnmount() {
-        localStorage.setItem(this.state.author, this.state.authorImageUrl)
+        var items = JSON.parse(localStorage.getItem('profilePictures'))
+        items[this.state.author] = this.state.authorImageUrl;
+        //localStorage.setItem(this.state.author, this.state.authorImageUrl)
+        localStorage.setItem('profilePictures', JSON.stringify(items));
     }
 
     componentWillMount() {
-        const rehydrate = localStorage.getItem(this.state.author)
+        var items = JSON.parse(localStorage.getItem('profilePictures'));
+        var rehydrate = null;
+        if(items){
+            if(this.state.author in items){
+                rehydrate = localStorage.getItem(items[this.state.author])
+                console.log(rehydrate);
+            }
+        }
         this.setState({ authorImageUrl: rehydrate })
     }
 
@@ -75,11 +86,11 @@ class UserInfo extends Component {
     render() {
         if (this.state.authorImageUrl) {
             return (
-                <div className="profile-icon-container" 
+                <Link to={`/${this.props.author_url}`} className="profile-icon-container" 
                 style={{ backgroundImage: `url(${this.state.authorImageUrl})`, 
                 backgroundSize: 'cover', 
                 backgroundRepeat:'no-repeat',
-                backgroundPosition:'center' }}></div>
+                backgroundPosition:'center' }}></Link>
             )
         }
         return (

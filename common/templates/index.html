@@ -11,7 +11,7 @@
     {% block meta %}{% endblock %}
     <link rel="stylesheet" type="text/css" href="{% static 'settings/settings.css' %}">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/settings.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'accounts/auth.css' %}">
@@ -22,18 +22,16 @@
     <link rel="stylesheet" type="text/css" href="{% static 'groups/css/index.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'groupchat/css/groupchat.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/tree.css' %}"/>
-
 </head>
 
 
 <body id="body">
-
-
-<div class="page" style="height: 100%;">
-    {% block groups %} {% endblock %}
-    <div id="react-root" style="height: 100%;">
-
+    <div class="page" style="height: 100%;">
+        {% block groups %} {% endblock %}
+        <div id="react-root" style="height: 100%;">
+        </div>
     </div>
+    <div id="modal-root"></div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="{% static 'js/csrf.js' %}"></script>
     <script async src="{% static 'settings/settings.js' %}"></script>
@@ -41,9 +39,6 @@
     <script type="text/javascript" src="{% static 'js/Router.js' %}"></script>
     <script src="{% static 'js/ajax-related.js' %}"></script>
     <script src="{% static 'js/uicontrol.js' %}"></script>
-
-</div>
-
 </body>
 
 </html>

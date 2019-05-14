@@ -26,26 +26,6 @@ class User(AbstractUser):
         return '%s' % self.email
 
 
-class UserProfile(models.Model):
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        primary_key=True,
-        related_name='profile',
-    )
-    url = models.CharField(unique=True, null=False, max_length=60)
-    name = models.CharField(blank=False, null=False, default="Anon", max_length=24)
-    profile_image = models.ImageField(upload_to='images/users/profile',
-                                      default='/images/users/profile/default.jpeg',
-                                      blank=False)
-    fake_count = models.IntegerField(default=0)
-
-    REQUIRED_FIELDS = ['name']
-    def __str__(self):
-        return '%s' % self.name
-
-
 '''@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:

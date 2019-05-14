@@ -1,8 +1,3 @@
-.tree-container{
-  margin-left: 200px;
-  margin-right: 200px;
-}
-
 ul.tree {
   overflow-x: hidden;
   display: table-cell;

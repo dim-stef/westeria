@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.models import Permission
 from django.contrib.auth.admin import UserAdmin
-from .models import User, UserProfile
+from .models import User
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 
@@ -21,11 +21,5 @@ class CustomUserAdminForm(forms.ModelForm):
 class CustomUserAdmin(admin.ModelAdmin):
     form = CustomUserAdminForm
 
-
-class UserProfileAdmin(admin.ModelAdmin):
-    pass
-
-
 admin.site.register(User, CustomUserAdmin)
-admin.site.register(UserProfile, UserProfileAdmin)
 admin.site.register(Permission)

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import GroupChatContainer,{GroupChatMessagesContainer} from "../container/GroupChatContainer"
+import {LeftPageBar2} from './WideScreenNavigation'
 
 class GroupHome extends Component{
     constructor(props){
@@ -21,7 +22,6 @@ class GroupHome extends Component{
                 </div>*/}
                 <GroupChatMessagesContainer branch={this.state.branch} roomName={this.state.roomName}/>
             </div>
-            
         )
     }
 }

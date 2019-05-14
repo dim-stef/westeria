@@ -1,10 +1,9 @@
 import React, { Component } from "react";
-import { jsPlumb } from 'jsplumb'
 import axios from 'axios'
 import MediaQuery from 'react-responsive';
 import {Helmet} from "react-helmet";
 const uuidv1 = require('uuid/v1');
-import { Node, MobileGroups, Groups } from "../presentational/Group";
+import { Node, MobileGroups, BranchesPage } from "../presentational/Group";
 
 
 
@@ -45,8 +44,7 @@ export class GroupsContainer extends Component{
 
     render(){
         if(this.state.branches){
-            console.log("state", this.state.branches)
-            return <Groups branches={this.state.branches}/>
+            return <BranchesPage branches={this.state.branches}/>
         }
         return (null);
     }

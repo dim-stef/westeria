@@ -1,13 +1,11 @@
 from django.views.generic.edit import UpdateView
 from django.http import JsonResponse
 from branches.models import Branch
-from .forms import SettingsUserProfileForm
 from .mixins import AjaxFormMixin
 
 
 class SettingsUserProfileFormView(AjaxFormMixin, UpdateView):
     success_url = '/settings/'
-    form_class = SettingsUserProfileForm
     model = Branch
     template_name = 'settings/settings.html'
 

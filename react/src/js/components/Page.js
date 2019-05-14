@@ -2,12 +2,17 @@ import React, { Component } from "react";
 import ReactDOM from "react-dom";
 import { Helmet } from "react-helmet";
 import MediaQuery from 'react-responsive';
+import Responsive from 'react-responsive';
 import {Content} from './presentational/Content'
+import NavigationBar from './presentational/Navigation'
+import {WideScreenNavigation} from './presentational/WideScreenNavigation'
 import {UserContext} from './container/ContextContainer'
 import axios from 'axios'
-import $ from "jquery";
 
-//export const UserContext = React.createContext("ooo");
+
+const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
+const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={991} />;
+const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
 
 export class Page extends Component {
 
@@ -23,11 +28,12 @@ export class Page extends Component {
             updateUserData:null
         }
 
-        this.updateUserData = this.updateUserData.bind(this)
+        //this.updateUserData = this.updateUserData.bind(this)
     }
 
-    updateUserData(){
-        axios.get("/api/owned_branches/").then(r=>{
+    /*async updateUserData(){
+        try{
+            var r = await axios.get("/api/owned_branches/")
             this.setState({
                 isAuth:localStorage.getItem("token"),
                 branches:r.data,
@@ -36,7 +42,7 @@ export class Page extends Component {
                 }),
                 startedLoading:true,
             })
-        }).catch(er =>{
+        }catch(error){
             localStorage.removeItem("token");
             this.setState({
                 isAuth:null,
@@ -44,23 +50,17 @@ export class Page extends Component {
                 currentBranch:null,
                 startedLoading:true,
             })
-        })
-    }
-
-    modalClick() {
-        if ($("#group-container").length) {
-            document.getElementById("modal-window").classList.toggle("modal-window");
-            document.getElementById("group-container").classList.toggle("show");
         }
-    }
+    }*/
 
     render() {
         console.log("context",this.context)
-        let updateHandler = {updateUserData:this.updateUserData}
-        let value = {...this.state,...updateHandler}
+        //let updateHandler = {updateUserData:this.updateUserData}
+        //let value = {...this.state,...updateHandler}
         return (
+
             <div className="root-wrapper">
-                {localStorage.getItem('token') ? (
+                {/*{localStorage.getItem('token') ? (
                     <div>
                         <div onClick={this.modalClick} id="modal-window" />
                             <div id="creategroup-container">
@@ -68,11 +68,25 @@ export class Page extends Component {
                     </div>
                 ):(
                     null
-                )}
+                )}*/}
 
-                <UserContext.Provider value={value}>
-                    <Content {...this.props}/>
-                </UserContext.Provider>
+                {/*<UserContext.Provider  value={value}> */}
+                    <Desktop>
+                        <NavigationBar/>
+                        <div style={{marginTop:60}}>
+                            <WideScreenNavigation />
+                        
+                            <div id="main-wrapper" className="main-wrapper">
+                                <div id="wide-content-container" className="wide-content-container">
+                                    {this.props.children}
+                                </div>
+                            </div>
+                        </div>
+                    </Desktop>
+                    <MediaQuery maxDeviceWidth={1224}>
+                        <div>You are a tablet or mobile phone</div>
+                    </MediaQuery>
+                {/*</UserContext.Provider>*/}
                     
 
                 <div className="success-message-container" style={{ display: 'none' }}>
@@ -82,3 +96,4 @@ export class Page extends Component {
         )
     }
 }
+

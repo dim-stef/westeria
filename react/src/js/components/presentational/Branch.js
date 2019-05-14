@@ -1,0 +1,59 @@
+import React, { Component, useContext,useState } from "react";
+import { Link } from 'react-router-dom'
+import {BranchBanner} from "./BranchBanner"
+import {UserContext} from '../container/ContextContainer'
+import {BigBranchPicture} from "./BranchPageLeftBar"
+import axios from 'axios'
+
+
+export class ChildBranch extends Component{
+    static contextType = UserContext
+
+    render(){
+        let {styleName='', style=null, branch, editMode, children} = this.props
+        console.log("this.props.editMode",this.props.editMode)
+
+        return(
+            <>
+            <div className="item-container flex-fill" style={{marginTop:style.marginTop,
+            marginBottom:style.marginBottom,
+            flexBasis:style.flexBasis}}>
+                <Link to={"/" + branch.uri} className={`group-link ${ styleName }`} style={{width:style.width}}>
+                    <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
+                </Link>
+                {children}
+            </div>
+            </>  
+        )
+    }
+}
+
+
+export class ParentBranch extends Component{
+    static contextType = UserContext
+
+    render(){
+        let {styleName='', style=null, branch, branchNavigation=null,type="child",editMode, children} = this.props
+        console.log(branch)
+        return(
+            <div className="item-container" style={{marginTop:style.marginTop,
+            marginBottom:style.marginBottom, 
+            flexBasis:style.flexBasis,
+            width:1200,
+            display:'block'}}>
+                <div className={`group-link ${ styleName }`} style={{width:style.width,border:0}}>
+                    <BranchBanner branch={branch} dimensions={style.branchDimensions} parent className="branch-parent-picture" editMode={editMode}>
+                    </BranchBanner>
+                </div>
+            </div>
+        )
+    }
+}
+
+function ProfileImage({branch}){
+    const className="branch-parent-picture";
+
+    return(
+        <BigBranchPicture branch={branch} className={className}/>
+    )
+}

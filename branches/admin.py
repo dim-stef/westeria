@@ -2,7 +2,7 @@ from django.contrib import admin
 from django import forms
 from django.core.exceptions import ValidationError
 from branchchat.models import BranchChat
-from .models import Branch, Subscription
+from .models import Branch,BranchRequest
 
 
 class GroupChatInline(admin.TabularInline):
@@ -38,8 +38,8 @@ class GroupAdmin(admin.ModelAdmin):
         GroupChatInline,
     ]
     form = GroupAdminForm
-    filter_horizontal = ('parents',)
+    filter_horizontal = ('parents','follows',)
 
 
 admin.site.register(Branch, GroupAdmin)
-admin.site.register(Subscription)
+admin.site.register(BranchRequest)

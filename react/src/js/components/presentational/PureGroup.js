@@ -80,7 +80,7 @@ class BranchBanner extends Component{
     render(){
         return(
         <div className="group-container" id={this.props.branch.id} >
-            <div onClick={this.onClick} style={{paddingTop: '56.25%', position: 'relative',width:"100%",
+            <div onClick={this.onClick} style={{paddingTop: '33.33333%', position: 'relative',width:"100%",
             backgroundImage:`url(${this.state.branchBanner ? this.state.branchBanner : this.props.branch.branch_banner})`, backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center'}}>
                 {this.state.editMenu && this.props.editMode ? <BranchImageEditMenu branch={this.props.branch} updateBanner={this.updateBanner} type="banner"/> : null}
                 <BranchImage branch={this.props.branch} dimensions={this.props.dimensions} editMode={this.props.editMode}/>
@@ -95,6 +95,7 @@ class BranchImage extends Component {
         super(props);
 
         this.state = {
+            height:0,
             editMode:false,
             editMenu:false,
             branchImage:this.props.branch.branch_image
@@ -120,6 +121,13 @@ class BranchImage extends Component {
         this.setState({branchImage:url,editMenu:false})
     }
 
+    componentDidMount(){
+        console.log(this.el)
+        this.setState({
+            height:this.el.clientWidth
+        })
+    }
+
     render(){
         var initials;
         var matches = this.props.branch.name.match(/\b(\w)/g);
@@ -132,7 +140,7 @@ class BranchImage extends Component {
         var branchImage;
         if(this.props.branch.branch_image){
             branchImage=(
-                <div className="group" style={{width:this.props.dimensions,height:this.props.dimensions}}>
+                <div ref={el =>this.el = el} className="group" style={{width:this.props.dimensions,height:this.props.dimensions}}> {/* use this.props.dimensions for fixed dimensions */}
                     <div style={{width:'100%',height:'100%',overflow:'hidden',borderRadius:'50%'}}>
                         <button className="group"
                         onClick={this.onClick}
@@ -169,12 +177,6 @@ class BranchImageEditMenu extends Component{
         super(props);
         this.onClick = this.onClick.bind(this);
         this.onChange = this.onChange.bind(this);
-    }
-
-    onClick(e){
-        /*if (!e) var e = window.event;
-        e.cancelBubble = true;
-        if (e.stopPropagation) e.stopPropagation();*/
     }
 
     onChange(e){
