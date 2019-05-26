@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django import forms
-from .models import Post, React, Star, Spread
+from .models import Post, React, Star, Spread, PostImage
 
 class PostAdminForm(forms.ModelForm):
     class Meta:
@@ -14,3 +14,5 @@ class PostAdmin(admin.ModelAdmin):
 admin.site.register(Post,PostAdmin)
 admin.site.register(React)
 admin.site.register(Star)
+admin.site.register(Spread)
+admin.site.register(PostImage)

@@ -1,10 +1,78 @@
-import React, { Component } from "react";
+import React, { Component,useState,useEffect } from "react";
 import axios from 'axios'
 import MediaQuery from 'react-responsive';
 import {Helmet} from "react-helmet";
+import {BranchList} from "../presentational/BranchesPage"
+import {BranchPage} from "../presentational/Routes"
 const uuidv1 = require('uuid/v1');
 import { Node, MobileGroups, BranchesPage } from "../presentational/Group";
 
+
+export function BranchesPageContainer(props){
+    const [branches,setBranches] = useState(null);
+    let branchUri = props.branch.uri;
+    console.log(props);
+
+    async function getBranches(branchUri,type="children"){
+        let uri;
+
+        uri = `/api/branches/${branchUri}/${type}/?limit=10`;
+        let response = await axios.get(uri, {withCredentials: true});
+        let data = response.data;
+
+        let branches = {
+            branches:data.results
+        }
+        setBranches(data.results);
+    }
+
+
+    useEffect(() => {
+        
+        getBranches(branchUri,props.type);
+
+    },[])
+
+    if(branches){
+        let fillerBox = branches.length % 3 == 0?null:<div style={{flexBasis:'33%',order:1}}></div>
+
+        return (
+        <>
+            <BranchList branches={branches}/>
+            {fillerBox}
+        </>
+        )
+    }else{
+        return null
+    }
+}
+
+export function BranchContainer(props){
+    const [branches,setBranches] = useState(null);
+    let branchUri = props.match.params.uri ? props.match.params.uri : 'global';
+
+    async function getBranches(branchUri){
+        let uri;
+
+        uri = `/api/branches/${branchUri}/`
+        let parentResponse = await axios.get(uri, {withCredentials: true});
+        let parentData = parentResponse.data;
+
+        setBranches(parentData);
+    }
+
+    useEffect(() => {
+        
+        getBranches(branchUri);
+
+    },[branchUri])
+
+    if(branches){
+        return <BranchPage branch={branches} match={props.match.params.uri ? props.match.params.uri : 'global'}/>
+    }else{
+        return null
+    }
+}
 
 
 export class GroupsContainer extends Component{
@@ -44,7 +112,7 @@ export class GroupsContainer extends Component{
 
     render(){
         if(this.state.branches){
-            return <BranchesPage branches={this.state.branches}/>
+            return <BranchesPage branches={this.props.branches}/>
         }
         return (null);
     }

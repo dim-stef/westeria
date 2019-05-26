@@ -3,26 +3,37 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext_lazy as _
+from django.core.exceptions import ValidationError
 from accounts.models import User
 from branches.models import Branch
 import uuid
-from datetime import datetime, timedelta
-from math import log
+from datetime import datetime
+from math import log,exp
 
 
 epoch = datetime(1970, 1, 1)
+
+def sigmoid(x):
+  return 1 / (1 + exp(-log(max(x + 1,1),10)))
 
 def epoch_seconds(date):
     td = date - epoch
     return td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000)
 
-def hot(ups, date):
+def hot(ups,spreads, date):
     s = ups * 10
-    order = log(max(abs(s), 1), 10)
-    print(order)
+    spread_s = sigmoid(spreads) * 30 - 15
+    up_s = log(max(abs(s), 1), 10)
+    order = spread_s + up_s
+    print(spread_s,up_s)
     seconds = epoch_seconds(date) - 1134028003
     return round(order + seconds / 45000, 7)
 
+def calculate_score(votes,spreads, item_hour_age, gravity=1.8):
+    spread_points = sigmoid(spreads)
+    vote_points = log(max(votes,1),10)
+    weight = spread_points + vote_points
+    return weight / pow((item_hour_age+2), gravity)
 
 def uuid_int():
     uid = uuid.uuid4()
@@ -60,7 +71,7 @@ class Post(models.Model):
             MinValueValidator(0)
         ]
     )
-    text = models.TextField(_("Text"), max_length=3000)
+    text = models.TextField(_("Text"),null=True,blank=True, max_length=3000)
     hot_score = models.DecimalField(max_digits=19,decimal_places=10,default=0.0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -72,11 +83,29 @@ class Post(models.Model):
     def __str__(self):
         return str(self.id)
 
+    def clean(self):
+        super().clean()
+        if not self.text:
+            print("None")
+        if not self.images.exists():
+            print("not exists")
+        if not self.text and not self.images.exists():
+            raise ValidationError('Field1 or field2 are both None')
+
+
+class PostImage(models.Model):
+    height = models.IntegerField()
+    width = models.IntegerField()
+    post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name="images")
+    image = models.ImageField(upload_to='images',null=True,height_field='height', width_field='width')
+
 
 class Spread(models.Model):
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name="spreads")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="spreads")
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return str(self.branch)  + " spread " + str(self.post)
@@ -113,12 +142,12 @@ class Star(models.Model):
 def update_post_score(sender, instance, **kwargs):
     for post in Post.objects.all():
      naive = post.created.replace(tzinfo=None)
-     post.hot_score = hot(post.reacts.filter(type="star").count(), naive)
+     post.hot_score = hot(post.reacts.filter(type="star").count(),post.spreads.count(), naive)
      post.save()
          
 @receiver(post_save, sender=React, dispatch_uid="update_react")
 def update_post_score(sender, instance, **kwargs):
     for post in Post.objects.all():
      naive = post.created.replace(tzinfo=None)
-     post.hot_score = hot(post.reacts.filter(type="star").count(), naive)
+     post.hot_score = hot(post.reacts.filter(type="star").count(),post.spreads.count(), naive)
      post.save()

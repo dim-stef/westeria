@@ -164,7 +164,7 @@ export function ActionArrow({refresh}){
             position: "absolute",
             height: 60,
             top: 0,
-            right: 230,
+            right: 270,
             display: "flex",
             justifyContent: "center",
             alignItems: "center"

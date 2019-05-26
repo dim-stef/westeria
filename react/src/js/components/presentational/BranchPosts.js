@@ -1,6 +1,7 @@
 import React, { useState,useEffect,useContext } from 'react';
 import {Link} from 'react-router-dom'
 import {RefreshContext} from "../container/ContextContainer"
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import StatusUpdate from "./StatusUpdate"
 import {Post} from './Post'
 import axios from 'axios'
@@ -16,11 +17,15 @@ export function DisplayPosts(props){
     const context = useContext(RefreshContext);
 
     useEffect(()=>{
-        console.log(props)
         const fetchData = async () =>{
             setPosts([])
             const response = await axios(props.uri);
-            setPosts(response.data.results);
+            if(props.externalId){ // request will return non-array post but posts need to be array
+                setPosts([response.data]);
+            }
+            else{
+                setPosts(response.data.results);
+            }
         };
 
         fetchData();
@@ -53,10 +58,9 @@ export function DisplayPosts(props){
 
 
     return(
-        <ul style={{padding:0,margin:'0 10px',listStyle:'none',flexBasis:'60%'}}>
+        <ul style={{padding:0,margin:'0 10px',listStyle:'none',flexBasis:'56%'}}>
             <StatusUpdate updateFeed={updateFeed} postedId={postedId} key={props.postedId}/>
-            {posts?(
-                    //filter posts
+            {posts.length>0?(
                     posts.filter(p=>
                     {
                         if(p.type==="reply"){ //dont return replies
@@ -64,22 +68,41 @@ export function DisplayPosts(props){
                         }
                         return true
                     }).map((post,i) => {
-                            
+                            console.log(post,i)
                             let props = {
                             post:post,
-                            key:post.id,
+                            key:[post.id,post.spreaders],
                             updateHiddenMode:updateHiddenMode,
                             removeFromEmphasized:null,
                             clearEmphasized:clearEmphasized,
                             handleClick:handleClick,
                             showPostedTo:showPostedTo?true:false,
-                            activeBranch:activeBranch};
+                            activeBranch:activeBranch,
+                            updateFeed:updateFeed};
 
-                            return <li key={post.id} style={{marginTop:10}}><Post {...props} minimized/></li>
+                            return <li key={[post.id,post.spreaders]} style={{marginTop:10}}><Post {...props} minimized/></li>
                         }   
                     )
                 ):
-                <p>loading</p>
+                [...Array(8)].map((e, i) => 
+                <div style={{width:'100%',marginTop:10}}>
+                    <div style={{backgroundColor:'white',padding:'10px'}}>
+                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                            <Skeleton circle={true} width={48} height={48}/>
+                        </SkeletonTheme>
+                        <div style={{marginTop:10,lineHeight:'2em'}}>
+                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                                <Skeleton count={2} width="100%" height={10}/>
+                            </SkeletonTheme>
+
+                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                                <Skeleton count={1} width="30%" height={10}/>
+                            </SkeletonTheme>
+                        </div>
+                    </div>
+                </div>
+                )
+                
             }
         </ul>
     )

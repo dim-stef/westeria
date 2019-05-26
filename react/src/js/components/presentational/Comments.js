@@ -45,7 +45,9 @@ export function CommentSection({currentPost,activeBranch,commentIds,isStatusUpda
                     }
                     let marginLeft = c.level===1 ? 0 : 33
                     return (
-                        <li key={c.id} style={{marginLeft:marginLeft,borderLeft:borderLeft}}><Post post={c} activeBranch={activeBranch} lastComment={last}/></li>
+                        <li key={c.id} style={{marginLeft:marginLeft,borderLeft:borderLeft}}>
+                            <Post post={c} activeBranch={activeBranch} updateFeed={updateFeed} lastComment={last}/>
+                        </li>
                     )
                 })}
             </ul>

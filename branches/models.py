@@ -80,6 +80,20 @@ class BranchRequest(models.Model):
         null=True,
     )
 
+    RELATION_TYPE_PARENT = 'parent'
+    RELATION_TYPE_CHILD = 'child'
+    RELATION_TYPE_CHOICES = (
+        (RELATION_TYPE_PARENT, 'Parent'),
+        (RELATION_TYPE_CHILD, 'Child'),
+    )
+
+    relation_type = models.CharField(
+        max_length=20,
+        choices=RELATION_TYPE_CHOICES,
+        blank=True,
+        null=True,
+    )
+
     STATUS_ACCEPTED = 'accepted'
     STATUS_DECLINED = 'declined'
     STATUS_ON_HOLD = 'on hold'
@@ -96,18 +110,26 @@ class BranchRequest(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
-    request_from = models.ForeignKey(Branch,on_delete=models.CASCADE,related_name="requests_received")
-    request_to = models.ForeignKey(Branch,on_delete=models.CASCADE,related_name="requests_sent")
+    request_from = models.ForeignKey(Branch,on_delete=models.CASCADE,related_name="requests_sent")
+    request_to = models.ForeignKey(Branch,on_delete=models.CASCADE,related_name="requests_received")
 
     def save(self, *args, **kwargs):
         validate_manytomany(self,self.request_from,self.request_to)
         if self.status == self.STATUS_ACCEPTED:
             if self.type == self.TYPE_ADD:
-                self.request_to.children.add(self.request_from)
-                print(self.request_from, 'was successfully branched to', self.request_to)
+                if self.relation_type == self.RELATION_TYPE_CHILD:
+                    self.request_to.children.add(self.request_from)
+                    print(self.request_from, 'has successfully become child to', self.request_to)
+                elif self.relation_type == self.RELATION_TYPE_PARENT:
+                    self.request_to.parents.add(self.request_from)
+                    print(self.request_from, 'has successfully become parent to', self.request_to)
             if self.type == self.TYPE_REMOVE:
-                self.request_to.children.remove(self.request_from)
-                print(self.request_from, 'was successfully removed to', self.request_to)
+                if self.relation_type == self.RELATION_TYPE_CHILD:
+                    self.request_to.children.remove(self.request_from)
+                    print(self.request_from, 'was successfully removed as child from', self.request_to)
+                elif self.relation_type == self.RELATION_TYPE_PARENT:
+                    self.request_to.parents.add(self.request_from)
+                    print(self.request_from, 'has successfully removed as parent from', self.request_to)
         super(BranchRequest, self).save()
 
 

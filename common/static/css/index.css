@@ -317,7 +317,7 @@ body {
 
 @media all and (max-width: 1400px){
     .wide-content-container{
-        margin: 0 10px;
+        /*margin: 0 10px;*/
     }
 }
 

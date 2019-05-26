@@ -16,7 +16,7 @@ export default function Card({branch}){
 
 function FollowInfo({followersCount,followingCount}){
     return(
-        <div style={{height:'100%',width:250,position:'absolute',right:0}}>
+        <div style={{height:'100%',width:270,position:'absolute',right:0}}>
             <h1>
                 <span style={{color: '#156bb7'}}>{followersCount}{' '}</span>
                 <span style={{fontWeight:500,fontSize:'0.9em',color:'#000000e8'}}>Followers</span>
@@ -32,7 +32,7 @@ function FollowInfo({followersCount,followingCount}){
 function Identifiers({branch}){
     console.log(branch.uri,"in1")
     return(
-        <div style={{position:'absolute',left:250,width:630}}>
+        <div style={{position:'absolute',left:270,width:672}}>
             <div style={{display:'flex',paddingTop:10,alignItems:'flex-end'}}>
                 <Name name={branch.name}/>
                 <FollowButton id={branch.id} uri={branch.uri}/>

@@ -11,7 +11,7 @@ export class GroupChatMessagesContainer extends Component {
         this.state = {
             messages: [],
             ws: null,
-            branch: this.props.branches.parent,
+            branch: this.props.branch,
             roomName: 'general',
             hasMore: false,
             next: null,

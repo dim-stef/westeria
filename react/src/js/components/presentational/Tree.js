@@ -18,7 +18,7 @@ export class Tree extends Component {
 
     render() {
         return(
-            <GroupsContainer root={this.state.root} key="Groups"/>
+            <GroupsContainer root={this.state.root} branches={this.props.branches} key="Groups"/>
         )
     }
 }

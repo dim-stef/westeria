@@ -6,7 +6,7 @@ import {ToggleContent} from './Temporary'
 import {CommentSection} from './Comments'
 import {SmallBranchList} from './BranchList'
 import axios from 'axios';
-import { set } from 'immutable';
+import LazyLoad from 'react-lazy-load';
 
 var csrftoken = getCookie('csrftoken');
 
@@ -49,7 +49,7 @@ function authorizedGetPostedTo(post,activeBranch,context){
 }
 
 
-export function Post({post,activeBranch,lastComment,emphasized=false,minimized=false}){
+export function Post({post,activeBranch,lastComment,emphasized=false,minimized=false,updateFeed}){
     const context = useContext(UserContext);
     const ref = useRef(null);
     const [cls,setClassName] = useState('');
@@ -83,17 +83,23 @@ export function Post({post,activeBranch,lastComment,emphasized=false,minimized=f
     return(
         <div ref={ref}>
             <SmallPost post={post} lastComment={lastComment} mainPostedBranch={mainPostedBranch} date={date} cls={cls}
-            emphasized={emphasized} showPostedTo activeBranch={activeBranch} openPost={openPost} open={open} closePost={closePost}/>
+            emphasized={emphasized} showPostedTo activeBranch={activeBranch} 
+            updateFeed={updateFeed} openPost={openPost} open={open} closePost={closePost}/>
         </div>
     )
 }
 
-function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,lastComment}){
+function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,lastComment,updateFeed}){
+    const context = useContext(UserContext);
+    const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
+        return s.uri===context.currentBranch.uri
+    }))
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
     let dateElement = timeDifference(date,new Date());
     let borderBottom = lastComment ? 'none' : '1px solid #e2eaf1';
 
     function handleCommentClick(){
+        console.log(post.level)
         if(post.level===0){ //if its top level post always display status bar
             setStatusUpdateActive(true);
         }
@@ -104,16 +110,35 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
 
     function handleOpenPost(){
         openPost();
-        setStatusUpdateActive(true);
+        if(post.level===0){
+            console.log(post.level)
+            setStatusUpdateActive(true);
+        }
+    }
+
+    function onSpread(){
+        post.spreads_count++;
+        if(!post.spreaders.some(sp=>{
+            return sp == context.currentBranch
+        })){
+            post.spreaders.push(context.currentBranch);
+        }
+    
+        setDidSelfSpread(true);
     }
 
     return(
         <div className={`post ${cls}`} style={{display:'block',borderBottom:borderBottom}} 
-        poststate={open?"open":"closed"} 
+        poststate={open?"open":"closed"}
         onClick={handleOpenPost}>
+            {post.spreaders.length>0?
+            <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
+            :null}
             <div className="flex-fill">
                 <div className="flex-fill" style={{flex:'1 1 auto'}}>
-                    <PostPicture picture={post.poster_picture} uri={post.poster}/>
+                    <PostPicture picture={post.poster_picture} 
+                    style={{width:48,height:48}}
+                    uri={post.poster}/>
                     <div>
                         <Link to={post.poster} style={{textDecoration:'none', color:'black'}}>
                                 <strong style={{fontSize:'1.7rem'}}>{post.poster}</strong>
@@ -130,8 +155,9 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
                 }
                 </div>
                 <div>
-                    <PostBodyv2 text={post.text}/>
-                    <PostActions post={post} handleCommentClick={handleCommentClick}/>
+                    <PostBodyv3 text={post.text} images={post.images}/>
+                    <PostActions post={post} handleCommentClick={handleCommentClick}
+                    handleSpread={onSpread} updateFeed={updateFeed} didSelfSpread={didSelfSpread}/>
                     {open?
                     <div style={{margin:'0 -10px -10px'}}>
                         {/*<h1 style={{borderBottom:'1px solid rgb(210, 220, 228)', padding:'10px 0'}}>Comments</h1>*/}
@@ -144,6 +170,7 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
         </div>
     )
 }
+
 
 function PostedToExtension({post,activeBranch,mainPostedBranch}){
     
@@ -194,7 +221,9 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
                 <div className="arrow-right"></div>
                 <div style={{marginLeft:20}}>
                     <div className="flex-fill">
-                        <PostPicture picture={mainPostedBranch.branch_image} uri={mainPostedBranch.uri}/>
+                        <PostPicture style={{width:48,height:48}} 
+                        picture={mainPostedBranch.branch_image} 
+                        uri={mainPostedBranch.uri}/>
                         <div>
                             <Link to={post.poster} style={{textDecoration:'none', color:'black'}}>
                                 <strong style={{fontSize:'1.7rem'}}>{mainPostedBranch.uri}</strong>
@@ -224,7 +253,7 @@ function SmallPost2({post,date,cls,handleClick}){
     )
 }
 
-function PostBodyv2({text}){
+function PostBodyv2({text, images}){
 
     return(
         <div>
@@ -232,12 +261,97 @@ function PostBodyv2({text}){
             marginTop:10,wordWrap:'break-word',
             wordBreak:'break-word',wordBreak:'break-all',
             whiteSpace:'pre-line'}}>{text}</p>
+            <div style={{display:'flex',margin:'0 -10px',marginTop:10,alignItems:'center'}}>
+                {images.map(img=>{
+                    return (
+                        <div style={{width:'100%'}}>
+                            <img style={{width:'100%'}} src={img}/>
+                        </div>
+                    )
+                })}
+            </div>
         </div>
     )
 }
 
-function PostPicture(props){
+function PostBodyv3({text, images}){
+    return(
+        <div>
+            <p style={{fontSize:'1.5rem',margin:0,
+            marginTop:10,marginBottom:10,wordWrap:'break-word',
+            wordBreak:'break-word',wordBreak:'break-all',
+            whiteSpace:'pre-line'}}>{text}</p>
+            {images.length>0?<Images images={images}/>:null}
+        </div>
+    )
+}
 
+function Images(props){
+    const [paddTop,setPaddTop] = useState('56%');
+
+    let maxHeight=620;
+    function getMeta(url){   
+        var img = new Image();
+        img.addEventListener("load", function(){
+            //alert( this.naturalWidth +' '+ this.naturalHeight );
+            console.log(this.naturalHeight)
+            //let height = this.naturalHeight>maxHeight?maxHeight:this.naturalHeight;
+            let height = this.naturalHeight;
+            let width = this.naturalWidth;
+            let ratio = height/width;
+            let paddingTop = height!=0 ?
+            `${ratio*100}%` : 0;
+            setPaddTop(paddingTop);
+        });
+        img.src = url;
+    }
+
+    useEffect(()=>{
+        getMeta(props.images[0]);
+    },[])
+
+    return(
+        <div style={{margin:'0 -10px',overflow: 'hidden',maxHeight:maxHeight}}>
+                <div style={{position:'relative',paddingTop:paddTop}}>
+                    <div style={{overflow:'hidden'}}>
+                        <div style={{display:'flex',alignItems:'center',position:'absolute',
+                        height:'100%',top:0,left:0,maxHeight:maxHeight,width:'100%'}}>
+                            <div style={{display:'flex',height:'100%'}}>
+                                <div>
+                                    {props.images.map(img=>{
+                                        return <div><ImageComponent key={img} src={img}
+                                            maxHeight={maxHeight}
+                                        /></div>
+                                    })}
+                                </div> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+    )
+}
+
+function ImageComponent({src,maxHeight}){
+    console.log(src,maxHeight)
+    return(
+        <div style={{width:660.8}}>
+            <LazyLoad 
+                debounce={false}
+                offsetVertical={500}
+                >
+                <img style={{width:'100%',
+                objectFit:'cover',maxHeight:maxHeight,backgroundColor:'black'}} src={src}/>
+            </LazyLoad>
+            
+        </div>
+    )
+}
+
+
+function PostPicture(props){
+    console.log(props)
     return(
         <Link to={`/${props.uri}`} className="noselect" style={{marginRight:10}}>
             <img src={props.picture} style={{
@@ -246,12 +360,12 @@ function PostPicture(props){
             backgroundRepeat:'no-repeat',
             border:0,
             borderRadius:'50%',
-            width:48,height:48}}/>
+            width:props.style.width,height:props.style.height}}/>
         </Link>
     )
 }
 
-function PostBody({poster, postDate, text}){
+function PostBody({poster, postDate, text, images}){
 
     const [date,setDate] = useState(postDate);
     
@@ -272,14 +386,14 @@ function PostBody({poster, postDate, text}){
 }
 
 
-function PostActions({post,handleCommentClick}){
+function PostActions({post,handleCommentClick,handleSpread,didSelfSpread,updateFeed}){
     const context = useContext(UserContext)
 
     return(
         <div className="flex-fill" style={{height:30,marginTop:5,alignItems:'center'}}>
             <Star postId={post.id} currentBranchId={context.currentBranch.id} count={post.stars}/>
             <Comments post={post} handleCommentClick={handleCommentClick}/>
-            <Share/>
+            <Share post={post} updateFeed={updateFeed} handleSpread={handleSpread} didSelfSpread={didSelfSpread}/>
         </div>
     )
 }
@@ -328,6 +442,7 @@ function Star({postId,currentBranchId,count}){
                     // update star count
                     setStarCount(starCount + 1);
                 }).catch(r=>{
+                    setReacted(!reacted);
                     console.log(r)
             })
         }
@@ -411,11 +526,13 @@ function Comments({post,handleCommentClick}){
     const [clicked,setClicked] = useState(false);
 
     const onClick = () =>{
+        console.log("clicked")
         setClicked(!clicked);
         handleCommentClick();
     }
 
-    let className = clicked ? 'comments-clicked' : ''
+    //let className = clicked ? 'comments-clicked' : ''
+    let className = '';
 
     return(
         <div className="post-action-container comments">
@@ -425,24 +542,6 @@ function Comments({post,handleCommentClick}){
                     <CommentsCount count={post.replies_count}/>
                 </div>
             </button>
-        </div>
-    )
-}
-
-function PostBigBody({post}){
-
-    return(
-        <div style={{width:708,height:500,margin:'0 auto',marginTop:60,backgroundColor:'white'}} onClick={e=>e.stopPropagation()}> 
-            <div style={{padding:'30px 20px'}}>
-                <div>
-                    <img src={post.poster_picture} style={{height:48,width:48}}></img>
-                    <span style={{fontSize:'1.2em', fontWeight:'bold'}}>{post.poster_name}</span>
-                    <span style={{fontSize:'1.2em'}}> @{post.poster}</span>
-                </div>
-                <div>
-                    <p style={{fontSize:'2em'}}>{post.text}</p>
-                </div>
-            </div>
         </div>
     )
 }
@@ -476,22 +575,110 @@ function CommentsCount({count}){
     )
 }
 
-function Share(){
+function Share({post,updateFeed,handleSpread,didSelfSpread}){
     const [clicked,setClicked] = useState(false);
+    const [spreadCount,setSpreadCount] = useState(post.spreads_count);
+    const context = useContext(UserContext);
+    const ref = useRef(null);
 
-    const onClick = () =>{
+    const onClick = (e) =>{
+        e.stopPropagation();
+        spread();
+        setSpreadCount(spreadCount + 1);
         setClicked(!clicked);
     }
 
-    let className = clicked ? 'comments-clicked' : ''
+    const spread = () =>{
+        let uri = `/api/branches/${context.currentBranch.uri}/spreads/new/`;
+        let data = {post:post.id};
+
+        axios.post(
+            uri,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                withCredentials: true
+            }
+        ).then(response=>{
+            handleSpread();
+            console.log(response);
+
+            let uri = `/api/post/${response.data.post}/`;
+            console.log(uri)
+            /*axios.get(uri).then(response=>{
+                console.log(response);
+                updateFeed([response.data])
+            }).catch(error=>{
+                console.log(error);
+                console.log(error.response);
+            })*/
+
+        }).catch(error=>{
+            console.log("error",error)
+        })
+    }
+
+    let className = '';
 
     return(
-        <div className="post-action-container">
-            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0}} onClick={onClick}>
+        <div id="spread-wrapper" className="post-action-container" style={{display:'contents'}}>
+            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0}} onClick={e=>onClick(e)}>
                 <div className="flex-fill">
                     <ShareSvg className={className}/>
+                    <ShareCount spreads={spreadCount}/>
                 </div>
             </button>
+            {/*clicked?
+            <ShareBox post={post} didSelfSpread={didSelfSpread} handleSpread={spread} setClicked={setClicked}/>:null*/}
+        </div>
+    )
+}
+
+function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
+    const ref = useRef(null);
+
+    const copyText = (e) =>{
+        var copyText = document.getElementById("spread-clipboard-input");
+
+        /* Select the text field */
+        copyText.select();
+
+        /* Copy the text inside the text field */
+        document.execCommand("copy");
+    }
+
+    function handleClickOutside(event) {
+        console.log(event.target)
+        if (ref.current && !ref.current.contains(event.target) && 
+        !document.getElementById("spread-wrapper").contains(event.target)) {
+            setClicked(false);
+        }
+    }
+
+    useEffect(()=>{
+        document.addEventListener('mousedown',handleClickOutside);
+        return(()=>{
+            document.removeEventListener('mousedown',handleClickOutside);
+        })
+    })
+
+    return(
+        <div ref={ref} className="spread-box" onClick={e=>e.stopPropagation()}>
+            <div style={{height:49,borderBottom:'1px solid #eaeaea',position:'relative'}}>
+                {didSelfSpread?
+                    <button className="spread-button" onClick={handleSpread}>Undo spread</button>:
+                    <button className="spread-button" onClick={handleSpread}>Spread this leaf</button>
+                }
+                
+            </div>
+            <div className="spread-url flex-fill" style={{height:50,position:'relative'}}>
+                <button className="spread-url-hidden-btn" onClick={copyText}></button>
+                <input id="spread-clipboard-input" className="spread-clipboard-input" 
+                defaultValue={document.location.href + post.poster + '/' + post.id}></input>
+            </div>
         </div>
     )
 }
@@ -506,6 +693,68 @@ function ShareSvg({className}){
             />
         </svg>
 
+    )
+}
+
+function ShareCount({spreads}){
+    let color = 'rgb(67, 78, 88)';
+
+    return(
+        <span className="comments-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
+            {spreads!==0?spreads:null}
+        </span>
+    )
+}
+
+function TopSpreadList({spreaders,selfSpread}){
+    const context = useContext(UserContext);
+    if(selfSpread){
+        console.log("spread")
+    }
+
+    var topSpreadList = null;
+    let postPicture = null;
+    if(selfSpread){
+        postPicture = <PostPicture style={{width:24,height:24}} 
+                            picture={context.currentBranch.branch_image} 
+                            uri={context.currentBranch.uri}/>
+        if(spreaders.length===1){
+            topSpreadList = 
+            <>
+                {postPicture}
+                <p className="top-spread-list">You spread this leaf</p>
+            </>
+            
+        }else if(spreaders.length>1){
+            topSpreadList = <>
+                {postPicture}
+                <p className="top-spread-list">You and {spreaders.length - 1} other branches you follow spread this leaf</p>
+            </>
+        }
+    }
+    else{
+        postPicture = <PostPicture style={{width:24,height:24}} 
+                            picture={spreaders[0].branch_image} 
+                            uri={spreaders[0].uri}/>
+
+        if(spreaders.length===1){
+            topSpreadList = 
+            <>
+                {postPicture}
+                <p className="top-spread-list">{spreaders[0].uri} spread this leaf</p>
+            </>
+            
+        }else{
+            topSpreadList = <>
+                {postPicture}
+                <p className="top-spread-list">{spreaders[0].uri} and {spreaders.length - 1} other branches you follow have spread this leaf</p>
+            </>
+        }
+    }
+    return(
+        <div className="top-spread-list flex-fill">
+            {topSpreadList}
+        </div>
     )
 }
 

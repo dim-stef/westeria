@@ -13,7 +13,10 @@ import GroupChatContainer,{GroupChatMessagesContainer} from "../container/GroupC
 import {Post} from "./Post"
 import BranchPosts, {DisplayPosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
+import {BranchContainer} from "../container/BranchContainer"
+import {BranchesPage,BranchesPageRoutes} from "./BranchesPage"
 import {BranchNavigation} from "./BranchNavigation"
+import {MyBranchesColumnContainer} from "./MyBranchesColumn"
 import Card from "./Card"
 import StatusUpdate from "./StatusUpdate"
 import {ActionArrow} from "./Temporary"
@@ -37,7 +40,7 @@ function Routes (props) {
                             <Route exact path='/settings' component={(props) => <SettingsContainer {...props}/> } />
                             <Route exact path='/mybranches' component={(props) => <MyBranchesContainer {...props}/> } />
                             <Route path='/settings/:branchUri?' component={(props) => <BranchSettingsContainer {...props} />} />
-                            <Route path='/:uri?' component={BranchPageContainer}/>
+                            <Route path='/:uri?' component={BranchContainer}/>
                         </Switch>
                         </RefreshContext.Provider>
                     </Page>
@@ -96,7 +99,7 @@ class FrontPage extends Component{
     render(){
         return(
             <>
-                <FrontPageLeftBar/>
+                <FrontPageLeftBar2/>
                 <FrontPageFeed/>
                 <FrontPageRightBar/>
             </>
@@ -159,18 +162,28 @@ class FrontPageFeed2 extends Component{
 
 function FrontPageLeftBar(){
     return(
-        <div style={{ flexBasis:'20%',height:300, backgroundColor:'white'}}>
+        <div style={{ flexBasis:'22%',height:300, backgroundColor:'white'}}>
             <div style={{padding:'10px 20px'}}>
                 <h1>Popular now</h1>
             </div>
-            
+        </div>
+    )
+}
+
+function FrontPageLeftBar2(){
+    return(
+        <div style={{ flexBasis:'22%', backgroundColor:'white',height:'max-content'}}>
+            <div style={{padding:'10px 20px'}}>
+                <h1>My branches</h1>
+                <MyBranchesColumnContainer/>
+            </div>
         </div>
     )
 }
 
 function FrontPageRightBar(){
     return(
-        <div style={{flexBasis:'20%',height:300, backgroundColor:'white'}}>
+        <div style={{flexBasis:'22%',height:300, backgroundColor:'white'}}>
             <div style={{padding:'10px 20px'}}>
                 <h1>Recommendations</h1>
             </div>
@@ -219,34 +232,51 @@ function TestBox(){
     )
 }
 
-function BranchPage(props){
+export function BranchPage(props){
     return(
-        <ParentBranchWrapper branch={props.branches.parent}>
-            <Helmet title={props.branches.parent.uri}>
+        <ParentBranchWrapper branch={props.branch}>
+            <Helmet title={props.branch.uri}>
             </Helmet>
 
                 <Switch>
-                    <Route exact path={`/${props.match}/branches`} component={() => <Tree {...props} root={props.match?props.match:'global'}/>}/>
-                    <Route path={`/${props.match}/chat/:roomName?`} render={()=><GroupChatMessagesContainer {...props} branch={props.branch}/>}/>
-                    <Route path={`/${props.match}/leaves/:id?`} component={BranchPageContainer}/>
-                    <Route path={`/${props.match}`} render={()=>
-
-                    <div>
-                        <div style={{marginTop:10}}>
-                            <div style={{display:'flex',width:'100%'}}>
-                                <div style={{flexBasis:'20%'}}>
-                                    <TestBox/>
-                                </div>
-                                <DisplayPosts {...props} activeBranch={props.branches.parent} 
-                                postedId={props.branches.parent.id} uri={`/api/branches/${props.match}/posts/`}/>
-                            </div>
-                        </div>
-                    </div>
-
-                    }/>
+                    <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
+                    <Route path={`/${props.match}/chat/:roomName?`} render={()=><GroupChatMessagesContainer {...props}/>}/>
+                    <Route path={`/${props.match}/:id?`} render={(idMatch)=><BranchFrontPage {...props} idMatch={idMatch}/>}/>
                 </Switch>
         </ParentBranchWrapper>
     )        
+}
+
+function BranchFrontPage(props){
+    console.log("props",props) //props.idMatch.match.params.id
+    var uri;
+    var externalId = props.idMatch.match.params.id;
+    
+    if(externalId){
+        uri = `/api/branches/${props.match}/posts/${externalId}/`;
+    }else{
+        uri = `/api/branches/${props.match}/posts/`;
+    }
+
+    return(
+        <div>
+            <div style={{marginTop:10}}>
+                <div style={{display:'flex',width:'100%'}}>
+                    <div style={{flexBasis:'22%'}}>
+                        <TestBox/>
+                    </div>
+                    <DisplayPosts {...props} activeBranch={props.branch} 
+                    postedId={props.branch.id}
+                    uri={uri}
+                    externalId={externalId}
+                    />
+                    <div style={{flexBasis:'22%'}}>
+                        <TestBox/>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
 }
 
 //component={() => <GroupChatMessagesContainer branch={props.branches.parent} {...props}/>}
@@ -254,21 +284,21 @@ function BranchPageContainer(props){
     const [branches,setBranches] = useState(null);
     let branchUri = props.match.params.uri ? props.match.params.uri : 'global';
 
-    async function getBranches(branchUri){
+    async function getBranches(branchUri,type){
         let uri;
 
         uri = `/api/branches/${branchUri}/`
         let parentResponse = await axios.get(uri, {withCredentials: true});
         let parentData = parentResponse.data;
 
-        uri = `/api/branches/${branchUri}/children/?limit=10`;
+        uri = `/api/branches/${branchUri}/${type}/?limit=10`;
         let response = await axios.get(uri, {withCredentials: true});
         let data = response.data;
 
-        let children = data.results.map(c => c)
+        let _branches = data.results.map(c => c)
         let branches = {
             parent:parentData,
-            children:children
+            branches:_branches
         }
         setBranches(branches);
     }
@@ -277,7 +307,7 @@ function BranchPageContainer(props){
         
         getBranches(branchUri);
 
-    },[branchUri])
+    })
 
     if(branches){
         return <BranchPage branches={branches} match={props.match.params.uri ? props.match.params.uri : 'global'}/>

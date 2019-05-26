@@ -3,7 +3,7 @@ from rest_framework import serializers
 from accounts.models import User
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat
-from branchposts.models import Post,React
+from branchposts.models import Post,React,Spread,PostImage
 from datetime import datetime, timedelta
 from math import log
 
@@ -70,13 +70,14 @@ class BranchSerializer(serializers.ModelSerializer):
                   'children', 'name', 'uri',
                   'children_uri_field','follows',
                   'followed_by', 'description',
-                  'branch_image', 'branch_banner','default']
+                  'branch_image', 'branch_banner','default',
+                  'post_context','spread_count']
         read_only_fields = ['id', 'owner', 'parents',
                   'parent_uri_field','followers_count','following_count',
                   'children', 'name', 'uri',
                   'children_uri_field', 'follows',
                   'followed_by', 'description',
-                  'branch_image', 'branch_banner', 'default']
+                  'branch_image', 'branch_banner', 'default','spread_count']
 
     follows = serializers.StringRelatedField(many=True)
     followed_by = serializers.StringRelatedField(many=True)
@@ -84,6 +85,21 @@ class BranchSerializer(serializers.ModelSerializer):
     following_count = serializers.SerializerMethodField()
     children_uri_field = serializers.SerializerMethodField('children_uri')
     parent_uri_field = serializers.SerializerMethodField('parents_uri')
+    post_context = serializers.SerializerMethodField()
+    spread_count = serializers.SerializerMethodField()
+
+
+    def get_post_context(self,branch):
+        if 'post' in self.context:
+            return self.context['post']
+        else:
+            return None
+
+    def get_spread_count(self,branch):
+        if 'post' in self.context:
+            return branch.spreads.filter(post=self.context['post']).count()
+        else:
+            return 0
 
     def get_followed_by_count(self,branch):
         return branch.followed_by.count()
@@ -186,11 +202,20 @@ class BranchMessageSerializer(serializers.ModelSerializer):
             return 'deleted'
 
 
+class PostImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=PostImage
+        fields='__all__'
+        read_only_fields = ['post']
+
+
 class NewPostSerializer(serializers.ModelSerializer):
     replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
+    images = PostImageSerializer(many=True)
 
     def create(self, validated_data):
         posted_to = validated_data.pop('posted_to')
+        validated_data.pop('images') # files are not accessible in validated data, use request.FILES instead
         post = Post.objects.create(**validated_data)
         for branch in posted_to:
             post.posted_to.add(branch)
@@ -199,11 +224,18 @@ class NewPostSerializer(serializers.ModelSerializer):
             level = post.replied_to.level + 1
             post.level = level
             post.save()
+
+        request = self.context['request']
+        print("files",type(request.FILES))
+        if 'images' in request.FILES:
+            for image_data in request.FILES.getlist('images'):
+                print(image_data)
+                PostImage.objects.create(post=post, image=image_data)
         return post
 
     class Meta:
         model = Post
-        fields = ('id','type','poster','posted','posted_to','replied_to','text','level')
+        fields = ('id','type','poster','posted','posted_to','replied_to','text','level','images')
         read_only_fields = ('id','poster','level')
 
 
@@ -221,7 +253,9 @@ class BranchPostSerializer(serializers.ModelSerializer):
     spreaders = serializers.SerializerMethodField()
     posted_id = serializers.SerializerMethodField()
     stars = serializers.SerializerMethodField()
+    images = serializers.SerializerMethodField()
     replies_count = serializers.SerializerMethodField()
+    spreads_count = serializers.SerializerMethodField()
 
     def get_posted_to_uri(self,post):
         uri_list = []
@@ -268,12 +302,19 @@ class BranchPostSerializer(serializers.ModelSerializer):
                 return count
         return count_comments(post)
 
+    def get_spreads_count(self,post):
+        return post.spreads.count()
+
+    def get_images(self,post):
+        return [i.image.url for i in post.images.all()]
+
     def get_spreaders(self,post):
-        spreads = post.spreads.filter(branch__in=self.context['spreaders'])
+        spreads = post.spreads.filter(branch__in=self.context['spreaders']).distinct('branch')
+        context = {"post": post.id}
         branches = []
         for spread in spreads:
             branches.append(spread.branch)
-        return BranchSerializer(branches,many=True).data
+        return BranchSerializer(branches,many=True,context=context).data
 
     class Meta:
         model = Post
@@ -281,7 +322,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
                   'posted_to','text','type',
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner',
-                  'replies','replies_count','level','stars','hot_score')
+                  'replies','replies_count','spreads_count','level','stars','hot_score','images')
         read_only_fields = ('level',)
 
 
@@ -305,23 +346,24 @@ class NewFollowSerializer(serializers.ModelSerializer):
 
 class CreateBranchRequestSerializer(serializers.ModelSerializer):
 
-    '''def create(self, validated_data):
-        print(self)
-        posted_to = validated_data.pop('posted_to')
-        post = Post.objects.create(**validated_data)
-        for branch in posted_to:
-            post.posted_to.add(branch)
-
-        if post.replied_to:
-            level = post.replied_to.level + 1
-            post.level = level
-            post.save()
-        return post'''
-
     class Meta:
         model = BranchRequest
         fields = '__all__'
         read_only_fields = ['id','status','request_from']
+
+
+class UpdateBranchRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BranchRequest
+        fields = ['status',]
+
+
+class BranchRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BranchRequest
+        fields = '__all__'
 
 
 class ReactSerializer(serializers.ModelSerializer):
@@ -330,3 +372,10 @@ class ReactSerializer(serializers.ModelSerializer):
         model = React
         fields = ('type','branch','post','id')
         read_only_fields = ('id',)
+
+
+class NewSpreadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Spread
+        fields = '__all__'
+        read_only_fields = ('id','branch')
