@@ -1,11 +1,18 @@
 import React , {useEffect,useState,useContext} from "react"
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {UserContext,RefreshContext} from "../container/ContextContainer"
+import {SmallBranch} from "./Branch"
+import {SkeletonBranchList} from "./SkeletonBranchList";
 import axios from 'axios';
 
-export function MyBranchesColumnContainer(){
+export function MyBranchesColumnContainer({show=true}){
     const context = useContext(UserContext);
     const [branches,setBranches] = useState([])
+
+    function handleClick(branch){
+        console.log(context.changeCurrentBranch)
+        context.changeCurrentBranch(branch);
+    }
 
     async function getUserBranches(){
         let newBranches = []
@@ -31,74 +38,25 @@ export function MyBranchesColumnContainer(){
         populateBranches();
     },[])
 
-    if(branches.length>0){
+    if(branches.length>0 && show){
         return(
             branches.map(b=>{
                 console.log(b)
-                return <MyBranch branch={b}/>
+                return (
+                    <SmallBranch branch={b} key={b.id}>
+                        <button onClick={()=>handleClick(b)} style={{border:0,backgroundColor:'transparent'}}><RightArrow/></button>
+                    </SmallBranch>
+                )
             })
         )
     }else{
+        if(!show){
+            return null;
+        }
         return <SkeletonBranchList/>
     }
-    
 }
 
-
-function SkeletonBranchList(){
-
-    function getSkeletonBranches(){
-        let branches = []
-        for(var i =0; i<5;i++){
-            let skeleton = <SkeletonBranch/>
-            branches.push(skeleton)
-        }
-        return branches;
-    }
-
-    let branches=  getSkeletonBranches()
-    console.log("branches",branches)
-    return(
-        <div>
-            {branches}
-        </div>
-    )
-}
-
-function SkeletonBranch(){
-    return(
-        <div style={{margin:'10px 0',display:'flex',alignContent:'center'}}>
-            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                <Skeleton circle={true} width={48} height={48}/>
-            </SkeletonTheme>
-            
-            <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
-                <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                    <Skeleton count={2} width="60%" height="40%"/>
-                </SkeletonTheme>
-            </div>
-        </div>
-    )
-}
-
-function MyBranch({branch}){
-    const context = useContext(UserContext);
-
-    function handleClick(){
-        console.log(context.changeCurrentBranch)
-        context.changeCurrentBranch(branch);
-    }
-    return(
-        <div style={{margin:'10px 0',display:'flex',alignContent:'center'}}>
-            <img style={{width:48,height:48,borderRadius:'50%'}} src={branch.branch_image}/>
-            <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
-                <p style={{fontSize:'1.5rem',margin:0,fontWeight:700}}>{branch.name}</p>
-                <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
-            </div>
-           <button onClick={handleClick} style={{border:0,backgroundColor:'transparent'}}><RightArrow/></button>
-        </div>
-    )
-}
 
 function RightArrow(){
     return(

@@ -12,6 +12,7 @@ from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser,F
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchChat, BranchMessage
 from branchposts.models import Post,React,Spread
+from notifications.models import Notification
 from . import serializers
 from itertools import chain
 
@@ -39,8 +40,8 @@ class ChildrenPagination(PageNumberPagination):
 
 
 class ChildrenLimitOffsetPagination(LimitOffsetPagination):
-    default_limit = 2
-    max_limit = 10
+    default_limit = 10
+    max_limit = 20
 
 
 class BranchChatMessagePagination(CursorPagination):
@@ -54,6 +55,19 @@ class BranchPostPagination(CursorPagination):
 
 class FeedPagination(CursorPagination):
     page_size = 12
+
+class TrendingPagination(CursorPagination):
+    page_size = 5
+
+
+class IsOwnerOfBranch(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        print(request.resolver_match.kwargs.get('branch_uri'))
+        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch_uri'))
+        if request.user.owned_groups.filter(uri=branch).exists():
+            return True
+        return False
 
 
 class UserViewSet(# mixins.DestroyModelMixin,
@@ -191,6 +205,18 @@ class ParentViewSet(BranchRelationsMixin):
             queryset = parents
         return queryset
 
+class SiblingsViewSet(BranchRelationsMixin):
+
+    def get_queryset(self):
+        queryset = Branch.objects.none()
+        if self.kwargs['branch_uri']:
+            parents = Branch.objects.get(uri__iexact=self.kwargs['branch_uri']).parents.all()
+            siblings = Branch.objects.filter(parents__in=parents)\
+                .exclude(uri__iexact=self.kwargs['branch_uri'])\
+                .distinct()
+            queryset = siblings
+        return queryset
+
 
 class BranchUpdateMixin(viewsets.GenericViewSet,
                         mixins.UpdateModelMixin,):
@@ -282,6 +308,8 @@ class BranchNewPostViewSet(viewsets.GenericViewSet,
         serializer.save(poster=self.poster)
         print(serializer)
 
+from django.db.models import Q
+from datetime import datetime,timedelta
 
 class BranchPostListViewSet(viewsets.GenericViewSet,
                         mixins.RetrieveModelMixin,
@@ -289,14 +317,43 @@ class BranchPostListViewSet(viewsets.GenericViewSet,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.BranchPostSerializer
     pagination_class = BranchPostPagination
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = ('hot_score', 'created')
+    ordering = ('-hot_score',)
     lookup_field = "id"
 
     def get_queryset(self):
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
         branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+
         self_list = branch.posts.all()
         from_list = branch.posts_from_all.all()
-        final_q = self_list | from_list
-        return final_q.distinct()
+
+        posts = self_list | from_list
+
+        if content=='leaves':
+            posts = posts.exclude(type="reply")
+        elif content=='media':
+            posts = posts.filter(Q(images__isnull=False) | Q(videos__isnull=False))
+        else:
+            # Leaves and Replies
+            pass
+
+        if past == 1 or past == "1":
+            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=1))
+        elif past == 24 or past == "24":
+            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=24))
+        elif past == 24*7 or past == str(24*7):
+            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24*7))
+        elif past == 24*7*30 or past == str(24*7*30):
+            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7*30))
+        elif past == 24*7*30*365 or past == str(24*7*30*365):
+            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7 * 30*365))
+        else:
+            # all time
+            pass
+        return posts.distinct()
 
     def get_serializer_context(self):
         context = super(BranchPostListViewSet, self).get_serializer_context()
@@ -337,29 +394,46 @@ class BranchNewFollowViewSet(viewsets.ModelViewSet):
 
 
 class FeedViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
     serializer_class = serializers.BranchPostSerializer
     pagination_class = FeedPagination
     filter_backends = (filters.OrderingFilter,)
-    ordering_fields = ('-hot_score',)
+    ordering_fields = ('hot_score','created')
     ordering = ('-hot_score',)
 
     def get_queryset(self):
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
         branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
         following = branch.follows.all()
-        posts_from_following = Post.objects.filter(poster__in=following)
-        print(posts_from_following)
-        posted_in_following = Post.objects.filter(posted_to__in=following)
-        print(posted_in_following)
-        '''spread_in_following = Post.objects.filter(spreads__branch__in=following)
-        spreads = Spread.objects.filter(branch__in=following)
-        for index, (spread, post) in enumerate(zip(spreads, spread_in_following)):
-            spread_in_following[index].spreader = spread.branch.uri
-        for post in spread_in_following:
-            if hasattr(post, 'spreader'):
-                print(post.spreader)'''
 
+        posts_from_following = Post.objects.filter(poster__in=following)
+        posted_in_following = Post.objects.filter(posted_to__in=following)
         posts = posted_in_following | posts_from_following
+
+        if content=='leaves':
+            posts = posts.exclude(type="reply")
+        elif content=='media':
+            posts = posts.filter(Q(images__isnull=False) | Q(videos__isnull=False))
+        else:
+            # Leaves and Replies
+            pass
+
+        if past == 1 or past == "1":
+            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=1))
+        elif past == 24 or past == "24":
+            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=24))
+        elif past == 24*7 or past == str(24*7):
+            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24*7))
+        elif past == 24*7*30 or past == str(24*7*30):
+            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7*30))
+        elif past == 24*7*30*365 or past == str(24*7*30*365):
+            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7 * 30*365))
+        else:
+            # all time
+            pass
+
+        #posts = posted_in_following | posts_from_following
         posts = posts.distinct()
         return posts
 
@@ -372,6 +446,15 @@ class FeedViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
         })
         return context
 
+
+class TrendingScoreViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    pagination_class = TrendingPagination
+    serializer_class = serializers.BranchSerializer
+    filter_backends = (filters.OrderingFilter,)
+    ordering_fields = ('-trending_score',)
+    ordering = ('-trending_score',)
+    queryset = Branch.objects.all()
 
 class ReactsViewSet(mixins.CreateModelMixin,
                     mixins.RetrieveModelMixin,
@@ -397,14 +480,6 @@ class BranchReactions(generics.GenericAPIView,
         return self.list(request, *args, **kwargs)
 
 
-class IsOwnerOfBranch(permissions.BasePermission):
-
-    def has_object_permission(self, request, view, obj):
-        print(request.resolver_match.kwargs.get('branch_uri'))
-        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch_uri'))
-        if request.user.owned_groups.filter(uri=branch).exists():
-            return True
-        return False
 
 
 class BranchRequestMixin(viewsets.GenericViewSet,
@@ -445,7 +520,8 @@ class UpdateReceivedBranchRequest(viewsets.GenericViewSet,
     serializer_class = serializers.UpdateBranchRequestSerializer
 
     def get_queryset(self):
-        return BranchRequest.objects.filter(id=self.kwargs['id'])
+        print(BranchRequest.objects.filter(id=self.kwargs['pk']))
+        return BranchRequest.objects.filter(id=self.kwargs['pk'])
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -466,6 +542,18 @@ class ReceivedBranchRequest(viewsets.GenericViewSet,
     def get_queryset(self):
         branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
         return branch.requests_received.all()
+
+
+class SentBranchRequest(viewsets.GenericViewSet,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin,
+                        mixins.DestroyModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
+    serializer_class = serializers.BranchRequestSerializer
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        return branch.requests_sent.all()
 
 
 class IsOwnerOfPost(permissions.BasePermission):
@@ -549,6 +637,15 @@ class NewSpread(viewsets.GenericViewSet,
 
         if branch not in owned_branches:
             raise PermissionDenied
-
-
         serializer.save(branch=branch)
+
+
+
+class NotificationsViewSet(viewsets.GenericViewSet,
+                            mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin):
+
+    serializer_class = serializers.NotificationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    def get_queryset(self):
+        return self.request.user.notifications.all()

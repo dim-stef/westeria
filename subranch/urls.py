@@ -14,7 +14,6 @@ urlpatterns = [
     path('api/', include('api.urls')),
     path('drf/', include('rest_framework.urls')),
     path('', include('core.urls')),
-    path('', include('settings.urls')),
     path('', include('branches.urls')),
     path('', include('branchsettings.urls')),
     path('u/', include('accounts.urls'))

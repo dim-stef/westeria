@@ -5,6 +5,10 @@ import {UserContext} from '../container/ContextContainer'
 import {ToggleContent} from './Temporary'
 import {CommentSection} from './Comments'
 import {SmallBranchList} from './BranchList'
+import ReactSwipe from 'react-swipe';
+import { useSwipeable, Swipeable } from 'react-swipeable'
+import { useInView } from 'react-intersection-observer'
+import {Images2} from './PostImageGallery'
 import axios from 'axios';
 import LazyLoad from 'react-lazy-load';
 
@@ -24,53 +28,48 @@ function getPostedTo(post,activeBranch,context){
 
 function authorizedGetPostedTo(post,activeBranch,context){
     var intersection = post.posted_to.find(b=>{
-        return context.currentBranch.follows.includes(b.uri);
+        // if user follows branch and is not current active branch
+        return context.currentBranch.follows.includes(b.uri) && b.uri!==context.currentBranch.uri
+        && b.uri!==activeBranch.uri && b.uri!==post.poster;
     })
 
-    var postedOnActive = post.posted_to.find(b=>{
+    /*var postedOnActive = post.posted_to.find(b=>{
         return activeBranch.uri===b.uri && post.poster!==b.uri;
     })
 
     if(postedOnActive){
         return postedOnActive;
-    }
+    }*/
 
     if(intersection){
- 
-        if(intersection.uri===activeBranch.uri || intersection.uri===post.poster){
+        /*if(intersection.uri===activeBranch.uri || intersection.uri===post.poster){
             return post.posted_to.find(b=>{
-                return activeBranch.uri===b.uri && post.poster!==b.uri;
+                return activeBranch.uri===b.uri && post.poster!==b.uri && intersection.uri!==activeBranch.uri;
             })
         }
         else{
             return intersection;
-        }
+        }*/
+        return intersection;
+    }else{
+        return post.posted_to.find(b=>{
+            return b.uri!==post.poster && b.uri!==activeBranch.uri
+        })
     }
 }
 
 
-export function Post({post,activeBranch,lastComment,emphasized=false,minimized=false,updateFeed}){
+export const Post = React.memo(function Post({post,activeBranch,lastComment,viewAs="post"}){
     const context = useContext(UserContext);
-    const ref = useRef(null);
-    const [cls,setClassName] = useState('');
     const [mainPostedBranch,setMainPostedBranch] = useState(getPostedTo(post,activeBranch,context))
     const [open,setOpen] = useState(false);
 
-    useEffect(()=>{
-        if(emphasized || minimized){
-            setClassName('main-post');
-        }
+    const [ref, inView] = useInView({
+        threshold: 0,
     })
 
-    function outSideClick(e){
-        const isVisible = elem => !!elem && !!( elem.offsetWidth || elem.offsetHeight || elem.getClientRects().length )
-
-        if(!ref.current.contains(e.target) && isVisible(ref.current)){
-            //clearEmphasized(e);
-        }
-    }
-
     function closePost(e){
+        e.preventDefault();
         e.stopPropagation();
         setOpen(false);
     }
@@ -81,23 +80,127 @@ export function Post({post,activeBranch,lastComment,emphasized=false,minimized=f
 
     var date = new Date(post.created);
     return(
-        <div ref={ref}>
-            <SmallPost post={post} lastComment={lastComment} mainPostedBranch={mainPostedBranch} date={date} cls={cls}
-            emphasized={emphasized} showPostedTo activeBranch={activeBranch} 
-            updateFeed={updateFeed} openPost={openPost} open={open} closePost={closePost}/>
+        <div ref={ref} data-visible={inView} id={post.id}>
+            <SmallPost post={post} viewAs={viewAs} lastComment={lastComment} mainPostedBranch={mainPostedBranch} date={date} cls="main-post"
+            showPostedTo activeBranch={activeBranch} openPost={openPost} open={open} closePost={closePost}/>
         </div>
     )
+})
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
 }
 
-function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,lastComment,updateFeed}){
+Post.whyDidYouRender = true;
+
+function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,lastComment,viewAs}){
     const context = useContext(UserContext);
     const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
         return s.uri===context.currentBranch.uri
     }))
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
-    let dateElement = timeDifference(date,new Date());
-    let borderBottom = lastComment ? 'none' : '1px solid #e2eaf1';
+    const ref = useRef(null);
 
+    let dateElement = timeDifference(date,new Date());
+    let isEmbedded = viewAs=="embeddedPost" ? true : false;
+    //let borderBottom = lastComment ? '1px solid #e2eaf1' : 'none';
+    let borderBottom = viewAs=="post" || isEmbedded ? '1px solid #e2eaf1' : borderBottom;
+    borderBottom = viewAs=="reply" ? 'none' : borderBottom
+    let border = isEmbedded ? '1px solid rgb(226, 234, 241)' : 'none';
+    let borderRadius = isEmbedded ? '10px' : '0';
+    let marginTop = isEmbedded ? '10px' : '0';
+
+    function handleCommentClick(){
+        console.log(post.level)
+        if(post.level===0){ //if its top level post always display status bar
+            setStatusUpdateActive(true);
+        }
+        else{
+            setStatusUpdateActive(!isStatusUpdateActive);
+        }
+    }
+
+    function handleOpenPost(){
+        if(isEmbedded){
+            return
+        }
+
+        openPost();
+        if(post.level===0 || viewAs=="post"){
+            console.log(post.level)
+            setStatusUpdateActive(true);
+        }
+    }
+
+    function onSpread(){
+        post.spreads_count++;
+        if(!post.spreaders.some(sp=>{
+            return sp == context.currentBranch
+        })){
+            post.spreaders.push(context.currentBranch);
+        }
+    
+        setDidSelfSpread(true);
+    }
+
+    console.log(post)
+
+    return(
+        <div ref={ref} className={`post ${cls}`} 
+        style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
+        poststate={open?"open":"closed"}
+        onClick={handleOpenPost}>
+            {post.spreaders.length>0 && !isEmbedded?
+            <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
+            :null}
+            <div className="flex-fill">
+                <div className="flex-fill" style={{flex:'1 1 auto'}}>
+                    <PostPicture picture={post.poster_picture} 
+                    style={{width:48,height:48}}
+                    uri={post.poster}/>
+                    <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
+                        <Link to={post.poster} style={{textDecoration:'none', color:'black',marginRight:10}}>
+                                <strong style={{fontSize:'1.7rem'}}>{post.poster}</strong>
+                        </Link>
+                        <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
+                            {dateElement}
+                        </div> 
+                    </div>
+                    <PostedTo post={post} mainPostedBranch={mainPostedBranch} activeBranch={activeBranch} showPostedTo={showPostedTo}/>
+                </div>
+                <More/>
+                {open?
+                    <button style={{height:45,width:45}} onClick={e=>{closePost(e);setStatusUpdateActive(false);}}></button>:null
+                }
+                </div>
+                <div style={{marginTop:10}}>
+                    <PostBody embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
+                    text={post.text} images={post.images} videos={post.videos} postRef={ref} viewAs={viewAs}/>
+                    <PostActions post={post} handleCommentClick={handleCommentClick}
+                    handleSpread={onSpread} didSelfSpread={didSelfSpread}/>
+                    {open?
+                    <div style={{margin:'0 -10px -10px'}}>
+                        {/*<h1 style={{borderBottom:'1px solid rgb(210, 220, 228)', padding:'10px 0'}}>Comments</h1>*/}
+                        <CommentSection currentPost={post} activeBranch={activeBranch} commentIds={post.replies} 
+                            isStatusUpdateActive={isStatusUpdateActive} viewAs={viewAs}
+                        />
+                    </div>
+                    :null}
+                </div>
+        </div>
+    )
+}
+
+function EmbeddedPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,updateFeed=null}){
+    const context = useContext(UserContext);
+    const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
+        return s.uri===context.currentBranch.uri
+    }))
+    const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
+    const ref = useRef(null);
+
+    let dateElement = timeDifference(date,new Date());
     function handleCommentClick(){
         console.log(post.level)
         if(post.level===0){ //if its top level post always display status bar
@@ -128,12 +231,9 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
     }
 
     return(
-        <div className={`post ${cls}`} style={{display:'block',borderBottom:borderBottom}} 
+        <div ref={ref} className={`post ${cls}`} style={{display:'block'}} 
         poststate={open?"open":"closed"}
         onClick={handleOpenPost}>
-            {post.spreaders.length>0?
-            <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
-            :null}
             <div className="flex-fill">
                 <div className="flex-fill" style={{flex:'1 1 auto'}}>
                     <PostPicture picture={post.poster_picture} 
@@ -150,22 +250,12 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
                     <PostedTo post={post} mainPostedBranch={mainPostedBranch} activeBranch={activeBranch} showPostedTo={showPostedTo}/>
                 </div>
                 <More/>
-                {open?
-                    <button style={{height:45,width:45}} onClick={e=>{closePost(e);setStatusUpdateActive(false);}}></button>:null
-                }
                 </div>
-                <div>
-                    <PostBodyv3 text={post.text} images={post.images}/>
+                <div style={{marginTop:10}}>
+                    <PostBodyv3 embeddedPostData={post.replied_to} text={post.text} 
+                    images={post.images} videos={post.videos} postRef={ref} viewAs={viewAs}/>
                     <PostActions post={post} handleCommentClick={handleCommentClick}
                     handleSpread={onSpread} updateFeed={updateFeed} didSelfSpread={didSelfSpread}/>
-                    {open?
-                    <div style={{margin:'0 -10px -10px'}}>
-                        {/*<h1 style={{borderBottom:'1px solid rgb(210, 220, 228)', padding:'10px 0'}}>Comments</h1>*/}
-                        <CommentSection currentPost={post} activeBranch={activeBranch} commentIds={post.replies} 
-                            isStatusUpdateActive={isStatusUpdateActive}
-                        />
-                    </div>
-                    :null}
                 </div>
         </div>
     )
@@ -178,7 +268,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
     
     function branchesToDisplay(){
         return post.posted_to.filter(function(b) {
-            return b.uri !== mainPostedBranch.uri && b.uri!==post.poster;
+            return b.uri !== mainPostedBranch.uri && b.uri!==post.poster && b.uri!==activeBranch.uri;
         });
     }
 
@@ -217,7 +307,7 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
     //console.log(post.poster,mainPostedBranch.uri)
     return(
         mainPostedBranch && post.type!=="reply"?
-            <div className="flex-fill" style={{alignItems:'center',margin:'0 20px'}}>
+            <div className="flex-fill" style={{alignItems:'center',margin:'0 10px'}}>
                 <div className="arrow-right"></div>
                 <div style={{marginLeft:20}}>
                     <div className="flex-fill">
@@ -240,114 +330,87 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
     )
 }
 
-function SmallPost2({post,date,cls,handleClick}){
-    return(
-        <div className={`post ${cls}`} onClick={() => handleClick(post.id)}>
-            <PostPicture picture={post.poster_picture} uri={post.poster}/>
-            <div>
-                <PostBody text={post.text} poster={post.poster} postDate={date}/>
-                <PostActions post={post}/>
-                <CommentSection currentPost={post} commentIds={post.replies}/>
-            </div>
-        </div>
-    )
-}
 
-function PostBodyv2({text, images}){
 
-    return(
-        <div>
-            <p style={{fontSize:'1.5rem',margin:0,
-            marginTop:10,wordWrap:'break-word',
-            wordBreak:'break-word',wordBreak:'break-all',
-            whiteSpace:'pre-line'}}>{text}</p>
-            <div style={{display:'flex',margin:'0 -10px',marginTop:10,alignItems:'center'}}>
-                {images.map(img=>{
-                    return (
-                        <div style={{width:'100%'}}>
-                            <img style={{width:'100%'}} src={img}/>
-                        </div>
-                    )
-                })}
-            </div>
-        </div>
-    )
-}
-
-function PostBodyv3({text, images}){
-    return(
-        <div>
-            <p style={{fontSize:'1.5rem',margin:0,
-            marginTop:10,marginBottom:10,wordWrap:'break-word',
-            wordBreak:'break-word',wordBreak:'break-all',
-            whiteSpace:'pre-line'}}>{text}</p>
-            {images.length>0?<Images images={images}/>:null}
-        </div>
-    )
-}
-
-function Images(props){
-    const [paddTop,setPaddTop] = useState('56%');
-
-    let maxHeight=620;
-    function getMeta(url){   
-        var img = new Image();
-        img.addEventListener("load", function(){
-            //alert( this.naturalWidth +' '+ this.naturalHeight );
-            console.log(this.naturalHeight)
-            //let height = this.naturalHeight>maxHeight?maxHeight:this.naturalHeight;
-            let height = this.naturalHeight;
-            let width = this.naturalWidth;
-            let ratio = height/width;
-            let paddingTop = height!=0 ?
-            `${ratio*100}%` : 0;
-            setPaddTop(paddingTop);
-        });
-        img.src = url;
-    }
+function PostBody({text, images, videos, postRef, activeBranch, embeddedPostData=null, isEmbedded=false,viewAs}){
+    const [imageWidth,setImageWidth] = useState(0);
+    const [embeddedPost,setEmbeddedPost] = useState(null);
 
     useEffect(()=>{
-        getMeta(props.images[0]);
+        if(!postRef){
+            return;
+        }
+
+        console.log("viewSs",viewAs)
+        // !isEmbedded to prevent embedded recursion
+        if(embeddedPostData && !isEmbedded && viewAs=="post"){
+            getEmbeddedPost(embeddedPostData.uri,embeddedPostData.id)
+        }
+
+        setImageWidth(postRef.current.clientWidth);
+        window.addEventListener("resize", resizeListener);
+
+        return(()=>{
+            window.removeEventListener("resize", resizeListener);
+        })
     },[])
 
-    return(
-        <div style={{margin:'0 -10px',overflow: 'hidden',maxHeight:maxHeight}}>
-                <div style={{position:'relative',paddingTop:paddTop}}>
-                    <div style={{overflow:'hidden'}}>
-                        <div style={{display:'flex',alignItems:'center',position:'absolute',
-                        height:'100%',top:0,left:0,maxHeight:maxHeight,width:'100%'}}>
-                            <div style={{display:'flex',height:'100%'}}>
-                                <div>
-                                    {props.images.map(img=>{
-                                        return <div><ImageComponent key={img} src={img}
-                                            maxHeight={maxHeight}
-                                        /></div>
-                                    })}
-                                </div> 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        
-    )
-}
+    async function getEmbeddedPost(branch,postId){
+        let response = await axios.get(`/api/branches/${branch}/posts/${postId}`);
+        let data = await response.data;
+        setEmbeddedPost(data);
+    }
 
-function ImageComponent({src,maxHeight}){
-    console.log(src,maxHeight)
+    function resizeListener(){
+        setImageWidth(postRef.current.clientWidth);
+    }
+
     return(
-        <div style={{width:660.8}}>
-            <LazyLoad 
-                debounce={false}
-                offsetVertical={500}
-                >
-                <img style={{width:'100%',
-                objectFit:'cover',maxHeight:maxHeight,backgroundColor:'black'}} src={src}/>
-            </LazyLoad>
-            
+        <div>
+            {text?<p className="post-text">{text}</p>:null}
+            {images.length>0 || videos.length>0?<Images2 images={images} videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
+            {embeddedPost? <Post post={embeddedPost} activeBranch={activeBranch} lastComment={false} viewAs="embeddedPost"></Post> :null}
         </div>
     )
 }
+/*            {images.length>0?<Images2 images={images} imageWidth={imageWidth}/>:null}*/
+
+
+Number.prototype.roundTo = function(num) {
+    var resto = this%num;
+    if (resto <= (num/4)) { 
+        return this+resto;
+    } else {
+        return this+num-resto;
+    }
+}
+
+
+function ImageArrow(){
+    return(
+        <svg
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            version="1.1"
+            x="0px"
+            y="0px"
+            width="451.846px"
+            height="451.847px"
+            viewBox="0 0 451.846 451.847"
+            style={{
+                enableBackground: "new 0 0 451.846 451.847",
+                height: 15,
+                fill: "white",
+                width: 15,
+            }}
+            xmlSpace="preserve"
+            >
+            <path d="M345.441 248.292L151.154 442.573c-12.359 12.365-32.397 12.365-44.75 0-12.354-12.354-12.354-32.391 0-44.744L278.318 225.92 106.409 54.017c-12.354-12.359-12.354-32.394 0-44.748 12.354-12.359 32.391-12.359 44.75 0l194.287 194.284c6.177 6.18 9.262 14.271 9.262 22.366 0 8.099-3.091 16.196-9.267 22.373z" />
+        </svg>
+    )
+}
+
+
+
 
 
 function PostPicture(props){
@@ -365,35 +428,14 @@ function PostPicture(props){
     )
 }
 
-function PostBody({poster, postDate, text, images}){
-
-    const [date,setDate] = useState(postDate);
-    
-    let dateElement = timeDifference(date,new Date());
-
-    return(
-        <div>
-            <div>
-                <Link to={poster} style={{textDecoration:'none', color:'black'}}>
-                    <strong style={{fontSize:'1.5rem'}}>{poster}</strong>
-                </Link>
-                {dateElement}
-            </div>
-            
-            <p style={{fontSize:'1.5rem',margin:0,wordWrap:'break-word',wordBreak:'break-word',wordBreak:'break-all'}}>{text}</p>
-        </div>
-    )
-}
-
-
-function PostActions({post,handleCommentClick,handleSpread,didSelfSpread,updateFeed}){
+function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
     const context = useContext(UserContext)
 
     return(
         <div className="flex-fill" style={{height:30,marginTop:5,alignItems:'center'}}>
             <Star postId={post.id} currentBranchId={context.currentBranch.id} count={post.stars}/>
             <Comments post={post} handleCommentClick={handleCommentClick}/>
-            <Share post={post} updateFeed={updateFeed} handleSpread={handleSpread} didSelfSpread={didSelfSpread}/>
+            <Share post={post} handleSpread={handleSpread} didSelfSpread={didSelfSpread}/>
         </div>
     )
 }
@@ -522,6 +564,15 @@ const Modal = ({ children ,onClick}) => (
     )
 );
 
+const ImageModal = ({ children ,onClick}) => (
+    ReactDOM.createPortal(
+        <div className="image-modal" onClick={onClick}>
+            {children}
+        </div>,
+        document.getElementById('modal-root')
+    )
+);
+
 function Comments({post,handleCommentClick}){
     const [clicked,setClicked] = useState(false);
 
@@ -575,7 +626,7 @@ function CommentsCount({count}){
     )
 }
 
-function Share({post,updateFeed,handleSpread,didSelfSpread}){
+function Share({post,handleSpread,didSelfSpread}){
     const [clicked,setClicked] = useState(false);
     const [spreadCount,setSpreadCount] = useState(post.spreads_count);
     const context = useContext(UserContext);

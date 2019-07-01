@@ -1,31 +1,67 @@
-import React, { Component, useState, useContext, useEffect,useMemo } from "react"
-import { Switch, Route, Link  } from 'react-router-dom'
+import React, { Component,PureComponent, useState, useContext, useEffect,useRef } from "react"
+import { Switch, Route, Link, withRouter  } from 'react-router-dom'
 import {Helmet} from "react-helmet";
 import { Page } from '../Page'
-import { Tree } from "../presentational/Tree"
 import Login from "./Login"
 import Register from "./Register"
-import BranchSettingsContainer from "../container/BranchSettingsContainer"
 import MyBranchesContainer from "../container/MyBranchesContainer"
 import { SettingsContainer } from "../container/SettingsContainer"
-import {UserContext,RefreshContext} from "../container/ContextContainer"
-import GroupChatContainer,{GroupChatMessagesContainer} from "../container/GroupChatContainer"
-import {Post} from "./Post"
-import BranchPosts, {DisplayPosts} from "./BranchPosts"
+import {UserContext,RefreshContext,PostsContext} from "../container/ContextContainer"
+import GroupChatContainer,{GroupChatMessagesContainer,BranchChatPage} from "../container/GroupChatContainer"
+import BranchPosts, {DisplayPosts, DisplayPosts2,DisplayPosts3, Scroller} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
 import {BranchesPage,BranchesPageRoutes} from "./BranchesPage"
 import {BranchNavigation} from "./BranchNavigation"
 import {MyBranchesColumnContainer} from "./MyBranchesColumn"
+import {TrendingContainer} from "../container/TrendingContainer"
 import Card from "./Card"
-import StatusUpdate from "./StatusUpdate"
-import {ActionArrow} from "./Temporary"
+import Responsive from 'react-responsive';
+import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
+import {MobileNavigationBar} from "./Navigation"
+import { RoutedTabs, NavTab } from "react-router-tabs";
+import {SearchPage} from "./SearchPage"
+import { Settings } from "./Settings"
 import axios from 'axios'
 
-function Routes (props) {
+
+const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
+const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
+const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
+
+/*class Mobile extends PureComponent{
+    render(){
+        return(
+            <Responsive {...this.props} maxDeviceWidth={767} />
+        )
+    }
+}*/
+
+const Routes = React.memo(function Routes(props){
     
     const [refresh,setRefresh] = useState(null);
+    const [loadedPosts,] = useState([])
+    const [counter,] = useState(0);
+    const ref = useRef(null);
+
+    useEffect(()=>{
+        console.log("routesMounted")
+    },[])
     let value = {refresh,setRefresh};
+    let postsValue = {counter,loadedPosts};
+    let scrollToTop = index => {
+        Array.from(ref.current.containerNode.children).forEach((child, i) => {
+            console.log("child",child,index,i)
+            if (index !== i) {
+                child.scrollTo(0, 0);
+                child.style.height = '100vh';
+            }else{
+                child.style.height = 'auto';
+                
+            }
+        });
+    };
+    
 
     return(
         <Switch>
@@ -33,149 +69,172 @@ function Routes (props) {
             <Route exact path='/register' component={(props) => <Register {...props} />} />
             <UserContext.Consumer>
             {context =>(
-                    <Page context={context}>
+                <Page>
                     <RefreshContext.Provider value={value}>
-                        <Switch>
-                            <Route exact path='/' render={(props) => <FrontPage {...props} />}  />
-                            <Route exact path='/settings' component={(props) => <SettingsContainer {...props}/> } />
-                            <Route exact path='/mybranches' component={(props) => <MyBranchesContainer {...props}/> } />
-                            <Route path='/settings/:branchUri?' component={(props) => <BranchSettingsContainer {...props} />} />
-                            <Route path='/:uri?' component={BranchContainer}/>
-                        </Switch>
-                        </RefreshContext.Provider>
-                    </Page>
-            )}
-            </UserContext.Consumer>
-        </Switch>
+                        <Desktop>
+                            <Switch>
+                                <Route exact path='/' component={FrontPage}  />
+                                <Route path='/search' component={SearchPage} />
+                                <Route exact path='/settings' component={(props) => <Settings {...props}/> } />
+                                <Route exact path='/mybranches' component={(props) => <MyBranchesContainer {...props}/> } />
+                                {/*<Route path='/settings/:branchUri?' component={(props) => <BranchSettingsContainer {...props} />} />*/}
+                                <Route path='/:uri?' component={BranchContainer}/>
+                            </Switch>
+                        </Desktop>
+                        <Mobile>
+                            <MobileNavigationBar/>
+                            <Route exact path='/' component={FrontPage}/>
+                            <Route path='/test' component={Test}/>
+                            <Route path='/search' component={SearchPage} />
+                            <Route path='/test2' render={()=> <Test2/>}/>
+                        </Mobile>
+                    </RefreshContext.Provider>
+            </Page>
+        )}
+        </UserContext.Consumer>
+    </Switch>
+    )
+})
+
+//Page.whyDidYouRender = true;
+
+function Test(){
+    return(
+        <h1>Hello, world!</h1>
     )
 }
 
-function FrontPageFeed(props){
-    const context = useContext(UserContext);
-    const uri = `/api/branches/${context.currentBranch.uri}/feed/`
+function Test2(){
+    return(
+        <h1>TEST2</h1>
+    )
+}
 
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
+
+
+export const FrontPageFeed = React.memo(function FrontPageFeed(props){
+    const context = useContext(UserContext);
+    const [uri,setUri] = useState('initialUri')
+    const branch = context.currentBranch.uri;
+    const [params,setParams] = useState(null);
 
     if(context.isAuth){
         return(
-            <DisplayPosts uri={uri} match={props.match} activeBranch={context.currentBranch}
-            postedId={context.currentBranch.id} showPostedTo/>
+            <DisplayPosts3 uri={uri} setUri={setUri} activeBranch={context.currentBranch}
+            postedId={context.currentBranch.id} usePostsContext showPostedTo 
+            branch={branch} params={params} setParams={setParams}
+            />
         )
     }else{
         return <p>not auth</p>
     }
-}
+})
 
-class FrontPageContainer extends Component{
-    state = {
-        feed : []
-    }
+FrontPageFeed.whyDidYouRender = true;
+/*Mobile.whyDidYouRender = true;
+Desktop.whyDidYouRender = true;*/
 
-    static contextType = UserContext
-
-    async getFeed(){
-        var r = await axios.get(`/api/branches/${this.context.currentBranch.uri}/feed/`);
-        r = await r.data.results;
-        this.setState({feed:r});
-    }
-
-    componentDidMount(){
-        this.getFeed();
-    }
-
-    render(){
-        if(this.context.isAuth){
-            return(
-            
-                <FrontPage feed={this.state.feed}/>
-            )
-        }
-        else{
-            return <p>not auth</p>
-        }
-    }
-}
-
-class FrontPage extends Component{
+class FrontPageWrapper extends PureComponent{
     render(){
         return(
-            <>
-                <FrontPageLeftBar2/>
-                <FrontPageFeed/>
-                <FrontPageRightBar/>
-            </>
+            <FrontPage/>
         )
     }
 }
 
-class FrontPageFeed2 extends Component{
-    state = {
-        feed:null
-    }
 
-    constructor(props){
-        super(props);
-        this.updateFeed = this.updateFeed.bind(this);
-    }
+export const FrontPage = React.memo(function FrontPage(props){
+    const context = useContext(PostsContext);
 
-    initialFeed(){
-        return this.props.feed.map(p=>{
-            return <Post post={p} key={p.id}/>
-        })
-    }
-
-    updateFeed(posts){
-        var self = this;
-        let newFeed = posts.map(p=>{
-            return <Post post={p} key={p.id}/>
-        })
+    
+    useEffect(()=>{
+        if(context.lastVisibleElement){
+            let lastElement = document.getElementById(context.lastVisibleElement.id);
+            lastElement.scrollIntoView();
+        }
         
-        this.setState({
-            feed:newFeed.concat(self.state.feed)
-        })
-    }
-
-    componentDidUpdate(prevProps,prevState){
-        if(this.state.feed === prevState.feed){
-            this.setState({feed:this.initialFeed()})
+        return ()=>{
+            let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
+            context.lastVisibleElement = lastVisibleElements[0];
         }
-    }
+    },[])
 
-    render(){
-        if(this.state.feed){
-            return(
-                <div style={{display:'flex',flexFlow:'column',flexBasis:'60%',padding:"0 10px"}}>
-                    <StatusUpdate updateFeed={this.updateFeed}/>
-                    {this.state.feed}
-                </div>
-            )
-        }
-        else{
-            return (
-                <div style={{display:'flex',flexFlow:'column',paddingLeft:10}}>
-                    <StatusUpdate updateFeed={this.updateFeed}/>
-                    <div style={{width:700}}>loading</div>
-                </div>
-            )
-        }
-    }
-}
-
-function FrontPageLeftBar(){
+    useEffect(()=>{
+        console.log("rerenderer")
+    })
     return(
-        <div style={{ flexBasis:'22%',height:300, backgroundColor:'white'}}>
-            <div style={{padding:'10px 20px'}}>
-                <h1>Popular now</h1>
+        <>
+            <Desktop>
+                <FrontPageLeftBar2/>
+                <FrontPageFeed device="desktop"/>
+                <FrontPageRightBar/>
+            </Desktop>
+
+            <Tablet>
+                <FrontPageFeed device="tablet"/>
+            </Tablet>
+
+            <Mobile>
+                <FrontPageFeed device="mobile"/>
+            </Mobile>
+            
+        </>
+    )
+})
+
+//FrontPage.whyDidYouRender = true;
+FrontPageWrapper.whyDidYouRender = true;
+
+
+function FrontPageLeftBar2(){
+    const [show,setShow] = useState(true);
+
+    return(
+        <div style={{ flexBasis:'22%', height:'max-content'}}>
+            <div>
+                <div className="box-border" style={{padding:'10px 20px',backgroundColor:'white'}}>
+                    <div className="flex-fill" style={{alignItems:'center'}}>
+                        <h1>My branches</h1>
+                        <button role="button" onClick={()=>setShow(!show)} style={{
+                            border:0,
+                            color:'#1DA1F2',
+                            fontSize:'1.3rem',
+                            marginLeft:10,
+                            marginTop:3,
+                            backgroundColor:'transparent'
+                        }}>{show?"hide":"show"}</button>
+                    </div>
+                    {show?<MyBranchesColumnContainer show={true}/>:<MyBranchesColumnContainer show={false}/>}
+                </div>
+                <div style={{marginTop:10}}>
+                    <FollowingBranches/>
+                </div>
+            
+
             </div>
         </div>
     )
 }
 
-function FrontPageLeftBar2(){
+function FollowingBranches(){
     return(
-        <div style={{ flexBasis:'22%', backgroundColor:'white',height:'max-content'}}>
-            <div style={{padding:'10px 20px'}}>
-                <h1>My branches</h1>
-                <MyBranchesColumnContainer/>
+        <div style={{height:'max-content', backgroundColor:'white'}}>
+            <div className="box-border" style={{padding:'10px 20px'}}>
+            <p style={{
+                    fontSize: "1.6em",
+                    fontWeight: 600,
+                    paddingBottom: 5,
+                    margin: "-10px -20px",
+                    backgroundColor: "#219ef3",
+                    color: "white",
+                    padding: "10px 20px",
+                    marginBottom:10
+                }}>Following</p>
+                <FollowingBranchesColumnContainer/>
             </div>
         </div>
     )
@@ -183,11 +242,20 @@ function FrontPageLeftBar2(){
 
 function FrontPageRightBar(){
     return(
-        <div style={{flexBasis:'22%',height:300, backgroundColor:'white'}}>
-            <div style={{padding:'10px 20px'}}>
-                <h1>Recommendations</h1>
+        <div style={{ flexBasis:'22%',height:'max-content', backgroundColor:'white'}}>
+            <div className="box-border" style={{padding:'10px 20px'}}>
+            <p style={{
+                    fontSize: "1.6em",
+                    fontWeight: 600,
+                    paddingBottom: 5,
+                    margin: "-10px -20px",
+                    backgroundColor: "#219ef3",
+                    color: "white",
+                    padding: "10px 20px",
+                    marginBottom:10
+                }}>Popular now</p>
+                <TrendingContainer/>
             </div>
-            
         </div>
     )
 }
@@ -240,7 +308,7 @@ export function BranchPage(props){
 
                 <Switch>
                     <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
-                    <Route path={`/${props.match}/chat/:roomName?`} render={()=><GroupChatMessagesContainer {...props}/>}/>
+                    <Route path={`/${props.match}/chat/:roomName?`} render={()=><BranchChatPage {...props}/>}/>
                     <Route path={`/${props.match}/:id?`} render={(idMatch)=><BranchFrontPage {...props} idMatch={idMatch}/>}/>
                 </Switch>
         </ParentBranchWrapper>
@@ -263,9 +331,17 @@ function BranchFrontPage(props){
             <div style={{marginTop:10}}>
                 <div style={{display:'flex',width:'100%'}}>
                     <div style={{flexBasis:'22%'}}>
-                        <TestBox/>
+                        <div className="box-border" style={{backgroundColor:'white',padding:'10px 20px'}}>
+                            <div className="flex-fill" style={{alignItems:'center'}}>
+                                <h1>My branches</h1>
+                            </div>
+                            <MyBranchesColumnContainer/>
+                            
+                        </div>
                     </div>
-                    <DisplayPosts {...props} activeBranch={props.branch} 
+                    <DisplayPosts {...props}
+                    branch={props.match}
+                    activeBranch={props.branch}
                     postedId={props.branch.id}
                     uri={uri}
                     externalId={externalId}
@@ -341,3 +417,205 @@ function ParentBranchWrapper(props){
 }
 
 export default Routes;
+
+
+import { matchPath } from "react-router";
+
+class NavigatorWrapper extends Component {
+  state = {
+    urls: {}
+  };
+
+  // Trigger the location change to the route path
+  handleIndexChange = (index, type) => {
+    const {
+      props: { path, defaultParams }
+    } = React.Children.toArray(this.props.children)[index];
+
+    let url;
+    if (path.includes(":")) {
+      if (path in this.state.urls) {
+        url = this.state.urls[path];
+      } else {
+        // Build url with defaults
+        url = generatePath(path, defaultParams);
+        this.setState(state => ({ urls: { ...state.urls, [path]: url } }));
+      }
+    } else {
+      url = path;
+    }
+    this.historyGoTo(url);
+
+    // Call the onChangeIndex if it's set
+    if (typeof this.props.onChangeIndex === "function") {
+      this.props.onChangeIndex(index, type);
+    }
+  };
+
+  triggerOnChangeIndex = location => {
+    const { children } = this.props;
+    React.Children.forEach(children, (element, index) => {
+      const { path: pathProp, exact, strict, from } = element.props;
+      const path = pathProp || from;
+      if (matchPath(location.pathname, { path, exact, strict })) {
+        if (typeof this.props.onChangeIndex === "function") {
+          this.props.onChangeIndex(index);
+        }
+        this.setState(state => ({
+          urls: { ...state.urls, [path]: location.pathname }
+        }));
+      }
+    });
+  };
+
+  historyGoTo = path => {
+    const { replace, history } = this.props;
+    return replace ? history.replace(path) : history.push(path);
+  };
+
+  componentDidMount() {
+    const { history } = this.props;
+    this.triggerOnChangeIndex(history.location);
+    this.unlistenHistory = history.listen(location => {
+      // When the location changes, call onChangeIndex with the route index
+      this.triggerOnChangeIndex(location);
+    });
+  }
+
+  componentWillUnmount() {
+    this.unlistenHistory();
+  }
+
+  componentDidUpdate(prevProps) {
+    // If index prop changed, change the location to the path of that route
+    if (prevProps.index !== this.props.index) {
+      const paths = React.Children.map(
+        this.props.children,
+        element => element.props.path
+      );
+      this.historyGoTo(paths[this.props.index]);
+    }
+  }
+
+  render() {
+    const {
+      children,
+      index,
+      replace,
+      innerRef,
+      location,
+      history,
+      staticContext,
+      match: routeMatch,
+      ...rest
+    } = this.props;
+
+    // If there's no match, render the first route with no params
+    let matchedIndex = 0;
+    let match;
+    if (index) {
+      matchedIndex = index;
+    } else {
+      React.Children.forEach(children, (element, index) => {
+        const { path: pathProp, exact, strict, from } = element.props;
+        const path = pathProp || from;
+
+        match = matchPath(location.pathname, { path, exact, strict });
+        if (match) {
+          matchedIndex = index;
+        }
+      });
+    }
+
+    const renderableRoutes = React.Children.toArray(children).filter(
+      (element, index) =>
+        !element.props.path.includes(":") ||
+        Boolean(element.props.defaultParams) ||
+        element.props.path in this.state.urls
+    );
+
+    return (
+      <div
+        {...rest}
+        index={matchedIndex}
+        onChangeIndex={this.handleIndexChange}
+        ref={innerRef}
+        className="flex-fill"
+      >
+        {renderableRoutes.map((element, index) => {
+          const { path, component, render, children } = element.props;
+          const props = { location, history, staticContext };
+
+          let match = matchPath(location.pathname, element.props);
+          if (match) {
+            match.type = "full";
+          } else if (path in this.state.urls) {
+            match = matchPath(this.state.urls[path], element.props);
+            match.type = "outOfView";
+          } else {
+            match = matchPath(
+              generatePath(path, element.props.defaultParams),
+              element.props
+            );
+            match.type = "none";
+          }
+          props.match = match;
+          props.key = path;
+
+          // A lot of this code is borrowed from the render method of
+          // Route. Why can't I just render the Route then?
+          // Because Route only renders the component|render|children
+          // if there's a match with the location, while here I render
+          // regardless of the location.
+          return component
+            ? React.createElement(component, props)
+            : render
+            ? render(props)
+            : children
+            ? typeof children === "function"
+              ? children(props)
+              : !Array.isArray(children) || children.length // Preact defaults to empty children array
+              ? React.Children.only(children)
+              : null
+            : null;
+        })}
+      </div>
+    );
+  }
+}
+
+import pathToRegexp from 'path-to-regexp'
+
+const patternCache = {}
+const cacheLimit = 10000
+let cacheCount = 0
+
+const compileGenerator = (pattern) => {
+  const cacheKey = pattern
+  const cache = patternCache[cacheKey] || (patternCache[cacheKey] = {})
+
+  if (cache[pattern])
+    return cache[pattern]
+
+  const compiledGenerator = pathToRegexp.compile(pattern)
+
+  if (cacheCount < cacheLimit) {
+    cache[pattern] = compiledGenerator
+    cacheCount++
+  }
+
+  return compiledGenerator
+}
+
+/**
+ * Public API for generating a URL pathname from a pattern and parameters.
+ */
+const generatePath = (pattern = '/', params = {}) => {
+  if (pattern === '/') {
+    return pattern
+  }
+  const generator = compileGenerator(pattern)
+  return generator(params)
+}
+
+const Navigator = withRouter(NavigatorWrapper);

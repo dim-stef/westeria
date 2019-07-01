@@ -6,7 +6,7 @@ import StatusUpdate from './StatusUpdate'
 import axios from 'axios';
 
 
-export function CommentSection({currentPost,activeBranch,commentIds,isStatusUpdateActive}){
+export function CommentSection({currentPost,activeBranch,commentIds,isStatusUpdateActive,viewAs}){
     const [comments,setComments] = useState([]);
 
 
@@ -36,17 +36,22 @@ export function CommentSection({currentPost,activeBranch,commentIds,isStatusUpda
                 {comments.map((c,i)=>{
                     let last = false;
                     let borderLeft = 'none';
+                    let marginLeft = 0;
 
                     if(comments.length === i + 1){
                         last = true;
                     }
-                    if(c.level>1){
+
+                    if(viewAs=="post" && c.level - 1 == currentPost.level){
+                        marginLeft = 0
+                    }else{
+                        marginLeft = 33;
                         borderLeft='3px solid #e2eaf1';
                     }
-                    let marginLeft = c.level===1 ? 0 : 33
+                    //let marginLeft = c.level===1 ? 0 : 33
                     return (
                         <li key={c.id} style={{marginLeft:marginLeft,borderLeft:borderLeft}}>
-                            <Post post={c} activeBranch={activeBranch} updateFeed={updateFeed} lastComment={last}/>
+                            <Post post={c} activeBranch={activeBranch} updateFeed={updateFeed} lastComment={last} viewAs="reply"/>
                         </li>
                     )
                 })}

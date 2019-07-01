@@ -1,15 +1,17 @@
-import React, { Component,useState,useEffect } from "react";
+import React, { Component,useState,useEffect,useContext } from "react";
 import axios from 'axios'
 import MediaQuery from 'react-responsive';
 import {Helmet} from "react-helmet";
 import {BranchList} from "../presentational/BranchesPage"
 import {BranchPage} from "../presentational/Routes"
+import {AddBranch} from "../presentational/BranchesPage"
 const uuidv1 = require('uuid/v1');
 import { Node, MobileGroups, BranchesPage } from "../presentational/Group";
 
 
 export function BranchesPageContainer(props){
-    const [branches,setBranches] = useState(null);
+    const [branches,setBranches] = useState([]);
+    const [pending,setPending] = useState([]);
     let branchUri = props.branch.uri;
     console.log(props);
 
@@ -21,16 +23,30 @@ export function BranchesPageContainer(props){
         let data = response.data;
 
         let branches = {
-            branches:data.results
+            accepted:data.results
         }
+
+
+        uri = `/api/branches/${branchUri}/received_requests`
+        response = await axios.get(uri, {withCredentials: true});
+
+        let requests = response.data.filter(r=>{
+            return r.status == "on hold"
+        }).map(r=>{
+            r.request_from.requestId = r.id
+            return r.request_from
+        })
+
+        branches.requests = requests;
+
+
+        setPending(requests);
         setBranches(data.results);
     }
 
 
     useEffect(() => {
-        
         getBranches(branchUri,props.type);
-
     },[])
 
     if(branches){
@@ -38,8 +54,14 @@ export function BranchesPageContainer(props){
 
         return (
         <>
-            <BranchList branches={branches}/>
+            <BranchList branches={branches} ownsBranch={props.ownsBranch} viewedBranch={props.branch}/>
             {fillerBox}
+            {props.ownsBranch || props.type=='siblings'?null:<AddBranch branch={props.branch} type={props.type}/>}
+            {pending.length>0 && props.ownsBranch?
+            <>
+                <h1 style={{width:'100%',fontSize:'3rem'}}>Pending</h1>
+                <BranchList branches={pending} ownsBranch={props.ownsBranch} viewedBranch={props.branch} pending={true}/>
+            </>:null}
         </>
         )
     }else{
@@ -60,6 +82,10 @@ export function BranchContainer(props){
 
         setBranches(parentData);
     }
+
+    useEffect(()=>{
+        console.log("remount2")
+    },[])
 
     useEffect(() => {
         

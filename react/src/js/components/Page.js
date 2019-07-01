@@ -1,20 +1,51 @@
-import React, { Component } from "react";
-import ReactDOM from "react-dom";
+import React, { Component,PureComponent,useState,useContext } from "react";
 import { Helmet } from "react-helmet";
 import MediaQuery from 'react-responsive';
 import Responsive from 'react-responsive';
 import {Content} from './presentational/Content'
-import NavigationBar from './presentational/Navigation'
-import {WideScreenNavigation} from './presentational/WideScreenNavigation'
+import NavigationBar, {MobileNavigationBar,TabbedNavigationBar} from './presentational/Navigation'
 import {UserContext} from './container/ContextContainer'
-import axios from 'axios'
 
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
-const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={991} />;
+const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
 const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
 
-export class Page extends Component {
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
+
+export const Page = React.memo(function Page(props){
+    return(
+        <div className="root-wrapper">
+            <Desktop>
+                <TabbedNavigationBar/>
+            </Desktop>
+            {/*<Tablet>
+                <MobileNavigationBar/>
+            </Tablet>
+            <Mobile>
+                <MobileNavigationBar/>
+            </Mobile>*/}
+            
+            <div style={{marginTop:60}}>
+            
+                <div id="main-wrapper" className="main-wrapper">
+                    <div id="wide-content-container" className="wide-content-container">
+                        {props.children}
+                    </div>
+                </div>
+            </div>
+
+            <div className="success-message-container" style={{ display: 'none' }}>
+                <p id="success-message" />
+            </div>
+        </div>
+    )
+})
+export class Page2 extends PureComponent {
 
     static contextType = UserContext
 
@@ -25,38 +56,14 @@ export class Page extends Component {
             isAuth:this.props.context.isAuth,
             branches:this.props.context.branches,
             currentBranch:this.props.context.currentBranch,
-            updateUserData:null
         }
 
         //this.updateUserData = this.updateUserData.bind(this)
     }
 
-    /*async updateUserData(){
-        try{
-            var r = await axios.get("/api/owned_branches/")
-            this.setState({
-                isAuth:localStorage.getItem("token"),
-                branches:r.data,
-                currentBranch:r.data.find(b => {
-                    return b.default === true
-                }),
-                startedLoading:true,
-            })
-        }catch(error){
-            localStorage.removeItem("token");
-            this.setState({
-                isAuth:null,
-                branches:null,
-                currentBranch:null,
-                startedLoading:true,
-            })
-        }
-    }*/
 
     render() {
         console.log("context",this.context)
-        //let updateHandler = {updateUserData:this.updateUserData}
-        //let value = {...this.state,...updateHandler}
         return (
 
             <div className="root-wrapper">
@@ -70,24 +77,24 @@ export class Page extends Component {
                     null
                 )}*/}
 
-                {/*<UserContext.Provider  value={value}> */}
                     <Desktop>
                         <NavigationBar/>
-                        <div style={{marginTop:60}}>
-                            <WideScreenNavigation />
-                        
-                            <div id="main-wrapper" className="main-wrapper">
-                                <div id="wide-content-container" className="wide-content-container">
-                                    {this.props.children}
-                                </div>
-                            </div>
-                        </div>
                     </Desktop>
-                    <MediaQuery maxDeviceWidth={1224}>
-                        <div>You are a tablet or mobile phone</div>
-                    </MediaQuery>
-                {/*</UserContext.Provider>*/}
+                    {/*<Tablet>
+                        <MobileNavigationBar/>
+                    </Tablet>
+                    <Mobile>
+                        <MobileNavigationBar/>
+                    </Mobile>*/}
                     
+                <div style={{marginTop:60}}>
+                
+                    <div id="main-wrapper" className="main-wrapper">
+                        <div id="wide-content-container" className="wide-content-container">
+                            {this.props.children}
+                        </div>
+                    </div>
+                </div>
 
                 <div className="success-message-container" style={{ display: 'none' }}>
                     <p id="success-message" />
@@ -96,4 +103,6 @@ export class Page extends Component {
         )
     }
 }
+
+//Page.whyDidYouRender = true;
 

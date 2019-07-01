@@ -93,6 +93,7 @@ INSTALLED_APPS = [
     'branchsettings',
     'branchposts',
     'settings',
+    'notifications',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_nested',

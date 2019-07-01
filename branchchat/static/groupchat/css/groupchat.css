@@ -2,7 +2,6 @@
     display: flex;
     margin-top: 20px;
     padding: 10px;
-    background-color: white;
 }
 
 .profile-icon-container{
@@ -19,8 +18,6 @@
 .text-wrapper{
 
     resize:none;
-    margin-top:20px;
-    margin-bottom:20px;
     width: -moz-available;          /* WebKit-based browsers will ignore this. */
     width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
     width: fill-available;
@@ -32,10 +29,38 @@
     font-family: inherit;
 }
 
+.chat-window{
+    flex-direction: column;
+    margin: 0 10px;
+    flex-basis: 56%;
+    /*-50px*/
+    height: -moz-available;          /* WebKit-based browsers will ignore this. */
+    height: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */
+    height: fill-available;
+    overflow-y: scroll;
+}
+
+/* width */
+.chat-window::-webkit-scrollbar {
+  width: 20px;
+}
+
+/* Track */
+.chat-window::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+/* Handle */
+.chat-window::-webkit-scrollbar-thumb {
+  background: red;
+  border-radius: 10px;
+}
+
 .chat-log{
     font-size: 1.7em;
     white-space: pre-line;
-    margin-bottom:130px;
+    background-color: white;
 }
 
 .message-container{
@@ -45,9 +70,7 @@
 }
 
 .text-message{
-    font-size:1.2em;
-    background-color: rgb(246, 246, 246);
-    padding:7px;
+    font-size:2rem;
     display:inline-block;
 }
 

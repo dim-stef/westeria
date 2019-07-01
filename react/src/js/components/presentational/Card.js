@@ -137,7 +137,7 @@ export function FollowButton({id,uri}){
             name="followAction"
             style={{
             borderRadius: 24,
-            marginLeft:15,
+            margin:'0 15px',
             padding: "8px",
             width:140,
             fontSize: "1.6em",

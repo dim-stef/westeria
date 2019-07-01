@@ -28,7 +28,7 @@ export class GroupChatMessageBox extends Component {
                     <div>
                         <span style={{ fontWeight: "bold", fontSize: "1em" }}>{this.props.messageBox.author_name}</span>
                     </div>
-                    <div style={{ lineHeight: '1.5em', borderLeft: '2px solid rgb(52, 53, 54)' }}> {/*backgroundColor: 'rgb(234, 234, 234)',padding:6,borderRadius:12,*/}
+                    <div style={{ lineHeight: '1.5em',backgroundColor: 'rgb(234, 234, 234)',padding:6,borderRadius:12,display:'inline-block'}}> {/* borderLeft: '2px solid rgb(52, 53, 54)'*/}
                         {messages}
                     </div>
                 </div>

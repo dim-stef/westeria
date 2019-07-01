@@ -2,6 +2,15 @@ import React, { Component } from "react";
 import {BranchImage,BranchImage2,BranchImageEditMenu} from "./BranchImage"
 
 
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
 export class BranchBanner2 extends Component{
     constructor(props){
         super(props);
@@ -81,7 +90,9 @@ export function BranchBanner(props){
     return(
         <div id={props.branch.id} style={{position:'relative'}}>
             <div style={{paddingTop: '33.33333%', position: 'relative',width:"100%",
-            backgroundImage:`url(${props.branch.branch_banner})`, backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center'}}>
+            backgroundImage:`url(${props.branch.branch_banner})`, 
+            backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center',
+            backgroundColor:getRandomColor()}}>
                 <div>
                     <BranchImage2 branch={props.branch} className={props.className} />
                 </div>

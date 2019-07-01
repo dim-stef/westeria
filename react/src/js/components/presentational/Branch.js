@@ -11,7 +11,6 @@ export class ChildBranch extends Component{
 
     render(){
         let {styleName='', style=null, branch, editMode, children} = this.props
-        console.log("this.props.editMode",this.props.editMode)
 
         return(
             <>
@@ -26,6 +25,22 @@ export class ChildBranch extends Component{
             </>  
         )
     }
+}
+
+export function SmallBranch({branch,children}){
+
+    return(
+        <div className="small-branch-container flex-fill">
+            <Link to={`/${branch.uri}`} className="small-branch flex-fill">
+                <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
+                <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
+                    <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
+                    <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
+                </div>
+            </Link>
+            {children}
+        </div>
+    )
 }
 
 

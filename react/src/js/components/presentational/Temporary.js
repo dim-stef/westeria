@@ -2,15 +2,51 @@ import React, { Component, useState,useContext,useEffect,useRef } from "react";
 import ReactDOM from 'react-dom';
 import {FollowButton} from "./Card"
 import {RefreshContext} from "../container/ContextContainer"
+import axios from "axios"
 
-export default function BranchFooter({branch}){
+export default function BranchFooter({branch,pending,requestId,viewedBranch}){
     console.log(branch)
+
+    function handleAccept(){
+        updateRequest('accepted');
+    }
+
+    function handleDecline(){
+        updateRequest('declined');
+    }
+
+    function updateRequest(status){
+        let uri = `/api/branches/${viewedBranch.uri}/received_request/update/${requestId}/`;
+        let data = {
+            status:status
+        }
+        axios.patch(
+            uri,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+            }).then(response => {
+                console.log(response);
+            }).catch(error => {
+            console.log(error)
+        })
+    }
+
     return(
         <div className="branch-footer flex-fill" style={{position:'relative'}}>
             <TopBar branch={branch}/>
             <DescriptionBox description={branch.description}/>
-            <div style={{margin:10}}>
+            <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around'}}>
                 <FollowButton uri={branch.uri} id={branch.id}/>
+                {pending?
+                <div>
+                    <button onClick={handleAccept}>accept</button>
+                    <button onClick={handleDecline}>decline</button>
+                </div>
+                :null}
             </div>
         </div>
     )
@@ -130,7 +166,7 @@ function useScrollListener(){
     return scroll;
 }
 
-export function ActionArrow({refresh}){
+export function ActionArrow(){
     const context = useContext(RefreshContext);
     const ref = useRef(null);
     const [navigationTopPosition,setNavigationTopPosition] = useState(0);
@@ -138,8 +174,9 @@ export function ActionArrow({refresh}){
 
     useEffect(()=>{
         if(ref){
-            setNavigationTopPosition(cumulativeOffset(ref.current).top + 10);
+            setNavigationTopPosition(cumulativeOffset(ref.current).top - 50);
             var scrollListener = function (event) {
+                
                 setWindowScroll(window.scrollY);
             }
             window.addEventListener("scroll", scrollListener );
@@ -158,7 +195,7 @@ export function ActionArrow({refresh}){
             window.scrollTo({ top: navigationTopPosition, behavior: 'smooth' });
         }
     }
-
+    console.log(windowScroll,navigationTopPosition);
     return(
         <div ref={ref} style={{
             position: "absolute",

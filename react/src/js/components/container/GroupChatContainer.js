@@ -1,9 +1,28 @@
-import React, { Component } from "react";
+import React, { Component,useState } from "react";
 import GroupChatMessage, { GroupChatMessageBox } from "../GroupChatMessage";
+import {MyBranchesColumnContainer} from "../presentational/MyBranchesColumn"
 import {UserContext} from "./ContextContainer"
 import axios from "axios";
 const uuidv1 = require('uuid/v1');
 
+
+
+export function BranchChatPage(props){
+    return(
+        <div className="flex-fill" style={{marginTop:10}}>
+            <div style={{flexBasis:'22%'}}>
+                <div style={{backgroundColor:'white',padding:'10px 20px'}}>
+                    <div className="flex-fill" style={{alignItems:'center'}}>
+                        <h1>My branches</h1>
+                    </div>
+                    <MyBranchesColumnContainer/>
+                    
+                </div>
+            </div>
+            <GroupChatMessagesContainer {...props}/>
+        </div>
+    )
+}
 
 export class GroupChatMessagesContainer extends Component {
     constructor(props) {
@@ -84,6 +103,7 @@ export class GroupChatMessagesContainer extends Component {
 }
 
 
+
 class GroupChatContainer extends Component {
     static contextType = UserContext;
     constructor(props) {
@@ -95,6 +115,7 @@ class GroupChatContainer extends Component {
             currentMessage: '',
             files:'',
             messages: this.props.messages,
+            height:window.innerHeight - 120,
             ws: this.props.ws,
         }
 
@@ -172,6 +193,16 @@ class GroupChatContainer extends Component {
     }
 
     componentDidMount() {
+        console.log("this.chatWindow",this.chatWindow);
+        if(this.chatWindow.parentNode.clientHeight > window.innerHeight - 119){
+            this.setState({
+                height:this.chatWindow.parentNode.clientHeight
+            })
+        }else{
+            this.setState({
+                height:window.innerHeight - 120
+            })
+        }
         localStorage.setItem('profilePictures',JSON.stringify({}));
         var self = this;
         this.el.scrollIntoView({ behavior: "instant" });
@@ -234,12 +265,12 @@ class GroupChatContainer extends Component {
     render() {
         var messageBoxes = this.getMessageBoxes();
         return (
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div className="chat-window flex-fill" style={{height:this.state.height}} ref={el => { this.chatWindow = el; }}>
                 <div id="chat-log" className="chat-log">
                     {messageBoxes}
                 </div>
 
-                <div style={{ position: 'fixed', bottom: 0, height: 100, width: 1200 }}>
+                <div style={{ height: 100 }}>
                     <textarea onDrop={this.drop} onDragOver={this.preventDefault} onChange={this.inputHandler} onKeyPress={this.handleKeyPress} className="text-wrapper" rows="1" value={this.state.currentMessage} id="chat-message-input"></textarea>
                 </div>
                 <div ref={el => { this.el = el; }}></div>
@@ -247,6 +278,8 @@ class GroupChatContainer extends Component {
         )
     }
 }
+
+
 
 class CustomTextArea extends Component{
     constructor(props){

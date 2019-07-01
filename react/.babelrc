@@ -5,6 +5,7 @@
   ],
   "plugins": [
     "react-hot-loader/babel",
+    "emotion",
     "@babel/plugin-proposal-class-properties",
     "@babel/plugin-transform-runtime",
     [
