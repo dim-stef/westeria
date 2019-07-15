@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {BranchBanner} from "./BranchBanner"
 import {UserContext} from '../container/ContextContainer'
 import {BigBranchPicture} from "./BranchPageLeftBar"
+import {SmallCard} from "./Card"
 import axios from 'axios'
 
 
@@ -28,18 +29,44 @@ export class ChildBranch extends Component{
 }
 
 export function SmallBranch({branch,children}){
+    const [showCard,setShowCard] = useState(false);
+    let setTimeoutConst;
+    let setTimeoutConst2;
+
+    function handleMouseEnter(){
+        clearTimeout(setTimeoutConst2)
+
+        setTimeoutConst = setTimeout(()=>{
+            setShowCard(true);
+        },500)
+    }
+
+    function handleMouseLeave(){
+        clearTimeout(setTimeoutConst)
+
+        setTimeoutConst2 = setTimeout(()=>{
+            setShowCard(false);
+        },500)
+    }
 
     return(
-        <div className="small-branch-container flex-fill">
-            <Link to={`/${branch.uri}`} className="small-branch flex-fill">
+        <>
+        <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+         style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+            <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
                 <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
                 <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
                     <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
                     <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
                 </div>
+                {showCard?<SmallCard branch={branch}/>:null}
             </Link>
             {children}
         </div>
+        
+        </>
     )
 }
 

@@ -70,6 +70,7 @@ export function BranchesPageContainer(props){
 }
 
 export function BranchContainer(props){
+    console.log("match",props)
     const [branches,setBranches] = useState(null);
     let branchUri = props.match.params.uri ? props.match.params.uri : 'global';
 
@@ -94,7 +95,7 @@ export function BranchContainer(props){
     },[branchUri])
 
     if(branches){
-        return <BranchPage branch={branches} match={props.match.params.uri ? props.match.params.uri : 'global'}/>
+        return <BranchPage externalId={props.externalId} branch={branches} match={props.match.params.uri ? props.match.params.uri : 'global'}/>
     }else{
         return null
     }

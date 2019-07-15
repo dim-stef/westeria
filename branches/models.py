@@ -74,7 +74,7 @@ class Branch(models.Model):
         super().save(*args, **kwargs)
 
 def validate_manytomany(self,instance,target):
-    self.delete()
+    #self.delete()
     if instance == target:
         raise ValidationError('Cannot branch to the same branch')
 
@@ -134,7 +134,7 @@ class BranchRequest(models.Model):
         default=STATUS_ON_HOLD,
     )
 
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     request_from = models.ForeignKey(Branch,on_delete=models.CASCADE,related_name="requests_sent")
     request_to = models.ForeignKey(Branch,on_delete=models.CASCADE,related_name="requests_received")
 
@@ -186,12 +186,12 @@ def create_notification(sender, instance, created, **kwargs):
     verb = instance.relation_type
 
     if instance.relation_type == BranchRequest.RELATION_TYPE_CHILD:
-        #description = str(instance.request_from) + " wants to become child of " + str(instance.request_to)
         description = " wants to become child of "
+        verb = "become_child"
 
     else:
-        #description = str(instance.request_from) + " wants to become parent of " + str(instance.request_to)
         description = " wants to become parent of "
+        verb = "become_parent"
 
 
     notification = Notification.objects.create(recipient=instance.request_to.owner,actor=instance.request_from,verb=verb,

@@ -1,31 +1,245 @@
 import React, { useState,useEffect,useContext,useRef,useCallback } from 'react';
+import ReactDOM from 'react-dom';
+import { List,WindowScroller,AutoSizer,CellMeasurer,CellMeasurerCache } from 'react-virtualized';
+import Measure from 'react-measure'
 import {Link} from 'react-router-dom'
-//import InfiniteScroll from 'react-infinite-scroller';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {RefreshContext,PostsContext, UserContext} from "../container/ContextContainer"
+import {RefreshContext,PostsContext,BranchPostsContext, UserContext} from "../container/ContextContainer"
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import StatusUpdate from "./StatusUpdate"
-import {Post} from './Post'
+import {Post} from './SingularPost'
 import axios from 'axios'
+import axiosRetry from 'axios-retry';
+
+axiosRetry(axios, 
+    {
+        retries:15,
+        retryDelay: axiosRetry.exponentialDelay
+    });
+
+let CancelToken = axios.CancelToken;
+let source = CancelToken.source();
 
 
+//const cache = [];
 
-export function DisplayPosts(props){
-    // Using context instead of state in order for the data to be
-    // maintained on route change
-    const [posts,setPosts] = useState([]);
-    const [showPostedTo,setShowPostedTo] = useState(props.showPostedTo);
-    const [next,setNext] = useState(null);
-    const [hasMore,setHasMore] = useState(true);
-    const [params,setParams] = useState(null);
-    const context = useContext(RefreshContext);
-    
-    //let next = null;
-    let CancelToken = axios.CancelToken;
-    let source = CancelToken.source();
 
+function DisplayPosts2({isFeed,posts,setPosts,
+    postsContext,resetPostsContext,
+    updateFeed,postedId,fetchData,hasMore,
+    showPostedTo,activeBranch,refresh}){
+
+    return(
+    <ul className="post-list">
+        <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
+        resetPostsContext={resetPostsContext}/>
+        <StatusUpdate postsContext={postsContext} updateFeed={updateFeed} postedId={postedId} key={postedId}/>
+        {posts.length>0?
+        <InfiniteScroll
+            pullDownToRefresh
+            pullDownToRefreshThreshold={300}
+            refreshFunction={refresh}
+            pullDownToRefreshContent={
+                <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
+            }
+            releaseToRefreshContent={
+                <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
+            }
+            dataLength={posts.length}
+            next={fetchData}
+            hasMore={hasMore}
+            endMessage={
+                <p style={{textAlign: 'center'}}>
+                <b>Yay! You have seen it all</b>
+                </p>
+            }
+
+            loader={[...Array(3)].map((e, i) => 
+            <div key={i} style={{width:'100%',marginTop:10}}>
+                <div style={{backgroundColor:'white',padding:'10px'}}>
+                    <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                        <Skeleton circle={true} width={48} height={48}/>
+                    </SkeletonTheme>
+                    <div style={{marginTop:10,lineHeight:'2em'}}>
+                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                            <Skeleton count={2} width="100%" height={10}/>
+                        </SkeletonTheme>
+
+                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                            <Skeleton count={1} width="30%" height={10}/>
+                        </SkeletonTheme>
+                    </div>
+                </div>
+            </div>
+            )}>
+            <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
+                showPostedTo={showPostedTo} posts={posts}
+            />
+
+            {/*posts.map((post,i) => {
+                        
+                        let props = {
+                        post:post,
+                        key:[post.id,post.spreaders],
+                        removeFromEmphasized:null,
+                        showPostedTo:showPostedTo?true:false,
+                        viewAs:"post",
+                        activeBranch:activeBranch};
+
+                        return <li key={[post.id,post.spreaders]}><Post {...props} minimized/></li>
+                    }   
+                )
+            */}
+        </InfiniteScroll>:
+            hasMore?[...Array(8)].map((e, i) => 
+            <div key={i} style={{width:'100%',marginTop:10}}>
+                <div style={{backgroundColor:'white',padding:'10px'}}>
+                    <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                        <Skeleton circle={true} width={48} height={48}/>
+                    </SkeletonTheme>
+                    <div style={{marginTop:10,lineHeight:'2em'}}>
+                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                            <Skeleton count={2} width="100%" height={10}/>
+                        </SkeletonTheme>
+
+                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                            <Skeleton count={1} width="30%" height={10}/>
+                        </SkeletonTheme>
+                    </div>
+                </div>
+            </div>
+            ):<p>Nothing seems to be here :/</p>}
+    </ul>
+    )
+}
+
+const cache = new CellMeasurerCache({
+    fixedWidth: true,
+    minHeight: 25,
+    defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
+})
+
+const cache2 = new CellMeasurerCache({
+    fixedWidth: true,
+    minHeight: 25,
+    defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
+})
+
+/*
+containerStyle={{
+        width: "100%",
+        maxWidth: "100%"
+    }}
+        style={{
+        width: "100%"
+    }} */
+
+function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo}){
+    const ref = useRef(null);
+    const cellRef = useRef(null);
+
+    useEffect(()=>{
+        console.log("ref",ref)
+        if(ref){
+            console.log("ref",ref.current)
+            ref.current.scrollToRow(isFeed?postsContext.lastVisibleIndex:0);
+            //listRef.current.recomputeRowHeights();
+        }
+    },[ref])
+
+    useEffect(()=>{
+        if(ref){
+            console.log("recompute",ref.current)
+            //ref.current.recomputeRowHeights();
+            //listRef.current.recomputeRowHeights();
+        }
+
+        if(cellRef){
+            console.log("cellRef",cellRef)
+        }
+    })
+
+    return(
+        <WindowScroller>
+            {({ height, isScrolling, onChildScroll, scrollTop }) => (
+                <AutoSizer 
+                disableHeight
+                onResize={({ width }) => {
+                    if(ref){
+                        console.log("resize")
+                        cache.clearAll();
+                        cache2.clearAll()
+                        ref.current.recomputeRowHeights();
+                    }
+                }}>
+                { ({ width }) =>
+                <List
+                autoHeight
+                width={width}
+                height={height}
+                isScrolling={isScrolling}
+                onScroll={onChildScroll}
+                scrollTop={scrollTop}
+                rowCount={posts.length}
+                deferredMeasurementCache={postsContext.content=='feed'?cache:cache2}
+                rowHeight={postsContext.content=='feed'?cache.rowHeight:cache2.rowHeight}
+                ref={ref}
+                rowRenderer={
+                    ({ index, key, style, parent }) =>{
+                    console.log("postsContext",postsContext,width)
+                    let post = posts[index];
+                    let isOpen = postsContext.openPosts.some(id=> id == post.id)
+                    let props = {
+                        isOpen:isOpen,
+                        post:post,
+                        key:[post.id,post.spreaders,postsContext.content],
+                        removeFromEmphasized:null,
+                        showPostedTo:showPostedTo?true:false,
+                        viewAs:"post",
+                        activeBranch:activeBranch,
+                        postsContext:postsContext
+                        };
+                    return(
+                        <CellMeasurer
+                        ref={cellRef}
+                        key={[post.id,post.spreaders,postsContext.content]}
+                        cache={postsContext.content=='feed'?cache:cache2}
+                        parent={parent}
+                        width={width}
+                        columnIndex={0}
+                        rowIndex={index}>
+                        {({ measure }) => (
+                            <div
+                            key={key}
+                            style={style}
+                            >
+                                <li><Post {...props} index={index} measure={measure} minimized/></li>
+                            </div>
+                        )}
+                    </CellMeasurer>
+                        
+                    )
+                }}
+                />
+            
+            }</AutoSizer>
+        )}
+        </WindowScroller>
+    )
+}
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
+
+
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+    const [posts,setPosts] = useState(postsContext.loadedPosts);
+    const refreshContext = useContext(RefreshContext);
+
+    console.log("refresh",refreshContext);
     function buildQuery(baseUri,params){
-        console.log("params",params)
         if(params){
             var esc = encodeURIComponent;
             var query = Object.keys(params)
@@ -37,270 +251,140 @@ export function DisplayPosts(props){
         return baseUri;
     }
 
-    const fetchData = async (params,hadmore) =>{
-        console.log("ommm1",hasMore)
-        console.log("ommm2",hadmore)
-        if(!hasMore){
+    const fetchData = async () =>{
+        if(!postsContext.hasMore){
             return;
         }
 
-        let uri = next?next:buildQuery(`/api/branches/${props.branch}/posts/`,params);
+        let endpoint = isFeed?'feed':'posts'
+        let uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/${endpoint}`,postsContext.params);
+
         const response = await axios(uri,{
             cancelToken: source.token
-        });
+          });
+
         if(!response.data.next){
-            setHasMore(false);
+            postsContext.hasMore = false;
         }
-        if(props.externalId){ // request will return non-array results but posts need to be array
+
+        if(externalId){ // request will return non-array results but posts need to be array
             setPosts([response.data]);
         }
+
         else{
-            setNext(response.data.next)
+            postsContext.loadedPosts = [...posts,...response.data.results];
             setPosts([...posts,...response.data.results]);
+            //setNext(response.data.next);
+            postsContext.next = response.data.next;
+            console.log("next",response.data.next)
         }
-    }
-
-    const setNewRefresh = (params,hasMore) =>{
-            context.setRefresh(() => ()=>{
-            source.cancel('Operation canceled by the user.');
-            CancelToken = axios.CancelToken;
-            source = CancelToken.source();
-            setPosts([]);
-            fetchData(params,hasMore);
-    })}
+    };
 
     useEffect(()=>{
-        fetchData();
-        setNewRefresh();
-    },[props.branch])
+        console.log("postscontext",isFeed,postsContext,resetPostsContext)
+        if(isFeed){
+            if(postsContext.loadedPosts.length==0 || postsContext.branchUri != branch){
+                resetPostsContext(branch);
+                setPosts([])
+                fetchData();
+                postsContext.branchUri = branch;
+                cache.clearAll()
+            }
+            refreshContext.setFeedRefresh(() => ()=>{
+                source.cancel('Operation canceled by the user.');
+                CancelToken = axios.CancelToken;
+                source = CancelToken.source();
+                resetPostsContext(branch);
+                fetchData();
+                setPosts([]);
+                cache.clearAll()
+            });
+        }else{
+            setPosts([])
+            resetPostsContext();
+            fetchData();
+            cache2.clearAll()
+
+            refreshContext.setBranchPostsRefresh(() => ()=>{
+                source.cancel('Operation canceled by the user.');
+                CancelToken = axios.CancelToken;
+                source = CancelToken.source();
+                resetPostsContext(branch);
+                fetchData();
+                setPosts([]);
+                cache2.clearAll()
+            });
+        }
+    },[branch])
 
     useEffect(()=>{
-        setHasMore(true);
-        setNext(null);
-    },[params])
+        return()=>{
+            if(!isFeed){
+                resetPostsContext();
+            }
+        }
+    })
 
     useEffect(()=>{
-        setNewRefresh(params,hasMore);
-    },[params,hasMore,next])
+        refreshContext.page = isFeed?'feed':'branch';
+    },[])
 
     const updateFeed = useCallback(
         (newPosts) => {
-            setPosts([...newPosts,...posts])
+            postsContext.loadedPosts = [...newPosts,...postsContext.loadedPosts];
+            setPosts(newPosts.concat(posts))
         },
         [posts], // list of params on which the callback should be recreated, this array might also stay blank
     );
 
-    let activeBranch = props.activeBranch
+
     return(
-        <ul className="post-list">
-            <ContextlessFilterPosts setNewParams={setParams}/>
-            <StatusUpdate updateFeed={updateFeed} postedId={props.postedId} key={props.postedId}/>
-            {posts.length>0?
-            <InfiniteScroll
-                dataLength={posts.length}
-                next={fetchData}
-                hasMore={hasMore}
-                endMessage={
-                    <p style={{textAlign: 'center'}}>
-                    <b>Yay! You have seen it all</b>
-                    </p>
-                }
-
-                loader={[...Array(3)].map((e, i) => 
-                <div key={i} style={{width:'100%',marginTop:10}}>
-                    <div style={{backgroundColor:'white',padding:'10px'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                            <Skeleton circle={true} width={48} height={48}/>
-                        </SkeletonTheme>
-                        <div style={{marginTop:10,lineHeight:'2em'}}>
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={2} width="100%" height={10}/>
-                            </SkeletonTheme>
-
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={1} width="30%" height={10}/>
-                            </SkeletonTheme>
-                        </div>
-                    </div>
-                </div>
-                )}>
-                {posts.map((post,i) => {
-                            
-                            let props = {
-                            post:post,
-                            key:[post.id,post.spreaders],
-                            removeFromEmphasized:null,
-                            showPostedTo:showPostedTo?true:false,
-                            viewAs:"post",
-                            activeBranch:activeBranch};
-
-                            return <li key={[post.id,post.spreaders]}><Post {...props} minimized/></li>
-                        }   
-                    )
-                }
-            </InfiniteScroll>:
-                [...Array(8)].map((e, i) => 
-                <div key={i} style={{width:'100%',marginTop:10}}>
-                    <div style={{backgroundColor:'white',padding:'10px'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                            <Skeleton circle={true} width={48} height={48}/>
-                        </SkeletonTheme>
-                        <div style={{marginTop:10,lineHeight:'2em'}}>
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={2} width="100%" height={10}/>
-                            </SkeletonTheme>
-
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={1} width="30%" height={10}/>
-                            </SkeletonTheme>
-                        </div>
-                    </div>
-                </div>
-                )}
-        </ul>
+        <DisplayPosts2 isFeed={isFeed} refresh={isFeed?refreshContext.feedRefresh:refreshContext.branchPostsRefresh}
+        updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
+        posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
+        activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
+        />
     )
 }
 
-export function Scroller(props){
-    const [posts,setPosts] = useState([]);
-    const [next,setNext] = useState(null);
-    const [hasMore,setHasMore] = useState(true);
-    const ref = useRef(null);
+export function FeedPosts(props){
+    const postsContext = useContext(PostsContext);
 
-    const fetchData = async (next) =>{
-        if(!hasMore){
-            return;
-        }
-
-        let uri = next?next:props.uri;
-        const response = await axios(uri);
-        if(!response.data.next){
-            setHasMore(false);
-        }
-        if(props.externalId){ // request will return non-array results but posts need to be array
-            setPosts([response.data]);
-        }
-        else{
-            setNext(response.data.next);
-            setPosts([...posts,...response.data.results]);
-        }
-    };
-
-    // initial load
-    useEffect(()=>{
-        setPosts([]);
-        fetchData();
-        context.setRefresh(() => fetchData);
-    },[props.uri])
-
-    function loadMore(){
-        if(next){
-            fetchData(next);
-        }
+    function resetPostsContext(newBranch){
+        console.log("reset")
+        postsContext.hasMore = true;
+        postsContext.next = null;
+        postsContext.lastVisibleElement = null;
+        postsContext.lastVisibleIndex = 0;
+        //postsContext.loadedPosts = [];
+        //postsContext.loadedPosts.splice(0,postsContext.loadedPosts.length)
+        postsContext.loadedPosts.length = 0;
+        postsContext.cachedPosts.length = 0;
+        postsContext.openPosts.length = 0;
+        postsContext.uniqueCached.length = 0;
+        postsContext.branchUri = props.branch;
     }
 
-    // scroll listener function
-    function listScrollListener(ev) {
-        if ((window.innerHeight + window.scrollY) >= ref.current.clientHeight - 200) {
-            // you're at 200px + 60px(navigation bars height) from bottom of page
-            loadMore();
-        }
+    return(
+        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={resetPostsContext}/>
+    )
+}
+
+export function BranchPosts(props){
+    const postsContext = useContext(BranchPostsContext);
+
+    function resetPostsContext(){
+        postsContext.hasMore = true;
+        postsContext.next = null;
+        postsContext.loadedPosts = [];
+        postsContext.cachedPosts.length = 0;
+        postsContext.openPosts.length = 0;
+        postsContext.uniqueCached.length = 0;
     }
 
-    // attach scroll listener
-    useEffect(()=>{
-        if(!ref){
-            return;
-        }
-
-        ref.current.addEventListener('scroll',listScrollListener);
-
-        return(()=>{
-            ref.current.removeEventListener('scroll',listScrollListener);
-        })
-    },[ref.current])
-
     return(
-        <ul ref={ref}>
-            {props.children}
-        </ul>
+        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={resetPostsContext}/>
     )
-}
-
-
-function DisplayPosts2({posts,updateFeed,postedId,fetchData,hasMore,showPostedTo,activeBranch}){
-    return(
-        <ul className="post-list">
-            <ContextlessFilterPosts/>
-            <StatusUpdate updateFeed={updateFeed} postedId={postedId} key={postedId}/>
-            {posts.length>0?
-            <InfiniteScroll
-                dataLength={posts.length}
-                next={fetchData}
-                hasMore={hasMore}
-                endMessage={
-                    <p style={{textAlign: 'center'}}>
-                    <b>Yay! You have seen it all</b>
-                    </p>
-                }
-
-                loader={[...Array(3)].map((e, i) => 
-                <div key={i} style={{width:'100%',marginTop:10}}>
-                    <div style={{backgroundColor:'white',padding:'10px'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                            <Skeleton circle={true} width={48} height={48}/>
-                        </SkeletonTheme>
-                        <div style={{marginTop:10,lineHeight:'2em'}}>
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={2} width="100%" height={10}/>
-                            </SkeletonTheme>
-
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={1} width="30%" height={10}/>
-                            </SkeletonTheme>
-                        </div>
-                    </div>
-                </div>
-                )}>
-                {posts.map((post,i) => {
-                            
-                            let props = {
-                            post:post,
-                            key:[post.id,post.spreaders],
-                            removeFromEmphasized:null,
-                            showPostedTo:showPostedTo?true:false,
-                            viewAs:"post",
-                            activeBranch:activeBranch};
-
-                            return <li key={[post.id,post.spreaders]}><Post {...props} minimized/></li>
-                        }   
-                    )
-                }
-            </InfiniteScroll>:
-                [...Array(8)].map((e, i) => 
-                <div key={i} style={{width:'100%',marginTop:10}}>
-                    <div style={{backgroundColor:'white',padding:'10px'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                            <Skeleton circle={true} width={48} height={48}/>
-                        </SkeletonTheme>
-                        <div style={{marginTop:10,lineHeight:'2em'}}>
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={2} width="100%" height={10}/>
-                            </SkeletonTheme>
-
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={1} width="30%" height={10}/>
-                            </SkeletonTheme>
-                        </div>
-                    </div>
-                </div>
-                )}
-        </ul>
-    )
-}
-if (process.env.NODE_ENV !== 'production') {
-    const whyDidYouRender = require('@welldone-software/why-did-you-render');
-    whyDidYouRender(React);
 }
 
 export const DisplayPosts3 = (props)=>{
@@ -311,17 +395,22 @@ export const DisplayPosts3 = (props)=>{
     const [showPostedTo,setShowPostedTo] = useState(props.showPostedTo);
     const context = useContext(RefreshContext);
     
-    let CancelToken = axios.CancelToken;
-    let source = CancelToken.source();
+    //let CancelToken = axios.CancelToken;
+    //let source = CancelToken.source();
 
     console.log("postscontext",postsContext)
 
-    function resetPostsContext(){
+    useEffect(()=>{
+        context.page = 'feed'
+    },[])
+
+    function resetPostsContext(newBranch){
+        console.log("reset")
         postsContext.hasMore = true;
         postsContext.next = null;
         postsContext.lastVisibleElement = null;
         postsContext.loadedPosts = [];
-        postsContext.branchUri = props.branch;
+        postsContext.branchUri = newBranch;
     }
 
     function buildQuery(baseUri,params){
@@ -343,7 +432,6 @@ export const DisplayPosts3 = (props)=>{
 
         let uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${props.branch}/feed`,postsContext.params);
 
-        
         const response = await axios(uri,{
             cancelToken: source.token
           });
@@ -365,17 +453,17 @@ export const DisplayPosts3 = (props)=>{
 
     useEffect(()=>{
         if(postsContext.loadedPosts.length==0 || postsContext.branchUri != props.branch){
-            resetPostsContext();
+            console.log("innn",postsContext.branchUri , props.branch)
+            resetPostsContext(props.branch);
             fetchData();
-            postsContext.branchUri = props.branchUri;
+            postsContext.branchUri = props.branch;
         }
 
-        
-        context.setRefresh(() => ()=>{
+        context.setFeedRefresh(() => ()=>{
             source.cancel('Operation canceled by the user.');
             CancelToken = axios.CancelToken;
             source = CancelToken.source();
-            resetPostsContext();
+            resetPostsContext(props.branch);
             fetchData();
             setPosts([]);
         });
@@ -393,10 +481,18 @@ export const DisplayPosts3 = (props)=>{
     let activeBranch = props.activeBranch
     return(
         <ul className="post-list">
-            <FilterPosts setUri={props.setUri} setNewParams={props.setParams}/>
+            <FilterPosts setPosts={setPosts} resetPostsContext={resetPostsContext}/>
             <StatusUpdate updateFeed={updateFeed} postedId={props.postedId} key={props.postedId}/>
             {postsContext.loadedPosts.length>0?
             <InfiniteScroll
+                pullDownToRefresh
+                refreshFunction={context.feedRefresh}
+                pullDownToRefreshContent={
+                    <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
+                }
+                releaseToRefreshContent={
+                    <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
+                }
                 dataLength={postsContext.loadedPosts.length}
                 next={fetchData}
                 hasMore={postsContext.hasMore}
@@ -462,30 +558,56 @@ export const DisplayPosts3 = (props)=>{
 }
 
 
-import makeAnimated from 'react-select/animated';
 
+function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunction}){
+    const userContext = useContext(UserContext);
+    //const postsContext = useContext(PostsContext)
+    const refreshContext = useContext(RefreshContext);
+    const [params,setParams] = useState(postsContext.params || null);
 
-
-function FilterPosts({setNewParams}){
-    const postsContext = useContext(PostsContext)
-
-    const [params,setParams] = useState(null);
+    function shallowCompare(obj1, obj2){
+        var same = true;
+        if(Object.keys(obj1).length!=Object.keys(obj2).length){
+            same = false;
+        }else{
+            for (var key in obj1) {
+                if (obj1.hasOwnProperty(key)) {
+                    if(obj1[key].hasOwnProperty('value')){
+                        if(obj1[key].value != obj2[key].value){
+                            same = false;
+                        }
+                    }else{
+                        shallowCompare(obj1[key],obj2[key])
+                    }
+                }
+            }
+        }
+        return same;
+    }
 
     useEffect(()=>{
-        if(params){
+        console.log("params", params , postsContext.params)
+        if(!shallowCompare(params , postsContext.params)){
+            console.log("same2",shallowCompare(params , postsContext.params))
+            resetPostsContext(userContext.currentBranch.uri);
             postsContext.params = params;
-            setNewParams(params);
-
+            setPosts([]);
+            refreshFunction();
         }
+
+        postsContext.params = params;
     },[params])
 
     return(
         <div className="flex-fill" 
         style={{backgroundColor:'rgb(33, 158, 243)',marginBottom:10,height:50,
         justifyContent:'space-evenly',alignItems:'center'}}>
-            <ContentTypeFilter setParams={setParams} params={params}/>
-            <AlgorithmFilter setParams={setParams} params={params}/>
-            <TimeFilter setParams={setParams} params={params}/>
+            <ContentTypeFilter setParams={setParams} params={params} 
+            defaultOption={postsContext.params?postsContext.params.content:null}/>
+            <AlgorithmFilter setParams={setParams} params={params}
+            defaultOption={postsContext.params?postsContext.params.ordering:null}/>
+            <TimeFilter setParams={setParams} params={params} 
+            defaultOption={postsContext.params?postsContext.params.past:null}/>
             <ActionArrow/>
         </div>
     )
@@ -568,7 +690,7 @@ function ActionArrow(){
     )
 }
 
-function ContentTypeFilter({setParams,params}){
+function ContentTypeFilter({setParams,params,defaultOption}){
 
     const options = [
         { value: 'leaves', label: 'Leaves' },
@@ -576,25 +698,28 @@ function ContentTypeFilter({setParams,params}){
         { value: 'media', label: 'Media' },
     ];
 
+
     return (
-        <DropdownList setParams={setParams} label="content" params={params} name="content" options={options} defaultOption={options[0]}/>   
+        <DropdownList setParams={setParams} label="content" params={params} name="content" options={options} 
+        defaultOption={defaultOption?defaultOption:options[0]}/>   
     )
 }
 
 
-function AlgorithmFilter({setParams,params}){
+function AlgorithmFilter({setParams,params,defaultOption}){
 
     const options = [
-        { value: 'hot_score', label: 'Hot'},
+        { value: '-hot_score', label: 'Hot'},
         { value: '-created', label: 'New'}
     ]
 
     return (
-        <DropdownList setParams={setParams} label="ordering" params={params} name="ordering" options={options} defaultOption={options[0]}/>
+        <DropdownList setParams={setParams} label="ordering" params={params} name="ordering" options={options} 
+        defaultOption={defaultOption?defaultOption:options[0]}/>
     )
 }
 
-function TimeFilter({setParams,params}){
+function TimeFilter({setParams,params,defaultOption}){
 
     const options = [
         { value: 'all', label: 'All time'},
@@ -606,7 +731,8 @@ function TimeFilter({setParams,params}){
     ]
 
     return (
-        <DropdownList setParams={setParams} label="past" params={params} name="past" options={options} defaultOption={options[0]}/>
+        <DropdownList setParams={setParams} label="past" params={params} name="past" options={options} 
+        defaultOption={defaultOption?defaultOption:options[0]}/>
     )
 }
 

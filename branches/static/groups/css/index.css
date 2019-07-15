@@ -168,6 +168,14 @@
     }
 }
 
+@media all and (max-width: 1200px) {
+    .post-list{
+        flex-basis: 100%;
+        border:none !important;
+        margin: 0;
+    }
+}
+
 
 .post-to-branch-tab-list{
     display:flex;

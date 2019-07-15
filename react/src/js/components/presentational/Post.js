@@ -1,11 +1,11 @@
 import React, { useState,useContext,useEffect,useRef } from 'react';
 import ReactDOM from 'react-dom';
 import {Link} from 'react-router-dom'
-import {UserContext} from '../container/ContextContainer'
+import {UserContext,PostsContext} from '../container/ContextContainer'
 import {ToggleContent} from './Temporary'
 import {CommentSection} from './Comments'
 import {SmallBranchList} from './BranchList'
-import ReactSwipe from 'react-swipe';
+import {SmallCard} from "./Card"
 import { useSwipeable, Swipeable } from 'react-swipeable'
 import { useInView } from 'react-intersection-observer'
 import {Images2} from './PostImageGallery'
@@ -59,10 +59,16 @@ function authorizedGetPostedTo(post,activeBranch,context){
 }
 
 
-export const Post = React.memo(function Post({post,activeBranch,lastComment,viewAs="post"}){
+export const Post = React.memo(function Post({post,parentPost=null,postsContext,
+    isOpen=false,index,activeBranch,lastComment,measure,viewAs="post"}){
     const context = useContext(UserContext);
+    //const postsContext = useContext(PostsContext);
+    console.log("postsContext",postsContext)
+    let ids = postsContext.cachedPosts.map(p=>p.id)
+    const [visibleComments,setVisibleComments] = useState(ids);
     const [mainPostedBranch,setMainPostedBranch] = useState(getPostedTo(post,activeBranch,context))
-    const [open,setOpen] = useState(false);
+    const [open,setOpen] = useState(isOpen);
+    const didMount = useRef(null);
 
     const [ref, inView] = useInView({
         threshold: 0,
@@ -72,17 +78,66 @@ export const Post = React.memo(function Post({post,activeBranch,lastComment,view
         e.preventDefault();
         e.stopPropagation();
         setOpen(false);
+        postsContext.openPosts = postsContext.openPosts.filter(e =>{
+            return e != post.id
+        })
+
+        postsContext.openPosts = [...new Set(postsContext.openPosts)];
+        postsContext.cachedPosts = postsContext.cachedPosts.filter(p=>{
+            return !post.replies.includes(p.id)
+        })
+
+        console.log("openPosts",postsContext.openPosts,postsContext.cachedPosts)
+        let ids = postsContext.cachedPosts.map(p=>p.id)
+        let uniq = [...new Set([...visibleComments,...ids])];
+        setVisibleComments(uniq)
     }
 
     function openPost(){
         setOpen(true);
+        let uniq = [...new Set([...visibleComments,post.id])];
+        setVisibleComments(uniq)
+        postsContext.openPosts.push(post.id);
     }
+    
+
+    useEffect(()=>{
+        console.log("remeasure",isOpen,open)
+        if(open!=isOpen){
+            isOpen = null
+            console.log("remeasure",isOpen,visibleComments)
+            measure();
+        }
+    },[open,visibleComments])
+
+    useEffect(()=>{
+        if(viewAs=="embeddedPost"){
+            //let inCache = postsContext.cachedPosts.some(p=>p.id==post.id);
+            let inCache = postsContext.uniqueCached.some(ar=>{
+                return ar.post.id == parentPost.id && ar.embeddedPost.id == post.id
+            });
+            if(!inCache){
+                console.log("not in cache",postsContext.uniqueCached)
+                measure();
+                //postsContext.cachedPosts.push(post);
+                postsContext.uniqueCached.push({
+                    post:parentPost,
+                    embeddedPost:post
+                });
+            }
+        }
+    },[])
+
 
     var date = new Date(post.created);
     return(
-        <div ref={ref} data-visible={inView} id={post.id}>
-            <SmallPost post={post} viewAs={viewAs} lastComment={lastComment} mainPostedBranch={mainPostedBranch} date={date} cls="main-post"
-            showPostedTo activeBranch={activeBranch} openPost={openPost} open={open} closePost={closePost}/>
+        <div ref={ref} data-visible={inView} data-index={index} id={post.id}>
+            <div ref={didMount}>
+                <SmallPost post={post} viewAs={viewAs} lastComment={lastComment} 
+                mainPostedBranch={mainPostedBranch} date={date} cls="main-post"
+                showPostedTo activeBranch={activeBranch} openPost={openPost} 
+                open={open} closePost={closePost} measure={measure} postsContext={postsContext}/>
+            </div>
         </div>
     )
 })
@@ -94,12 +149,62 @@ if (process.env.NODE_ENV !== 'production') {
 
 Post.whyDidYouRender = true;
 
-function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,lastComment,viewAs}){
+function ShownBranch({branch,date}){
+    const [showCard,setShowCard] = useState(false);
+    let setTimeoutConst;
+    let setTimeoutConst2;
+    let dateElement=null;
+
+    if(date){
+        dateElement = timeDifference(date,new Date());
+    }
+
+    function handleMouseEnter(){
+        clearTimeout(setTimeoutConst2)
+
+        setTimeoutConst = setTimeout(()=>{
+            setShowCard(true);
+        },500)
+    }
+
+    function handleMouseLeave(){
+        clearTimeout(setTimeoutConst)
+
+        setTimeoutConst2 = setTimeout(()=>{
+            setShowCard(false);
+        },500)
+    }
+
+    return(
+        <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
+        display:'inline-flex',position:'relative'}} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+            <PostPicture picture={branch.branch_image} 
+            style={{width:48,height:48}}
+            uri={branch.uri}/>
+            <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
+                <Link to={branch.uri} style={{textDecoration:'none', color:'black',marginRight:10}}>
+                        <strong style={{fontSize:'1.7rem'}}>{branch.uri}</strong>
+                </Link>
+                <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
+                    {dateElement}
+                </div> 
+            </div>
+            {showCard?<SmallCard branch={branch}/>:null}
+        </div>
+    )
+}
+
+function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,measure,viewAs}){
     const context = useContext(UserContext);
     const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
         return s.uri===context.currentBranch.uri
     }))
-    const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
+
+    let isOpen = postsContext.openPosts.some(p=>{
+        return p==post.id
+    })
+
+    const [isStatusUpdateActive,setStatusUpdateActive] = useState(isOpen && viewAs=="post");
     const ref = useRef(null);
 
     let dateElement = timeDifference(date,new Date());
@@ -113,7 +218,9 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
 
     function handleCommentClick(){
         console.log(post.level)
-        if(post.level===0){ //if its top level post always display status bar
+
+        //if its top level post always display status bar
+        if(post.level===0){
             setStatusUpdateActive(true);
         }
         else{
@@ -140,12 +247,12 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
         })){
             post.spreaders.push(context.currentBranch);
         }
-    
         setDidSelfSpread(true);
     }
 
     console.log(post)
 
+    
     return(
         <div ref={ref} className={`post ${cls}`} 
         style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
@@ -155,18 +262,8 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
             <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
             :null}
             <div className="flex-fill">
-                <div className="flex-fill" style={{flex:'1 1 auto'}}>
-                    <PostPicture picture={post.poster_picture} 
-                    style={{width:48,height:48}}
-                    uri={post.poster}/>
-                    <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
-                        <Link to={post.poster} style={{textDecoration:'none', color:'black',marginRight:10}}>
-                                <strong style={{fontSize:'1.7rem'}}>{post.poster}</strong>
-                        </Link>
-                        <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
-                            {dateElement}
-                        </div> 
-                    </div>
+                <div className="flex-fill" style={{flex:'1 1 auto',flexFlow:'row wrap'}}>
+                    <ShownBranch branch={post.posted_to.find(b=> post.poster==b.uri)} date={date} post={post}/>
                     <PostedTo post={post} mainPostedBranch={mainPostedBranch} activeBranch={activeBranch} showPostedTo={showPostedTo}/>
                 </div>
                 <More/>
@@ -175,87 +272,20 @@ function SmallPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,ope
                 }
                 </div>
                 <div style={{marginTop:10}}>
-                    <PostBody embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
-                    text={post.text} images={post.images} videos={post.videos} postRef={ref} viewAs={viewAs}/>
+                    <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
+                    text={post.text} postsContext={postsContext} images={post.images} videos={post.videos} 
+                    measure={measure} postRef={ref} viewAs={viewAs}/>
                     <PostActions post={post} handleCommentClick={handleCommentClick}
                     handleSpread={onSpread} didSelfSpread={didSelfSpread}/>
                     {open?
                     <div style={{margin:'0 -10px -10px'}}>
                         {/*<h1 style={{borderBottom:'1px solid rgb(210, 220, 228)', padding:'10px 0'}}>Comments</h1>*/}
-                        <CommentSection currentPost={post} activeBranch={activeBranch} commentIds={post.replies} 
-                            isStatusUpdateActive={isStatusUpdateActive} viewAs={viewAs}
+                        <CommentSection postsContext={postsContext} isOpen={open} currentPost={post} 
+                        activeBranch={activeBranch} commentIds={post.replies} 
+                        isStatusUpdateActive={isStatusUpdateActive} measure={measure} viewAs={viewAs}
                         />
                     </div>
                     :null}
-                </div>
-        </div>
-    )
-}
-
-function EmbeddedPost({post,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,updateFeed=null}){
-    const context = useContext(UserContext);
-    const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
-        return s.uri===context.currentBranch.uri
-    }))
-    const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
-    const ref = useRef(null);
-
-    let dateElement = timeDifference(date,new Date());
-    function handleCommentClick(){
-        console.log(post.level)
-        if(post.level===0){ //if its top level post always display status bar
-            setStatusUpdateActive(true);
-        }
-        else{
-            setStatusUpdateActive(!isStatusUpdateActive);
-        }
-    }
-
-    function handleOpenPost(){
-        openPost();
-        if(post.level===0){
-            console.log(post.level)
-            setStatusUpdateActive(true);
-        }
-    }
-
-    function onSpread(){
-        post.spreads_count++;
-        if(!post.spreaders.some(sp=>{
-            return sp == context.currentBranch
-        })){
-            post.spreaders.push(context.currentBranch);
-        }
-    
-        setDidSelfSpread(true);
-    }
-
-    return(
-        <div ref={ref} className={`post ${cls}`} style={{display:'block'}} 
-        poststate={open?"open":"closed"}
-        onClick={handleOpenPost}>
-            <div className="flex-fill">
-                <div className="flex-fill" style={{flex:'1 1 auto'}}>
-                    <PostPicture picture={post.poster_picture} 
-                    style={{width:48,height:48}}
-                    uri={post.poster}/>
-                    <div>
-                        <Link to={post.poster} style={{textDecoration:'none', color:'black'}}>
-                                <strong style={{fontSize:'1.7rem'}}>{post.poster}</strong>
-                        </Link>
-                        <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
-                            {dateElement}
-                        </div> 
-                    </div>
-                    <PostedTo post={post} mainPostedBranch={mainPostedBranch} activeBranch={activeBranch} showPostedTo={showPostedTo}/>
-                </div>
-                <More/>
-                </div>
-                <div style={{marginTop:10}}>
-                    <PostBodyv3 embeddedPostData={post.replied_to} text={post.text} 
-                    images={post.images} videos={post.videos} postRef={ref} viewAs={viewAs}/>
-                    <PostActions post={post} handleCommentClick={handleCommentClick}
-                    handleSpread={onSpread} updateFeed={updateFeed} didSelfSpread={didSelfSpread}/>
                 </div>
         </div>
     )
@@ -331,8 +361,8 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
 }
 
 
-
-function PostBody({text, images, videos, postRef, activeBranch, embeddedPostData=null, isEmbedded=false,viewAs}){
+function PostBody({post,text, images,postsContext , videos, postRef,measure, activeBranch, 
+    embeddedPostData=null, isEmbedded=false,viewAs}){
     const [imageWidth,setImageWidth] = useState(0);
     const [embeddedPost,setEmbeddedPost] = useState(null);
 
@@ -368,8 +398,11 @@ function PostBody({text, images, videos, postRef, activeBranch, embeddedPostData
     return(
         <div>
             {text?<p className="post-text">{text}</p>:null}
-            {images.length>0 || videos.length>0?<Images2 images={images} videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
-            {embeddedPost? <Post post={embeddedPost} activeBranch={activeBranch} lastComment={false} viewAs="embeddedPost"></Post> :null}
+            {images.length>0 || videos.length>0?<Images2 images={images} measure={measure} 
+            videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
+            {embeddedPost? <Post post={embeddedPost} parentPost={post} postsContext={postsContext} 
+            measure={measure} activeBranch={activeBranch} 
+            lastComment={false} viewAs="embeddedPost"></Post> :null}
         </div>
     )
 }
@@ -423,6 +456,7 @@ function PostPicture(props){
             backgroundRepeat:'no-repeat',
             border:0,
             borderRadius:'50%',
+            objectFit:'cover',
             width:props.style.width,height:props.style.height}}/>
         </Link>
     )

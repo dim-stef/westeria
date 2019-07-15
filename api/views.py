@@ -59,6 +59,9 @@ class FeedPagination(CursorPagination):
 class TrendingPagination(CursorPagination):
     page_size = 5
 
+class ReplyTreePagination(CursorPagination):
+    page_size = 5
+
 
 class IsOwnerOfBranch(permissions.BasePermission):
 
@@ -68,6 +71,16 @@ class IsOwnerOfBranch(permissions.BasePermission):
         if request.user.owned_groups.filter(uri=branch).exists():
             return True
         return False
+
+class IsMemberOfChat(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        print(request.resolver_match.kwargs.get('branch_uri'))
+        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch_uri'))
+        branch_chat = BranchChat.objects.get(id=request.resolver_match.kwargs.get('id_pk'))
+        if branch_chat.members.filter(uri=branch).exists():
+            return True
+        return False
+
 
 
 class UserViewSet(# mixins.DestroyModelMixin,
@@ -255,7 +268,7 @@ class BranchRemoveFollowViewSet(BranchUpdateMixin):
 class BranchChatViewSet(viewsets.GenericViewSet,
                         mixins.RetrieveModelMixin,
                         mixins.ListModelMixin):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
     serializer_class = serializers.BranchChatSerializer
     lookup_field = 'name'
 
@@ -266,6 +279,28 @@ class BranchChatViewSet(viewsets.GenericViewSet,
             queryset = BranchChat.objects.filter(name__iexact=self.kwargs['branch'], branch=branch)
         return queryset
 
+class BranchChatRoomsViewSet(viewsets.GenericViewSet,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchChatSerializer
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        queryset = branch.chat_groups.all()
+        return queryset
+
+
+class ChatRoomViewSet(viewsets.GenericViewSet,
+                        mixins.RetrieveModelMixin,
+                        mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchChatSerializer
+
+    def get_queryset(self):
+        queryset = BranchChat.objects.get(id=self.kwargs['id_pk'])
+        return queryset
+
 
 class BranchChatMessageViewSet(viewsets.GenericViewSet,
                                mixins.RetrieveModelMixin,
@@ -273,15 +308,33 @@ class BranchChatMessageViewSet(viewsets.GenericViewSet,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.BranchMessageSerializer
     pagination_class = BranchChatMessagePagination
-    lookup_field = 'name'
 
     def get_queryset(self):
         queryset = BranchMessage.objects.none()
-        if self.kwargs['nested_2_name']:
-            branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
-            branch_chat = BranchChat.objects.get(name__iexact=self.kwargs['nested_2_name'], branch=branch)
+        print(self.kwargs)
+        if self.kwargs['id_pk']:
+            #branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+            branch_chat = BranchChat.objects.get(id=self.kwargs['id_pk'])
             queryset = BranchMessage.objects.filter(branch_chat=branch_chat)
         return queryset
+
+
+class NewMessageViewSet(viewsets.GenericViewSet,
+                           mixins.CreateModelMixin):
+    parser_classes = (JSONParser, MultiPartParser)
+    permission_classes = (permissions.IsAuthenticated,IsMemberOfChat)
+    serializer_class = serializers.NewMessageSerializer
+    queryset = Branch.objects.all()
+
+    def create(self, request, *args, **kwargs):
+        branch_chat = BranchChat.objects.get(id=self.kwargs['id_pk'])
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request,'branch_chat':branch_chat})
+        if serializer.is_valid():
+            serializer.save(branch_chat=branch_chat)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
 
 
 class BranchNewPostViewSet(viewsets.GenericViewSet,
@@ -296,7 +349,6 @@ class BranchNewPostViewSet(viewsets.GenericViewSet,
         serializer = self.serializer_class(data=request.data,context={'request': self.request})
         if serializer.is_valid():
             self.perform_create(serializer)
-            print(serializer.data)
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
@@ -309,6 +361,7 @@ class BranchNewPostViewSet(viewsets.GenericViewSet,
         print(serializer)
 
 from django.db.models import Q
+from django.utils import timezone
 from datetime import datetime,timedelta
 
 class BranchPostListViewSet(viewsets.GenericViewSet,
@@ -340,16 +393,17 @@ class BranchPostListViewSet(viewsets.GenericViewSet,
             # Leaves and Replies
             pass
 
+        print("past", past)
         if past == 1 or past == "1":
-            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=1))
+            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=1))
         elif past == 24 or past == "24":
-            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=24))
+            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=24))
         elif past == 24*7 or past == str(24*7):
-            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24*7))
+            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24*7))
         elif past == 24*7*30 or past == str(24*7*30):
-            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7*30))
+            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7*30))
         elif past == 24*7*30*365 or past == str(24*7*30*365):
-            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7 * 30*365))
+            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7 * 30*365))
         else:
             # all time
             pass
@@ -420,15 +474,16 @@ class FeedViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
             pass
 
         if past == 1 or past == "1":
-            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=1))
+            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=1))
+            print(posts)
         elif past == 24 or past == "24":
-            posts = posts.filter(created__gte = datetime.now() - timedelta(hours=24))
+            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=24))
         elif past == 24*7 or past == str(24*7):
-            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24*7))
+            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24*7))
         elif past == 24*7*30 or past == str(24*7*30):
-            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7*30))
+            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7*30))
         elif past == 24*7*30*365 or past == str(24*7*30*365):
-            posts = posts.filter(created__gte=datetime.now() - timedelta(hours=24 * 7 * 30*365))
+            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7 * 30*365))
         else:
             # all time
             pass
@@ -581,6 +636,26 @@ class BranchPost(mixins.CreateModelMixin,
 
     def get_serializer_context(self):
         context = super(BranchPost, self).get_serializer_context()
+        branches = Branch.objects.annotate(count=Count('followed_by')).order_by('-count')
+        context.update({
+            "spreaders": branches
+        })
+        return context
+
+class ReplyTree(mixins.ListModelMixin,
+                viewsets.GenericViewSet):
+
+    lookup_field = 'id'
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchPostSerializer
+    pagination_class = ReplyTreePagination
+    queryset = Post.objects.all()
+
+    def get_queryset(self):
+        return Post.objects.get(id=self.kwargs['id']).replies.all()
+
+    def get_serializer_context(self):
+        context = super(ReplyTree, self).get_serializer_context()
         branches = Branch.objects.annotate(count=Count('followed_by')).order_by('-count')
         context.update({
             "spreaders": branches

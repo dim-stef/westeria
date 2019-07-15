@@ -72,6 +72,31 @@ CHANNEL_LAYERS = {
     },
 }
 
+PWA_APP_NAME = 'Subranch'
+PWA_APP_DESCRIPTION = "My app description"
+PWA_APP_THEME_COLOR = '#ffffff'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/',
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_START_URL = '/'
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'common', 'static','js', 'sw.js')
+print('PWA_SERVICE_WORKER_PATH',PWA_SERVICE_WORKER_PATH)
+PWA_APP_ICONS = [
+        {
+            'src': '/static/apple-touch-icon.png',
+            'sizes': '180x180'
+        }
+    ]
+PWA_APP_SPLASH_SCREEN = [
+        {
+            'src': '/static/apple-touch-icon.png',
+            'media': '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'
+        }
+    ]
+PWA_APP_DIR = 'ltr'
+PWA_APP_LANG = 'en-US'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -83,6 +108,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'pwa',
     'widget_tweaks',
     'django_extensions',
     'channels',
@@ -236,6 +262,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
     os.path.join(BASE_DIR, 'react', 'dist'),
+    os.path.join(BASE_DIR),
+    os.path.join(BASE_DIR, 'common'),
     os.path.join(BASE_DIR, 'common', 'static'),
 ]
 

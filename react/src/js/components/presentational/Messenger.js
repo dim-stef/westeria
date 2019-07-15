@@ -81,7 +81,7 @@ const schema = {
     },
 }
 
-export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=null,style=null}){
+export function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}){
     const initialValue = Value.fromJSON({
     document: {
         nodes: [
@@ -107,6 +107,11 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
     const [files,setFiles] = useState([])
     const ref = useRef(null);
     const context = useContext(UserContext);
+    const [author,setAuthor] = useState(branch);
+
+    let initIsMember = room.members.some(m=>m==branch.uri);
+
+    const [isMember,setIsMember] = useState(initIsMember);
 
     const handleChange = (e) =>{
         setValue(e.value);
@@ -114,7 +119,7 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
         if (e.value.document != value.document) {
             //const content = JSON.stringify(e.value.toJSON())
             const content = Plain.serialize(e.value)
-            localStorage.setItem('content', content)
+            localStorage.setItem('message', content)
         }
     }
 
@@ -124,15 +129,19 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
         let newFilesArray = Array.from(newFiles);
         setFiles([...files,...newFilesArray]);        
     }
-    
-    
+
+    useEffect(()=>{
+        setIsMember(room.members.some(m=>m==branch.uri))
+    },[branch])
 
     return(
-        <div className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#cfdeea',
-        justifyContent:'stretch',...style}}>
+        <>
+        {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
+        <div className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
+        justifyContent:'stretch',borderTop:'1px solid #e2eaf1',...style}}>
             <div>
                 <img src={context.currentBranch.branch_image} className="profile-picture" 
-                style={{width:48,height:48,marginRight:10,display:'block'}}/>
+                style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
             </div>
             <div style={{width:'100%'}}>
                 <Editor
@@ -140,15 +149,16 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
                 value={value}
                 onChange={handleChange}
                 schema={schema}
-                placeholder="Add a leaf"
+                placeholder="Type something"
                 style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
                 wordBreak:'break-all',border:'1px solid #a6b7c5'}}/>
                 {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                 <input type="file" multiple="multiple" onInput={e=>handleImageClick(e)}></input>
-                <Toolbar editor={ref} files={files} branch={context.currentBranch} postedId={postedId} currentPost={currentPost} 
-                updateFeed={updateFeed} replyTo={replyTo} value={value}/>
+                <Toolbar editor={ref} files={files} ws={ws} branch={branch} room={roomId}
+                updateMessages={updateMessages} value={value}/>
             </div>
         </div>
+        </>
     )
 }
 
@@ -168,19 +178,17 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value,replyTo=null}){
-    const [parents,setParents] = useState(null)
-    const [siblings,setSiblings] = useState([])
-    const [children,setChildren] = useState(null)
-    const [checkedBranches,setCheckedBranches] = useState([])
-
-
+function Toolbar({editor,updateMessages,ws,files,branch,room,value}){
+    console.log("branch",branch)
     const handleClick = (e)=>{
         
-        let post = Plain.serialize(value);
-        let type = replyTo?'reply':'post';
+        let message = Plain.serialize(value);
 
         const formData = new FormData();
+        formData.append('message',message);
+        formData.append('message_html',message);
+        formData.append('author',branch.id);
+
         if(files.length>0){
             for (var i = 0; i < files.length; i++)
             {
@@ -192,41 +200,36 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                 }
                 
             }
-        }
-        
-        let postedTo = [postedId||currentPost.poster_id, ...checkedBranches];
-        for(var id of postedTo){
-            formData.append('posted_to',id);
-        }
-        
-        formData.append('posted',postedId||currentPost.poster_id);
-        formData.append('type',type);
-        formData.append('text',post);
-        
-        if(replyTo){
-            //data = {...data,replied_to:replyTo}
-            formData.append('replied_to',replyTo)
-        }
 
-        let uri = `/api/branches/${branch.uri}/posts/new/`
+            let uri = `/api/branches/${branch.uri}/chat_rooms/${room}/messages/new/`;
 
-        axios.post(
-            uri,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-            }).then(response => {
-                axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
-                    updateFeed([response.data]);
+            axios.post(
+                uri,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                }).then(response => {
+                    axios.get(`/api/branches/${branch.uri}/chat_rooms/${room}/messages/${response.data.id}/`).then(response =>{
+                        updateMessages([response.data]);
+                        console.log(response);
+                    })
                     console.log(response);
-                })
-                console.log(response);
-            }).catch(error => {
-            console.log(error)
-        })
+                }).catch(error => {
+                console.log(error)
+            })
+        }else{
+            ws.send(JSON.stringify({
+                'message': message,
+                'room_name': room,
+                //'branch': branch,
+                'from_branch': branch.uri,
+                'images':[],
+                'videos':[]
+            }));
+        }  
     }
     
 

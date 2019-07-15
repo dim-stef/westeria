@@ -1,3 +1,16 @@
+.room-preview{
+    padding: 10px;
+    -webkit-align-items: center;
+    align-items: center;
+    height: 10%;
+    border-bottom: 1px solid rgb(226, 234, 241);
+    text-decoration: none;
+}
+
+.room-preview:hover{
+    background-color: #edf2f7;
+}
+
 .groupchat-container{
     display: flex;
     margin-top: 20px;
@@ -16,7 +29,6 @@
 }
 
 .text-wrapper{
-
     resize:none;
     width: -moz-available;          /* WebKit-based browsers will ignore this. */
     width: -webkit-fill-available;  /* Mozilla-based browsers will ignore this. */

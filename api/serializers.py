@@ -2,8 +2,9 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from accounts.models import User
 from branches.models import Branch, BranchRequest
-from branchchat.models import BranchMessage, BranchChat
+from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
+from notifications.models import Notification
 from datetime import datetime, timedelta
 from math import log
 
@@ -61,12 +62,11 @@ class OwnedBranchesSerializer(serializers.ModelSerializer):
         fields = ['uri','id']
         read_only_fields = ['uri','id']
 
-
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = ['id', 'owner', 'parents',
-                  'parent_uri_field','followers_count','following_count',
+                  'parent_uri_field','followers_count','following_count','branch_count',
                   'children', 'name', 'uri',
                   'children_uri_field','follows',
                   'followed_by', 'description',
@@ -84,6 +84,7 @@ class BranchSerializer(serializers.ModelSerializer):
     followed_by = serializers.StringRelatedField(many=True)
     followers_count = serializers.SerializerMethodField('get_followed_by_count')
     following_count = serializers.SerializerMethodField()
+    branch_count = serializers.SerializerMethodField()
     children_uri_field = serializers.SerializerMethodField('children_uri')
     parent_uri_field = serializers.SerializerMethodField('parents_uri')
     post_context = serializers.SerializerMethodField()
@@ -107,6 +108,9 @@ class BranchSerializer(serializers.ModelSerializer):
 
     def get_following_count(self,branch):
         return branch.follows.count()
+
+    def get_branch_count(self,branch):
+        return branch.children.count() + branch.parents.count()
 
     def children_uri(self, branch):
         children = []
@@ -169,26 +173,37 @@ class RemoveReplySerializer(serializers.ModelSerializer):
             instance.replies.remove(*new_reply)
         return super().update(instance, validated_data)
 
+class ChatImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=ChatImage
+        fields='__all__'
+
+
+class ChatVideoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=ChatVideo
+        fields='__all__'
+
+
 class BranchChatSerializer(serializers.ModelSerializer):
+    owner = serializers.StringRelatedField()
+    members = serializers.StringRelatedField(many=True)
+
     class Meta:
         model = BranchChat
-        fields = ['id', 'type', 'name', 'branch']
-        branch_messages = serializers.SerializerMethodField('branch_message')
-
-    def branch_message(self, branchchat):
-        messages = []
-        for message in branchchat.messages.all():
-            messages.append(message.message)
-        return messages
+        fields = ['id', 'name', 'owner','members','latest_message']
 
 
 class BranchMessageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BranchMessage
-        fields = ['author', 'author_name', 'author_url', 'message', 'created', 'updated', 'branch_chat']
-
+    images = ChatImageSerializer(many=True)
+    videos = ChatVideoSerializer(many=True)
     author_name = serializers.SerializerMethodField('author_name_field')
     author_url = serializers.SerializerMethodField('author_url_field')
+
+    class Meta:
+        model = BranchMessage
+        fields = ['author', 'author_name', 'author_url',
+                  'message', 'created', 'updated', 'branch_chat','images','videos']
 
     def author_name_field(self, branchmessage):
         try:
@@ -218,42 +233,43 @@ class PostVideoSerializer(serializers.ModelSerializer):
 
 from moviepy.editor import VideoFileClip
 import os
-import base64
-from random import random
 from random import uniform
-from PIL import Image
-import tempfile
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from uuid import uuid4
-import io
-import sys
-from io import BytesIO
-from django.core.files.base import ContentFile
 from django.core.files.images import ImageFile
-from django.core.files import File
+import channels.layers
+from asgiref.sync import async_to_sync
+from django.core import serializers as ser
 
-class NewPostSerializer(serializers.ModelSerializer):
-    replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
-    images = PostImageSerializer(many=True)
-    videos = PostVideoSerializer(many=True)
+def create_message(instance):
+    serialized_message  = ser.serialize('json', [ instance, ])
+    channel_layer = channels.layers.get_channel_layer()
+    print("instance",instance)
+    async_to_sync(channel_layer.group_send)(
+        str('chat_%s' % str(instance.branch_chat.id)),
+        {
+            'type': 'chat.message',
+            'author_name': instance.author.name,
+            'author_url': instance.author.uri,
+            'author': str(instance.author.id),
+            'message': instance.message,
+            'images': [i.image.url for i in instance.images.all()],
+            'videos': [i.video.url for i in instance.videos.all()]
+        }
+    )
+
+class NewMessageSerializer(serializers.ModelSerializer):
+    images = ChatImageSerializer(many=True)
+    videos = ChatVideoSerializer(many=True)
+    author_name = serializers.SerializerMethodField()
+    author_url = serializers.SerializerMethodField()
+
+    def get_author_name(self,message):
+        return message.author.name
+
+    def get_author_url(self,message):
+        return message.author.uri
 
     def generate_thumbnail(self,file):
-        '''with tempfile.TemporaryFile() as tmp:
-            # Do stuff with tmp
-            tmp.write(file.read())
-            print(tmp)
-            # Clean up a NamedTemporaryFile on your own
-            # delete=True means the file will be deleted on close
-            tmp = tempfile.NamedTemporaryFile(delete=True)
-            try:
-                # do stuff with temp
-                clip = VideoFileClip(tmp.name)
-                thumbnail = os.path.join(file.name, "thumbnail.png")
-                clip.save_frame(thumbnail, t=random.uniform(0.1, clip.duration))
-                img = Image.open(thumbnail)
-                return img
-            finally:
-                tmp.close()  # deletes the file'''
         _id = uuid4()
         path = 'C:\\Users\\Dimitris\\Desktop\\tmp\\%s' % _id
         with open(path, 'ab+') as f:
@@ -268,14 +284,67 @@ class NewPostSerializer(serializers.ModelSerializer):
 
             image_file = ImageFile(open(thumbnail, 'rb'))
             image_file.name = "%s.png" % str(_id)
-            #image_file = File(open(thumbnail, 'rb'))
-            print("image file",image_file)
 
-            '''output.seek(0)
-            return InMemoryUploadedFile(output, 'ImageField',
-                                        str(_id),
-                                        'image/png',
-                                        len(output.getvalue()), None)'''
+            clip.close()
+            return image_file
+
+    def create(self, validated_data):
+        request = self.context['request']
+        branch_chat = self.context['branch_chat']
+        print("reqhest",request.query_params)
+        if not branch_chat.members.filter(uri=validated_data['author']).exists():
+            raise serializers.ValidationError('Not member of chat')
+
+        # files are not accessible in validated data, use request.FILES instead
+        validated_data.pop('images')
+        validated_data.pop('videos')
+
+        if not validated_data['message'] and not request.FILES:
+            raise serializers.ValidationError('message and media are None')
+        message = BranchMessage.objects.create(**validated_data)
+
+        print("files",type(request.FILES))
+        if 'images' in request.FILES:
+            for image_data in request.FILES.getlist('images'):
+                print(image_data)
+                ChatImage.objects.create(branch_message=message,image=image_data)
+
+        if 'videos' in request.FILES:
+            for video_data in request.FILES.getlist('videos'):
+                print(video_data)
+                thumbnail = self.generate_thumbnail(video_data)
+                ChatVideo.objects.create(branch_message=message, video=video_data, thumbnail=thumbnail)
+
+        # send message to websocket
+        create_message(message)
+        return message
+
+    class Meta:
+        model = BranchMessage
+        fields = '__all__'
+        read_only_fields = ('id','author_name','author_url')
+
+class NewPostSerializer(serializers.ModelSerializer):
+    replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
+    images = PostImageSerializer(many=True)
+    videos = PostVideoSerializer(many=True)
+
+    def generate_thumbnail(self,file):
+        _id = uuid4()
+        path = 'C:\\Users\\Dimitris\\Desktop\\tmp\\%s' % _id
+        with open(path, 'ab+') as f:
+            f.write(file.read())
+            clip = VideoFileClip(f.name)
+            thumbnail = os.path.join('%s.png' % path)
+            clip.save_frame(thumbnail, t=uniform(0.1, clip.duration))
+            #img = Image.open(thumbnail)
+            #img.thumbnail((220, 130), Image.ANTIALIAS)
+            #output = BytesIO()
+            #img.save(output,format='PNG', quality=85)
+
+            image_file = ImageFile(open(thumbnail, 'rb'))
+            image_file.name = "%s.png" % str(_id)
+
             clip.close()
             return image_file
 
@@ -583,9 +652,11 @@ class NewSpreadSerializer(serializers.ModelSerializer):
 
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
+        print(value)
         if isinstance(value, Branch):
             serializer = BranchSerializer(value)
-
+        elif isinstance(value, BranchRequest):
+            serializer = BranchRequestSerializer(value)
         return serializer.data
 
 
@@ -593,6 +664,8 @@ class NotificationSerializer(serializers.Serializer):
     recipient = UserSerializer(User,read_only=True)
     unread = serializers.BooleanField(read_only=True)
     description = serializers.CharField()
+    verb = serializers.CharField()
     target = GenericNotificationRelatedField(read_only=True)
     actor = GenericNotificationRelatedField(read_only=True)
+    action_object = GenericNotificationRelatedField(read_only=True)
     id = serializers.IntegerField()

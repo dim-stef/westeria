@@ -8,6 +8,7 @@ import MediaQuery from 'react-responsive';
 import Responsive from 'react-responsive';
 import axios from 'axios'
 
+
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
 const Tablet = props => <Responsive {...props} minWidth={768} maxWidth={991} />;
 const Mobile = props => <Responsive {...props} maxWidth={767} />;

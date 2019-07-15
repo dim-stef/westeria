@@ -21,6 +21,7 @@ coreapi==2.3.3
 coreschema==0.0.4
 cryptography==2.3
 daphne==2.2.1
+decorator==4.4.0
 defusedxml==0.5.0
 Django==2.1.4
 django-allauth==0.38.0
@@ -28,6 +29,7 @@ django-extensions==2.0.7
 django-filter==1.1.0
 django-js-asset==1.1.0
 django-mptt==0.9.1
+django-pwa==1.0.5
 django-registration==2.3
 django-rest-auth==0.9.3
 django-rest-framework-nested==0.0.1
@@ -51,6 +53,8 @@ hpack==3.0.0
 hyperframe==5.1.0
 hyperlink==18.0.0
 idna==2.6
+imageio==2.5.0
+imageio-ffmpeg==0.3.0
 incremental==17.5.0
 isort==4.2.15
 itypes==1.1.0
@@ -59,6 +63,7 @@ lazy-object-proxy==1.3.1
 Markdown==2.6.11
 MarkupSafe==1.1.1
 mccabe==0.6.1
+moviepy==1.0.0
 msgpack==0.5.6
 msgpack-python==0.5.6
 numpy==1.15.4
@@ -66,6 +71,7 @@ oauthlib==2.0.6
 openapi-codec==1.3.2
 Pillow==5.1.0
 priority==1.3.0
+proglog==0.1.9
 protobuf==3.7.1
 psycopg2-binary==2.7.6.1
 pyasn1==0.4.4
@@ -92,6 +98,7 @@ service-identity==17.0.0
 simplejson==3.16.0
 six==1.11.0
 South==1.0.2
+tqdm==4.32.1
 Twisted==18.9.0
 txaio==18.7.1
 uritemplate==3.0.0

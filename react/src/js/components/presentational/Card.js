@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import {UserContext} from "../container/ContextContainer"
+import { Link } from 'react-router-dom'
 import axios from 'axios'
 
 var csrftoken = getCookie('csrftoken');
@@ -66,7 +67,7 @@ function Description({description}){
 }
 
 
-export function FollowButton({id,uri}){
+export function FollowButton({id,uri,style=null}){
 
     const context = useContext(UserContext);
 
@@ -142,6 +143,44 @@ export function FollowButton({id,uri}){
             width:140,
             fontSize: "1.6em",
             fontWeight: 600,
+            ...style,
         }}>{following ? 'Following':'Follow'}</button>
+    )
+}
+
+
+export function SmallCard({branch}){
+    console.log("branch2",branch)
+    return(
+        <div style={{width:300,height:'auto',position:'absolute',
+        boxShadow:'0px 1px 6px -3px',top:50,backgroundColor:'white',
+        borderRadius:30,zIndex:50,padding:10}}>
+            <div
+                style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+                <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
+                    <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
+                    <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
+                        <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
+                        <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
+                    </div>
+                </Link>
+                <FollowButton id={branch.id} uri={branch.uri}/>
+            </div>
+            <p style={{fontSize:'2em',wordBreak:'break-all'}}>{branch.description}</p>
+            <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between'}}>
+                <div>
+                    <span style={{fontWeight:'bold'}}>Followers </span>
+                    <span style={{color:'#455869',fontWeight:600}}>{branch.followers_count}</span>
+                </div>
+                <div>
+                    <span style={{fontWeight:'bold'}}>Following </span>
+                    <span style={{color:'#455869',fontWeight:600}}>{branch.following_count}</span>
+                </div>
+                <div>
+                    <span style={{fontWeight:'bold'}}>Branches </span>
+                    <span style={{color:'#455869',fontWeight:600}}>{branch.branch_count?branch.branch_count:0}</span>
+                </div>
+            </div>
+        </div>
     )
 }

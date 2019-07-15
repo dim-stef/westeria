@@ -1,8 +1,10 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.views.defaults import page_not_found
+from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
+
 
 urlpatterns = [
     path('rest-auth/', include('rest_auth.urls')),
@@ -13,6 +15,8 @@ urlpatterns = [
     path('email/', page_not_found, name="accounts_email", kwargs={'exception': Exception('Page not Found')}),
     path('api/', include('api.urls')),
     path('drf/', include('rest_framework.urls')),
+    path('sw.js', TemplateView.as_view(template_name="templates/sw.js", content_type='application/javascript'), name='sw.js'),
+    path('', include('pwa.urls')), #
     path('', include('core.urls')),
     path('', include('branches.urls')),
     path('', include('branchsettings.urls')),

@@ -6,9 +6,10 @@ import Login from "./Login"
 import Register from "./Register"
 import MyBranchesContainer from "../container/MyBranchesContainer"
 import { SettingsContainer } from "../container/SettingsContainer"
-import {UserContext,RefreshContext,PostsContext} from "../container/ContextContainer"
+import {UserContext,RefreshContext,PostsContext,UserActionsContext,SingularPostContext} from "../container/ContextContainer"
+import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import GroupChatContainer,{GroupChatMessagesContainer,BranchChatPage} from "../container/GroupChatContainer"
-import BranchPosts, {DisplayPosts, DisplayPosts2,DisplayPosts3, Scroller} from "./BranchPosts"
+import {DisplayPosts, FeedPosts,BranchPosts,DisplayPosts3, Scroller} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
 import {BranchesPage,BranchesPageRoutes} from "./BranchesPage"
@@ -19,8 +20,9 @@ import Card from "./Card"
 import Responsive from 'react-responsive';
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import {MobileNavigationBar} from "./Navigation"
-import { RoutedTabs, NavTab } from "react-router-tabs";
+import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
+import {SingularPost} from "./SingularPost"
 import { Settings } from "./Settings"
 import axios from 'axios'
 
@@ -40,29 +42,26 @@ const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
 const Routes = React.memo(function Routes(props){
     
     const [refresh,setRefresh] = useState(null);
-    const [loadedPosts,] = useState([])
-    const [counter,] = useState(0);
+    const [feedRefresh,setFeedRefresh] = useState(null);
+    const [branchPostsRefresh,setBranchPostsRefresh] = useState(null);
+    const actionContext = useContext(UserActionsContext);
     const ref = useRef(null);
 
     useEffect(()=>{
         console.log("routesMounted")
     },[])
-    let value = {refresh,setRefresh};
-    let postsValue = {counter,loadedPosts};
-    let scrollToTop = index => {
-        Array.from(ref.current.containerNode.children).forEach((child, i) => {
-            console.log("child",child,index,i)
-            if (index !== i) {
-                child.scrollTo(0, 0);
-                child.style.height = '100vh';
-            }else{
-                child.style.height = 'auto';
-                
-            }
-        });
+    let value = {
+        refresh,
+        setRefresh,
+        feedRefresh,
+        setFeedRefresh,
+        branchPostsRefresh,
+        setBranchPostsRefresh,
+        page:'feed'
     };
-    
-
+//match.params.roomName
+//BranchContainer
+//lastFrontPageTab
     return(
         <Switch>
             <Route exact path='/login' component={(props) => <Login {...props} />} />
@@ -75,18 +74,30 @@ const Routes = React.memo(function Routes(props){
                             <Switch>
                                 <Route exact path='/' component={FrontPage}  />
                                 <Route path='/search' component={SearchPage} />
+                                <Route path='/notifications' component={NotificationsContainer}/>
+                                <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
                                 <Route exact path='/settings' component={(props) => <Settings {...props}/> } />
                                 <Route exact path='/mybranches' component={(props) => <MyBranchesContainer {...props}/> } />
-                                {/*<Route path='/settings/:branchUri?' component={(props) => <BranchSettingsContainer {...props} />} />*/}
-                                <Route path='/:uri?' component={BranchContainer}/>
+                                <Route path='/:uri?/:externalId?' component={({match}) => 
+                                {
+                                    return match.params.externalId?
+                                    actionContext.lastFrontPageTab=='feed'?
+                                    <FrontPage externalPostId={match.params.externalId}/>:
+                                    <BranchContainer match={match} externalPostId={match.params.externalId}/>
+                                    :<BranchContainer />}
+                                    }/>
                             </Switch>
                         </Desktop>
                         <Mobile>
                             <MobileNavigationBar/>
-                            <Route exact path='/' component={FrontPage}/>
-                            <Route path='/test' component={Test}/>
-                            <Route path='/search' component={SearchPage} />
-                            <Route path='/test2' render={()=> <Test2/>}/>
+                            <Switch>
+                                <Route exact path='/' component={FrontPage}/>
+                                <Route path='/test' component={Test}/>
+                                <Route path='/search' component={SearchPage} />
+                                <Route path='/notifications' component={NotificationsContainer}/>
+                                <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
+                                <Route path='/:uri?' component={BranchContainer}/>
+                            </Switch>
                         </Mobile>
                     </RefreshContext.Provider>
             </Page>
@@ -118,15 +129,30 @@ if (process.env.NODE_ENV !== 'production') {
 
 export const FrontPageFeed = React.memo(function FrontPageFeed(props){
     const context = useContext(UserContext);
+    const postsContext = useContext(PostsContext);
     const [uri,setUri] = useState('initialUri')
     const branch = context.currentBranch.uri;
     const [params,setParams] = useState(null);
 
+    useEffect(()=>{
+        if(postsContext.lastVisibleElement){
+            let lastElement = document.getElementById(postsContext.lastVisibleElement.id);
+            //lastElement.scrollIntoView();
+        }
+        
+        return ()=>{
+            let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
+            postsContext.lastVisibleElement = lastVisibleElements[0];
+            postsContext.lastVisibleIndex = lastVisibleElements[0]?lastVisibleElements[0].dataset.index:0;
+            console.log("lastvisible",postsContext,lastVisibleElements)
+        }
+    },[])
+
     if(context.isAuth){
         return(
-            <DisplayPosts3 uri={uri} setUri={setUri} activeBranch={context.currentBranch}
+            <FeedPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
             postedId={context.currentBranch.id} usePostsContext showPostedTo 
-            branch={branch} params={params} setParams={setParams}
+            branch={branch} params={params} setParams={setParams} isFeed
             />
         )
     }else{
@@ -135,8 +161,6 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
 })
 
 FrontPageFeed.whyDidYouRender = true;
-/*Mobile.whyDidYouRender = true;
-Desktop.whyDidYouRender = true;*/
 
 class FrontPageWrapper extends PureComponent{
     render(){
@@ -147,30 +171,21 @@ class FrontPageWrapper extends PureComponent{
 }
 
 
-export const FrontPage = React.memo(function FrontPage(props){
+export const FrontPage = React.memo(function FrontPage({externalPostId}){
     const context = useContext(PostsContext);
+    const singularPostContext = useContext(SingularPostContext)
+    const userContext = useContext(UserContext);
 
-    
-    useEffect(()=>{
-        if(context.lastVisibleElement){
-            let lastElement = document.getElementById(context.lastVisibleElement.id);
-            lastElement.scrollIntoView();
-        }
-        
-        return ()=>{
-            let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
-            context.lastVisibleElement = lastVisibleElements[0];
-        }
-    },[])
-
-    useEffect(()=>{
-        console.log("rerenderer")
-    })
     return(
         <>
             <Desktop>
                 <FrontPageLeftBar2/>
-                <FrontPageFeed device="desktop"/>
+                {externalPostId?
+                    <ul className="post-list">
+                    <SingularPost postId={externalPostId} postsContext={singularPostContext}
+                    activeBranch={userContext.currentBranch}
+                /></ul>
+                :<FrontPageFeed device="desktop"/>}
                 <FrontPageRightBar/>
             </Desktop>
 
@@ -300,18 +315,31 @@ function TestBox(){
     )
 }
 
+import {BranchPageWrapper} from "./MobileParentBranch"
 export function BranchPage(props){
     return(
-        <ParentBranchWrapper branch={props.branch}>
-            <Helmet title={props.branch.uri}>
-            </Helmet>
-
-                <Switch>
-                    <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
-                    <Route path={`/${props.match}/chat/:roomName?`} render={()=><BranchChatPage {...props}/>}/>
-                    <Route path={`/${props.match}/:id?`} render={(idMatch)=><BranchFrontPage {...props} idMatch={idMatch}/>}/>
-                </Switch>
-        </ParentBranchWrapper>
+        <>
+        <Desktop>
+            <ParentBranchWrapper branch={props.branch}>
+                <Helmet title={props.branch.uri}>
+                </Helmet>
+                    <Switch>
+                        <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
+                        <Route path={`/${props.match}/:id?`} render={(idMatch)=> <BranchFrontPage {...props} idMatch={idMatch}/>}/>
+                    </Switch>
+            </ParentBranchWrapper>
+        </Desktop>
+        <Mobile>
+            <BranchPageWrapper branch={props.branch}>
+                <Helmet title={props.branch.uri}>
+                </Helmet>
+                    <Switch>
+                        <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
+                        <Route path={`/${props.match}/:id?`} render={(idMatch)=><BranchFrontPage {...props} idMatch={idMatch}/>}/>
+                    </Switch>
+            </BranchPageWrapper>
+        </Mobile>
+        </>
     )        
 }
 
@@ -327,36 +355,61 @@ function BranchFrontPage(props){
     }
 
     return(
-        <div>
-            <div style={{marginTop:10}}>
-                <div style={{display:'flex',width:'100%'}}>
-                    <div style={{flexBasis:'22%'}}>
-                        <div className="box-border" style={{backgroundColor:'white',padding:'10px 20px'}}>
-                            <div className="flex-fill" style={{alignItems:'center'}}>
-                                <h1>My branches</h1>
+        <>
+        <Desktop>
+            <div>
+                <div style={{marginTop:10}}>
+                    <div style={{display:'flex',width:'100%'}}>
+                        <div style={{flexBasis:'22%'}}>
+                            <div className="box-border" style={{backgroundColor:'white',padding:'10px 20px'}}>
+                                <div className="flex-fill" style={{alignItems:'center'}}>
+                                    <h1>My branches</h1>
+                                </div>
+                                <MyBranchesColumnContainer/>
+                                
                             </div>
-                            <MyBranchesColumnContainer/>
-                            
                         </div>
-                    </div>
-                    <DisplayPosts {...props}
-                    branch={props.match}
-                    activeBranch={props.branch}
-                    postedId={props.branch.id}
-                    uri={uri}
-                    externalId={externalId}
-                    />
-                    <div style={{flexBasis:'22%'}}>
-                        <TestBox/>
+                        {externalId?<SingularPost postId={externalId} postsContext={postsContext}
+                        activeBranch={userContext.currentBranch}
+                        />:<BranchPosts {...props}
+                        branch={props.match}
+                        activeBranch={props.branch}
+                        postedId={props.branch.id}
+                        uri={uri}
+                        externalId={externalId}
+                        />}
+                        
+                        <div style={{flexBasis:'22%'}}>
+                            <TestBox/>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </Desktop>
+        <Tablet>
+        <BranchPosts {...props}
+        branch={props.match}
+        activeBranch={props.branch}
+        postedId={props.branch.id}
+        uri={uri}
+        externalId={externalId}
+        />
+        </Tablet>
+        <Mobile>
+        <BranchPosts {...props}
+        branch={props.match}
+        activeBranch={props.branch}
+        postedId={props.branch.id}
+        uri={uri}
+        externalId={externalId}
+        />
+        </Mobile>
+        </>
     )
 }
 
 //component={() => <GroupChatMessagesContainer branch={props.branches.parent} {...props}/>}
-function BranchPageContainer(props){
+/*function BranchPageContainer(props){
     const [branches,setBranches] = useState(null);
     let branchUri = props.match.params.uri ? props.match.params.uri : 'global';
 
@@ -390,7 +443,7 @@ function BranchPageContainer(props){
     }else{
         return null
     }
-}
+}*/
 
 
 function ParentBranchWrapper(props){

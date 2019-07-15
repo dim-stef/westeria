@@ -1,13 +1,15 @@
 import React , {useEffect,useState,useContext} from "react"
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {SmallBranch} from '../presentational/Branch'
-import {UserContext,RefreshContext} from "./ContextContainer"
+import {UserContext,CachedBranchesContext} from "./ContextContainer"
 import {SkeletonBranchList} from "../presentational/SkeletonBranchList";
 import axios from 'axios';
 
 export function FollowingBranchesColumnContainer(){
     const context = useContext(UserContext);
-    const [branches,setBranches] = useState([])
+    const cachedBranches = useContext(CachedBranchesContext);
+    const [gotData,setGotData] = useState(false);
+    const [branches,setBranches] = useState(cachedBranches.following);
 
     async function getUserBranches(){
         let newBranches = []
@@ -16,6 +18,8 @@ export function FollowingBranchesColumnContainer(){
             let data = await response.data;
             newBranches.push(data)
         }
+        cachedBranches.following = newBranches;
+        setGotData(true);
         return newBranches
     }
 
@@ -25,7 +29,9 @@ export function FollowingBranchesColumnContainer(){
     }
 
     useEffect(()=>{
-        populateBranches();
+        if(branches.length == 0 && !gotData){
+            populateBranches();
+        }
     },[])
 
     if(branches.length>0){
@@ -37,20 +43,10 @@ export function FollowingBranchesColumnContainer(){
             </div>
         )
     }else{
-        return <SkeletonBranchList/>
+        if(gotData){
+            return <p>You are not following anyone</p>
+        }else{
+            return <SkeletonBranchList/>
+        }
     }
-}
-
-function MyBranch({branch,children}){
-
-    return(
-        <div style={{margin:'10px 0',display:'flex',alignContent:'center'}}>
-            <img style={{width:48,height:48,borderRadius:'50%'}} src={branch.branch_image}/>
-            <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
-                <p style={{fontSize:'1.5rem',margin:0,fontWeight:700}}>{branch.name}</p>
-                <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
-            </div>
-            {children}
-        </div>
-    )
 }

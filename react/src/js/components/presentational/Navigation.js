@@ -4,6 +4,8 @@ import Responsive from 'react-responsive';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import {UserContext} from "../container/ContextContainer"
 import {FrontPage,FrontPageFeed} from "./Routes"
+import {NotificationsContainer} from "./Notifications"
+import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import axios from 'axios'
 
@@ -21,14 +23,13 @@ export default class NavigationBar extends Component{
                     position: "fixed",
                     width: "100%",
                     backgroundColor: "white",
-                    borderBottom: "1px solid rgba(0,0,0,0.25)",
                     zIndex: 5,
                     top:0
                 }}
             >
             <div style={{display:'flex',
                     justifyContent:'space-between',
-                    alignItems:'center',
+                    borderBottom:'2px solid #c3c3c3',
                     height:'100%',
                     margin:'0 auto',
                     maxWidth:1200}}>
@@ -58,14 +59,13 @@ export function TabbedNavigationBar(){
             position: "fixed",
             width: "100%",
             backgroundColor: "white",
-            borderBottom: "1px solid rgba(0,0,0,0.25)",
             zIndex: 5,
             top:0
         }}
         >
             <div style={{display:'flex',
                 justifyContent:'space-between',
-                alignItems:'center',
+                borderBottom:'2px solid rgb(226, 234, 241)',
                 height:'100%',
                 margin:'0 auto',
                 maxWidth:1200}}>
@@ -80,8 +80,15 @@ export function TabbedNavigationBar(){
                 {context.isAuth?
                     <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill"
                     style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
-                        <Notifications/>
+                        <NotificationsContainer inBox/>
                     </NavLink>:null
+                }
+
+                {context.isAuth?
+                    <div className="flex-fill"
+                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                        <MessageSvg/>
+                    </div>:null
                 }
                 
                 {context.isAuth?
@@ -90,18 +97,19 @@ export function TabbedNavigationBar(){
                         <Profile/>
                     </div>:null
                 }
+   
             </div>
         </div>
     )
 }
 
 export function MobileNavigationBar(){
-    if ('scrollRestoration' in history) {
+    /*if ('scrollRestoration' in history) {
         // Back off, browser, I got this...
         history.scrollRestoration = 'manual';
-    }
+    }*/
 
-    console.log(history)
+    //console.log(history)
     return(
         <div className="flex-fill" 
         style={{position:'fixed',top:0,zIndex:10,height:60,backgroundColor:'white',width:'100%',alignItems:'center'}}>
@@ -193,7 +201,7 @@ function Notifications(props){
 
     return(
         <div style={{position:'relative'}}>
-            <button onClick={handleClick} style={{height:'100%',width:50,backgroundColor:'transparent',border:0,marginRight:63}}>
+            <button onClick={handleClick} style={{height:'100%',width:50,backgroundColor:'transparent',border:0}}>
                 <NotificationsSvg/>
             </button>
             {isOpen?<NotificationsBox notifications={notifications}/>:null}
@@ -296,6 +304,7 @@ class ProfilePictureButton extends Component{
         )
     }
 }
+
 
 function Profile(){
     const context = useContext(UserContext);
@@ -445,5 +454,22 @@ function SearchSvg({fill='#424242'}){
             <path d="M464.524 412.846l-97.929-97.925c23.6-34.068 35.406-72.047 35.406-113.917 0-27.218-5.284-53.249-15.852-78.087-10.561-24.842-24.838-46.254-42.825-64.241-17.987-17.987-39.396-32.264-64.233-42.826C254.246 5.285 228.217.003 200.999.003c-27.216 0-53.247 5.282-78.085 15.847C98.072 26.412 76.66 40.689 58.673 58.676c-17.989 17.987-32.264 39.403-42.827 64.241C5.282 147.758 0 173.786 0 201.004c0 27.216 5.282 53.238 15.846 78.083 10.562 24.838 24.838 46.247 42.827 64.234 17.987 17.993 39.403 32.264 64.241 42.832 24.841 10.563 50.869 15.844 78.085 15.844 41.879 0 79.852-11.807 113.922-35.405l97.929 97.641c6.852 7.231 15.406 10.849 25.693 10.849 9.897 0 18.467-3.617 25.694-10.849 7.23-7.23 10.848-15.796 10.848-25.693.003-10.082-3.518-18.651-10.561-25.694zM291.363 291.358c-25.029 25.033-55.148 37.549-90.364 37.549-35.21 0-65.329-12.519-90.36-37.549-25.031-25.029-37.546-55.144-37.546-90.36 0-35.21 12.518-65.334 37.546-90.36 25.026-25.032 55.15-37.546 90.36-37.546 35.212 0 65.331 12.519 90.364 37.546 25.033 25.026 37.548 55.15 37.548 90.36 0 35.216-12.519 65.331-37.548 90.36z" />
         </svg>
 
+    )
+}
+
+function MessageSvg({fill='#424242'}){
+    return(
+        <svg
+            xmlnsXlink="http://www.w3.org/1999/xlink"
+            version="1.1"
+            x="0px"
+            y="0px"
+            viewBox="0 0 483.3 483.3"
+            style={{ enableBackground: "new 0 0 483.3 483.3", height:25,width:25,fill:fill }}
+            xmlSpace="preserve"
+            >
+            <path d="M424.3 57.75H59.1c-32.6 0-59.1 26.5-59.1 59.1v249.6c0 32.6 26.5 59.1 59.1 59.1h365.1c32.6 0 59.1-26.5 59.1-59.1v-249.5c.1-32.6-26.4-59.2-59-59.2zm32.1 308.7c0 17.7-14.4 32.1-32.1 32.1H59.1c-17.7 0-32.1-14.4-32.1-32.1v-249.5c0-17.7 14.4-32.1 32.1-32.1h365.1c17.7 0 32.1 14.4 32.1 32.1v249.5h.1z" />
+            <path d="M304.8 238.55l118.2-106c5.5-5 6-13.5 1-19.1-5-5.5-13.5-6-19.1-1l-163 146.3-31.8-28.4c-.1-.1-.2-.2-.2-.3-.7-.7-1.4-1.3-2.2-1.9L78.3 112.35c-5.6-5-14.1-4.5-19.1 1.1-5 5.6-4.5 14.1 1.1 19.1l119.6 106.9-119.1 111.5c-5.4 5.1-5.7 13.6-.6 19.1 2.7 2.8 6.3 4.3 9.9 4.3 3.3 0 6.6-1.2 9.2-3.6l120.9-113.1 32.8 29.3c2.6 2.3 5.8 3.4 9 3.4s6.5-1.2 9-3.5l33.7-30.2 120.2 114.2c2.6 2.5 6 3.7 9.3 3.7 3.6 0 7.1-1.4 9.8-4.2 5.1-5.4 4.9-14-.5-19.1l-118.7-112.7z" />
+        </svg>
     )
 }

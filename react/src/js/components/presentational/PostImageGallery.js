@@ -1,4 +1,4 @@
-import React, {useState,useEffect,useRef,useContext} from "react"
+import React, {useState,useEffect,useRef,useLayoutEffect,useContext} from "react"
 import { useSwipeable, Swipeable } from 'react-swipeable'
 import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
@@ -166,33 +166,46 @@ export function Images(props){
 import SwipeableViews from 'react-swipeable-views';
 
 export function Images2(props){
-    const [paddTop,setPaddTop] = useState('56%');
-    const [left,setLeft] = useState(0);
-    const [lastLeft,setLastLeft] = useState(0);
-    const [swiping,setSwiping] = useState(false);
-    const [index,setIndex] = useState(0);
-    const ref = useRef(null);
+    function calcPadding(image){
+        let height = image.height;
+        let width = image.width;
+        let ratio = height/width;
+        let paddingTop = height!=0 ?
+        `${ratio*100}%` : 0;
+        /*if(props.viewAs=="reply"){
+            if(width > ref.current.clientWidth * 75/100){
+                style = {...style,width:'75%'};
+            }else{
+                style = {...style,width:width}
+            }
+            style = {...style,width:width}
+        }*/
+        return paddingTop;
+    }
 
-    let isTouchScreen = "ontouchstart" in document.documentElement;
-    let style;
+    let initStyle;
     if(props.viewAs=="reply"){
-        style = {
+        initStyle = {
             border: '1px solid #e2eaf1',
             borderRadius: 10,
-            width: '75%'
         }
     }else{
-        style = {
+        initStyle = {
             margin: '0 -10px'
         }
     }
 
-    /*function changeIndex(newIndex){
-        setLastLeft(-newIndex*props.imageWidth)
-        setIndex(newIndex);
-        angle = -1;
-        ref.current.style.transform = `translateX(${-newIndex*props.imageWidth}px)`;
-    }*/
+
+    const [paddTop,setPaddTop] = useState(props.images.length>0?calcPadding(props.images[0]):'56%');
+    const [left,setLeft] = useState(0);
+    const [swiping,setSwiping] = useState(false);
+    const [style,setStyle] = useState(initStyle);
+    const [index,setIndex] = useState(0);
+    const ref = useRef(null);
+
+    let isTouchScreen = "ontouchstart" in document.documentElement;
+    
+
     function changeIndex(newIndex){
         setIndex(newIndex);
     }
@@ -206,32 +219,20 @@ export function Images2(props){
     }
     let maxHeight=620;
 
-    function calcPadding(image){
-        let height = image.height;
-        let width = image.width;
-        let ratio = height/width;
-        let paddingTop = height!=0 ?
-        `${ratio*100}%` : 0;
-        if(props.viewAs=="reply"){
-            if(width > ref.current.clientWidth * 75/100){
-                style = {...style,width:'75%'};
-            }else{
-                style = {...style,width:width}
-            }
-        }
-        setPaddTop(paddingTop);
-    }
-
     useEffect(()=>{
-        if(props.images.length>0){
-            //getMeta(props.images[0].image);
-            calcPadding(props.images[0])
+        console.log("styleee",style,props.viewAs)
+        let newStyle = {};
+        if(props.viewAs=="reply"){
+            /*if(props.images[0].width > ref.current.clientWidth * 75/100){
+                newStyle = {...newStyle,width:'75%'};
+            }else{
+                newStyle = {...newStyle,width:props.images[0].width}
+            }*/
         }
+        setStyle(Object.assign(style, newStyle))
     },[])
 
-
     function handleChangeIndex(index){
-        console.log("indexchanged")
         setIndex(index)
     }
 

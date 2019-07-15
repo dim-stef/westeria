@@ -11,6 +11,8 @@ class GroupChatAdmin(admin.ModelAdmin):
         GroupMessageInline,
     ]
 
+    filter_horizontal = ('members',)
+
 
 admin.site.register(BranchChat, GroupChatAdmin)
 admin.site.register(BranchMessage)

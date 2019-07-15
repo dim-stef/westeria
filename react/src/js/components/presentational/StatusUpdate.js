@@ -91,7 +91,7 @@ const schema = {
     },
 }
 
-export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=null,style=null}){
+export default function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
     const initialValue = Value.fromJSON({
     document: {
         nodes: [
@@ -125,7 +125,7 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
     }
 
     const [value,setValue] = useState(initialValue);
-    const [files,setFiles] = useState([])
+    const [files,setFiles] = useState([]);
     const [minimized,setMinimized] = useState(true);
     const ref = useRef(null);
     const wrapperRef = useRef(null);
@@ -141,18 +141,17 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
         }
     }
 
-
     function handleImageClick(e){
         var newFiles = e.target.files;
         let newFilesArray = Array.from(newFiles);
         setFiles([...files,...newFilesArray]);        
     }
     
-    
     const onBlur = (event, editor, next) => {
         next();
         setTimeout(() => setMinimized(true), 0);
     };
+
     const onFocus = (event, editor, next) => {
         next();
         setTimeout(() => setMinimized(false), 0);
@@ -175,10 +174,21 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
             document.removeEventListener('mousedown', handleClickOutside);
         }
     })
+
+    useEffect(()=>{
+        /*let inCache = postsContext.openPosts.some(p=>{
+            return p==currentPost.id
+        })*/
+
+        if(measure && !ref){
+            console.log("remeasure")
+            measure();
+        }
+    })
     
     return(
         <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#C2E4FB',
-        justifyContent:'stretch',...style}}>
+        justifyContent:'stretch',position:'relative',zIndex:4,...style}}>
             <div>
                 <img src={context.currentBranch.branch_image} className="profile-picture" 
                 style={{width:34,height:34,marginRight:10,display:'block'}}/>
@@ -198,7 +208,6 @@ export default function StatusUpdate({currentPost,updateFeed,postedId,replyTo=nu
                 null:
                 <Toolbar editor={ref} files={files} branch={context.currentBranch} postedId={postedId} currentPost={currentPost} 
                 updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}/>}
-                
             </div>
         </div>
     )

@@ -7,7 +7,9 @@ import axios from 'axios';
 
 export function MyBranchesColumnContainer({show=true}){
     const context = useContext(UserContext);
-    const [branches,setBranches] = useState([])
+    let initBranches = Object.keys(context.branches[0]).length==2?context.branches:[]
+    console.log("initBranches",initBranches,context.branches)
+    const [branches,setBranches] = useState(initBranches)
 
     function handleClick(branch){
         console.log(context.changeCurrentBranch)
@@ -31,11 +33,14 @@ export function MyBranchesColumnContainer({show=true}){
 
     async function populateBranches(){
         let branches = await getUserBranches();
+        context.branches = branches;
         setBranches(branches);
     }
 
     useEffect(()=>{
-        populateBranches();
+        if(branches.length>0){
+            populateBranches();
+        }
     },[])
 
     if(branches.length>0 && show){
