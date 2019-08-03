@@ -50,7 +50,11 @@ ACCOUNT_FORMS = {'signup':'accounts.forms.CustomSignupForm'}
 REST_AUTH_REGISTER_SERIALIZERS = {
         'REGISTER_SERIALIZER': 'accounts.serializers.RegistrationSerializer',
 }
+
 REST_USE_JWT = True
+OLD_PASSWORD_FIELD_ENABLED = True
+LOGOUT_ON_PASSWORD_CHANGE = False
+
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
 }
@@ -133,7 +137,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 ]
 
-SITE_ID = 1
+SITE_ID = 2
 
 MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
@@ -147,14 +151,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'subranch.urls'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-'''EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'mail.privateemail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'jimstef@outlook.com'
+EMAIL_HOST_USER = 'contact@subranch.com'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-EMAIL_USE_TLS = True'''
 
 TEMPLATES = [
     {

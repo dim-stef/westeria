@@ -17,6 +17,10 @@
     padding: 10px;
 }
 
+.chat-media{
+    width:70%;
+}
+
 .profile-icon-container{
     width:48px;
     height:48px;

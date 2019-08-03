@@ -1,7 +1,8 @@
-import React, { useState,useContext,useEffect,useRef } from 'react';
+import React, { useState,useContext,useEffect,useLayoutEffect,useRef,useCallback } from 'react';
 import ReactDOM from 'react-dom';
-import {Link} from 'react-router-dom'
+import {Link,withRouter} from 'react-router-dom'
 import {UserContext,PostsContext} from '../container/ContextContainer'
+import {StatusUpdateAuthWrapper as StatusUpdate} from "./StatusUpdate"
 import {ToggleContent} from './Temporary'
 import {CommentSection,ReplyTree} from './Comments'
 import {SmallBranchList} from './BranchList'
@@ -29,6 +30,7 @@ function getPostedTo(post,activeBranch,context){
 }
 
 function authorizedGetPostedTo(post,activeBranch,context){
+    console.log("post",post)
     var intersection = post.posted_to.find(b=>{
         // if user follows branch and is not current active branch
         return context.currentBranch.follows.includes(b.uri) && b.uri!==context.currentBranch.uri
@@ -79,11 +81,11 @@ export function PostContainer(props){
     )
 }
 
-export function SingularPost({postId,parentPost=null,postsContext,
-    isOpen=false,index,activeBranch,lastComment}){
+export function SingularPost({postId,parentPost=null,postsContext,activeBranch,lastComment}){
 
     const [post,setPost] = useState(null);
     const [replyTrees,setReplyTrees] = useState([]);
+    const [userReplies,setUserReplies] = useState([]);
     const [hasMore,setHasMore] = useState(true);
     const [next,setNext] = useState(null);
 
@@ -102,6 +104,10 @@ export function SingularPost({postId,parentPost=null,postsContext,
             setHasMore(false);
         }
 
+
+        postsContext.cachedPosts = [...postsContext.cachedPosts,...response.data.results];
+        postsContext.loadedPosts = [...postsContext.loadedPosts,...response.data.results];
+  
         setReplyTrees([...replyTrees,...response.data.results]);
     }
 
@@ -117,6 +123,10 @@ export function SingularPost({postId,parentPost=null,postsContext,
         getPost();
     },[])
 
+    const updateTree = useCallback(newPost=>{
+        setUserReplies([newPost,...userReplies])
+    },[replyTrees])
+
     const measure = () =>{
         return;
     }
@@ -125,9 +135,15 @@ export function SingularPost({postId,parentPost=null,postsContext,
             <>
             <Post post={post} parentPost={parentPost} postsContext={postsContext}
                 index={0} activeBranch={activeBranch} lastComment={lastComment} measure={measure}
-                viewAs="post"
+                viewAs="post" isStatusUpdateActive updateTree={updateTree} isSingular
             />
             <div>
+                {userReplies.map(rt=>{
+                    return <ReplyTree topPost={post} parentPost={post} currentPost={rt} 
+                    postsContext={postsContext} activeBranch={activeBranch}
+                    isStatusUpdateActive={false} isSingular
+                    />
+                })}
                 <InfiniteScroll
                 dataLength={replyTrees.length}
                 next={()=>fetchData(post)}
@@ -144,8 +160,10 @@ export function SingularPost({postId,parentPost=null,postsContext,
                 }
                 >
                     {replyTrees.map(rt=>{
-                        return <ReplyTree topPost={post} parentPost={post} currentPost={rt} postsContext={postsContext} activeBranch={activeBranch}
-                            isStatusUpdateActive={false}
+                        console.log("rt",rt)
+                        return <ReplyTree topPost={post} key={rt.id} parentPost={post} currentPost={rt} 
+                        postsContext={postsContext} activeBranch={activeBranch}
+                        isStatusUpdateActive={false}
                         />
                     })}
                 </InfiniteScroll>
@@ -157,13 +175,14 @@ export function SingularPost({postId,parentPost=null,postsContext,
 }
 
 export const Post = React.memo(function Post({post,parentPost=null,measure,postsContext,
-    isOpen=false,index,activeBranch,lastComment,viewAs="post"}){
+    isOpen=false,index,activeBranch,lastComment,viewAs="post",isSingular,updateTree}){
     const context = useContext(UserContext);
     //const postsContext = useContext(PostsContext);
     console.log("postsContext",postsContext)
     let ids = postsContext.cachedPosts.map(p=>p.id)
     const [visibleComments,setVisibleComments] = useState(ids);
     const [mainPostedBranch,setMainPostedBranch] = useState(getPostedTo(post,activeBranch,context))
+    const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
     const didMount = useRef(null);
 
     const [ref, inView] = useInView({
@@ -173,7 +192,8 @@ export const Post = React.memo(function Post({post,parentPost=null,measure,posts
     function closePost(e){
         e.preventDefault();
         e.stopPropagation();
-        setOpen(false);
+        //setOpen(false);
+        setStatusUpdateActive(false);
 
         postsContext.openPosts = [...new Set(postsContext.openPosts)];
         postsContext.cachedPosts = postsContext.cachedPosts.filter(p=>{
@@ -187,35 +207,39 @@ export const Post = React.memo(function Post({post,parentPost=null,measure,posts
     }
 
     function openPost(){
-        setOpen(true);
+        setStatusUpdateActive(true);
+        //setOpen(true);
         let uniq = [...new Set([...visibleComments,post.id])];
         setVisibleComments(uniq)
         postsContext.openPosts.push(post.id);
     }
     
-
-    useEffect(()=>{
-        console.log("remeasure",isOpen,open)
-        if(open!=isOpen){
-            isOpen = null
-            console.log("remeasure",isOpen,visibleComments)
-            measure();
-        }
-    },[open,visibleComments])
-
     useEffect(()=>{
         if(viewAs=="embeddedPost"){
             //let inCache = postsContext.cachedPosts.some(p=>p.id==post.id);
             let inCache = postsContext.uniqueCached.some(ar=>{
-                return ar.post.id == parentPost.id && ar.embeddedPost.id == post.id
+                return ar.post.id == parentPost.id && ar.embeddedPost!=undefined && ar.embeddedPost.id == post.id
             });
             if(!inCache){
-                console.log("not in cache",postsContext.uniqueCached)
+                console.log("measure not in cache",postsContext.uniqueCached)
                 measure();
                 //postsContext.cachedPosts.push(post);
                 postsContext.uniqueCached.push({
                     post:parentPost,
                     embeddedPost:post
+                });
+            }
+        }else{
+            let inCache = postsContext.uniqueCached.some(bundle=>{
+                console.log("bundle",bundle)
+                return bundle.post.id == post.id && bundle.embeddedPost == undefined
+            })
+
+            if(!inCache){
+                console.log("measure")
+                measure();
+                postsContext.uniqueCached.push({
+                    post:post,
                 });
             }
         }
@@ -224,19 +248,21 @@ export const Post = React.memo(function Post({post,parentPost=null,measure,posts
 
     var date = new Date(post.created);
     return(
-        <PostWrapper viewAs={viewAs} post={post} index={index?index:0}>
-            <div ref={ref} data-visible={inView} data-index={index?index:0}>
+        <PostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
+            <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
                 <SmallPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 mainPostedBranch={mainPostedBranch} date={date} cls="main-post"
                 showPostedTo activeBranch={activeBranch} openPost={openPost} 
-                open={open} closePost={closePost} measure={measure} postsContext={postsContext}/>
+                open={open} closePost={closePost} measure={measure} postsContext={postsContext}
+                isStatusUpdateActive={isStatusUpdateActive} isSingular={isSingular} updateTree={updateTree}
+                />
             </div>
         </PostWrapper>
     )
 })
 
-function PostWrapper({post,viewAs,index,children}){
-    if(viewAs=="reply"){
+function PostWrapper({post,viewAs,index,isSingular,children}){
+    if(viewAs=="reply" || isSingular){
         return(
             <div id={post.id}>
                 {children}
@@ -244,21 +270,40 @@ function PostWrapper({post,viewAs,index,children}){
         )
     }else{
         return(
-            <Link to={`/${post.poster}/${post.id}/`} style={{textDecoration:'none'}} data-index={index} id={post.id}>
+            /*<Link to={`/${post.poster}/leaves/${post.id}/`} style={{textDecoration:'none'}} data-index={index} id={post.id}>
                 {children}
-            </Link>
+            </Link>*/
+            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id}>
+                {children}
+            </LinkedPostWithRouter>
         )
     }
 }
+
+function LinkedPost({history,dataIndex,id,to,children}){
+
+    function handleClick(){
+        console.log("click",to)
+        history.push(to);
+    }
+
+    return(
+        <div className="preview-post" onClick={handleClick} data-index={dataIndex} id={id}>
+            {children}
+        </div>
+    )
+}
+
+const LinkedPostWithRouter = withRouter(LinkedPost)
 
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React);
 }
 
-Post.whyDidYouRender = true;
+//Post.whyDidYouRender = true;
 
-function ShownBranch({branch,date}){
+function ShownBranch({branch,date,dimensions=48}){
     const [showCard,setShowCard] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -288,11 +333,11 @@ function ShownBranch({branch,date}){
         <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
         display:'inline-flex',position:'relative'}} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <PostPicture picture={branch.branch_image} 
-            style={{width:48,height:48}}
+            style={{width:dimensions,height:dimensions}}
             uri={branch.uri}/>
             <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
                 <Link to={branch.uri} style={{textDecoration:'none', color:'black',marginRight:10}}>
-                        <strong style={{fontSize:'1.7rem'}}>{branch.uri}</strong>
+                        <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
                 </Link>
                 <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
                     {dateElement}
@@ -303,17 +348,18 @@ function ShownBranch({branch,date}){
     )
 }
 
-function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,activeBranch,openPost,open,closePost,measure,viewAs}){
+function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,
+    activeBranch,openPost,open,updateTree,measure,viewAs,isSingular}){
     const context = useContext(UserContext);
     const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
-        return s.uri===context.currentBranch.uri
+        return context.isAuth?s.uri===context.currentBranch.uri:false;
     }))
 
     let isOpen = postsContext.openPosts.some(p=>{
         return p==post.id
     })
 
-    const [isStatusUpdateActive,setStatusUpdateActive] = useState(isOpen && viewAs=="post");
+    const [isStatusUpdateActive,setStatusUpdateActive] = useState(isOpen && viewAs=="post" || isSingular);
     const ref = useRef(null);
 
     let dateElement = timeDifference(date,new Date());
@@ -363,22 +409,21 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,act
 
     
     return(
+        <>
         <div ref={ref} className={`post ${cls}`} 
         style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
-        poststate={open?"open":"closed"}
-        onClick={handleOpenPost}>
-            {post.spreaders.length>0 && !isEmbedded?
-            <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
+        poststate={open?"open":"closed"}>
+            {post.spreaders.length>0 && !isEmbedded && context.isAuth?
+             <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
             :null}
             <div className="flex-fill">
-                <div className="flex-fill" style={{flex:'1 1 auto',flexFlow:'row wrap'}}>
-                    <ShownBranch branch={post.posted_to.find(b=> post.poster==b.uri)} date={date} post={post}/>
-                    <PostedTo post={post} mainPostedBranch={mainPostedBranch} activeBranch={activeBranch} showPostedTo={showPostedTo}/>
+                <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
+                    <ShownBranch branch={post.posted_to.find(b=> post.poster==b.uri)} 
+                    date={date} post={post} dimensions={viewAs=='reply'?24:48}/>
+                    <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
+                    activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:48}/>
                 </div>
                 <More/>
-                {open?
-                    <button style={{height:45,width:45}} onClick={e=>{closePost(e);setStatusUpdateActive(false);}}></button>:null
-                }
                 </div>
                 <div style={{marginTop:10}}>
                     <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
@@ -389,6 +434,9 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,act
                     
                 </div>
         </div>
+        {isStatusUpdateActive?
+        <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}/>:null}
+        </>
     )
 }
 
@@ -433,7 +481,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
 }
 
 
-function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
+function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dimensions=48}){
 
     //console.log(post.poster,mainPostedBranch.uri)
     return(
@@ -442,13 +490,13 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
                 <div className="arrow-right"></div>
                 <div style={{marginLeft:20}}>
                     <div className="flex-fill">
-                        <PostPicture style={{width:48,height:48}} 
+                        <PostPicture style={{width:dimensions,height:dimensions}} 
                         picture={mainPostedBranch.branch_image} 
                         uri={mainPostedBranch.uri}/>
                         <div>
                             <Link to={post.poster} style={{textDecoration:'none', color:'black'}}>
-                                <strong style={{fontSize:'1.7rem'}}>{mainPostedBranch.uri}</strong>
-                                <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600,fontSize:'1.4rem'}}>
+                                <strong style={{fontSize:'1.7em'}}>{mainPostedBranch.uri}</strong>
+                                <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600,fontSize:'1.4em'}}>
                                     @{mainPostedBranch.name}
                                 </div> 
                             </Link>
@@ -507,8 +555,6 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
         </div>
     )
 }
-/*            {images.length>0?<Images2 images={images} imageWidth={imageWidth}/>:null}*/
-
 
 Number.prototype.roundTo = function(num) {
     var resto = this%num;
@@ -518,33 +564,6 @@ Number.prototype.roundTo = function(num) {
         return this+num-resto;
     }
 }
-
-
-function ImageArrow(){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            width="451.846px"
-            height="451.847px"
-            viewBox="0 0 451.846 451.847"
-            style={{
-                enableBackground: "new 0 0 451.846 451.847",
-                height: 15,
-                fill: "white",
-                width: 15,
-            }}
-            xmlSpace="preserve"
-            >
-            <path d="M345.441 248.292L151.154 442.573c-12.359 12.365-32.397 12.365-44.75 0-12.354-12.354-12.354-32.391 0-44.744L278.318 225.92 106.409 54.017c-12.354-12.359-12.354-32.394 0-44.748 12.354-12.359 32.391-12.359 44.75 0l194.287 194.284c6.177 6.18 9.262 14.271 9.262 22.366 0 8.099-3.091 16.196-9.267 22.373z" />
-        </svg>
-    )
-}
-
-
-
 
 
 function PostPicture(props){
@@ -565,68 +584,57 @@ function PostPicture(props){
 
 function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
     const context = useContext(UserContext)
-
-    return(
-        <div className="flex-fill" style={{height:30,marginTop:5,alignItems:'center'}}>
-            <Star postId={post.id} currentBranchId={context.currentBranch.id} count={post.stars}/>
-            <Comments post={post} handleCommentClick={handleCommentClick}/>
-            <Share post={post} handleSpread={handleSpread} didSelfSpread={didSelfSpread}/>
-        </div>
-    )
-}
-
-
-function Star({postId,currentBranchId,count}){
-    const [reacted,setReacted] = useState(false);
-    const [starCount,setStarCount] = useState(count);
-    const context = useContext(UserContext);
-
-    const onClick = (e) =>{
-        e.stopPropagation();
-        setReacted(!reacted);
-        addStar();
-    }
+    const [react,setReact] = useState(null);
+    const [starCount,setStarCount] = useState(post.stars);
+    const [dislikeCount,setDislikeCount] = useState(post.dislikes);
+    let ratio = starCount/(starCount + dislikeCount) * 100;
 
     useEffect(()=>{
-        // check in context if posts is starred
-        if(context.currentBranch.reacts.find(x=>x.post===postId)){
-            setReacted(true);
+        if(context.isAuth && context.currentBranch.reacts.find(x=>x.post===post.id)){
+            let reactType = context.currentBranch.reacts.find(x=>x.post===post.id)
+            setReact(reactType.type);
         }
     },[])
 
-    const addStar = () =>{
-        if(!reacted){ 
-            let uri = `/api/reacts/`;
-            let data = {
-                type:"star",
-                branch:currentBranchId,
-                post:postId
-            };
+    function changeReact(type){
+        let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
+        let uri = `/api/reacts/${reactUUID}/`;
+        let data = {
+            type:type,
+            branch:context.currentBranch.id,
+            post:post.id
+        };
 
-            axios.post(
-                uri,
-                data,
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': csrftoken
-                    },
-                    withCredentials: true
-                }).then(r=>{
-
-                    // update context
-                    context.currentBranch.reacts.push(r.data);
-                    // update star count
+        axios.patch(
+            uri,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                withCredentials: true
+            }).then(r=>{
+                console.log("putresposne",r)
+                // update context
+                context.currentBranch.reacts.push(r.data);
+                // update star count
+                if(type=='star'){
                     setStarCount(starCount + 1);
-                }).catch(r=>{
-                    setReacted(!reacted);
-                    console.log(r)
+                    setDislikeCount(dislikeCount-1);
+                }else{
+                    setStarCount(starCount - 1);
+                    setDislikeCount(dislikeCount + 1);
+                }
+                setReact(r.data.type)
             })
-        }
-        else{
+    }
 
-            // find reacts id on context
-            let reactUUID = context.currentBranch.reacts.find(x=>x.post===postId).id
+    const createOrDeleteReact = useCallback((type) => {
+        // delete react
+        console.log("type",type,react)
+        if(type==react){
+            let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
             let uri = `/api/reacts/${reactUUID}/`;
             const httpReqHeaders = {
                 'Content-Type': 'application/json',
@@ -636,29 +644,155 @@ function Star({postId,currentBranchId,count}){
             // check the structure here: https://github.com/axios/axios#request-config
             const axiosConfigObject = {headers: httpReqHeaders};
             axios.delete(uri, axiosConfigObject).then(r=>{
-                setReacted(false);
+                react=='star'?setStarCount(starCount - 1):setDislikeCount(dislikeCount - 1);
+                setReact(null)
 
                 //remove react from context
                 context.currentBranch.reacts = context.currentBranch.reacts.filter(r=>{
                     return r.id !== reactUUID;
                 })
-
-                // update star count
-                setStarCount(starCount - 1);
             }).catch(r=>{
                 console.log(r)
+                //setReact(null)
             });
+        }else{
+            // post react
+            let uri = `/api/reacts/`;
+            let data = {
+                type:type,
+                branch:context.currentBranch.id,
+                post:post.id
+            };
+
+            axios.post(
+                uri,
+                data,
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    withCredentials: true
+                }).then(r=>{
+                    // update context
+                    context.currentBranch.reacts.push(r.data);
+                    type=='star'?setStarCount(starCount+1):setDislikeCount(dislikeCount+1);
+                    setReact(type);
+                }).catch(r=>{
+                    setReact(null);
+                    console.log(r)
+            })
+        }
+    },[react])
+
+    let color = react=='star'?'#fb4c4c':'rgb(67, 78, 88)';
+    return(
+        <div className="flex-fill post-actions">
+            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',width:'100%'}}>
+                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
+                    <Star postId={post.id} starCount={starCount} react={react} setReact={setReact} 
+                    createOrDeleteReact={createOrDeleteReact} changeReact={changeReact} dislikeCount={dislikeCount}/>
+                    {starCount>0 || dislikeCount>0?<span style={{fontWeight:600,fontSize:'1.5em',color:color}}>{ratio}</span>:null}
+                    <Dislike postId={post.id} count={post.stars} react={react} setReact={setReact} 
+                    createOrDeleteReact={createOrDeleteReact} changeReact={changeReact}/>
+                </div>
+                <StarDislikeRatio style={{color:color}} reacted={react} starCount={starCount} dislikeCount={dislikeCount}/>
+            </div>
+
+            <Comments post={post} handleCommentClick={handleCommentClick}/>
+            <Share post={post} handleSpread={handleSpread} didSelfSpread={didSelfSpread}/>
+        </div>
+    )
+}
+
+
+function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCount}){
+    const [reacted,setReacted] = useState(false);
+    const context = useContext(UserContext);
+
+    const onClick = (e) =>{
+        e.stopPropagation();
+        //setReacted(!reacted);
+        if(context.isAuth){
+            handleStarClick();
+        }else{
+            alert("not auth");
+        }
+    }
+
+    useLayoutEffect(()=>{
+        if(react=='star'){
+            setReacted(true);
+        }else{
+            setReacted(false);
+        }
+    },[react])
+
+    function handleStarClick(){
+        console.log("type2",react)
+        if(react && react!='star'){
+            console.log("type3",react)
+            changeReact('star');
+        }else{
+            createOrDeleteReact('star');
         }
     }
 
     // hard-coded clicked class
     let className = reacted ? 'star-clicked' : ''
     return(
-        <div className="post-action-container star">
+        <div className="post-action-container flex-fill star" style={{minWidth:0,width:'100%',
+        justifyContent:'flex-start',WebkitJustifyContent:'flex-start'}}>
             <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={e=>onClick(e)}>
                 <div className="flex-fill" style={{alignItems:'center'}}>
                     <StarSvg className={className}/>
-                    <StarCount reacted={reacted} count={starCount}/>
+                </div>
+            </button>
+        </div>
+    )
+}
+
+function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
+    const [reacted,setReacted] = useState(false);
+    const [starCount,setStarCount] = useState(count);
+    const context = useContext(UserContext);
+
+    const onClick = (e) =>{
+        e.stopPropagation();
+        //setReacted(!reacted);
+        if(context.isAuth){
+            handleStarClick();
+        }else{
+            alert("not auth");
+        }
+    }
+
+    useLayoutEffect(()=>{
+        if(react=='dislike'){
+            setReacted(true);
+        }else{
+            setReacted(false);
+        }
+    },[react])
+
+    function handleStarClick(){
+        console.log("type2",react)
+        if(react && react!='dislike'){
+            console.log("type3",react)
+            changeReact('dislike');
+        }else{
+            createOrDeleteReact('dislike');
+        }
+    }
+
+    // hard-coded clicked class
+    let className = reacted ? 'star-clicked' : ''
+    return(
+        <div className="post-action-container star flex-fill" style={{minWidth:0,width:'100%',justifyContent:'flex-end',
+        WebkitJustifyContent:'flex-end'}}>
+            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={e=>onClick(e)}>
+                <div className="flex-fill" style={{alignItems:'center'}}>
+                    <DislikeSvg className={className}/>
                 </div>
             </button>
         </div>
@@ -673,7 +807,7 @@ function StarSvg({className}){
             x="0px"
             y="0px"
             viewBox="0 0 49.94 49.94"
-            className={`post-actions star-icon ${className}`}
+            className={`post-action-svg star-icon ${className}`}
             xmlSpace="preserve">
             <path d="M48.856 22.73a3.56 3.56 0 0 0 .906-3.671 3.56 3.56 0 0 0-2.892-2.438l-12.092-1.757a1.58 1.58 0 0 1-1.19-.865L28.182 3.043a3.56 3.56 0 0 0-3.212-1.996 3.56 3.56 0 0 0-3.211 1.996L16.352 14c-.23.467-.676.79-1.191.865L3.069 16.622A3.56 3.56 0 0 0 .177 19.06a3.56 3.56 0 0 0 .906 3.671l8.749 8.528c.373.364.544.888.456 1.4L8.224 44.701a3.506 3.506 0 0 0 .781 2.904c1.066 1.267 2.927 1.653 4.415.871l10.814-5.686a1.619 1.619 0 0 1 1.472 0l10.815 5.686a3.544 3.544 0 0 0 1.666.417c1.057 0 2.059-.47 2.748-1.288a3.505 3.505 0 0 0 .781-2.904l-2.065-12.042a1.582 1.582 0 0 1 .456-1.4l8.749-8.529z" />
         </svg>
@@ -685,8 +819,55 @@ function StarCount({reacted,count}){
 
     return(
         <span className="star-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
-            {count!==0?count:null}
         </span>
+    )
+}
+
+import { Line } from 'rc-progress';
+
+function StarDislikeRatio({style,reacted,starCount,dislikeCount}){
+    //let color = reacted?'#fb4c4c':'rgb(67, 78, 88)';
+    
+    let ratio = starCount/(starCount + dislikeCount) * 100;
+    
+    const percentColors = [
+        { pct: 0.0, color: { r: 0xff, g: 0x00, b: 0 } },
+        { pct: 0.5, color: { r: 0xff, g: 0xff, b: 0 } },
+        { pct: 1.0, color: { r: 255, g: 0, b: 0 } } ];
+    
+    const getColorForPercentage = function(pct) {
+        for (var i = 1; i < percentColors.length - 1; i++) {
+            if (pct < percentColors[i].pct) {
+                break;
+            }
+        }
+        var lower = percentColors[i - 1];
+        var upper = percentColors[i];
+        var range = upper.pct - lower.pct;
+        var rangePct = (pct - lower.pct) / range;
+        var pctLower = 1 - rangePct;
+        var pctUpper = rangePct;
+        var color = {
+            r: Math.floor(lower.color.r * pctLower + upper.color.r * pctUpper),
+            g: Math.floor(lower.color.g * pctLower + upper.color.g * pctUpper),
+            b: Math.floor(lower.color.b * pctLower + upper.color.b * pctUpper)
+        };
+        return 'rgb(' + [color.r, color.g, color.b].join(',') + ')';
+        // or output as hex if preferred
+    }
+
+    let color = reacted?getColorForPercentage(ratio):'rgb(67, 78, 88)';
+
+    return(
+        /*<span className="star-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
+            {starCount>0 || dislikeCount>0?<Line percent={ratio} strokeWidth="4" strokeColor="#D3D3D3" />:null}
+        </span>*/
+        starCount>0 || dislikeCount>0?
+        <div style={{width:'100%',height:3,backgroundColor:'#cacaca'}}>
+            <div style={{width:`${ratio}%`,height:'100%',backgroundColor:style?style.color:'rgb(67, 78, 88)'}}>
+
+            </div>
+        </div>:null
     )
 }
 
@@ -721,7 +902,7 @@ function Comments({post,handleCommentClick}){
     let className = '';
 
     return(
-        <div className="post-action-container comments">
+        <div className="post-action-container flex-fill comments">
             <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={onClick}>
                 <div className="flex-fill">
                     <CommentsSvg className={className}/>
@@ -741,7 +922,7 @@ function CommentsSvg({className}){
         y="0px"
         viewBox="0 0 60 60"
         viewBox="0 0 60 60"
-        className={`post-actions ${className} comments-icon`}
+        className={`post-action-svg ${className} comments-icon`}
         style={{strokeWidth:4.5}}
         xmlSpace="preserve"
         >
@@ -810,7 +991,7 @@ function Share({post,handleSpread,didSelfSpread}){
     let className = '';
 
     return(
-        <div id="spread-wrapper" className="post-action-container" style={{display:'contents'}}>
+        <div id="spread-wrapper" className="post-action-container flex-fill">
             <button style={{height:25,border:0,backgroundColor:'transparent',padding:0}} onClick={e=>onClick(e)}>
                 <div className="flex-fill">
                     <ShareSvg className={className}/>
@@ -869,11 +1050,17 @@ function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
     )
 }
 
+const DislikeSvg = props => (
+    <svg x="0px" y="0px" viewBox="0 0 60 60" xmlSpace="preserve" className={`post-action-svg star-icon ${props.className}`}>
+      <path d="M50.976 26.194C50.447 17.194 43.028 10 34.085 10c-5.43 0-10.688 2.663-13.946 7.008-.075-.039-.154-.066-.23-.102a9.322 9.322 0 00-.604-.269 9.062 9.062 0 00-.962-.317c-.115-.031-.229-.063-.345-.089a9.567 9.567 0 00-.687-.125c-.101-.015-.2-.035-.302-.046A9.096 9.096 0 0016 16c-4.963 0-9 4.037-9 9 0 .127.008.252.016.377v.004C2.857 27.649 0 32.399 0 37.154 0 44.237 5.762 50 12.845 50h24.508c.104 0 .207-.006.311-.014l.062-.008.134.008c.102.008.204.014.309.014h9.803C54.604 50 60 44.604 60 37.972c0-5.489-3.827-10.412-9.024-11.778zM47.972 48h-9.803c-.059 0-.116-.005-.174-.009l-.271-.011-.198.011c-.057.004-.115.009-.173.009H12.845C6.865 48 2 43.135 2 37.154 2 33 4.705 28.688 8.433 26.901L9 26.63V26c0-.127.008-.256.015-.386l.009-.16-.012-.21C9.006 25.163 9 25.082 9 25c0-3.859 3.141-7 7-7a6.995 6.995 0 011.15.103c.267.044.53.102.789.177.035.01.071.017.106.027.285.087.563.197.835.321.071.032.14.067.21.101A6.995 6.995 0 0123 25a1 1 0 102 0 8.98 8.98 0 00-3.2-6.871C24.667 14.379 29.388 12 34.085 12c7.745 0 14.177 6.135 14.848 13.888-1.022-.072-2.552-.109-4.083.124a1 1 0 00.3 1.977c2.227-.337 4.548-.021 4.684-.002C54.49 28.872 58 33.161 58 37.972 58 43.501 53.501 48 47.972 48z" />
+    </svg>
+  );
+
 function ShareSvg({className}){
     return(
         <svg viewBox="0 -22 512 511" 
         style={{strokeWidth:35}} 
-        className={`post-actions ${className}`}>
+        className={`post-action-svg ${className}`}>
             <path
                 d="M512 233.82L299.223.5v139.203h-45.239C113.711 139.703 0 253.414 0 393.687v73.77l20.094-22.02a360.573 360.573 0 0 1 266.324-117.5h12.805v139.204zm0 0"
             />
@@ -970,7 +1157,7 @@ function MoreSvg(){
 }
 
 function getDateElement(diff,prefix = ''){
-    let fontSize = '1.4rem';
+    let fontSize = '1.4em';
 
     if(prefix === ''){
         let months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec'];

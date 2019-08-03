@@ -1,5 +1,6 @@
 import React, { Component, useContext,useState } from "react";
 import { Link } from 'react-router-dom'
+import {isMobile} from 'react-device-detect';
 import {BranchBanner} from "./BranchBanner"
 import {UserContext} from '../container/ContextContainer'
 import {BigBranchPicture} from "./BranchPageLeftBar"
@@ -28,7 +29,7 @@ export class ChildBranch extends Component{
     }
 }
 
-export function SmallBranch({branch,children}){
+export function SmallBranch({branch,isLink=true,children}){
     const [showCard,setShowCard] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -52,22 +53,40 @@ export function SmallBranch({branch,children}){
     return(
         <>
         <div
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
+        onMouseEnter={isMobile?null:handleMouseEnter}
+        onMouseLeave={isMobile?null:handleMouseLeave}
          style={{position:'relative'}} className="noselect small-branch-container flex-fill">
-            <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
-                <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
-                <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
+            <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
+                <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',backgroundColor:'#4d5058'}} 
+                alt="" src={branch.branch_image}/>
+                <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto',
+                wordBreak:'break-all'}}>
                     <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
                     <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
                 </div>
                 {showCard?<SmallCard branch={branch}/>:null}
-            </Link>
+            </SmallBranchWrapper>
             {children}
         </div>
         
         </>
     )
+}
+
+function SmallBranchWrapper({children,isLink,uri}){
+    if(isLink){
+        return(
+            <Link to={`/${uri}`} className="small-branch flex-fill" >
+                {children}
+            </Link>
+        )
+    }else{
+        return(
+            <div className="small-branch flex-fill">
+                {children}
+            </div>
+        )
+    }
 }
 
 
@@ -81,7 +100,6 @@ export class ParentBranch extends Component{
             <div className="item-container" style={{marginTop:style.marginTop,
             marginBottom:style.marginBottom, 
             flexBasis:style.flexBasis,
-            width:1200,
             display:'block'}}>
                 <div className={`group-link ${ styleName }`} style={{width:style.width,border:0}}>
                     <BranchBanner branch={branch} dimensions={style.branchDimensions} parent className="branch-parent-picture" editMode={editMode}>

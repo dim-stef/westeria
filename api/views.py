@@ -4,8 +4,9 @@ from django.core.exceptions import PermissionDenied
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from rest_framework import viewsets, views, mixins,generics,filters,permissions
 from rest_framework.views import APIView
+from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
 from rest_framework_jwt.settings import api_settings
 from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser,FormParser
@@ -45,8 +46,7 @@ class ChildrenLimitOffsetPagination(LimitOffsetPagination):
 
 
 class BranchChatMessagePagination(CursorPagination):
-    page_size = 50
-
+    page_size = 10
 
 
 class BranchPostPagination(CursorPagination):
@@ -60,14 +60,15 @@ class TrendingPagination(CursorPagination):
     page_size = 5
 
 class ReplyTreePagination(CursorPagination):
-    page_size = 5
+    page_size = 4
 
 
 class IsOwnerOfBranch(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        print(request.resolver_match.kwargs.get('branch_uri'))
-        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch_uri'))
+        lookup = 'branch_uri' if 'branch_uri' in request.resolver_match.kwargs else 'uri'
+        print(request.resolver_match.kwargs.get(lookup))
+        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get(lookup))
         if request.user.owned_groups.filter(uri=branch).exists():
             return True
         return False
@@ -116,6 +117,7 @@ class SearchResults(viewsets.GenericViewSet,
 
 
 @api_view(['GET'])
+@permission_classes([permissions.AllowAny])
 def search(request):
     vector = SearchVector('uri')
     query = SearchQuery(request.query_params.get('branch',None))
@@ -149,9 +151,11 @@ class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
 
 @api_view(['GET'])
 def defaultBranch(request):
-    print("in")
     user = request.user
-    default = user.owned_groups.get(default=True)
+    if user.owned_groups.filter(default=True).exists():
+        default = user.owned_groups.get(default=True)
+    else:
+        default = user.owned_groups.first()
     serializer = serializers.BranchSerializer(default)
     return Response(serializer.data)
 
@@ -233,17 +237,8 @@ class SiblingsViewSet(BranchRelationsMixin):
 
 class BranchUpdateMixin(viewsets.GenericViewSet,
                         mixins.UpdateModelMixin,):
+    permission_classes = (permissions.IsAuthenticated,IsOwnerOfBranch)
     lookup_field = 'uri'
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def partial_update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.serializer_class(instance, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
 
     def get_queryset(self):
         try:
@@ -364,16 +359,41 @@ from django.db.models import Q
 from django.utils import timezone
 from datetime import datetime,timedelta
 
-class BranchPostListViewSet(viewsets.GenericViewSet,
-                        mixins.RetrieveModelMixin,
-                        mixins.ListModelMixin):
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = serializers.BranchPostSerializer
-    pagination_class = BranchPostPagination
+
+class GenericPostList(viewsets.GenericViewSet, mixins.ListModelMixin,mixins.RetrieveModelMixin):
+    pagination_class = FeedPagination
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('hot_score', 'created')
     ordering = ('-hot_score',)
-    lookup_field = "id"
+
+def filter_posts(posts,content,past):
+    if content == 'leaves':
+        posts = posts.exclude(type="reply")
+    elif content == 'media':
+        posts = posts.filter(Q(images__isnull=False) | Q(videos__isnull=False))
+    else:
+        # Leaves and Replies
+        pass
+
+    if past == 1 or past == "1":
+        posts = posts.filter(created__gte=timezone.now() - timedelta(hours=1))
+    elif past == 24 or past == "24":
+        posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24))
+    elif past == 24 * 7 or past == str(24 * 7):
+        posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7))
+    elif past == 24 * 7 * 30 or past == str(24 * 7 * 30):
+        posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7 * 30))
+    elif past == 24 * 7 * 30 * 365 or past == str(24 * 7 * 30 * 365):
+        posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7 * 30 * 365))
+    else:
+        # all time
+        pass
+    return posts.distinct()
+
+
+class BranchPostListViewSet(GenericPostList):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchPostSerializer
 
     def get_queryset(self):
         content = self.request.query_params.get('content', None)
@@ -385,35 +405,14 @@ class BranchPostListViewSet(viewsets.GenericViewSet,
 
         posts = self_list | from_list
 
-        if content=='leaves':
-            posts = posts.exclude(type="reply")
-        elif content=='media':
-            posts = posts.filter(Q(images__isnull=False) | Q(videos__isnull=False))
-        else:
-            # Leaves and Replies
-            pass
-
-        print("past", past)
-        if past == 1 or past == "1":
-            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=1))
-        elif past == 24 or past == "24":
-            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=24))
-        elif past == 24*7 or past == str(24*7):
-            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24*7))
-        elif past == 24*7*30 or past == str(24*7*30):
-            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7*30))
-        elif past == 24*7*30*365 or past == str(24*7*30*365):
-            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7 * 30*365))
-        else:
-            # all time
-            pass
-        return posts.distinct()
+        return filter_posts(posts,content,past)
 
     def get_serializer_context(self):
-        context = super(BranchPostListViewSet, self).get_serializer_context()
-        branch = Branch.objects.filter(uri__iexact=self.kwargs['branch_uri'])
+        context = super().get_serializer_context()
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        following = branch.follows.all()
         context.update({
-            "spreaders": branch
+            "spreaders": following
         })
         return context
 
@@ -447,13 +446,9 @@ class BranchNewFollowViewSet(viewsets.ModelViewSet):
         return branch
 
 
-class FeedViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+class FeedViewSet(GenericPostList):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
     serializer_class = serializers.BranchPostSerializer
-    pagination_class = FeedPagination
-    filter_backends = (filters.OrderingFilter,)
-    ordering_fields = ('hot_score','created')
-    ordering = ('-hot_score',)
 
     def get_queryset(self):
         content = self.request.query_params.get('content', None)
@@ -465,35 +460,47 @@ class FeedViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
         posted_in_following = Post.objects.filter(posted_to__in=following)
         posts = posted_in_following | posts_from_following
 
-        if content=='leaves':
-            posts = posts.exclude(type="reply")
-        elif content=='media':
-            posts = posts.filter(Q(images__isnull=False) | Q(videos__isnull=False))
-        else:
-            # Leaves and Replies
-            pass
-
-        if past == 1 or past == "1":
-            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=1))
-            print(posts)
-        elif past == 24 or past == "24":
-            posts = posts.filter(created__gte = timezone.now() - timedelta(hours=24))
-        elif past == 24*7 or past == str(24*7):
-            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24*7))
-        elif past == 24*7*30 or past == str(24*7*30):
-            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7*30))
-        elif past == 24*7*30*365 or past == str(24*7*30*365):
-            posts = posts.filter(created__gte=timezone.now() - timedelta(hours=24 * 7 * 30*365))
-        else:
-            # all time
-            pass
-
-        #posts = posted_in_following | posts_from_following
-        posts = posts.distinct()
-        return posts
+        return filter_posts(posts,content,past)
 
     def get_serializer_context(self):
-        context = super(FeedViewSet, self).get_serializer_context()
+        context = super().get_serializer_context()
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        following = branch.follows.all()
+        context.update({
+            "spreaders": following
+        })
+        return context
+
+class AllPostsViewSet(GenericPostList):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchPostSerializer
+
+    def get_queryset(self):
+        posts = Post.objects.distinct()
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
+        return filter_posts(posts, content, past)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context.update({
+            "spreaders": []
+        })
+        return context
+
+
+class AuthAllPostsViewSet(GenericPostList):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchPostSerializer
+
+    def get_queryset(self):
+        posts = Post.objects.distinct()
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
+        return filter_posts(posts, content, past)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
         branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
         following = branch.follows.all()
         context.update({
@@ -510,6 +517,7 @@ class TrendingScoreViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
     ordering_fields = ('-trending_score',)
     ordering = ('-trending_score',)
     queryset = Branch.objects.all()
+
 
 class ReactsViewSet(mixins.CreateModelMixin,
                     mixins.RetrieveModelMixin,

@@ -1,21 +1,26 @@
 import React, { useState,useContext,useEffect,useRef } from 'react';
-import ReactDOM from 'react-dom';
-import {Link} from 'react-router-dom'
-import {UserContext} from '../container/ContextContainer'
-import {ToggleContent} from './Temporary'
-import {CommentSection} from './Comments'
-import {SmallBranchList} from './BranchList'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
 import axios from 'axios';
 import LazyLoad from 'react-lazy-load';
+import axiosRetry from 'axios-retry';
 
+axiosRetry(axios, 
+    {
+        retries:15,
+        retryDelay: axiosRetry.exponentialDelay
+    });
+
+let CancelToken = axios.CancelToken;
+let source = CancelToken.source();
 
 export function SearchPage(props){
     return(
-        <div>
-            <h1>Seach</h1>
+        <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>
+            <h1 style={{padding:10}}>Search</h1>
             <Search/>
+            <h1 style={{padding:10}}>Trending</h1>
+            <Trending/>
         </div>
     )
 }
@@ -28,7 +33,9 @@ function Search(){
 
     async function getResults(){
         let safeText = text.trim()
-        const response = safeText ? await axios.get(`/api/search/?branch=${safeText}`): null
+        const response = safeText ? await axios.get(`/api/search/?branch=${safeText}`,{
+            cancelToken: source.token
+          }): null
         console.log(response)
         if(response && Array.isArray(response.data)){
             setResults(response.data)
@@ -36,24 +43,30 @@ function Search(){
     }
 
     useEffect(()=>{
+        source.cancel('Operation canceled by the user.');
+        CancelToken = axios.CancelToken;
+        source = CancelToken.source();
+
         if(focused){
             getResults();
         }
+
     },[text])
 
     console.log(results.length)
 
-    //let {styleName='', style=null, branch, editMode, children} = this.props
     return(
         <div ref={wrapperRef}>
-            <input
-                placeholder="Search"
-                className="search-button"
-                style={{height:50,width:'25%'}}
-                value={text}
-                onChange={e=> setText(e.target.value)}
-                onFocus={e=> setFocused(true)}                
-            />
+            <div style={{padding:10}}>
+                <input
+                    placeholder="Type something"
+                    className="search-button"
+                    style={{height:50,width:'-webkit-fill-available'}}
+                    value={text}
+                    onChange={e=> setText(e.target.value)}
+                    onFocus={e=> setFocused(true)}                
+                />
+            </div>
             <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
                 {results.length>0?
                 results.map(r=>{
@@ -68,5 +81,48 @@ function Search(){
             </div>
             
         </div>
+    )
+}
+
+function Trending(){
+    const [branches,setBranches] = useState([]);
+    const [next,setNext] = useState(null);
+    const [hasMore,setHasMore] = useState(true);
+
+    function handleClick(){
+        getTrending();
+    }
+
+    async function getTrending(){
+        let uri = next?next:'/api/trending/';
+        const response = await axios.get(uri);
+
+        if(!response.data.next){
+            setHasMore(false);
+        }
+
+        setNext(response.data.next);
+        setBranches([...branches,...response.data.results]);
+    }
+
+    useEffect(()=>{
+        getTrending();
+    },[])
+    return(
+        <>
+        <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
+            {branches.length>0?
+            branches.map(b=>{
+                return  <div className="branch-container" 
+                        style={{display:'flex',minWidth:250, width:'30%',flexGrow:1,margin:10,flexFlow:'column',border:'1px solid #e2eaf1'}}>
+                            <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
+                            branch={b}/>
+                            <BranchFooter branch={b}/>
+                        </div>
+                       
+            }):null}
+        </div>
+        <button onClick={handleClick}>Load more</button>
+        </>
     )
 }

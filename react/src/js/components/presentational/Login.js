@@ -87,20 +87,21 @@ export default class Login extends Component{
         }
         
         return(
-            <div className="main-layout" style={{fontSize: '2em', margin: '3em auto', width: '35%', textAlign: 'center'}}>
+            <div className="main-layout">
                 <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
                 <div className="form-container" style={{width: '70%', margin: 'auto', paddingBottom: '14px'}}>
                     <form onSubmit={this.handleSubmit} action="#" method="post" style={{color: 'black', paddingTop: '10px'}}>
-                    <input className="text email" type="email" name="email" placeholder="Email" required style={{}} value={this.state.email} onChange={this.handleEmailChange}/>
-                    <input className="text" type="password" name="password" placeholder="Password" required value={this.state.password} onChange={this.handlePasswordChange}/>
+                    <input className="text email auth-input" type="email" name="email" 
+                    placeholder="Email" required style={{}} value={this.state.email} onChange={this.handleEmailChange}/>
+                    <input className="text auth-input" type="password" name="password" 
+                    placeholder="Password" required value={this.state.password} onChange={this.handlePasswordChange}/>
                     
                     {errorMessages}
                     <p><Link to="#">Forgot password?</Link></p>
                     <input className="login-btn" type="submit" value="LOGIN" />
                     </form>
-                    <p>Don't have an Account? <Link to="/register" style={{textDecoration: 'none', backgroundColor: 'transparent', fontWeight: 500}}>Sign Up</Link></p>
-
-                    
+                    <p>Don't have an Account? <Link to="/register" 
+                    style={{textDecoration: 'none', backgroundColor: 'transparent', fontWeight: 500}}>Sign Up</Link></p>
                 </div>
                 </div>
             </div>

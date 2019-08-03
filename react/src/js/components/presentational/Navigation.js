@@ -5,7 +5,7 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import {UserContext} from "../container/ContextContainer"
 import {FrontPage,FrontPageFeed} from "./Routes"
 import {NotificationsContainer} from "./Notifications"
-import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
+import {SideDrawer} from "./SideDrawer"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import axios from 'axios'
 
@@ -85,18 +85,17 @@ export function TabbedNavigationBar(){
                 }
 
                 {context.isAuth?
-                    <div className="flex-fill"
+                    <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill"
                     style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
                         <MessageSvg/>
-                    </div>:null
+                    </NavLink>:null
                 }
                 
-                {context.isAuth?
-                    <div className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
-                        <Profile/>
-                    </div>:null
-                }
+                <div className="flex-fill"
+                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                    <Profile/>
+                </div>
+                
    
             </div>
         </div>
@@ -110,16 +109,33 @@ export function MobileNavigationBar(){
     }*/
 
     //console.log(history)
+    const context = useContext(UserContext);
     return(
-        <div className="flex-fill" 
-        style={{position:'fixed',top:0,zIndex:10,height:60,backgroundColor:'white',width:'100%',alignItems:'center'}}>
-            <div style={{width:'100%',textAlign:'center'}}>
-                <NavLink to="/">Home</NavLink>
-            </div>
-            <div style={{width:'100%',textAlign:'center'}}>
-                <Link to="/search">Search</Link>
-            </div>
-            
+        <div className="flex-fill mobile-navigation" >
+                <NavLink exact to="/" className="flex-fill" activeStyle={{borderTop:'2px solid #2397f3'}}
+                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none'}}>
+                    <Home/>
+                </NavLink>
+                <NavLink to="/search" className="flex-fill" activeStyle={{borderTop:'2px solid #2397f3'}}
+                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                    <SearchSvg/>
+                </NavLink>
+                {context.isAuth?
+                    <NavLink to="/notifications" activeStyle={{borderTop:'2px solid #2397f3'}} className="flex-fill"
+                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',position:'relative'}}>
+                        <NotificationsContainer inBox/>
+                    </NavLink>:null
+                }
+
+                {context.isAuth?
+                    <NavLink to="/messages" activeStyle={{borderTop:'2px solid #2397f3'}} className="flex-fill"
+                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                        <MessageSvg/>
+                    </NavLink>:null
+                }
+                <SideDrawer>
+                    <Profile/>
+                </SideDrawer>
         </div>
     )  
 }
@@ -245,28 +261,36 @@ function NotificationsBox({notifications}){
     )
 }
 
-function ProfileDropDown(){
+function ProfileDropDown({setFocused}){
     const context = useContext(UserContext);
 
+    function unFocus(){
+        setFocused(false);
+    }
+
     return(
-        <div style={{position:'absolute',width:150,marginTop:10,right:0}}>
-            <div style={{position:'relative',height:10}}>
-                <div style={{right:7,left:'auto'}} className="arrow-upper"></div>
-                <div style={{right:8,left:'auto'}} className="arrow-up"></div>
-            </div>
-            
+        <div className="hoverable-box" style={{width:150,borderRadius:25}}>
             <div className="flex-fill" 
-            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column'}}> 
+            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',borderRadius:25,
+            overflow:'hidden'}}> 
 
                 <RoutedTabs
                 tabClassName="profile-dropdown-option"
                 className="flex-fill profile-dropdown-container"
                 activeTabClassName="active"
                 >
-                <NavTab to={`/${context.currentBranch.uri}`} >Profile</NavTab>
-                <NavTab to="/settings" >Settings</NavTab>
-                <div style={{height:1,margin:'10px 0',backgroundColor:'gainsboro'}}></div>
-                <NavTab to="/logout" >Logout</NavTab>
+                {context.isAuth?
+                    <>
+                        <NavTab to={`/${context.currentBranch.uri}`} onClick={unFocus} className="profile-dropdown-option">Profile</NavTab>
+                        <NavTab to="/settings" onClick={unFocus} className="profile-dropdown-option">Settings</NavTab>
+                        <div style={{height:1,margin:'10px 0',backgroundColor:'gainsboro'}}></div>
+                        <NavTab to="/logout/instant" onClick={unFocus} className="profile-dropdown-option">Logout</NavTab>
+                    </>:
+                    <>
+                        <NavTab to="/login" onClick={unFocus} className="profile-dropdown-option">Login</NavTab>
+                        <NavTab to="/register" onClick={unFocus} className="profile-dropdown-option">Register</NavTab>
+                    </>
+                }
                 </RoutedTabs>
             </div>
         </div>
@@ -285,43 +309,38 @@ function Home(props){
 }
 
 
-class ProfilePictureButton extends Component{
-    static contextType = UserContext
-    render(){
-        return(
-            <Link to={`/${this.context.currentBranch.uri}`}>
-                <div style={{
-                        width:32,
-                        height:32,
-                        backgroundImage:`url(${this.context.currentBranch.branch_image})`, 
-                        backgroundRepeat:'no-repeat',
-                        backgroundSize:'cover',
-                        backgroundPosition:'center',
-                        borderRadius:'50%',
-                        border:0}}>
-                </div>
-            </Link>
-        )
-    }
-}
-
-
 function Profile(){
     const context = useContext(UserContext);
     const [focused,setFocused] = useState(false);
-
+    const ref = useRef(null)
+    let imageUrl = context.isAuth?context.currentBranch.branch_image:'https://icon-library.net//images/default-user-icon/default-user-icon-8.jpg';
+    
     function handleClick(){
         setFocused(!focused);
     }
 
+    useEffect(()=>{
+        document.addEventListener("click", handleClickOutside, false);
+
+        return () => {
+            document.removeEventListener("click", handleClickOutside, false);
+        };
+    },[])
+
+    const handleClickOutside = event => {
+        if (ref.current && !ref.current.contains(event.target)) {
+          setFocused(false);
+        }
+    };
+
     return(
-        <div style={{position:'relative'}}>
+        <div ref={ref} style={{position:'relative'}}>
             <div onClick={handleClick} className="round-picture" style={{
                 width:32,
                 height:32,
-                backgroundImage:`url(${context.currentBranch.branch_image})`}}>
+                backgroundImage:`url(${imageUrl})`}}>
             </div>
-            {focused?<ProfileDropDown/>:null}
+            {focused?<ProfileDropDown setFocused={setFocused}/>:null}
         </div>
     )
 }

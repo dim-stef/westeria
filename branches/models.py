@@ -22,11 +22,11 @@ def calculate_trending_score(posts):
     spread_count = 0
     for post in posts:
         spread_count+=post.spreads.count()
-    if posts.count()==0:
+    '''if posts.count()==0:
         avg = 0
     else:
-        avg = spread_count/posts.count()
-    return avg
+        avg = spread_count/posts.count()'''
+    return spread_count
 
 class Branch(models.Model):
     class Meta:
@@ -63,6 +63,21 @@ class Branch(models.Model):
     def __str__(self):
         return self.uri
 
+
+    def clean(self, *args, **kwargs):
+        owned_branches = self.owner.owned_groups.exclude(pk=self.pk)
+        print(self.default)
+        if self.default:
+            for branch in owned_branches:
+                branch.default = False
+                branch.save()
+        '''else:
+            defaults = [branch.default for branch in owned_branches]
+            if any(defaults):
+                pass
+            else:
+                raise ValidationError('You must have a default branch')'''
+
     def save(self, *args, **kwargs):
 
         if not Branch.objects.filter(pk=self.pk).first():  #in case of new model instance
@@ -71,6 +86,8 @@ class Branch(models.Model):
             branch = Branch.objects.get(pk=self.pk)
             if branch.uri != self.uri:                     #need validation if uri updated
                 self.uri = generate_unique_uri(self.name)
+
+        self.full_clean()
         super().save(*args, **kwargs)
 
 def validate_manytomany(self,instance,target):
@@ -79,12 +96,15 @@ def validate_manytomany(self,instance,target):
         raise ValidationError('Cannot branch to the same branch')
 
 
+from django.db.models import Sum
+
 @receiver(post_save, sender=Post, dispatch_uid="update_post")
 def update_post_score(sender, instance, **kwargs):
     date_from = datetime.datetime.now() - datetime.timedelta(days=1)
     for branch in Branch.objects.all():
         last_24_hour_posts = Post.objects.filter(posted_to=branch,created__gte=date_from)
-        branch.trending_score=calculate_trending_score(last_24_hour_posts)
+        branch.trending_score = calculate_trending_score(last_24_hour_posts)
+        print(branch.trending_score)
         branch.save()
 
 
@@ -250,7 +270,7 @@ post_init.connect(BranchRequest.remember_state, sender=BranchRequest)
 @receiver(post_save, sender=Branch)
 def create_group_chat(sender, instance, created, **kwargs):
     if created:
-        BranchChat.objects.create(branch=instance)
+        BranchChat.objects.create(owner=instance)
 
 
 

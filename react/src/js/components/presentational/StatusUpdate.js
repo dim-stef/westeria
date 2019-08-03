@@ -8,6 +8,7 @@ import {SkeletonBranchList} from "./SkeletonBranchList";
 import { Editor } from 'slate-react'
 import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
+import {BranchSwitcher} from './BranchSwitcher'
 import Plain from 'slate-plain-serializer'
 import ReactPlayer from 'react-player'
 import EmojiPicker from 'emoji-picker-react';
@@ -21,8 +22,6 @@ emoji.supports_css = true;
 emoji.allow_native = true;
 emoji.replace_mode = 'unified';
 //emoji.text_mode = true;
-
-var csrftoken = getCookie('csrftoken');
 
 
 function MediaPreview(props){
@@ -90,7 +89,13 @@ const schema = {
         },
     },
 }
+export function StatusUpdateAuthWrapper(props){
+    const userContext = useContext(UserContext);
 
+    return(
+        userContext.isAuth?<StatusUpdate {...props}/>:<p>Not authorized</p>
+    )
+}
 export default function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
     const initialValue = Value.fromJSON({
     document: {
@@ -130,6 +135,7 @@ export default function StatusUpdate({currentPost,postsContext,measure=null,upda
     const ref = useRef(null);
     const wrapperRef = useRef(null);
     const context = useContext(UserContext);
+    const [branch,setBranch] = useState(context.currentBranch)
 
     const handleChange = (e) =>{
         setValue(e.value);
@@ -159,9 +165,13 @@ export default function StatusUpdate({currentPost,postsContext,measure=null,upda
 
     function handleClickOutside(event) {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)
-            && event.target!=document.getElementById('emoji-picker-wrapper')
-            && event.target!=document.getElementById('modal-post-to')) {
-            setMinimized(true)
+            && event.target!=document.getElementById('emoji-picker-wrapper')) {
+                if(document.getElementById('modal-post-to') && document.getElementById('modal-post-to').contains(event.target)){
+                    null
+                }else{
+                    setMinimized(true)
+                }
+           
         }else{
             setMinimized(false)
         }
@@ -189,10 +199,11 @@ export default function StatusUpdate({currentPost,postsContext,measure=null,upda
     return(
         <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#C2E4FB',
         justifyContent:'stretch',position:'relative',zIndex:4,...style}}>
-            <div>
-                <img src={context.currentBranch.branch_image} className="profile-picture" 
+            <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
+            setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview">
+                <img src={branch.branch_image} className="profile-picture" 
                 style={{width:34,height:34,marginRight:10,display:'block'}}/>
-            </div>
+            </BranchSwitcher>
             <div style={{width:'100%'}}>
                 <Editor
                 className="editor"
@@ -206,7 +217,7 @@ export default function StatusUpdate({currentPost,postsContext,measure=null,upda
                 {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                 {minimized?
                 null:
-                <Toolbar editor={ref} files={files} branch={context.currentBranch} postedId={postedId} currentPost={currentPost} 
+                <Toolbar editor={ref} files={files} branch={branch} postedId={postedId} currentPost={currentPost} 
                 updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}/>}
             </div>
         </div>
@@ -266,7 +277,7 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
         formData.append('text',post);
         
         if(replyTo){
-            //data = {...data,replied_to:replyTo}
+            formData.append('posted_to',branch.id);
             formData.append('replied_to',replyTo)
         }
 
@@ -282,7 +293,7 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                 },
             }).then(response => {
                 axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
-                    updateFeed([response.data]);
+                    updateFeed(response.data);
                     console.log(response);
                 })
                 console.log(response);
@@ -294,6 +305,8 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
     }
     
     async function onSelect(index,lastIndex,event){
+        console.log("event",event)
+        //event.stopPropagation();
         let endpoint = "parents";
         if(index===0){
             endpoint = "parents";
@@ -323,9 +336,7 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
             values.push(checkBox.value);
             console.log(checkBox.value);
         }
-
         setCheckedBranches(values);
-        e.stopPropagation();
     }
 
     let renderParents,renderChildren,renderSiblings;
@@ -354,6 +365,12 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
     }
 
 
+    function handleOpenModal(e,show){
+        e.stopPropagation();
+        show();
+        onSelect(0);
+    }
+
     return(
         <div style={{marginTop:5}}>
              <ToggleContent 
@@ -363,41 +380,15 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                         <label for="media" style={{height:26,padding:2,marginRight:10}}><MediaSvg/></label>
                         <Emoji editor={editor}/>
                         <button style={{marginLeft:10}}
-                        onClick={e=>{e.stopPropagation();show();onSelect(0);}}>Post to</button>
+                        onClick={e=>{handleOpenModal(e,show)}}>Post to</button>
                         
                     </div>
                 )}
                 content={hide => (
-                <Modal onClick={e=>{handleCloseModal(e);hide()}}>
-                    <div id="modal-post-to" style={{width:400,height:500,margin:'0 auto',marginTop:60,backgroundColor:'white'}}
-                    onClick={e=>e.stopPropagation()}> 
-                        <Tabs onSelect={onSelect} defaultFocus={true}>
-                            <TabList className="post-to-branch-tab-list">
-                                <Tab className="post-to-branch-tab"
-                                selectedClassName="post-to-branch-tab-list-selected">Parents</Tab>
-                                <Tab className="post-to-branch-tab"
-                                selectedClassName="post-to-branch-tab-list-selected">Siblings</Tab>
-                                <Tab className="post-to-branch-tab"
-                                selectedClassName="post-to-branch-tab-list-selected">Children</Tab>
-                            </TabList>
-
-                            <TabPanel>
-                                <div className="post-to-branch-tab-panel">
-                                    {renderParents}
-                                </div>
-                            </TabPanel>
-                            <TabPanel>
-                                <div className="post-to-branch-tab-panel">
-                                    {renderSiblings}
-                                </div>
-                            </TabPanel>
-                            <TabPanel>
-                                <div className="post-to-branch-tab-panel">
-                                    {renderChildren}
-                                </div>
-                            </TabPanel>
-                        </Tabs>
-                    </div>
+                <Modal onClick={handleCloseModal}>
+                    <PostToBranches parents={renderParents} siblings={renderSiblings} children={renderChildren}
+                        onSelect={onSelect}
+                    />
                 </Modal>    
                 )}/>
             <button onClick={handleClick}>Add</button>
@@ -407,6 +398,44 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                 color={'#123abc'}
                 loading={loading}
             />
+        </div>
+    )
+}
+
+function PostToBranches({parents,siblings,children,onSelect}){
+
+
+    return(
+        <div id="modal-post-to" style={{width:400,height:500,margin:'0 auto',marginTop:60,backgroundColor:'white'}}
+        >
+            <div onClick={()=>console.log("clicke2")}>
+            <Tabs onSelect={onSelect} defaultFocus={true}>
+                <TabList className="post-to-branch-tab-list" >
+                    <Tab className="post-to-branch-tab"
+                    selectedClassName="post-to-branch-tab-list-selected">Parents</Tab>
+                    <Tab className="post-to-branch-tab"
+                    selectedClassName="post-to-branch-tab-list-selected">Siblings</Tab>
+                    <Tab className="post-to-branch-tab"
+                    selectedClassName="post-to-branch-tab-list-selected">Children</Tab>
+                </TabList>
+
+                <TabPanel>
+                    <div className="post-to-branch-tab-panel">
+                        {parents}
+                    </div>
+                </TabPanel>
+                <TabPanel>
+                    <div className="post-to-branch-tab-panel">
+                        {siblings}
+                    </div>
+                </TabPanel>
+                <TabPanel>
+                    <div className="post-to-branch-tab-panel">
+                        {children}
+                    </div>
+                </TabPanel>
+            </Tabs>
+            </div>
         </div>
     )
 }

@@ -1,6 +1,7 @@
 body {
     overflow: auto;
     overflow-y: scroll;
+    overflow-x: hidden;
     overscroll-behavior: none;
     margin: 0;
     padding: 0;
@@ -25,6 +26,78 @@ body {
     border: 1px solid #e2eaf1;
 }
 
+.big-main-column{
+    flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    margin: 0 10px;
+    border: 1px solid #e2eaf1;
+}
+
+.full-height{
+    height: 100vh;
+}
+
+.center-items{
+    justify-content: center;
+    -webkit-justify-content: center;
+    align-items: center;
+    -webkit-align-items: center;
+}
+
+.side-drawer{
+
+}
+
+/* This is where we can add the transition*/
+.side-drawer-enter-active, .side-drawer-appear-active {
+    transform: translateX(0);
+    transition: all 200ms;
+}
+
+.side-drawer-enter, .side-drawer-appear {
+/*We give the list the initial dimension of the list button*/
+    transform: translateX(-100%);
+    transition: all 200ms;
+}
+/* This is where we can add the transition*/
+.side-drawer-enter-active, .side-drawer-appear-active {
+    transform: translateX(0);
+    transition: all 200ms;
+}
+
+.side-drawer-exit {
+    transform: translateX(-100%);
+    transition: transform 100ms !important;
+}
+
+.side-drawer-exit-active {
+    transform: translateX(-100%);
+    transition: transform 100ms !important;
+
+}
+
+.auth-drawer-item{
+    text-decoration: none;
+    color: black;
+    justify-content: flex-start;
+    align-items: center;
+    border-bottom: 1px solid rgb(226, 234, 241);
+    font-size: 2em;
+    height: 15%;
+    padding: 0 30px;
+}
+
+.mobile-navigation {
+    height:60px;
+    position: fixed;
+    width: 100%;
+    background-color: white;
+    z-index: 5;
+    align-items: center;
+    bottom: 0;
+}
+
 .box-border{
     border: 1px solid #e2eaf1;
 }
@@ -39,6 +112,32 @@ body {
 
 .main-wrapper{
     display: inherit;
+    margin-top: 60px;
+}
+
+.form-succeed-message{
+    font-size: 1.6rem;
+    padding: 10px;
+    background-color: #03a9f4;
+    color: white;
+    font-weight: 500;
+}
+
+.form-error-message{
+    font-size: 1.6rem;
+    padding: 10px;
+    background-color: #F44336;
+    color: white;
+    font-weight: 500;
+}
+
+.settings-wrapper{
+    width: 60%;
+}
+
+.settings-option{
+    width: 60%;
+    margin: 0 auto;
 }
 
 .wide-content-container{
@@ -452,6 +551,81 @@ body {
     fill: #607d8b;
 }
 
+.setting-input{
+    padding: 5px 10px;
+    font-size: 1.7em;
+    border-radius: 5px;
+    border: 1px solid #c7c7c7;
+}
+
+.setting-label{
+    font-weight: 600;
+    font-size: 1.5em;
+    color: #333;
+    padding: 20px 0 5px;
+}
+
+.setting-error{
+    font-size: 1.5rem;
+    color: #F44336;
+    margin: 5px 0;
+    display: block;
+    font-weight: 500;
+}
+
+.setting-correct{
+    font-size: 1.5rem;
+    color: #2196F3;
+    margin: 5px 0;
+    display: block;
+    font-weight: 500;
+}
+
+.form-save-button{
+    padding: 8px 16px;
+    border-radius: 25px;
+    border: 0;
+    background-color: #03A9F4;
+    color: white;
+    font-size: 1.6rem;
+    margin: 20px 0;
+}
+
+button[disabled=disabled], button:disabled {
+    background-color: #b5b5b5;
+}
+
+.toggle-switch.react-toggle--checked .react-toggle-track {
+    background-color: #46c3ff !important;
+}
+
+.branch-profile-setting{
+    height:100%;
+    object-fit: cover;
+    border: 1px solid white;
+}
+
+.branch-banner-setting{
+    height:100%;
+    object-fit: cover;
+    border-radius: 5px;
+    margin-left: 10px;
+    border: 1px solid white;
+}
+
+.branch-banner-setting:hover, .branch-profile-setting:hover{
+    cursor: pointer;
+    -webkit-box-shadow: 0 0 0 3px #2196F3;
+    -moz-box-shadow: 0 0 0 3px #2196F3;
+    box-shadow: 0 0 0 3px #2196F3;
+}
+
+.setting-info{
+    font-size: 1.1rem;
+    color: #545454;
+    margin: 5px 0;
+    display: block;
+}
 
 .noselect {
     -webkit-touch-callout: none;
@@ -463,6 +637,9 @@ body {
     -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
 }
 
+.avatar-banner-wrapper{
+    height: 100px;
+}
 
 .success-message-container{
     position: absolute;
@@ -479,6 +656,37 @@ body {
 @media all and (max-width: 1200px){
     .wide-content-container{
         display: block;
+    }
+}
+
+@media all and (max-device-width: 1223px){
+    .main-column{
+        padding-bottom: 60px;
+    }
+
+    .big-main-column{
+        padding-bottom: 0;
+        border: 0;
+        margin: 0;
+    }
+
+    .main-wrapper{
+        margin-top: 0;
+    }
+
+    .settings-wrapper{
+        width: 100%;
+        padding: 10px;
+    }
+
+    .settings-option{
+        width:100%;
+    }
+}
+
+@media all and (max-device-width: 767px){
+    .avatar-banner-wrapper{
+        height: 80px;
     }
 }
 

@@ -1,9 +1,12 @@
-import React, { Component,useState,useContext,useEffect } from "react";
-import GroupChatMessage, { GroupChatMessageBox } from "../GroupChatMessage";
+import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef } from "react";
+import {isMobile} from 'react-device-detect';
+import ReconnectingWebSocket from 'reconnecting-websocket';
+import {Images2} from "../presentational/PostImageGallery"
 import {Messenger} from "../presentational/Messenger"
 import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
 import { Link } from 'react-router-dom'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
+import RoutedHeadline from "../presentational/RoutedHeadline"
 import {UserContext,CachedBranchesContext} from "./ContextContainer"
 import axios from "axios";
 
@@ -32,14 +35,21 @@ function WebSocketRooms({rooms,inBox,match}){
     const [roomData,setRoomData] = useState([]);
 
     useEffect(()=>{
+        connect();
+    },[rooms])
+
+    function connect(){
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
         let webSockets = rooms.map(r=>{
+            let ws = new ReconnectingWebSocket(`${ws_scheme}://${window.location.host}/ws/chat/${r.id}/`);
+            
             return {
                 room: r,
-                ws: new WebSocket(`ws://${window.location.host}/ws/chat/${r.id}/`)
+                ws: ws
             }
         })
         setRoomData(webSockets);
-    },[rooms])
+    }
 
     if(!inBox && roomData.length>0){
         if(!match.params.roomName){
@@ -62,17 +72,66 @@ function RoomContainer({roomData,match}){
     })
     const [author,setAuthor] = useState(member)
     const [messages,setMessages] = useState([]);
+    //let next = null;
+    const [next,setNext] = useState(null);
+    const [hasMore,setHasMore] = useState(true);
+    const [members,setMembers] = useState([]);
+    const ref = useRef(null);
+    const parentRef = useRef(null);
+    const updateRef = useRef(0)
+    const [freshState,setFreshState] = useState(0);
 
-    async function getMessages(){
-        let uri = `/api/branches/${member}/chat_rooms/${data.room.id}/messages/`
-        let response = await axios.get(uri);
-        console.log("response",response);
-        setMessages(response.data.results.reverse());
+    async function getMembers(){
+        let memberList = [];
+
+        for (const member of data.room.members){
+            let response = await axios.get(`/api/branches/${member}/`);
+            let memberData = await response.data;
+            memberList.push(memberData);
+        }
+        setMembers(memberList);
     }
 
     useEffect(()=>{
-        getMessages();
+        console.log("members",members)
+    },[members])
+
+    const getMessages = useCallback(async (messages)=>{
+
+        if(!hasMore){
+            return;
+        }
+        
+        let uri = next?next:`/api/branches/${member}/chat_rooms/${data.room.id}/messages/`;
+        let response = await axios.get(uri);
+        if(!response.data.next){
+            setHasMore(false);
+        }
+        let newMessages = response.data.results.reverse()
+        setNext(response.data.next)
+        setMessages([...newMessages,...messages]);
+    },[messages])
+
+    const chatScrollListener = async () =>{
+        console.log("Scroll",parentRef.current.scrollTop,freshState,messages)
+        if(parentRef.current.scrollTop==0){
+            await getMessages(messages);
+        }
+        //setScrollPosition(parentRef.current.scrollTop);
+    }
+
+    useEffect(()=>{
+        getMessages(messages);
+        getMembers();
     },[])
+
+    useEffect(()=>{
+        parentRef.current.addEventListener('scroll',chatScrollListener)
+
+        return ()=>{
+            parentRef.current.removeEventListener('scroll',chatScrollListener)
+        }
+    },[messages])
 
     useEffect(()=>{
         setAuthor(context.currentBranch)
@@ -88,28 +147,28 @@ function RoomContainer({roomData,match}){
         let author_name = data['author_name'];
         let author_url = data['author_url'];
         let author = data['author'];
+        let images = data['images'];
+        let videos = data['videos'];
         let bundle = {
             message: message,
             author_name: author_name,
             author_url: author_url,
-            author: author
+            author: author,
+            images: Array.isArray(images)?images:JSON.parse(images),
+            videos: Array.isArray(videos)?videos:JSON.parse(videos)
         }
-
+        console.log("data",data,bundle)
         updateMessages([bundle]);
-        //self.el.scrollIntoView({ behavior: "instant" });
     };
 
     return(
         <PageWrapper>
-            <div className="flex-fill main-column" style={{display:'relative',height:'-webkit-fill-available',
-            flexFlow:'column',WebkitFlexFlow:'column'}}>
-                <div style={{padding:'10px',marginBottom:'10px 0',borderBottom:'1px solid #e2eaf1'}}>
-                    <span style={{fontWeight:'bold', fontSize:'2em'}}>{data.room.name}</span>
-                </div>
-                
-                <div className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
+            <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:'-webkit-fill-available',
+            flexFlow:'column',WebkitFlexFlow:'column',marginRight:0}}>
+                <RoutedHeadline headline={data.room.name}/>
+                <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
                 flexFlow:'column',WebkitFlexFlow:'column'}}>
-                    <Room messages={messages} branch={author.uri}/> 
+                    <Room messages={messages} members={members} branch={author.uri} parentRef={parentRef} wrapperRef={ref}/> 
                 </div>
                 <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} updateMessages={updateMessages}/>
             </div>
@@ -118,29 +177,132 @@ function RoomContainer({roomData,match}){
     )
 }
 
-function Room({messages,branch}){
+function Room({messages,members,branch,parentRef,wrapperRef}){
 
-    return(
-        messages.map(m=>{
-            let containerStyle=null;
-            let messageStyle={
-                fontSize:'2em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
-                padding:'3px 6px',borderRadius:13,margin:'3px 0'
-            };
+    const [imageWidth,setImageWidth] = useState(0);
+    const [messageBoxes,setMessageBoxes] = useState([]);
 
-            if(m.author_url == branch){
-                containerStyle = {alignSelf:'flex-end'}
-                messageStyle = {...messageStyle,backgroundColor:'#219ef3',color:'white'}
+    useEffect(() => {
+        if(parentRef.current){
+            console.log("parentRef",parentRef)
+            setImageWidth(parentRef.current.clientWidth)
+        }
+        
+    },[parentRef])
+
+    useEffect(()=>{
+        console.log("ref",wrapperRef.current.clientHeight,window.innerHeight,wrapperRef.current.clientHeight>window.innerHeight)
+        if(wrapperRef){
+            if(isMobile){
+                wrapperRef.current.classList.add('full-height');
+            }else{
+                wrapperRef.current.style.height = `${window.innerHeight - 70}px`;
+            }
+        }
+    },[messageBoxes])
+
+    function getChatBoxes(){
+        var chatBox = {
+            author: null,
+            author_name: null,
+            author_url: null,
+            created:null,
+            messages: []
+        };
+        var messageBoxes = messages.map((m, i) => {
+            var nextAuthor = null;
+            chatBox.author = m.author;
+            chatBox.author_name = m.author_name;
+            chatBox.author_url = m.author_url;
+            chatBox.created = m.created;
+            chatBox.messages.push(m)
+
+            if (i < messages.length - 1) {
+                nextAuthor = messages[i + 1].author_url
             }
 
-            return (
-                <div className="flex-fill" style={containerStyle}>
-                    <span style={messageStyle}>{m.message}</span>
-                </div>
-            )
+            if (m.author_url !== nextAuthor) {
+                var copy = Object.assign({}, chatBox);
+                chatBox.author_url = null;
+                chatBox.messages = [];
+                return copy;
+            }
+            return null;
+        })
+        var filtered = messageBoxes.filter(function (el) {
+            return el != null;
+        });
+        /*messageBoxes = filtered.map(m => {
+            return <MessageBox messageBox={m} key={m.created}/>
+        })*/
+        return filtered;
+    }
+
+    useEffect(()=>{
+        setMessageBoxes(getChatBoxes());
+    },[messages])
+
+    return(
+
+        messageBoxes.map(box=>{
+            console.log("box",box)
+            return <MessageBox key={box.created} parentRef={parentRef} members={members} messageBox={box} branch={branch} imageWidth={imageWidth}/>
         })
     )
 }
+
+function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
+    let containerStyle={};
+    let messageStyle={
+        fontSize:'2em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
+        padding:'3px 6px',borderRadius:13,margin:'3px 0'
+    };
+
+    if(messageBox.author_url == branch){
+        containerStyle = {alignSelf:'flex-end'}
+        messageStyle = {...messageStyle,backgroundColor:'#219ef3',color:'white'}
+    }
+
+    useLayoutEffect(()=>{
+        console.log("height",parentRef.current.scrollTop,parentRef.current.scrollHeight)
+        parentRef.current.scrollTop = parentRef.current.scrollHeight;
+    },[])
+
+    let member = members.find(m=>messageBox.author_url==m.uri)
+    let memberImage = member?member.branch_image:null
+    return (
+        <div>
+            <img/>
+            <div className="flex-fill" style={{...containerStyle,flexFlow:'column'}}>
+                <div style={containerStyle}>
+                    <img className="round-picture" src={memberImage} 
+                    style={{height:48,width:48,objectFit:'cover'}} alt={`${messageBox.author_name}`}></img>
+                </div>
+                <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column'}}>
+                    {messageBox.messages.map(m=>{
+                        
+                        console.log("images",m.images)
+
+                        return (
+                            <React.Fragment key={m.created}>
+                                <div className="flex-fill" style={containerStyle}>
+                                    <span style={messageStyle}>{m.message}</span>
+                                </div>
+                                {m.images.length>0 || m.videos.length>0?
+                                    <div style={containerStyle} className="chat-media">
+                                        <Images2 images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
+                                    </div>
+                                :null}
+                            </React.Fragment>
+                        )
+                    })}
+                </div>
+            </div>
+        </div>
+    )
+    
+}
+
 
 function RoomsPreviewColumn({roomData,isGroup,inBox}){
     return(

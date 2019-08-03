@@ -1,10 +1,7 @@
 import React, {useState,useContext,useEffect,useRef} from 'react'
 import ReactDOM from 'react-dom';
 import {UserContext} from "../container/ContextContainer"
-import {SmallBranch} from "./Branch"
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import {SkeletonBranchList} from "./SkeletonBranchList";
+import {isMobile} from 'react-device-detect';
 import { Editor } from 'slate-react'
 import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
@@ -108,10 +105,9 @@ export function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}
     const ref = useRef(null);
     const context = useContext(UserContext);
     const [author,setAuthor] = useState(branch);
-
     let initIsMember = room.members.some(m=>m==branch.uri);
-
     const [isMember,setIsMember] = useState(initIsMember);
+
 
     const handleChange = (e) =>{
         setValue(e.value);
@@ -122,7 +118,6 @@ export function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}
             localStorage.setItem('message', content)
         }
     }
-
 
     function handleImageClick(e){
         var newFiles = e.target.files;
@@ -138,7 +133,7 @@ export function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}
         <>
         {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
         <div className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
-        justifyContent:'stretch',borderTop:'1px solid #e2eaf1',...style}}>
+        justifyContent:'stretch',borderTop:'1px solid #e2eaf1',zIndex:6,...style}}>
             <div>
                 <img src={context.currentBranch.branch_image} className="profile-picture" 
                 style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
@@ -213,7 +208,7 @@ function Toolbar({editor,updateMessages,ws,files,branch,room,value}){
                     },
                 }).then(response => {
                     axios.get(`/api/branches/${branch.uri}/chat_rooms/${room}/messages/${response.data.id}/`).then(response =>{
-                        updateMessages([response.data]);
+                        //updateMessages([response.data]);
                         console.log(response);
                     })
                     console.log(response);

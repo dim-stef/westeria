@@ -92,15 +92,14 @@ function BranchChildren({currentBranch}){
 }
 
 export function BranchList(props){
-    const context = useContext(UserContext)
-    
+    //style={{display:'flex', width:'100%',flexBasis:'33%',flexFlow:'column'}}
     function renderBranches(branches){
         return(
             branches.map((c,i)=>{
                 return [
                     
                     <MediaQuery query="(min-width: 1601px)" key={`${c.uri}-large`}>
-                        <div className="branch-container" style={{display:'flex', width:'100%',flexBasis:'33%',flexFlow:'column'}}>
+                        <div className="branch-container flex-fill">
                             <ChildBranch
                             style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
                             branch={c}>
@@ -110,7 +109,7 @@ export function BranchList(props){
                         </div>
                     </MediaQuery>,
                     <MediaQuery query="(max-width: 1600px)" key={`${c.uri}-small`}>
-                        <div className="branch-container" style={{display:'flex', width:'100%',flexBasis:'33%',flexFlow:'column'}}>
+                        <div className="branch-container flex-fill" >
                             <ChildBranch
                             style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
                             branch={c}>
@@ -176,21 +175,12 @@ export function AddBranch({branch,type='child'}){
         })
     }
 
-    let style={
-        marginTop:10,
-        display:'flex',
-        flexFlow:'column',
-        height:334,
-        backgroundColor:'rgb(216, 225, 234)',
-        justifyContent:'center',
-        alignItems:'center'
-    }
 
     return(
         
         <ToggleContent 
             toggle={show=>(
-                <div className="branch-add-button" role="button" onClick={onClick}>
+                <div className="branch-add-button branch-container flex-fill" style={{padding:10}} role="button" onClick={onClick}>
                     <AddBranchSvg width={100} height={100}/>
                     <h1 className="branch-add-text">{text}</h1>
                 </div>

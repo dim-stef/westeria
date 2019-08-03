@@ -82,14 +82,14 @@ export default class Register extends Component{
         }
         
         return(
-            <div className="main-layout" style={{fontSize: '2em', margin: '3em auto', width: '35%', textAlign: 'center'}}>
+            <div className="main-layout">
                 <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
                 <div className="form-container" style={{width: '70%', margin: 'auto', paddingBottom: '14px'}}>
                     <form onSubmit={this.handleSubmit} action="#" method="post" style={{color: 'black', paddingTop: '10px'}}>
-                    <input className="text" name="auth-name" placeholder="Name" required value={this.state.name} onChange={this.handleNameChange}/>
-                    <input className="text email" type="email" name="email" placeholder="Email" required style={{}} value={this.state.email} onChange={this.handleEmailChange}/>
-                    <input className="text" type="password" name="password1" placeholder="Password" required value={this.state.password1} onChange={this.handlePasswordChange1}/>
-                    <input className="text" type="password" name="password2" placeholder="Confirm Password" required value={this.state.password2} onChange={this.handlePasswordChange2}/>
+                    <input className="text auth-input" name="auth-name" placeholder="Name" required value={this.state.name} onChange={this.handleNameChange}/>
+                    <input className="text email auth-input" type="email" name="email" placeholder="Email" required value={this.state.email} onChange={this.handleEmailChange}/>
+                    <input className="text auth-input" type="password" name="password1" placeholder="Password" required value={this.state.password1} onChange={this.handlePasswordChange1}/>
+                    <input className="text auth-input" type="password" name="password2" placeholder="Confirm Password" required value={this.state.password2} onChange={this.handlePasswordChange2}/>
                     <div className="wthree-text" style={{marginTop: '20px'}}>
                         <p style={{margin: '10px', color: 'gray', fontSize: '0.8em'}}>By clicking Signup you are agreeing to our Terms and Conditions</p>
                         <div className="clear"> </div>

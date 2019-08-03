@@ -1,47 +1,19 @@
 import React , {useEffect,useState,useContext} from "react"
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import {UserContext,RefreshContext} from "../container/ContextContainer"
+import {UserContext,CachedBranchesContext} from "../container/ContextContainer"
+import {useMyBranches} from "../container/BranchContainer"
 import {SmallBranch} from "./Branch"
 import {SkeletonBranchList} from "./SkeletonBranchList";
 import axios from 'axios';
 
-export function MyBranchesColumnContainer({show=true}){
+export function MyBranchesColumnContainer({show=true,children}){
     const context = useContext(UserContext);
-    let initBranches = Object.keys(context.branches[0]).length==2?context.branches:[]
-    console.log("initBranches",initBranches,context.branches)
-    const [branches,setBranches] = useState(initBranches)
+    const branches = useMyBranches();
 
     function handleClick(branch){
         console.log(context.changeCurrentBranch)
         context.changeCurrentBranch(branch);
     }
-
-    async function getUserBranches(){
-        let newBranches = []
-        for await (const branch of context.branches){
-            let response = await axios.get(`/api/branches/${branch.uri}/`)
-            let data = await response.data;
-            //let newBranches = [...branches, data];
-            newBranches.push(data)
-            //console.log(branches,newBranches);
-            //setBranches(newBranches);
-            
-        }
-        console.log("branches",newBranches)
-        return newBranches
-    }
-
-    async function populateBranches(){
-        let branches = await getUserBranches();
-        context.branches = branches;
-        setBranches(branches);
-    }
-
-    useEffect(()=>{
-        if(branches.length>0){
-            populateBranches();
-        }
-    },[])
 
     if(branches.length>0 && show){
         return(
@@ -61,6 +33,7 @@ export function MyBranchesColumnContainer({show=true}){
         return <SkeletonBranchList/>
     }
 }
+
 
 
 function RightArrow(){

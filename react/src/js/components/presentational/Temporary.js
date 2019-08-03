@@ -82,6 +82,8 @@ function DescriptionBox({description}){
     )
 }
 
+import { CSSTransition,Transition } from 'react-transition-group';
+
 export const ToggleContent = ({ toggle, content }) => {
     const [isShown, setIsShown] = useState(false);
     const hide = () => setIsShown(false);

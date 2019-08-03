@@ -1,13 +1,10 @@
-import React, { Component,useState,useEffect,useContext } from "react";
+import React, { useState,useEffect,useContext } from "react";
 import axios from 'axios'
-import MediaQuery from 'react-responsive';
 import {Helmet} from "react-helmet";
 import {BranchList} from "../presentational/BranchesPage"
 import {BranchPage} from "../presentational/Routes"
 import {AddBranch} from "../presentational/BranchesPage"
-const uuidv1 = require('uuid/v1');
-import { Node, MobileGroups, BranchesPage } from "../presentational/Group";
-
+import {UserActionsContext,CachedBranchesContext,UserContext} from "./ContextContainer"
 
 export function BranchesPageContainer(props){
     const [branches,setBranches] = useState([]);
@@ -55,7 +52,7 @@ export function BranchesPageContainer(props){
         return (
         <>
             <BranchList branches={branches} ownsBranch={props.ownsBranch} viewedBranch={props.branch}/>
-            {fillerBox}
+            {/*fillerBox*/}
             {props.ownsBranch || props.type=='siblings'?null:<AddBranch branch={props.branch} type={props.type}/>}
             {pending.length>0 && props.ownsBranch?
             <>
@@ -71,8 +68,9 @@ export function BranchesPageContainer(props){
 
 export function BranchContainer(props){
     console.log("match",props)
+    const actionContext = useContext(UserActionsContext)
     const [branches,setBranches] = useState(null);
-    let branchUri = props.match.params.uri ? props.match.params.uri : 'global';
+    let branchUri = props.match.params.uri
 
     async function getBranches(branchUri){
         let uri;
@@ -86,211 +84,51 @@ export function BranchContainer(props){
 
     useEffect(()=>{
         console.log("remount2")
+        actionContext.lastPostListType = 'branch';
     },[])
 
     useEffect(() => {
-        
         getBranches(branchUri);
-
     },[branchUri])
 
     if(branches){
-        return <BranchPage externalId={props.externalId} branch={branches} match={props.match.params.uri ? props.match.params.uri : 'global'}/>
+        return <BranchPage externalPostId={props.match.params.externalPostId} branch={branches} match={branchUri}/>
     }else{
         return null
     }
 }
 
 
-export class GroupsContainer extends Component{
-    constructor(props){
-        super(props);
-        this.state = {
-            root:this.props.root,
-            branches:null,
+export function useMyBranches(){
+    const context = useContext(UserContext);
+    const cachedBranches = useContext(CachedBranchesContext);
+    const [gotData,setGotData] = useState(false);
+    const [branches,setBranches] = useState(cachedBranches.owned)
+
+    async function getUserBranches(){
+        let newBranches = []
+        for await (const branch of context.branches){
+            let response = await axios.get(`/api/branches/${branch.uri}/`)
+            let data = await response.data;
+            newBranches.push(data)
         }
+
+        cachedBranches.owned = newBranches;
+        setGotData(true);
+        return newBranches
     }
 
-    async collectGroups(branch, updateState){
-        let uri;
+    async function populateBranches(){
+        let branches = await getUserBranches();
+        context.branches = branches;
+        setBranches(branches);
+    }
 
-        uri = `/api/branches/${branch}/`
-        let parentResponse = await axios.get(uri, {withCredentials: true});
-        let parentData = parentResponse.data;
-
-        uri = `/api/branches/${branch}/children/?limit=10`;
-        let response = await axios.get(uri, {withCredentials: true});
-        let data = response.data;
-
-        let children = data.results.map(c => c)
-        let branches = {
-            parent:parentData,
-            children:children
+    useEffect(()=>{
+        if(branches.length == 0 && !gotData){
+            populateBranches();
         }
-        updateState(branches)
-    }
+    },[])
 
-    componentDidMount(){
-        this.collectGroups(this.state.root, (branches)=>{
-            this.setState({branches:branches})
-        })
-        
-    }
-
-    render(){
-        if(this.state.branches){
-            return <BranchesPage branches={this.props.branches}/>
-        }
-        return (null);
-    }
+    return branches
 }
-
-export class MobileGroupsContainer extends Component{
-    constructor(props){
-        super(props);
-        this.state = {
-            root:this.props.root,
-            branches:null,
-        }
-    }
-
-    async collectGroups(branch, updateState){
-        let uri;
-
-        uri = `/api/groups/${branch}/`
-        let parentResponse = await axios.get(uri, {withCredentials: true});
-        let parentData = parentResponse.data;
-
-        uri = `/api/groups/${branch}/children/?limit=10`;
-        let response = await axios.get(uri, {withCredentials: true});
-        let data = response.data;
-
-        let children = data.results.map(c => c)
-        let branches = {
-            parent:parentData,
-            children:children
-        }
-        updateState(branches)
-    }
-
-    componentDidMount(){
-        this.collectGroups(this.state.root, (branches)=>{
-            this.setState({branches:branches})
-        })
-        
-    }
-
-    render(){
-        if(this.state.branches){
-            console.log("state", this.state.branches)
-            return <MobileGroups branches={this.state.branches}/>
-        }
-        return (null);
-    }
-}
-
-
-
-export class NodeContainer extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            doneCollecting: false,
-            groups: [],
-            root: this.props.root,
-        }
-    }
-
-    async collectGroupsWrapper(group, callback) {
-        const results = await this.collectGroups(group)
-        const uri = '/api/groups/' + group + '/'
-        const respone = await axios.get(uri, {withCredentials: true})
-        var parentData = respone.data
-        var parent = Object.assign({}, respone.data); 
-        console.log(parent)
-        parentData.children = results.children;
-        parentData['key'] = uuidv1();
-        var wrapper = {
-            parent:parent,
-            children: [parentData]
-        }
-        console.log(wrapper)
-        
-        callback(wrapper);
-    }
-
-    async collectGroups(group, 
-        parents = { key: '', uri: '', id: '', name: '',group_banner:'', group_image:'',  children: [] }) {
-
-        var uri;
-
-        //uri = '/api/groups/' + group +'/children/?limit=10'
-        uri = `/api/groups/${group}/children/?limit=10`
-        var response = await axios.get(uri, {withCredentials: true})
-        var data = response.data;
-
-        /*const children = [];   ALTERNATIVE
-        for (const c of data.children) {
-          children.push(this.collectGroups(c, groups, wrapper));
-        }
-        await Promise.all(children);*/
-
-        data.results = await Promise.all(
-            data.results.map(async (c) => {
-                let child = {
-                    key:uuidv1(),
-                    uri:c.uri,
-                    id:c.id,
-                    name:c.name,
-                    description:c.description,
-                    group_banner:c.group_banner,
-                    group_image:c.group_image, 
-                    children:[]
-                }
-                parents.children.push(child);
-                return this.collectGroups(c.uri, child);
-            })
-        )
-
-        return parents;
-    }
-
-    componentDidMount() {
-        console.log("mount")
-        
-        jsPlumb.ready(function () {
-            jsPlumb.setContainer("tree");
-        });
-
-        this.collectGroupsWrapper(this.state.root, (groups) => {
-            this.setState(prevState => ({
-                ...prevState,
-                doneCollecting: true,
-                groups: groups,
-            }))
-        })
-    }
-
-    componentWillUnmount(){
-        jsPlumb.deleteEveryEndpoint();
-    }
-
-    render() { //TODO : runs 2 times if group buttons pressed (1 from updateNodeContainer, 1 from didupdate)
-        if (this.state.doneCollecting === true) {
-            return (
-                <div>
-                    <Node groups={this.state.groups} updateNodeContainer={this.updateNodeContainer} parent={this.state.groups.parent} key="node"/>
-                    <Helmet>
-                        <title>{this.state.groups.children[0].name} - Subranch Map</title>
-                        <meta name="description" content={`Check out ${this.state.groups.children[0].name} on Subranch map.`}/>
-                    </Helmet>
-                </div>
-            )
-        }
-        return (null);
-    }
-}
-
-/*const wrapper = document.getElementById("tree");
-wrapper ? ReactDOM.render(<NodeContainer root={"ROOT"} />, wrapper) : false;*/

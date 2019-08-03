@@ -1,14 +1,19 @@
 import React, { useState,useEffect,useContext,useRef,useCallback } from 'react';
 import ReactDOM from 'react-dom';
 import { List,WindowScroller,AutoSizer,CellMeasurer,CellMeasurerCache } from 'react-virtualized';
-import Measure from 'react-measure'
-import {Link} from 'react-router-dom'
+import Pullable from 'react-pullable';
+import { CSSTransition,Transition } from 'react-transition-group';
+import {isMobile} from 'react-device-detect';
+import {Link,NavLink} from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {RefreshContext,PostsContext,BranchPostsContext, UserContext} from "../container/ContextContainer"
+import {RefreshContext,PostsContext,AllPostsContext,BranchPostsContext, UserContext,UserActionsContext} from "../container/ContextContainer"
+import {MobileModal} from "./MobileModal"
+import {ToggleContent,Modal} from "./Temporary"
+import {SmallBranch} from "./Branch"
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import StatusUpdate from "./StatusUpdate"
-import {Post} from './SingularPost'
-import axios from 'axios'
+import {StatusUpdateAuthWrapper as StatusUpdate} from "./StatusUpdate"
+import {Post} from './SingularPost';
+import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
 axiosRetry(axios, 
@@ -20,31 +25,82 @@ axiosRetry(axios,
 let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
 
+function resetPostListContext(postsContext,props){
+    postsContext.hasMore = true;
+    postsContext.next = null;
+    postsContext.lastVisibleElement = null;
+    postsContext.lastVisibleIndex = 0;
+    postsContext.loadedPosts.length = 0;
+    postsContext.cachedPosts.length = 0;
+    postsContext.openPosts.length = 0;
+    postsContext.uniqueCached.length = 0;
+    postsContext.branchUri = props.branch;
+}
+
+function resetBranchPostsContext(postsContext,props){
+    postsContext.hasMore = true;
+    postsContext.next = null;
+    postsContext.lastVisibleElement = null;
+    postsContext.lastVisibleIndex = 0;
+    postsContext.loadedPosts.length = 0;
+    postsContext.cachedPosts.length = 0;
+    postsContext.openPosts.length = 0;
+    postsContext.uniqueCached.length = 0;
+    postsContext.branchUri = props.branch;
+}
 
 //const cache = [];
 
+function FrontPageList(){
+    const userContext = useContext(UserContext);
 
+    return(
+        <div className="flex-fill" style={{justifyContent:'space-around',WebkitJustifyContent:'space-around',
+        backgroundColor:'#08aeff'}}>
+            {userContext.isAuth?
+                <NavLink to="/" exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                Feed
+            </NavLink>:null}
+            
+            <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                All
+            </NavLink>
+            {userContext.isAuth?
+            <NavLink to="/popular" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                Followers Branches
+            </NavLink>:null}
+        </div>
+    )
+}
+/*pullDownToRefresh
+pullDownToRefreshThreshold={300}
+refreshFunction={refresh}
+pullDownToRefreshContent={
+    <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
+}
+releaseToRefreshContent={
+    <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
+}*/
 function DisplayPosts2({isFeed,posts,setPosts,
     postsContext,resetPostsContext,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh}){
 
     return(
-    <ul className="post-list">
+    <ul key={postsContext.branchUri} className="post-list">
+        {postsContext.content=='feed'?<FrontPageList/>:null}
+        <Pullable
+            onRefresh={refresh}
+            centerSpinner={false}
+            spinnerColor="#2196F3"
+            >
         <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
-        resetPostsContext={resetPostsContext}/>
+        resetPostsContext={resetPostsContext} fetchData={fetchData}/>
         <StatusUpdate postsContext={postsContext} updateFeed={updateFeed} postedId={postedId} key={postedId}/>
         {posts.length>0?
+            
         <InfiniteScroll
-            pullDownToRefresh
-            pullDownToRefreshThreshold={300}
-            refreshFunction={refresh}
-            pullDownToRefreshContent={
-                <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
-            }
-            releaseToRefreshContent={
-                <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
-            }
+            
             dataLength={posts.length}
             next={fetchData}
             hasMore={hasMore}
@@ -90,7 +146,8 @@ function DisplayPosts2({isFeed,posts,setPosts,
                     }   
                 )
             */}
-        </InfiniteScroll>:
+        </InfiniteScroll>
+        :
             hasMore?[...Array(8)].map((e, i) => 
             <div key={i} style={{width:'100%',marginTop:10}}>
                 <div style={{backgroundColor:'white',padding:'10px'}}>
@@ -109,6 +166,7 @@ function DisplayPosts2({isFeed,posts,setPosts,
                 </div>
             </div>
             ):<p>Nothing seems to be here :/</p>}
+            </Pullable>
     </ul>
     )
 }
@@ -122,54 +180,58 @@ const cache = new CellMeasurerCache({
 const cache2 = new CellMeasurerCache({
     fixedWidth: true,
     minHeight: 25,
-    defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
+    defaultHeight: 500
 })
 
-/*
-containerStyle={{
-        width: "100%",
-        maxWidth: "100%"
-    }}
-        style={{
-        width: "100%"
-    }} */
+const allPostsCache = new CellMeasurerCache({
+    fixedWidth: true,
+    minHeight: 25,
+    defaultHeight: 500
+})
 
 function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo}){
     const ref = useRef(null);
     const cellRef = useRef(null);
+    const [previousWidth,setPreviousWidth] = useState(0);
+    let usingCache = cache //default;
+
+    if(postsContext.content=="feed"){
+        usingCache = cache;
+    }else if(postsContext.content=="branch"){
+        usingCache = cache2;
+    }else if(postsContext.content=="all"){
+        usingCache = allPostsCache;
+    }
 
     useEffect(()=>{
         console.log("ref",ref)
         if(ref){
-            console.log("ref",ref.current)
-            ref.current.scrollToRow(isFeed?postsContext.lastVisibleIndex:0);
-            //listRef.current.recomputeRowHeights();
+            ref.current.scrollToRow(postsContext.lastVisibleIndex);
+            ref.current.scrollToPosition(postsContext.scroll);
         }
     },[ref])
 
-    useEffect(()=>{
-        if(ref){
-            console.log("recompute",ref.current)
-            //ref.current.recomputeRowHeights();
-            //listRef.current.recomputeRowHeights();
-        }
+    function onScroll(scroll){
+        postsContext.scroll = scroll.scrollTop;
+    }
 
-        if(cellRef){
-            console.log("cellRef",cellRef)
-        }
-    })
-
+    //let lastVisibleIndex = Math.ceil(postsContext.lastVisibleIndex);
     return(
-        <WindowScroller>
+        <WindowScroller
+        onScroll={onScroll}>
             {({ height, isScrolling, onChildScroll, scrollTop }) => (
                 <AutoSizer 
                 disableHeight
                 onResize={({ width }) => {
                     if(ref){
-                        console.log("resize")
-                        cache.clearAll();
-                        cache2.clearAll()
-                        ref.current.recomputeRowHeights();
+                        if(previousWidth!=0){
+                            console.log("clearcache",width,previousWidth,ref)
+                            cache.clearAll();
+                            cache2.clearAll();
+                            allPostsCache.clearAll();
+                            ref.current.recomputeRowHeights();
+                        }
+                        setPreviousWidth(width);
                     }
                 }}>
                 { ({ width }) =>
@@ -181,12 +243,11 @@ function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo})
                 onScroll={onChildScroll}
                 scrollTop={scrollTop}
                 rowCount={posts.length}
-                deferredMeasurementCache={postsContext.content=='feed'?cache:cache2}
-                rowHeight={postsContext.content=='feed'?cache.rowHeight:cache2.rowHeight}
+                deferredMeasurementCache={usingCache}
+                rowHeight={usingCache.rowHeight}
                 ref={ref}
                 rowRenderer={
                     ({ index, key, style, parent }) =>{
-                    console.log("postsContext",postsContext,width)
                     let post = posts[index];
                     let isOpen = postsContext.openPosts.some(id=> id == post.id)
                     let props = {
@@ -203,7 +264,7 @@ function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo})
                         <CellMeasurer
                         ref={cellRef}
                         key={[post.id,post.spreaders,postsContext.content]}
-                        cache={postsContext.content=='feed'?cache:cache2}
+                        cache={usingCache}
                         parent={parent}
                         width={width}
                         columnIndex={0}
@@ -234,11 +295,22 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-export const FinalDisplayPosts = ({postsContext,branch,isFeed,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,resetPostsContext,activeBranch,postedId,externalId=null})=>{
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
+    const userContext = useContext(UserContext);
+    const userActionsContext = useContext(UserActionsContext)
 
-    console.log("refresh",refreshContext);
+    let usingCache = cache //default;
+
+    if(postsContext.content=="feed"){
+        usingCache = cache;
+    }else if(postsContext.content=="branch"){
+        usingCache = cache2;
+    }else if(postsContext.content=="all"){
+        usingCache = allPostsCache;
+    }
+
     function buildQuery(baseUri,params){
         if(params){
             var esc = encodeURIComponent;
@@ -259,6 +331,16 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,resetPostsContext,
         let endpoint = isFeed?'feed':'posts'
         let uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/${endpoint}`,postsContext.params);
 
+        if(isAll){
+            if(userContext.isAuth){
+                uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/posts/all/`,postsContext.params);
+            }else{
+                uri = postsContext.next?postsContext.next:buildQuery(`/api/posts/all/`,postsContext.params);
+            }
+        }
+
+        console.log("uri",uri)
+
         const response = await axios(uri,{
             cancelToken: source.token
           });
@@ -276,36 +358,32 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,resetPostsContext,
             setPosts([...posts,...response.data.results]);
             //setNext(response.data.next);
             postsContext.next = response.data.next;
-            console.log("next",response.data.next)
         }
     };
 
     useEffect(()=>{
-        console.log("postscontext",isFeed,postsContext,resetPostsContext)
+        if(postsContext.loadedPosts.length==0 || postsContext.branchUri != branch){
+            resetPostsContext();
+            setPosts([])
+            fetchData();
+            //cache.clearAll()
+            //cache2.clearAll()
+            console.log("branchsetBranchPostsRefresh",branch,postsContext)
+        }
         if(isFeed){
-            if(postsContext.loadedPosts.length==0 || postsContext.branchUri != branch){
-                resetPostsContext(branch);
-                setPosts([])
-                fetchData();
-                postsContext.branchUri = branch;
-                cache.clearAll()
-            }
-            refreshContext.setFeedRefresh(() => ()=>{
+            refreshContext.feedRefresh = () =>{
+                console.log("called1")
                 source.cancel('Operation canceled by the user.');
                 CancelToken = axios.CancelToken;
                 source = CancelToken.source();
                 resetPostsContext(branch);
                 fetchData();
                 setPosts([]);
-                cache.clearAll()
-            });
+                //cache.clearAll()
+            };
+            console.log("changeFeed",refreshContext)
         }else{
-            setPosts([])
-            resetPostsContext();
-            fetchData();
-            cache2.clearAll()
-
-            refreshContext.setBranchPostsRefresh(() => ()=>{
+            refreshContext.branchPostsRefresh = function(){
                 source.cancel('Operation canceled by the user.');
                 CancelToken = axios.CancelToken;
                 source = CancelToken.source();
@@ -313,33 +391,43 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,resetPostsContext,
                 fetchData();
                 setPosts([]);
                 cache2.clearAll()
-            });
+            };
         }
     },[branch])
 
     useEffect(()=>{
-        return()=>{
-            if(!isFeed){
-                resetPostsContext();
-            }
-        }
-    })
+        console.log("opis",postsContext);
+    },[postsContext])
 
     useEffect(()=>{
         refreshContext.page = isFeed?'feed':'branch';
     },[])
 
+    useEffect(()=>{
+        console.log("changedposts",posts)
+    },[posts])
+
+    const refresh = useCallback(()=>{
+        console.log("clearcache",usingCache);
+        usingCache.clearAll();
+        source.cancel('Operation canceled by the user.');
+        CancelToken = axios.CancelToken;
+        source = CancelToken.source();
+        resetPostsContext(branch);
+        setPosts([]);
+        fetchData();
+    },[postsContext]);
+
     const updateFeed = useCallback(
-        (newPosts) => {
-            postsContext.loadedPosts = [...newPosts,...postsContext.loadedPosts];
-            setPosts(newPosts.concat(posts))
+        (newPost) => {
+            postsContext.loadedPosts = [newPost,...postsContext.loadedPosts];
+            setPosts([newPost,...posts])
         },
-        [posts], // list of params on which the callback should be recreated, this array might also stay blank
+        [posts],
     );
 
-
     return(
-        <DisplayPosts2 isFeed={isFeed} refresh={isFeed?refreshContext.feedRefresh:refreshContext.branchPostsRefresh}
+        <DisplayPosts2 isFeed={isFeed} refresh={refresh}
         updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
         posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
         activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
@@ -347,43 +435,47 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,resetPostsContext,
     )
 }
 
+
 export function FeedPosts(props){
     const postsContext = useContext(PostsContext);
+    const branchPostsContext = useContext(BranchPostsContext);
 
-    function resetPostsContext(newBranch){
-        console.log("reset")
-        postsContext.hasMore = true;
-        postsContext.next = null;
-        postsContext.lastVisibleElement = null;
-        postsContext.lastVisibleIndex = 0;
-        //postsContext.loadedPosts = [];
-        //postsContext.loadedPosts.splice(0,postsContext.loadedPosts.length)
-        postsContext.loadedPosts.length = 0;
-        postsContext.cachedPosts.length = 0;
-        postsContext.openPosts.length = 0;
-        postsContext.uniqueCached.length = 0;
-        postsContext.branchUri = props.branch;
-    }
+    useEffect(()=>{
+        resetBranchPostsContext(branchPostsContext,props);
+    },[])
 
     return(
-        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={resetPostsContext}/>
+        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
+    )
+}
+
+export function AllPosts(props){
+    const allPostsContext = useContext(AllPostsContext);
+    const branchPostsContext = useContext(BranchPostsContext);
+
+    useEffect(()=>{
+        resetBranchPostsContext(branchPostsContext,props);
+    },[])
+
+    return(
+        <FinalDisplayPosts {...props} isAll postsContext={allPostsContext} resetPostsContext={()=>resetPostListContext(allPostsContext,props)}/>
     )
 }
 
 export function BranchPosts(props){
     const postsContext = useContext(BranchPostsContext);
 
-    function resetPostsContext(){
-        postsContext.hasMore = true;
-        postsContext.next = null;
-        postsContext.loadedPosts = [];
-        postsContext.cachedPosts.length = 0;
-        postsContext.openPosts.length = 0;
-        postsContext.uniqueCached.length = 0;
-    }
+    useEffect(()=>{
+        console.log("render")
+        if(postsContext.branchUri != props.branch){
+            
+            resetBranchPostsContext(postsContext,props);
+            console.log('reset',postsContext)
+        }
+    },[postsContext.branchUri])
 
     return(
-        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={resetPostsContext}/>
+        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetBranchPostsContext(postsContext,props)}/>
     )
 }
 
@@ -559,10 +651,7 @@ export const DisplayPosts3 = (props)=>{
 
 
 
-function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunction}){
-    const userContext = useContext(UserContext);
-    //const postsContext = useContext(PostsContext)
-    const refreshContext = useContext(RefreshContext);
+function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunction,fetchData}){
     const [params,setParams] = useState(postsContext.params || null);
 
     function shallowCompare(obj1, obj2){
@@ -588,19 +677,16 @@ function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunc
     useEffect(()=>{
         console.log("params", params , postsContext.params)
         if(!shallowCompare(params , postsContext.params)){
-            console.log("same2",shallowCompare(params , postsContext.params))
-            resetPostsContext(userContext.currentBranch.uri);
+            console.log("same2",shallowCompare(params , postsContext.params),refreshFunction)
             postsContext.params = params;
-            setPosts([]);
             refreshFunction();
         }
-
         postsContext.params = params;
     },[params])
 
     return(
         <div className="flex-fill" 
-        style={{backgroundColor:'rgb(33, 158, 243)',marginBottom:10,height:50,
+        style={{height:50,
         justifyContent:'space-evenly',alignItems:'center'}}>
             <ContentTypeFilter setParams={setParams} params={params} 
             defaultOption={postsContext.params?postsContext.params.content:null}/>
@@ -608,32 +694,11 @@ function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunc
             defaultOption={postsContext.params?postsContext.params.ordering:null}/>
             <TimeFilter setParams={setParams} params={params} 
             defaultOption={postsContext.params?postsContext.params.past:null}/>
-            <ActionArrow/>
+            <ActionArrow refresh={refreshFunction}/>
         </div>
     )
 }
 
-function ContextlessFilterPosts({setNewParams}){
-    const [params,setParams] = useState(null);
-
-    useEffect(()=>{
-        if(params){
-            console.log("inparams",params)
-            setNewParams(params);
-        }
-    },[params])
-
-    return(
-        <div className="flex-fill" 
-        style={{backgroundColor:'rgb(33, 158, 243)',marginBottom:10,height:50,
-        justifyContent:'space-evenly',alignItems:'center'}}>
-            <ContentTypeFilter setParams={setParams} params={params}/>
-            <AlgorithmFilter setParams={setParams} params={params}/>
-            <TimeFilter setParams={setParams} params={params}/>
-            <ActionArrow/>
-        </div>
-    )
-}
 
 var cumulativeOffset = function(element) {
     var top = 0, left = 0;
@@ -649,7 +714,7 @@ var cumulativeOffset = function(element) {
     };
 };
 
-function ActionArrow(){
+function ActionArrow({refresh}){
     const context = useContext(RefreshContext);
     const ref = useRef(null);
     const [navigationTopPosition,setNavigationTopPosition] = useState(0);
@@ -673,8 +738,7 @@ function ActionArrow(){
 
     function onClick(){
         if(windowScroll<navigationTopPosition + 1){
-            console.log(context.refresh)
-            context.refresh();
+            refresh();
         }else{
             window.scrollTo({ top: navigationTopPosition, behavior: 'smooth' });
         }
@@ -736,26 +800,48 @@ function TimeFilter({setParams,params,defaultOption}){
     )
 }
 
-function DropdownList({options,defaultOption,name,setParams,params,label}){
+export function DropdownList({type="text",component=null,options,defaultOption,name,
+setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',children}){
     const [selected,setSelected] = useState(defaultOption)
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
+    const Component = component;
+    const userContext = useContext(UserContext);
 
-    function handleClick(e){
-        setOpen(!isOpen);
+    function handleClick(e,show){
+        if(isMobile){
+            setOpen(true);
+            show();
+        }else{
+            setOpen(!isOpen);
+        }
+    }
+
+    function handleHide(hide){
+        setOpen(false);
     }
 
     function handleOutsideClick(e){
-        let childNodes = [...ref.current.childNodes]
-        if(childNodes.every(c=>{
-            return e.target!=c 
-        }) && e.target !=ref.current){
-            setOpen(false);
+        if(ref.current){
+            let childNodes = [...ref.current.childNodes]
+            if(childNodes.every(c=>{
+                return e.target!=c 
+            }) && e.target !=ref.current){
+                setOpen(false);
+            }
         }
     }
 
     useEffect(()=>{
-        setParams({...params,[label]:selected})
+        if(type=="text"){
+            setParams({...params,[label]:selected})
+        }else{
+            if(changeCurrentBranch){
+                userContext.changeCurrentBranch(selected);
+            }else{
+                setBranch(selected)
+            }
+        }
     },[selected])
 
     useEffect(()=>{
@@ -767,24 +853,38 @@ function DropdownList({options,defaultOption,name,setParams,params,label}){
     },[])
 
     return (
-        <div className="filter-selector-wrapper">
-            <div ref={ref} id={`${name}-filter`} className="flex-fill filter-selector" onClick={handleClick}>
-                <span style={{color:'white'}}>{selected.label}</span>
-                <DownArrowSvg/>
-            </div>
-            
-            {isOpen?<div className="flex-fill filter-dropdown">
-                {options.map(op=>{
-                    /*let style = op.value==selected.value?{backgroundColor:'#e2eaf1'}:null
-                    return(
-                        <span style={{...style}} 
-                        onClick={()=>handleSelect(op.value)} 
-                        className="filter-dropdown-item">{op.label}</span>
-                    )*/
-                    return <DropdownItem setSelected={setSelected} selected={selected} option={op}/>
-                })}
-            </div>:null}
-        </div>
+        <ToggleContent 
+            toggle={show=>(
+                <div className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}>
+                    {preview?
+                    <div ref={ref} id={`${name}-filter`} className="flex-fill filter-selector" 
+                    onClick={e=>handleClick(e,show)}>
+                        {type=="text"?<span style={{color:'#585858'}}>{selected.label}</span>:
+                        <SmallBranch branch={selected} isLink={false}/>}
+                        <DownArrowSvg/>
+                    </div>:
+                    <div onClick={e=>handleClick(e,show)}>{children}</div>}
+                    
+                    {isOpen && !isMobile?<div className="flex-fill filter-dropdown">
+                        {options.map(op=>{
+                            let props = {setSelected:setSelected, selected:selected, option:op}
+                            return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>
+                        })}
+                    </div>:null}
+                </div>
+            )}
+            content={hide => (
+            <Modal onClick={handleHide}>
+                <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
+                    <MobileModal>
+                        {options.map(op=>{
+                            let props = {setSelected:setSelected, selected:selected, option:op}
+                            return type=="text"?<DropdownItem {...props}/>:<Component  {...props}/>
+                        })}
+                    </MobileModal>
+                </CSSTransition>
+            </Modal>    
+            )}/>
     )
 }
 
@@ -807,7 +907,7 @@ function DownArrowSvg(){
         y="0px"
         viewBox="0 0 41.999 41.999"
         style={{ enableBackground: "new 0 0 41.999 41.999",
-        height:12,width:12,transform: 'rotate(90deg)',fill:'white',paddingLeft:6}}
+        height:7,width:7,transform: 'rotate(90deg)',fill:'#585858',paddingLeft:6}}
         xmlSpace="preserve"
         >
         <path
@@ -832,7 +932,7 @@ function TopArrowSvg(){
                 enableBackground: "new 0 0 493.348 493.349",
                 width: 21,
                 height: 21,
-                fill:'white'
+                fill:'#585858'
             }}
             xmlSpace="preserve"
             >
@@ -853,11 +953,10 @@ function RefreshArrowSvg(){
             width="305.836px"
             height="305.836px"
             viewBox="0 0 305.836 305.836"
-            style={{ width: 21, height: 21, fill: "white" }}
+            style={{ width: 21, height: 21, fill: "#585858" }}
             xmlSpace="preserve"
             >
             <path d="M152.924 300.748c84.319 0 152.912-68.6 152.912-152.918 0-39.476-15.312-77.231-42.346-105.564 0 0 3.938-8.857 8.814-19.783 4.864-10.926-2.138-18.636-15.648-17.228l-79.125 8.289c-13.511 1.411-17.999 11.467-10.021 22.461l46.741 64.393c7.986 10.992 17.834 12.31 22.008 2.937l7.56-16.964c12.172 18.012 18.976 39.329 18.976 61.459 0 60.594-49.288 109.875-109.87 109.875-60.591 0-109.882-49.287-109.882-109.875 0-19.086 4.96-37.878 14.357-54.337 5.891-10.325 2.3-23.467-8.025-29.357-10.328-5.896-23.464-2.3-29.36 8.031C6.923 95.107 0 121.27 0 147.829c0 84.319 68.602 152.919 152.924 152.919z" />
         </svg>
     )
 }
-DisplayPosts3.whyDidYouRender = true;

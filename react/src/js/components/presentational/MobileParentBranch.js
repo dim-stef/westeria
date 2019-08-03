@@ -11,10 +11,15 @@ import axios from 'axios'
 export function BranchPageWrapper({branch,children}){
     const ref = useRef(null);
     const [left,setLeft] = useState(0);
+    const [imageHeight,setImageHeight] = useState(0);
 
     useLayoutEffect(()=>{
         let offsetLeft = ref.current.offsetLeft;
         setLeft(offsetLeft);
+
+        // same height as width
+        let height = ref.current.clientWidth;
+        setImageHeight(height);
     },[ref])
 
     return(
@@ -40,12 +45,12 @@ export function BranchPageWrapper({branch,children}){
                 }} src={branch.branch_banner}></img>
             </div>
             <img ref={ref} style={{
-                    width: 130,
-                    height:130,
+                    width: '27%',
+                    height: imageHeight,
                     objectFit:'cover',
                     borderRadius: '50%',
                     position: 'absolute',
-                    bottom: '-35%',
+                    bottom: '-40%',
                     left: '3%',
                     border: '4px solid white'
             }} src={branch.branch_image}></img>
@@ -115,10 +120,14 @@ function Uri({uri}){
 
 function NavigationTabs({branch}){
     return(
-        <div className="flex-fill">
-            <NavLink to={`/${branch.uri}`}
-            style={{textDecoration:'none',color:'black',textAlign:'center',fontWeight:'bold',fontSize:'2rem'}}
+        <div className="flex-fill" style={{justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',
+        WebkitAlignItems:'center',padding:10}}>
+            <NavLink exact to={`/${branch.uri}`}
+            style={{textDecoration:'none',color:'black',textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Posts</NavLink>
+            <NavLink to={`/${branch.uri}/branches`}
+            style={{textDecoration:'none',color:'black',textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
+            activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Branches</NavLink>
         </div>
     )
 }

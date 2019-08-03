@@ -4,7 +4,6 @@ import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
 import ReactPlayer from 'react-player'
 import ReactDOM from 'react-dom';
-import { setIn } from "immutable";
 
 const Modal = ({ children ,onClick}) => (
     ReactDOM.createPortal(
@@ -163,10 +162,22 @@ export function Images(props){
         </div>
     )
 }
+
 import SwipeableViews from 'react-swipeable-views';
 
 export function Images2(props){
-    function calcPadding(image){
+
+    function getTallerElement(){
+        let heights = props.images.map(im=>{
+            return im.height;
+        })
+
+        let max = Math.max(...heights);
+        return props.images.find(im=>im.height==max);
+    }
+
+    function calcPadding(){
+        let image = getTallerElement();
         let height = image.height;
         let width = image.width;
         let ratio = height/width;
@@ -180,6 +191,9 @@ export function Images2(props){
             }
             style = {...style,width:width}
         }*/
+        if(props.videos.length>0 && ratio<0.56){
+            paddingTop = '56%';
+        }
         return paddingTop;
     }
 
@@ -217,6 +231,7 @@ export function Images2(props){
     function decrementIndex(){
         setIndex(index - 1);
     }
+    
     let maxHeight=620;
 
     useEffect(()=>{
@@ -246,15 +261,14 @@ export function Images2(props){
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
                     <SwipeableViews index={isTouchScreen?0:index} onChangeIndex={handleChangeIndex} disableLazyLoading
-                    
                     slideStyle={{position:'relative',overflow:'hidden'}}>
                         {props.images.map(img=>{
-                            return <div key={img.image}><ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
+                            return <div key={img.image} onTouchStart={event => event.preventDefault()}><ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft}
                             /></div>
                         })}
                         {props.videos.map(vid=>{
-                            return <div key={vid.id}><VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
+                            return <div key={vid.id} onTouchStart={event => event.preventDefault()}><VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
                             /></div>
                         })}
@@ -271,7 +285,7 @@ function VideoComponent({src,thumbnail,width}){
     let height = width / (16/9);
 
     return(
-        <div onClick={e=>e.stopPropagation()}>
+        <div onClick={e=>{e.stopPropagation()}}>
             <ReactPlayer pip={false} 
              width={width} height={height} url={src} volume={0} muted controls playing light={thumbnail}
              config={{ file: { attributes: { controlsList: 'nodownload',disablepictureinpicture: 'true' } } }}>
@@ -330,6 +344,7 @@ function ImageComponent({src,maxHeight,width,height}){
                         offsetVertical={500}
                         >
                         <img onClick={e=>{
+                            e.preventDefault();
                             handleModalOpen(e,show)}} style={{width:'100%',
                         objectFit:'cover',maxHeight:maxHeight,backgroundColor:'black',position:'absolute',
                         top:'50%',right:'50%',transform:'translate(50%,-50%)'}} src={src}/>

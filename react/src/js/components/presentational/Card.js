@@ -73,7 +73,7 @@ export function FollowButton({id,uri,style=null}){
 
     let clsName;
     let initFollowing;
-    if(context.currentBranch.follows.includes(uri)){
+    if(context.isAuth && context.currentBranch.follows.includes(uri)){
         clsName = 'following-secondary'
         initFollowing= true
     }
@@ -85,7 +85,7 @@ export function FollowButton({id,uri,style=null}){
     const [following,setFollowing] = useState(initFollowing);   
 
     useEffect(()=>{
-        if(context.currentBranch.follows.includes(uri)){
+        if(context.isAuth && context.currentBranch.follows.includes(uri)){
             setClassName('following-secondary')
             setFollowing(true)
         }
@@ -96,6 +96,10 @@ export function FollowButton({id,uri,style=null}){
     },[uri])
 
     function onClick(){
+        if(!context.isAuth){
+            return;
+        }
+        
         var url = `/api/branches/add_follow/${context.currentBranch.uri}/`;
         if(following){
             url = `/api/branches/remove_follow/${context.currentBranch.uri}/`;
@@ -110,7 +114,7 @@ export function FollowButton({id,uri,style=null}){
             {
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
+                'X-CSRFToken': getCookie('csrftoken')
             },
             withCredentials: true,
         }).then(response => {

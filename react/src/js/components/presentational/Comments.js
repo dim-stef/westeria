@@ -106,21 +106,49 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
     )
 }
 
-
-
-export function ReplyTree({currentPost,topPost,parentPost,postsContext,activeBranch,commentIds,isStatusUpdateActive,viewAs="reply"}){
+export function ReplyTree({currentPost,topPost,
+    postsContext,activeBranch,isStatusUpdateActive,viewAs="reply"}){
     const [comments,setComments] = useState([]);
     const [justGotCached,setGotCached] = useState(false);
+    const [hasMore,setHasMore] = useState(true);
+    const [next,setNext] = useState(null);
+    const [viewAll,setViewAll] = useState(false);
+
     const didMount = useRef(null)
     function measure(){
         return
     }
     //const postsContext = useContext(PostsContext);
-    console.log("postscontext",comments,postsContext)
+    console.log("currentPost1",currentPost,currentPost.replies)
 
     let inCache = postsContext.cachedPosts.some(post=>{
         return currentPost.replies.some(id=>post.id==id)
     })
+
+    function handleClick(){
+        setViewAll(true);
+    }
+
+    const fetchData = async () =>{
+        if(!hasMore){
+            return
+        }
+
+        let uri = next?next:`/api/post/${currentPost.id}/replies/`;
+        let response = await axios.get(uri);
+
+        if(!response.data.next){
+            setHasMore(false);
+        }
+
+        if(!inCache){
+            postsContext.cachedPosts = [...postsContext.cachedPosts,...response.data.results];
+            setGotCached(true);
+        }
+
+        setNext(response.data.next)
+        setComments([...comments,...response.data.results])
+    };
 
     useEffect(()=>{
         console.log("incache",inCache)
@@ -129,27 +157,13 @@ export function ReplyTree({currentPost,topPost,parentPost,postsContext,activeBra
             measure();
         }
 
-        const fetchData = async () =>{
-            let uri = `/api/post/${currentPost.id}/replies/`;
-            let response = await axios.get(uri);
-
-            
-            setComments(response.data.results)
-
-            if(!inCache){
-                postsContext.cachedPosts = [...postsContext.cachedPosts,...response.data.results];
-                setGotCached(true);
-            }
-        };
-
-        // try to find post in cached posts
-        
-
         console.log("cached",inCache,postsContext)
 
         if(inCache.length>0){
-            setComments(inCache)
+            //setComments(inCache)
         }else{
+            console.log("fetchdata2")
+            console.log("currentPost2",currentPost,currentPost.replies)
             fetchData();
         }
     },[])
@@ -162,8 +176,15 @@ export function ReplyTree({currentPost,topPost,parentPost,postsContext,activeBra
         }
     },[justGotCached])
 
+    useEffect(()=>{
+        if(viewAll && next != null){
+            console.log("fetchdata1",viewAll,next)
+            fetchData();
+        }
+    },[comments,viewAll])
+
     const updateFeed = useCallback(newComments=>{
-        setComments(newComments.concat(comments))
+        setComments([newComments,...comments])
     },[comments])
     
     let last = false;
@@ -177,32 +198,33 @@ export function ReplyTree({currentPost,topPost,parentPost,postsContext,activeBra
     if(currentPost.level - 1 == topPost.level){
         marginLeft = 0;
     }else{
-        marginLeft = 33;
+        marginLeft = 10;
         borderLeft='3px solid #e2eaf1';
     }
     console.log("postscontext",comments,postsContext)
+/*{isStatusUpdateActive?<StatusUpdate replyTo={currentPost.id} postsContext={postsContext} currentPost={currentPost} 
+            measure={measure} replyTo={post.id}
+            style={{borderTop:'1px solid rgb(199, 210, 219)',borderBottom:'1px solid rgb(199, 210, 219)'}}/>:null}*/
     return(
-        <div ref={didMount} style={{marginTop:10}}>
-            {isStatusUpdateActive?<StatusUpdate postsContext={postsContext} currentPost={currentPost} 
-            updateFeed={updateFeed} measure={measure} replyTo={post.id}
-            style={{borderTop:'1px solid rgb(199, 210, 219)',borderBottom:'1px solid rgb(199, 210, 219)'}}/>:null}
+        <div ref={didMount} style={{marginTop:10}} key={currentPost.id}>
+            
             <ul style={{listStyle:'none',padding:0}}>
-                <li key={currentPost.id} style={{marginLeft:marginLeft,borderLeft:borderLeft}}>
+                <li style={{marginLeft:marginLeft,borderLeft:borderLeft}}>
                     <Post isOpen={true} post={currentPost} postsContext={postsContext} 
-                    measure={measure} activeBranch={activeBranch} 
-                    updateFeed={updateFeed} lastComment={last} viewAs="reply"/>
+                    measure={measure} activeBranch={activeBranch} updateTree={updateFeed}
+                    lastComment={last} viewAs="reply"/>
                     {comments.map((c,i)=>{
-                    return (
-                        <ReplyTree topPost={topPost} parentPost={currentPost} currentPost={c} postsContext={postsContext} activeBranch={activeBranch}
-                        isStatusUpdateActive={false}/>
-                    )
-                })}
+                        return (
+                            <div key={c.id}>
+                                <ReplyTree topPost={topPost} parentPost={currentPost} currentPost={c} 
+                                postsContext={postsContext} activeBranch={activeBranch}
+                                isStatusUpdateActive={isStatusUpdateActive}/>
+                            </div>
+                        )
+                    })}
+                    {hasMore && next && !viewAll?<button onClick={handleClick}>View more</button>:null}
                 </li>
             </ul>
         </div>
     )
-}
-
-function ImmidiateComment(){
-
 }

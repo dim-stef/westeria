@@ -29,9 +29,7 @@ export const Page = React.memo(function Page(props){
             <Mobile>
                 <MobileNavigationBar/>
             </Mobile>*/}
-            
-            <div style={{marginTop:60}}>
-            
+            <div>
                 <div id="main-wrapper" className="main-wrapper">
                     <div id="wide-content-container" className="wide-content-container">
                         {props.children}

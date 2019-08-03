@@ -91,7 +91,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from room group
     async def chat_message(self, event):
-        print("innnnnnnnnnnnnnnnnnnnnn")
+        print("innnnnnnnnnnnnnnnnnnnnn", event)
         message = event['message']
         images = event['images']
         videos = event['videos']

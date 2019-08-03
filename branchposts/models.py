@@ -39,7 +39,7 @@ def calculate_score(votes,spreads, item_hour_age, gravity=1.8):
 def uuid_int():
     uid = uuid.uuid4()
     uid = str(uid.int)
-    return uid[0:16]
+    return uid[0:15]
 
 
 class Post(models.Model):
@@ -158,8 +158,10 @@ class Spread(models.Model):
 
 class React(models.Model):
     TYPE_STAR = 'star'
+    TYPE_DISLIKE = 'dislike'
     TYPE_CHOICES = (
         (TYPE_STAR, 'Star'),
+        (TYPE_DISLIKE, 'Dislike'),
     )
 
     type = models.CharField(
@@ -180,20 +182,23 @@ class React(models.Model):
     def __str__(self):
         return "%s reacted to %s" %(self.branch.uri,self.post)
 
+
 class Star(models.Model):
     react = models.OneToOneField(React,on_delete=models.CASCADE,related_name="stars")
+
+class Dislikes(models.Model):
+    react = models.OneToOneField(React,on_delete=models.CASCADE,related_name="dislikes")
 
 
 @receiver(post_save, sender=Post, dispatch_uid="update_post")
 def update_post_score(sender, instance, **kwargs):
-    for post in Post.objects.all():
-     naive = post.created.replace(tzinfo=None)
-     post.hot_score = hot(post.reacts.filter(type="star").count(),post.spreads.count(), naive)
-     post.save()
+     naive = instance.created.replace(tzinfo=None)
+     instance.hot_score = hot(instance.reacts.filter(type="star").count(),instance.spreads.count(), naive)
+     instance.save()
          
 @receiver(post_save, sender=React, dispatch_uid="update_react")
 def update_post_score(sender, instance, **kwargs):
-    for post in Post.objects.all():
-     naive = post.created.replace(tzinfo=None)
-     post.hot_score = hot(post.reacts.filter(type="star").count(),post.spreads.count(), naive)
-     post.save()
+     naive = instance.post.created.replace(tzinfo=None)
+     instance.post.hot_score = hot(instance.post.reacts.filter(type="star").count(),
+                                   instance.post.spreads.count(), naive)
+     instance.post.save()

@@ -2,6 +2,7 @@ import React, { Component, useState,useEffect,useRef,useContext } from "react";
 import {Link, NavLink } from "react-router-dom"
 import Responsive from 'react-responsive';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import ReconnectingWebSocket from 'reconnecting-websocket';
 import {UserContext} from "../container/ContextContainer"
 import {FrontPageLeftBar} from "./FrontPage"
 import {Desktop,Tablet,Mobile} from "./Responsive"
@@ -25,8 +26,9 @@ export function NotificationsContainer({inBox}){
 
 
     function connectToWebsocket(){
-        var chatSocket = new WebSocket(
-            'ws://' + window.location.host +
+        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var chatSocket = new ReconnectingWebSocket(
+            ws_scheme + '://' + window.location.host +
             '/ws/notifications/' + context.currentBranch.uri + '/');
     
         chatSocket.onmessage = function(e) {
@@ -70,24 +72,30 @@ export function NotificationsContainer({inBox}){
 
 export function Notifications({notifications,inBox}){
     const [isOpen,setOpen] = useState(false);
-    function handleClick(){
-        setOpen(!isOpen);
+    let setTimeoutConst;
+    let setTimeoutConst2;
+
+    function handleMouseEnter(){
+        clearTimeout(setTimeoutConst2)
+
+        setTimeoutConst = setTimeout(()=>{
+            setOpen(true);
+        },500)
     }
 
-    function handleEnter(){
-        setOpen(true);
-    }
+    function handleMouseLeave(){
+        clearTimeout(setTimeoutConst)
 
-    function handleLeave(){
-        setOpen(false);
+        setTimeoutConst2 = setTimeout(()=>{
+            setOpen(false);
+        },500)
     }
 
     return(
         inBox?
             <div
-            onMouseEnter={handleEnter}
-            onMouseLeave={handleLeave} style={{position:'relative'}}>
-                
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave} style={{position:'relative'}}>
                 <button
                 style={{height:'100%',width:50,backgroundColor:'transparent',border:0}}>
                     <NotificationsSvg/>
@@ -208,13 +216,9 @@ function BranchNotification({notification}){
 
 function BoxNotifications({notifications}){
     return(
-        <div style={{position:'absolute',width:500,marginTop:10,right:0}}>
-            <div style={{position:'relative',height:10}}>
-                <div style={{right:79,left:'auto'}} className="arrow-upper"></div>
-                <div style={{right:80,left:'auto'}} className="arrow-up"></div>
-            </div>
-            
-            <div style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a'}}> 
+        <div className="hoverable-box" style={{width:500}}>
+            <div style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',borderRadius:25,overflow:'hidden',
+            color:'#333'}}> 
                 {notifications.length>0?
                 notifications.map(n=>{
                     return(

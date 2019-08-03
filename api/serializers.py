@@ -127,7 +127,8 @@ class BranchSerializer(serializers.ModelSerializer):
 class BranchUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ('branch_image', 'branch_banner', 'parents', 'name', 'accessibility', 'description', 'over_18')
+        fields = ('branch_image', 'branch_banner', 'parents',
+                  'name', 'uri', 'accessibility', 'description', 'over_18','default')
 
 class BranchAddFollowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -239,23 +240,41 @@ from django.core.files.images import ImageFile
 import channels.layers
 from asgiref.sync import async_to_sync
 from django.core import serializers as ser
+import json
 
 def create_message(instance):
-    serialized_message  = ser.serialize('json', [ instance, ])
+    serialized_images = ser.serialize('python', instance.images.all())
+
+    image_dict = [{
+        'image':image_obj.image.url,
+        'width':image_obj.width,
+        'height':image_obj.height
+    } for image_obj in instance.images.all()]
+    json_images = json.dumps(image_dict)
+
+    video_dict = [{
+        'video': video_obj.video.url,
+        'thumbnail': video_obj.thumbnail.url,
+        'width':video_obj.width,
+        'height':video_obj.height
+    } for video_obj in instance.videos.all()]
+    json_videos = json.dumps(video_dict)
+
     channel_layer = channels.layers.get_channel_layer()
-    print("instance",instance)
-    async_to_sync(channel_layer.group_send)(
-        str('chat_%s' % str(instance.branch_chat.id)),
-        {
-            'type': 'chat.message',
-            'author_name': instance.author.name,
-            'author_url': instance.author.uri,
-            'author': str(instance.author.id),
-            'message': instance.message,
-            'images': [i.image.url for i in instance.images.all()],
-            'videos': [i.video.url for i in instance.videos.all()]
-        }
-    )
+    print("instance",serialized_images)
+    if instance.images.count() > 0 or instance.videos.length > 0:
+        async_to_sync(channel_layer.group_send)(
+            str('chat_%s' % str(instance.branch_chat.id)),
+            {
+                'type': 'chat.message',
+                'author_name': instance.author.name,
+                'author_url': instance.author.uri,
+                'author': str(instance.author.id),
+                'message': instance.message,
+                'images': json_images,
+                'videos': json_videos
+            }
+        )
 
 class NewMessageSerializer(serializers.ModelSerializer):
     images = ChatImageSerializer(many=True)
@@ -500,6 +519,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
     spreaders = serializers.SerializerMethodField()
     posted_id = serializers.SerializerMethodField()
     stars = serializers.SerializerMethodField()
+    dislikes = serializers.SerializerMethodField()
     images = serializers.SerializerMethodField()
     videos = serializers.SerializerMethodField()
     thumbnails = serializers.SerializerMethodField()
@@ -543,6 +563,9 @@ class BranchPostSerializer(serializers.ModelSerializer):
 
     def get_stars(self,post):
         return post.reacts.filter(type="star").count()
+
+    def get_dislikes(self,post):
+        return post.reacts.filter(type="dislike").count()
 
     def get_replied_to(self,post):
         if post.type == "reply":
@@ -589,7 +612,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner',
                   'replied_to','replies','replies_count','spreads_count',
-                  'level','stars','hot_score','images','videos','thumbnails')
+                  'level','stars','dislikes','hot_score','images','videos','thumbnails')
         read_only_fields = ('level',)
 
 
@@ -636,7 +659,6 @@ class BranchRequestSerializer(serializers.ModelSerializer):
 
 
 class ReactSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = React
         fields = ('type','branch','post','id')
