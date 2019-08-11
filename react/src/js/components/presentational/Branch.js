@@ -29,7 +29,8 @@ export class ChildBranch extends Component{
     }
 }
 
-export function SmallBranch({branch,isLink=true,children}){
+export function SmallBranch({branch,isLink=true,
+    onClick=()=>{},children}){
     const [showCard,setShowCard] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -53,16 +54,20 @@ export function SmallBranch({branch,isLink=true,children}){
     return(
         <>
         <div
+        onClick={onClick}
         onMouseEnter={isMobile?null:handleMouseEnter}
         onMouseLeave={isMobile?null:handleMouseLeave}
          style={{position:'relative'}} className="noselect small-branch-container flex-fill">
             <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
-                <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',backgroundColor:'#4d5058'}} 
-                alt="" src={branch.branch_image}/>
-                <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto',
-                wordBreak:'break-all'}}>
-                    <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
-                    <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
+                <div className="flex-fill"
+                >
+                    <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',backgroundColor:'#4d5058',minWidth:48}} 
+                    alt="" src={branch.branch_image}/>
+                    <div className="flex-fill" style={{flexDirection:'column',justifyContent:'center',marginLeft:10,
+                    wordBreak:'break-all'}}>
+                        <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
+                        <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
+                    </div>
                 </div>
                 {showCard?<SmallCard branch={branch}/>:null}
             </SmallBranchWrapper>
@@ -108,12 +113,4 @@ export class ParentBranch extends Component{
             </div>
         )
     }
-}
-
-function ProfileImage({branch}){
-    const className="branch-parent-picture";
-
-    return(
-        <BigBranchPicture branch={branch} className={className}/>
-    )
 }

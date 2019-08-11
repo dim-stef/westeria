@@ -1,24 +1,23 @@
-import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef } from "react";
+import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef,lazy,Suspense } from "react";
 import {isMobile} from 'react-device-detect';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {Images2} from "../presentational/PostImageGallery"
-import {Messenger} from "../presentational/Messenger"
 import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
 import { Link } from 'react-router-dom'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
 import RoutedHeadline from "../presentational/RoutedHeadline"
+import Messenger from "../presentational/Messenger"
 import {UserContext,CachedBranchesContext} from "./ContextContainer"
 import axios from "axios";
+
 
 export function ChatRoomsContainer({inBox,match}){
     const [rooms,setRooms] = useState([]);
     const context = useContext(UserContext);
 
-    console.log("context",context)
     async function getRooms(){
         let uri = `/api/branches/${context.currentBranch.uri}/chat_rooms/`;
         let response = await axios.get(uri);
-        console.log(response);
         setRooms(response.data);
     }
 
@@ -78,7 +77,6 @@ function RoomContainer({roomData,match}){
     const [members,setMembers] = useState([]);
     const ref = useRef(null);
     const parentRef = useRef(null);
-    const updateRef = useRef(0)
     const [freshState,setFreshState] = useState(0);
 
     async function getMembers(){
@@ -92,9 +90,6 @@ function RoomContainer({roomData,match}){
         setMembers(memberList);
     }
 
-    useEffect(()=>{
-        console.log("members",members)
-    },[members])
 
     const getMessages = useCallback(async (messages)=>{
 
@@ -113,7 +108,6 @@ function RoomContainer({roomData,match}){
     },[messages])
 
     const chatScrollListener = async () =>{
-        console.log("Scroll",parentRef.current.scrollTop,freshState,messages)
         if(parentRef.current.scrollTop==0){
             await getMessages(messages);
         }
@@ -157,15 +151,16 @@ function RoomContainer({roomData,match}){
             images: Array.isArray(images)?images:JSON.parse(images),
             videos: Array.isArray(videos)?videos:JSON.parse(videos)
         }
-        console.log("data",data,bundle)
         updateMessages([bundle]);
     };
+
+    let previewName = data.room.members.find(uri=>uri!=context.currentBranch.uri);
 
     return(
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:'-webkit-fill-available',
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0}}>
-                <RoutedHeadline headline={data.room.name}/>
+                <RoutedHeadline headline={'@' + previewName}/>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
                 flexFlow:'column',WebkitFlexFlow:'column'}}>
                     <Room messages={messages} members={members} branch={author.uri} parentRef={parentRef} wrapperRef={ref}/> 
@@ -184,14 +179,12 @@ function Room({messages,members,branch,parentRef,wrapperRef}){
 
     useEffect(() => {
         if(parentRef.current){
-            console.log("parentRef",parentRef)
             setImageWidth(parentRef.current.clientWidth)
         }
         
     },[parentRef])
 
     useEffect(()=>{
-        console.log("ref",wrapperRef.current.clientHeight,window.innerHeight,wrapperRef.current.clientHeight>window.innerHeight)
         if(wrapperRef){
             if(isMobile){
                 wrapperRef.current.classList.add('full-height');
@@ -245,8 +238,8 @@ function Room({messages,members,branch,parentRef,wrapperRef}){
     return(
 
         messageBoxes.map(box=>{
-            console.log("box",box)
-            return <MessageBox key={box.created} parentRef={parentRef} members={members} messageBox={box} branch={branch} imageWidth={imageWidth}/>
+            return <MessageBox key={box.created} parentRef={parentRef} members={members} 
+            messageBox={box} branch={branch} imageWidth={imageWidth}/>
         })
     )
 }
@@ -264,9 +257,29 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     }
 
     useLayoutEffect(()=>{
-        console.log("height",parentRef.current.scrollTop,parentRef.current.scrollHeight)
         parentRef.current.scrollTop = parentRef.current.scrollHeight;
     },[])
+
+    
+
+    function getMediaWidth(m){
+        let mediaWidth = 0;
+
+        if(m.videos.length>0 || m.images.length>1){
+            mediaWidth = imageWidth
+        }else{
+            let minWidth = 0.2 * imageWidth;
+            let maxWidth = 0.7 * imageWidth;
+            if(m.images[0].width > maxWidth){
+                mediaWidth = maxWidth;
+            }else if(m.images[0].width < minWidth){
+                mediaWidth = minWidth;
+            }else{
+                mediaWidth = m.images[0].width;
+            }
+        }
+        return mediaWidth;
+    }
 
     let member = members.find(m=>messageBox.author_url==m.uri)
     let memberImage = member?member.branch_image:null
@@ -280,16 +293,15 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                 </div>
                 <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column'}}>
                     {messageBox.messages.map(m=>{
-                        
-                        console.log("images",m.images)
-
                         return (
                             <React.Fragment key={m.created}>
+                                {m.message?
                                 <div className="flex-fill" style={containerStyle}>
                                     <span style={messageStyle}>{m.message}</span>
-                                </div>
+                                </div>:null}
+                                
                                 {m.images.length>0 || m.videos.length>0?
-                                    <div style={containerStyle} className="chat-media">
+                                    <div style={{...containerStyle,width:getMediaWidth(m)}}>
                                         <Images2 images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
                                     </div>
                                 :null}
@@ -310,18 +322,26 @@ function RoomsPreviewColumn({roomData,isGroup,inBox}){
             <div className="main-column">
                 {roomData.length>0?
                     roomData.map(data=>{
-                        return <RoomPreview ws={data.ws} room={data.room}/>
+                        return  <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
                     })
-                :<p>no rooms</p>}
+                :<><MutualFollowMessage/></>}
+                <MutualFollowMessage/>
             </div>
         </PageWrapper>
+    )
+}
+
+function MutualFollowMessage(){
+    return(
+        <div className="flex-fill center-items" style={{fontSize:'2rem',color:'#95a6b5',padding:10}}>
+            <span>Mutually follow another person in order to message them</span>
+        </div>
     )
 }
 
 function RoomPreview({room,ws,isGroup,inBox}){
     const userContext = useContext(UserContext)
     const cachedBranches = useContext(CachedBranchesContext);
-    console.log(ws,room)
     let isCachedInFollowing = cachedBranches.following.find(b=>b.uri!=userContext.currentBranch.uri && room.members.includes(b.uri));
     let isCachedInForeign = cachedBranches.foreign.find(b=>b.uri!=userContext.currentBranch.uri && room.members.includes(b.uri));
     const [previewBranch,setPreviewBranch] = useState(isCachedInFollowing || isCachedInForeign);
@@ -348,7 +368,6 @@ function RoomPreview({room,ws,isGroup,inBox}){
         //self.el.scrollIntoView({ behavior: "instant" });
     };
 
-    console.log("previewBranch",previewBranch)
     return(
         previewBranch?
             <Link to={`/messages/${room.id}`} className="flex-fill room-preview">

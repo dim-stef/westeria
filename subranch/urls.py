@@ -7,7 +7,8 @@ from django.conf.urls.static import static
 
 
 urlpatterns = [
-    path('sw.js', TemplateView.as_view(template_name="templates/sw.js", content_type='application/javascript'), name='sw.js'),
+    path('',include('react.urls')),
+    #path('sw.js', TemplateView.as_view(template_name="templates/sw.js", content_type='application/javascript'), name='sw.js'),
     path('rest-auth/', include('rest_auth.urls')),
     path('rest-auth/registration/', include('rest_auth.registration.urls')),
     path('admin/', admin.site.urls),

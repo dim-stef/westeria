@@ -1,4 +1,6 @@
 {% load static %}
+{% load render_bundle from webpack_loader %}
+
 
 <!DOCTYPE html>
 
@@ -13,7 +15,25 @@
     <script>
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', {scope: '/'})
-               .then(function() { console.log("Service Worker Registered"); });
+               .then(reg => {
+				reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            switch (installingWorker.state) {
+                                case 'installed':
+                                    if (navigator.serviceWorker.controller) {
+                                        // new update available
+                                        //alert('update');
+                                        resolve(true);
+                                    } else {
+                                        // no update available
+                                        resolve(false);
+                                    }
+                                    break;
+                            }
+                        };
+                    };
+               });
     }
     </script>
     <link rel="stylesheet" type="text/css" href="{% static 'settings/settings.css' %}">
@@ -53,8 +73,7 @@
     <script src="{% static 'js/csrf.js' %}"></script>
     <script async src="{% static 'settings/settings.js' %}"></script>
     <script async src="{% static 'js/croppie.js' %}"></script>
-    <script type="text/javascript" src="{% static 'js/Router.js' %}"></script>
-
+    <script type="text/javascript" src="{% static 'js/app.bundle.js' %}"></script>
     <script src="{% static 'js/uicontrol.js' %}"></script>
 </body>
 

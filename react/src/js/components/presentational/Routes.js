@@ -1,4 +1,4 @@
-import React, { Component,PureComponent, useState, useContext, useEffect,useRef } from "react"
+import React, { Component,PureComponent, useState, useContext, useEffect,useRef,Suspense, lazy } from "react"
 import { Switch, Route, Link, withRouter  } from 'react-router-dom'
 import {Helmet} from "react-helmet";
 import { Page } from '../Page'
@@ -7,16 +7,13 @@ import Logout from "./Logout"
 import Register from "./Register"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
-import MyBranchesContainer from "../container/MyBranchesContainer"
-import { SettingsContainer } from "../container/SettingsContainer"
 import {UserContext,BranchPostsContext,PostsContext,AllPostsContext,UserActionsContext,SingularPostContext} from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
-import {DisplayPosts, FeedPosts,BranchPosts,AllPosts, Scroller} from "./BranchPosts"
+import FeedPosts,{ BranchPosts,AllPosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
-import {BranchesPage,BranchesPageRoutes} from "./BranchesPage"
+import {BranchesPageRoutes} from "./BranchesPage"
 import {BranchNavigation} from "./BranchNavigation"
-import {MyBranchesColumnContainer} from "./MyBranchesColumn"
 import {TrendingContainer} from "../container/TrendingContainer"
 import Card from "./Card"
 import Responsive from 'react-responsive';
@@ -26,8 +23,10 @@ import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
-import { Settings } from "./Settings"
 import { TransitionGroup, CSSTransition } from "react-transition-group";
+import MyBranchesColumnContainer from "./MyBranchesColumn"
+//const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
+//const FeedPosts = lazy(() => import('./BranchPosts'));
 
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
@@ -61,7 +60,6 @@ function RouteTransition({location,children}){
                                 </CSSTransition>
                             </TransitionGroup>*/
 const Routes = React.memo(function Routes({location}){
-    
     const [refresh,setRefresh] = useState(null);
     const [feedRefresh,setFeedRefresh] = useState(null);
     const [branchPostsRefresh,setBranchPostsRefresh] = useState(null);
@@ -96,33 +94,17 @@ const Routes = React.memo(function Routes({location}){
             {context =>(
                 <Page>
                     <Desktop>
-                        <Switch>
-                            <Route path='/settings' component={SettingsPage}/>
-                            <Route exact path='/:page(popular|all)?/' component={FrontPage}/>
-                            <Route path='/search' component={SearchPage} />
-                            <Route path='/notifications' component={NotificationsContainer}/>
-                            <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
-                            <Route exact path='/settings' component={(props) => <Settings {...props}/> } />
-                            <Route exact path='/mybranches' component={(props) => <MyBranchesContainer {...props}/> } />
-                            <Route path='/:uri/leaves/:externalId' component={({match}) => 
-                                <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
-                            <Route path='/:uri?' component={BranchContainer}/>
-                        </Switch>
+                        <NonAuthenticationRoutes/>
                     </Desktop>
-                       
+                    
+                    <Tablet>
+                        <MobileNavigationBar/>
+                        <NonAuthenticationRoutes/>
+                    </Tablet>
+                    
                     <Mobile>
                         <MobileNavigationBar/>
-                        <Switch>
-                            <Route path='/settings' component={SettingsPage}/>
-                            <Route exact path='/:page(popular|all)?/' component={FrontPage}/>
-                            <Route path='/test' component={Test}/>
-                            <Route path='/search' component={SearchPage} />
-                            <Route path='/notifications' component={NotificationsContainer}/>
-                            <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
-                            <Route path='/:uri/leaves/:externalId' component={({match}) => 
-                                <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
-                            <Route path='/:uri?' component={BranchContainer}/>
-                        </Switch>
+                        <NonAuthenticationRoutes/>
                     </Mobile>
             </Page>
         )}
@@ -131,19 +113,33 @@ const Routes = React.memo(function Routes({location}){
     )
 })
 
+function NonAuthenticationRoutes(){
+    return(
+        <Switch>
+            <Route path='/settings' component={SettingsPage}/>
+            <Route exact path='/:page(popular|all)?/' component={FrontPage}/>
+            <Route path='/search' component={SearchPage} />
+            <Route path='/notifications' component={NotificationsContainer}/>
+            <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
+            <Route path='/:uri/leaves/:externalId' component={({match}) => 
+                <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
+            <Route path='/:uri?' component={BranchContainer}/>
+        </Switch>
+    )
+}
+
+function NonAuthenticationColumn(){
+    return(
+        <div className="box-border flex-fill" style={{padding:'10px 20px',
+        alignItems:'center',WebkitAlignItems:'center',flexFlow:'column',WebkitFlexFlow:'column'}}>
+            <Link to="/login" className="login-or-register">Login</Link>
+            <span style={{fontSize:'1.4rem',color:'#a4a5b2'}}>or</span>
+            <Link to="/register" className="login-or-register">Register</Link>
+        </div>
+    )
+}
+
 Routes.whyDidYouRender = true;
-
-function Test(){
-    return(
-        <h1>Hello, world!</h1>
-    )
-}
-
-function Test2(){
-    return(
-        <h1>TEST2</h1>
-    )
-}
 
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
@@ -166,11 +162,8 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
             for(let el of lastVisibleElements){
                 indexes.push(el.dataset.index)
             }
-            //let indexes = lastVisibleElements.map(el=>el.dataset.index);
             let middle = indexes[Math.floor(indexes.length / 2)];
             postsContext.lastVisibleIndex = indexes.length>0?middle:0;
-            //postsContext.scroll = window.scrollY;
-            console.log("lastvisible",postsContext,lastVisibleElements)
         }
     },[])
 
@@ -182,7 +175,7 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
             />
         )
     }else{
-        return <p>not auth</p>
+        return null
     }
 })
 
@@ -310,12 +303,16 @@ FrontPageWrapper.whyDidYouRender = true;
 
 function FrontPageLeftBar2(){
     const [show,setShow] = useState(true);
+    const userContext = useContext(UserContext);
 
     return(
         <div style={{ flexBasis:'22%', height:'max-content'}}>
             <div>
-                <div className="box-border" style={{padding:'10px 20px',backgroundColor:'white'}}>
+            {userContext.isAuth?
+                <>
+                <div className="box-border" style={{padding:'10px 20px'}}>
                     <div className="flex-fill" style={{alignItems:'center'}}>
+
                         <h1>My branches</h1>
                         <button role="button" onClick={()=>setShow(!show)} style={{
                             border:0,
@@ -326,13 +323,14 @@ function FrontPageLeftBar2(){
                             backgroundColor:'transparent'
                         }}>{show?"hide":"show"}</button>
                     </div>
-                    {show?<MyBranchesColumnContainer show={true}/>:<MyBranchesColumnContainer show={false}/>}
+                    <MyBranchesColumnContainer show={show}/>
                 </div>
                 <div style={{marginTop:10}}>
                     <FollowingBranches/>
                 </div>
-            
-
+                </>:
+                <NonAuthenticationColumn/>}
+                
             </div>
         </div>
     )
@@ -340,7 +338,7 @@ function FrontPageLeftBar2(){
 
 function FollowingBranches(){
     return(
-        <div style={{height:'max-content', backgroundColor:'white'}}>
+        <div style={{height:'max-content'}}>
             <div className="box-border" style={{padding:'10px 20px'}}>
             <p style={{
                     fontSize: "1.6em",
@@ -378,35 +376,6 @@ function FrontPageRightBar(){
     )
 }
 
-
-function ProfileBox(props){
-    const context = useContext(UserContext);
-
-    return(
-        <div style={{display:'flex'}}>
-            <ProfilePicture image={context.currentBranch.branch_image}/>
-            <ProfileName name={context.currentBranch.name} uri={context.currentBranch.uri}/>
-        </div>
-    )
-}
-
-function ProfilePicture({image}){
-    return(
-        <div style={{marginTop:10}}>
-            <img src={image} className="profile-picture" style={{width:48,height:48}}></img>
-        </div>
-    )
-}
-
-function ProfileName({name,uri}){
-
-    return(
-        <div style={{fontSize:'1.5rem',margin:10}}>
-            <span style={{display:'block',fontWeight:'bold'}}>{name}</span>
-            <span style={{display:'block',fontSize:'1.4rem',color: '#757575'}}>@{uri}</span>
-        </div>
-    )
-}
 
 function TestBox(){
     return(
@@ -447,8 +416,8 @@ export function BranchPage(props){
 }
 
 function BranchFrontPage(props){
-    console.log("props",props) //props.idMatch.match.params.id
     const postsContext = useContext(BranchPostsContext)
+    const userContext = useContext(UserContext);
     var uri;
 
     uri = `/api/branches/${props.match}/posts/`;
@@ -475,13 +444,15 @@ function BranchFrontPage(props){
                 <div style={{marginTop:10}}>
                     <div style={{display:'flex',width:'100%'}}>
                         <div style={{flexBasis:'22%'}}>
+                        {userContext.isAuth?
                             <div className="box-border" style={{backgroundColor:'white',padding:'10px 20px'}}>
                                 <div className="flex-fill" style={{alignItems:'center'}}>
                                     <h1>My branches</h1>
                                 </div>
-                                <MyBranchesColumnContainer/>
-                                
+                                    <MyBranchesColumnContainer/>
                             </div>
+                            :<NonAuthenticationColumn/>
+                        }
                         </div>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
@@ -518,43 +489,6 @@ function BranchFrontPage(props){
         </>
     )
 }
-
-//component={() => <GroupChatMessagesContainer branch={props.branches.parent} {...props}/>}
-/*function BranchPageContainer(props){
-    const [branches,setBranches] = useState(null);
-    let branchUri = props.match.params.uri ? props.match.params.uri : 'global';
-
-    async function getBranches(branchUri,type){
-        let uri;
-
-        uri = `/api/branches/${branchUri}/`
-        let parentResponse = await axios.get(uri, {withCredentials: true});
-        let parentData = parentResponse.data;
-
-        uri = `/api/branches/${branchUri}/${type}/?limit=10`;
-        let response = await axios.get(uri, {withCredentials: true});
-        let data = response.data;
-
-        let _branches = data.results.map(c => c)
-        let branches = {
-            parent:parentData,
-            branches:_branches
-        }
-        setBranches(branches);
-    }
-
-    useEffect(() => {
-        
-        getBranches(branchUri);
-
-    })
-
-    if(branches){
-        return <BranchPage branches={branches} match={props.match.params.uri ? props.match.params.uri : 'global'}/>
-    }else{
-        return null
-    }
-}*/
 
 
 function ParentBranchWrapper(props){

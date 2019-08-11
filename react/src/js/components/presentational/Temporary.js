@@ -43,8 +43,8 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
                 <FollowButton uri={branch.uri} id={branch.id}/>
                 {pending?
                 <div>
-                    <button onClick={handleAccept}>accept</button>
-                    <button onClick={handleDecline}>decline</button>
+                    <button className="accept-btn" onClick={handleAccept}>accept</button>
+                    <button className="decline-btn" onClick={handleDecline}>decline</button>
                 </div>
                 :null}
             </div>
@@ -97,14 +97,22 @@ export const ToggleContent = ({ toggle, content }) => {
     );
 };
 
-export const Modal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
+export function Modal({children ,onClick}){
+
+    // prevents background scroll events
+    function preventScrollEvents(e){
+        e.stopPropagation();
+    }
+
+    return(
+        ReactDOM.createPortal(
+            <div className="modal" onClick={onClick} onTouchMove={preventScrollEvents}>
+                {children}
+            </div>,
+            document.getElementById('modal-root')
+        )
     )
-);
+};
 
 var cumulativeOffset = function(element) {
     var top = 0, left = 0;
@@ -120,53 +128,6 @@ var cumulativeOffset = function(element) {
     };
 };
 
-function useIsScrolledTop(){
-    var scrollPosition = useScrollListener();
-    return scrollPosition===0?true:false;
-}
-
-function useIsScrolledTop2({el}){
-    var scrollPosition = useScrollListener2(el);
-    return scrollPosition===0?true:false;
-}
-
-function useScrollListener2({el}){
-    const [scroll,setScroll] = useState(0);
-
-    useEffect(()=>{
-        if(el){
-            var scrollListener = function (event) {
-                setScroll(cumulativeOffset(el).top + 10); //was this.scrollY
-            }
-            el.addEventListener("scroll", scrollListener );
-        }
-        
-        return () =>{
-            if(el){
-                el.removeEventListener("scroll", scrollListener);
-            }    
-        }
-    },[])
-
-    return scroll;
-}
-
-function useScrollListener(){
-    const [scroll,setScroll] = useState(0);
-
-    useEffect(()=>{
-        var scrollListener = function (event) {
-            setScroll(this.scrollY);
-        }
-        window.addEventListener("scroll", scrollListener );
-
-        return () =>{
-            window.removeEventListener("scroll", scrollListener );
-        }
-    },[])
-
-    return scroll;
-}
 
 export function ActionArrow(){
     const context = useContext(RefreshContext);

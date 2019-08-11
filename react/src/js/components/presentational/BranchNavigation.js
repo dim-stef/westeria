@@ -1,5 +1,5 @@
 import React, { Component, useState, useEffect } from "react";
-import { Link } from 'react-router-dom'
+import { Link,NavLink } from 'react-router-dom'
 import {ActionArrow} from "./Temporary"
 
 export class BranchNavigation extends Component{
@@ -63,52 +63,26 @@ function DropProfile({branch}){
 }
 
 
-function useHandleButton(branch, buttonLink){
-    const [className,setClassName] = useState('');
-
-    useEffect(() => {
-        let match1 = `/${branch.uri}/${buttonLink}/`;
-        let match2 = `/${branch.uri}/${buttonLink}`;
-        
-        let match3 = `/${branch.uri}/`;
-        let match4 = `/${branch.uri}`;
-        if(window.location.pathname === match1 || window.location.pathname === match2){
-            setClassName("clicked-navigation-button");
-        }
-        else if((window.location.pathname === match3 || window.location.pathname === match4) && buttonLink===''){
-            setClassName("clicked-navigation-button");
-        }
-        else{
-            setClassName("");
-        }
-    })
-
-    return className;
-}
-
 const FeedButton = ({branch}) => {
-    const className = useHandleButton(branch,'');
-
     return(
-        <Link to={`/${branch.uri}`} className={`user-color group-navigation-button ${className}`}>
+        <NavLink exact to={`/${branch.uri}`} className="user-color group-navigation-button" activeClassName="clicked-navigation-button">
             
             <div className="navigation-button-text">
                 {/*<i className="material-icons navigation-icon">list</i>*/}
                 <div style={{padding:10}}>Posts</div>
             </div>
-        </Link>
+        </NavLink>
     )
 }
 
 const BranchesButton = ({branch}) => {
-    const className = useHandleButton(branch,'branches');
 
     return(
-        <Link to={`/${branch.uri}/branches`} className={`user-color group-navigation-button ${className}`}>
+        <NavLink to={`/${branch.uri}/branches`} className="user-color group-navigation-button" activeClassName="clicked-navigation-button">
             <div className="navigation-button-text">
                 {/*<i className="material-icons navigation-icon">more</i>*/}
                 <div style={{padding:10}}>{branch.children.length} Branches</div>
             </div>
-        </Link>
+        </NavLink>
     )
 }

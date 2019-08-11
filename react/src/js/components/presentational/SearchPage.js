@@ -113,7 +113,7 @@ function Trending(){
         <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
             {branches.length>0?
             branches.map(b=>{
-                return  <div className="branch-container" 
+                return  <div key={`${b.id}-trending`} className="branch-container" 
                         style={{display:'flex',minWidth:250, width:'30%',flexGrow:1,margin:10,flexFlow:'column',border:'1px solid #e2eaf1'}}>
                             <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
                             branch={b}/>
@@ -122,7 +122,9 @@ function Trending(){
                        
             }):null}
         </div>
-        <button onClick={handleClick}>Load more</button>
+        <div className="flex-fill center-items">
+            <button className="load-more" onClick={handleClick}>Load more</button>
+        </div>
         </>
     )
 }

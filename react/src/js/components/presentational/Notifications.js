@@ -1,17 +1,15 @@
-import React, { Component, useState,useEffect,useRef,useContext } from "react";
+import React, { useState,useEffect,useContext } from "react";
 import {Link, NavLink } from "react-router-dom"
-import Responsive from 'react-responsive';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import {isMobile} from 'react-device-detect';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import {UserContext} from "../container/ContextContainer"
+import {UserContext,SingularPostContext} from "../container/ContextContainer"
 import {FrontPageLeftBar} from "./FrontPage"
+import {Post} from "./SingularPost"
 import {Desktop,Tablet,Mobile} from "./Responsive"
-import { RoutedTabs, NavTab } from "react-router-tabs";
 import axios from 'axios'
 
 export function NotificationsContainer({inBox}){
     const context = useContext(UserContext);
-    const [isOpen,setOpen] = useState(false);
     const [notifications,setNotifications] = useState([]);
     const [id,setId] = useState(null);
     
@@ -26,47 +24,37 @@ export function NotificationsContainer({inBox}){
 
 
     function connectToWebsocket(){
-        var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-        var chatSocket = new ReconnectingWebSocket(
+        let ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        let chatSocket = new ReconnectingWebSocket(
             ws_scheme + '://' + window.location.host +
             '/ws/notifications/' + context.currentBranch.uri + '/');
     
         chatSocket.onmessage = function(e) {
-            var data = JSON.parse(e.data);
-            var message = data['message'];
-            var request_to = data['request_to'];
-            var id = data['id'];
+            let data = JSON.parse(e.data);
+            let message = data['message'];
+            let request_to = data['request_to'];
+            let id = data['id'];
             setId(id);
-            console.log(message,request_to,id)
         }
     }
 
     async function receiveId(id){
-        let response = await axios.get(`/api/notifications/${id}/`);
-        let data = await response.data
-        let newNotifications = [data,...notifications];
-        setNotifications(newNotifications);
+        if(id){
+            let response = await axios.get(`/api/notifications/${id}/`);
+            let data = await response.data
+            let newNotifications = [data,...notifications];
+            setNotifications(newNotifications);
+        }
     }
 
     async function getNotifications(){
-        var response = await axios.get('/api/notifications/');
+        let response = await axios.get('/api/notifications/');
         let data = await response.data
-        console.log(response);
         setNotifications(data);
-    }
-
-    function handleClick(){
-        setOpen(!isOpen);
     }
 
     return(
         <Notifications notifications={notifications} inBox={inBox}/>
-        /*<div style={{position:'relative'}}>
-            <button onClick={handleClick} style={{height:'100%',width:50,backgroundColor:'transparent',border:0}}>
-                <NotificationsSvg/>
-            </button>
-            {isOpen?<Notifications notifications={notifications} inBox/>:null}
-        </div>*/
     )
 }
 
@@ -94,8 +82,8 @@ export function Notifications({notifications,inBox}){
     return(
         inBox?
             <div
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave} style={{position:'relative'}}>
+            onMouseEnter={isMobile?null:handleMouseEnter}
+            onMouseLeave={isMobile?null:handleMouseLeave} style={{position:'relative'}}>
                 <button
                 style={{height:'100%',width:50,backgroundColor:'transparent',border:0}}>
                     <NotificationsSvg/>
@@ -103,62 +91,91 @@ export function Notifications({notifications,inBox}){
                 
                 {isOpen?<BoxNotifications notifications={notifications}/>:null}
             </div>
-        :<PageNotifications notifications={notifications}/>
+        :<ResponsiveNotifications>
+            <PageNotifications notifications={notifications}/>
+        </ResponsiveNotifications>
     )
 }
 
 function PageNotifications({notifications}){
+    return(
+        <div className="main-column">
+            {notifications.length>0?
+            notifications.map(n=>{
+                return(
+                    <NotificationMatcher notification={n}/>
+                )
+            }):null}
+        </div>
+    )
+}
 
+function ResponsiveNotifications({children}){
     return(
         <>
         <Desktop>
             <FrontPageLeftBar/>
-            <div className="main-column">
-                {notifications.length>0?
-                notifications.map(n=>{
-                    console.log("nnnn",n)
-                    return(
-                        <NotificationMatcher notification={n}/>
-                    )
-                }):null}
-            </div>
+            {children}
         </Desktop>
         <Tablet>
-            <div className="main-column">
-                {notifications.length>0?
-                notifications.map(n=>{
-                    console.log("nnnn",n)
-                    return(
-                        <NotificationMatcher notification={n}/>
-                    )
-                }):null}
-            </div>
+            {children}
         </Tablet>
         <Mobile>
-            <div className="main-column">
-                {notifications.length>0?
-                notifications.map(n=>{
-                    console.log("nnnn",n)
-                    return(
-                        <NotificationMatcher notification={n}/>
-                    )
-                }):null}
-            </div>
+            {children}
         </Mobile>
         </>
     )
 }
 
 function NotificationMatcher({notification}){
+
     if(notification.verb=="become_child" || notification.verb=="become_parent"){
         return <BranchNotification notification={notification}/>
+    }else if(notification.verb=='react'){
+        return <ReactNotification notification={notification}/>;
+    }else{
+        return null;
     }
 }
 
-function BranchNotification({notification}){
+function ReactNotification({notification}){
+    const [post,setPost] = useState(null);
+    const userContext = useContext(UserContext);
+    const postsContext = useContext(SingularPostContext);
+
+    async function getPost(){
+        let response = await axios.get(`/api/post/${notification.action_object.post}/`);
+        setPost(response.data);
+    }
+
+    useEffect(()=>{
+        getPost();
+    },[])
+
+    if(post){
+        let linkTo = `/${notification.target.uri}/leaves/${post.id}`;
+        return(
+            <div style={{alignItems:'center',
+            flexFlow:'row wrap',borderBottom:'1px solid #e2eaf1'}}
+            className="notification flex-fill">
+                <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
+                <span style={{padding:10}}> {notification.description} </span>
+                <div style={{margin:10,fontSize:'0.5em',width:'100%'}}>
+                    <Post post={post} postsContext={postsContext} 
+                    activeBranch={userContext.currentBranch} viewAs="embeddedPost"/>
+                </div>
+            </div>
+        )
+    }else{
+        return null;
+    }
     
+}
+
+function BranchNotification({notification}){
     let n = notification;
     let linkTo = n.verb=="become_child"?`/${n.target.uri}/branches/children`:`/${n.target.uri}/branches/parents`;
+    const [status,setStatus] = useState(notification.action_object.status);
 
     function updateRequest(event,status,viewedBranch,requestId){
         event.stopPropagation();
@@ -175,44 +192,61 @@ function BranchNotification({notification}){
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
-                console.log(response);
+                let status = response.data.action_object;
+                setStatus(status);
             }).catch(error => {
-            console.log(error)
         })
     }
 
     return(
         <div style={{borderBottom:'1px solid #e2eaf1'}}>
-            <Link to={linkTo} key={n.id} 
-            style={{alignItems:'center',
-            flexFlow:'row wrap',color:'#252525',textDecoration:'none'}} 
-                className="notification flex-fill">
-                <div style={{display:'inline-block',backgroundColor:'#e2eaf1',padding:10,borderRadius:50}}>
-                    <div className="flex-fill" style={{alignItems:'center'}}>
-                        <div className="round-picture" style={{width:48,height:48,backgroundImage:`url('${n.actor.branch_image}')`,
-                        display:'inline-block'}}></div>
-                        <span style={{padding:10}}>{n.actor.uri}</span>
-                    </div>
-                </div>
+            <NotificationLinkBody to={linkTo} id={n.id}>
+                <NotificationBranch image={n.actor.branch_image} uri={n.actor.uri}/>
                 <span style={{padding:10}}>{n.description}</span>
-                <div style={{display:'inline-block',backgroundColor:'#e2eaf1',padding:10,borderRadius:50}}>
-                    <div className="flex-fill" style={{alignItems:'center'}}>
-                        <div className="round-picture" style={{width:48,height:48,backgroundImage:`url('${n.target.branch_image}')`,
-                        display:'inline-block'}}></div>
-                        <span style={{padding:10}}>{n.target.uri}</span>
-                    </div>
-                </div>
-                
-            </Link>
+                <NotificationBranch image={n.target.branch_image} uri={n.target.uri}/>                
+            </NotificationLinkBody>
             {n.verb=="become_child" || n.verb=="become_parent" && n.action_object?
                 <div>
-                    <button className="accept-btn" onClick={(e)=>updateRequest(e,'accepted',n.target,n.action_object.id)}>accept</button>
-                    <button className="decline-btn" onClick={(e)=>updateRequest(e,'declined',n.target,n.action_object.id)}>decline</button>
+                
+                    {status=='on hold' || !status?
+                    <>
+                    <button className="accept-btn"
+                    onClick={(e)=>updateRequest(e,'accepted',n.target,n.action_object.id)}>accept</button>
+                    <button className="decline-btn" 
+                    onClick={(e)=>updateRequest(e,'declined',n.target,n.action_object.id)}>decline</button>
+                    </>:
+                    <p className="form-succeed-message" 
+                    style={{margin:10}}>{status=='accepted'?'Request accepted':'Request declined'}</p>}
+                    
                 </div>
             :null}
         </div>
     )
 }
+
+function NotificationBranch({image,uri}){
+    return(
+        <div style={{display:'inline-block',backgroundColor:'#e2eaf1',padding:10,borderRadius:50,margin:'3px 0'}}>
+            <div className="flex-fill" style={{alignItems:'center'}}>
+                <div className="round-picture" style={{width:48,height:48,backgroundImage:`url('${image}')`,
+                display:'inline-block'}}></div>
+                <span style={{padding:10}}>{uri}</span>
+            </div>
+        </div>
+    )
+}
+
+function NotificationLinkBody({to,id,children}){
+    return(
+        <Link to={to} key={id} 
+            style={{alignItems:'center',
+            flexFlow:'row wrap',color:'#252525',textDecoration:'none'}}
+            className="notification flex-fill">
+            {children}
+        </Link>
+    )
+}
+
 
 function BoxNotifications({notifications}){
     return(
@@ -226,13 +260,13 @@ function BoxNotifications({notifications}){
                         <div style={{display:'inline-block'}}>
                             <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${n.actor.branch_image}')`,
                             display:'inline-block'}}></div>
-                            <span>{n.actor.uri}</span>
+                            <span>@{n.actor.uri}</span>
                         </div>
-                        <span>{n.description}</span>
+                        <span> {n.description} </span>
                         <div style={{display:'inline-block'}}>
                             <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${n.target.branch_image}')`,
                             display:'inline-block'}}></div>
-                            <span>{n.target.uri}</span>
+                            <span>@{n.target.uri}</span>
                         </div>
 
                     </div>

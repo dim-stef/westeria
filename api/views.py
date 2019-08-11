@@ -153,7 +153,7 @@ class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
 def defaultBranch(request):
     user = request.user
     if user.owned_groups.filter(default=True).exists():
-        default = user.owned_groups.get(default=True)
+        default = user.owned_groups.filter(default=True).first()
     else:
         default = user.owned_groups.first()
     serializer = serializers.BranchSerializer(default)
@@ -251,6 +251,22 @@ class BranchUpdateMixin(viewsets.GenericViewSet,
 class BranchUpdateViewSet(BranchUpdateMixin,):
     serializer_class = serializers.BranchUpdateSerializer
     parser_classes = (MultiPartParser,JSONParser,FileUploadParser,)
+
+class CreateNewBranchViewSet(viewsets.GenericViewSet,mixins.CreateModelMixin):
+    serializer_class = serializers.CreateNewBranchSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    parser_classes = (MultiPartParser, JSONParser, FileUploadParser,)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 class BranchAddFollowViewSet(BranchUpdateMixin):
@@ -541,8 +557,6 @@ class BranchReactions(generics.GenericAPIView,
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
-
-
 
 
 class BranchRequestMixin(viewsets.GenericViewSet,

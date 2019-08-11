@@ -33,8 +33,8 @@ class BranchChat(models.Model):
 class BranchMessage(models.Model):
     branch_chat = models.ForeignKey(BranchChat, null=True, on_delete=models.CASCADE, related_name="messages")
     author = models.ForeignKey("branches.Branch", null=True, on_delete=models.SET_NULL)
-    message = models.TextField(max_length=300)
-    message_html = models.TextField()
+    message = models.TextField(max_length=300,null=True,blank=True)
+    message_html = models.TextField(null=True,blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

@@ -35,3 +35,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'request_from': request_from,
             'id': id
         }))
+
+    async def send_react_notification(self, event):
+        message = event['text']
+        post = event['post']
+        react_from = event['react_from']
+        id = event['id']
+
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message': message,
+            'post':post,
+            'react_from':react_from,
+            'id': id
+        }))

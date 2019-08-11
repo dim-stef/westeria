@@ -8,6 +8,7 @@ body {
     height: 100%;
     font-family: "Segoe UI",Arial,sans-serif;
     background-color: white;
+    color: #212121;
 }
 
 .modal {
@@ -47,6 +48,12 @@ body {
 
 .side-drawer{
 
+}
+
+.side-drawer-branch{
+    border: 0;
+    width: 100%;
+    border-bottom: 1px solid rgb(226, 234, 241);
 }
 
 /* This is where we can add the transition*/
@@ -137,11 +144,15 @@ body {
 
 .settings-option{
     width: 60%;
+    padding: 10px;
     margin: 0 auto;
 }
 
 .wide-content-container{
     margin: 0 auto;
+    display: -webkit-flex;
+    display: -ms-flex;
+    display: -moz-flex;
     display:flex;
     max-width: 1200px;
 }
@@ -653,15 +664,55 @@ button[disabled=disabled], button:disabled {
     text-align: center;
 }
 
-@media all and (max-width: 1200px){
-    .wide-content-container{
-        display: block;
-    }
+.back-button{
+    margin: -10px 0px;
+    margin-left: -10px;
+    padding-top: 7px;
+    background-color: transparent;
+    border: 0px;
+    justify-content: center;
+    -webkit-justify-content: center;
+    align-items: center;
+    -webkit-align-items: center;
+}
+
+.load-more{
+    padding: 10px;
+    margin: 10px;
+    border: 0;
+    border-radius: 15px;
+    background-color: #2196f3;
+    color: white;
+    font-weight: 600;
+}
+
+.load-more:hover{
+    background-color: #006dc3;
+}
+
+.login-or-register{
+    font-size: 2rem;
+    color: rgb(143, 156, 167);
+    padding: 10px;
+    border-radius: 25px;
+}
+
+.login-or-register:hover{
+    background-color: #f7f7f7;
 }
 
 @media all and (max-device-width: 1223px){
     .main-column{
+        margin: 0;
+        border: 0;
         padding-bottom: 60px;
+        flex: 1 1 auto;
+        -ms-flex: 1 1 auto;
+        -webkit-flex: 1 1 auto;
+    }
+    
+    .wide-content-container{
+        display: block;
     }
 
     .big-main-column{
@@ -681,6 +732,7 @@ button[disabled=disabled], button:disabled {
 
     .settings-option{
         width:100%;
+        padding: 0;
     }
 }
 
@@ -691,12 +743,7 @@ button[disabled=disabled], button:disabled {
 }
 
 @media all and (max-width: 1223px) {
-    .main-column{
-        flex-basis: 100%;
-        -webkit-flex-basis: 100%;
-        margin: 0;
-        border: 0;
-    }
+
 
     .root-wrapper{
         display: flex;

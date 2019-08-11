@@ -6,10 +6,12 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from accounts.models import User
+from notifications.models import Notification
 import uuid
 from datetime import datetime
 from math import log,exp
 import sys
+import shutil
 
 
 epoch = datetime(1970, 1, 1)
@@ -96,7 +98,6 @@ class Post(models.Model):
 
 from io import BytesIO
 from PIL import Image
-from django.core.files import File
 
 
 class PostImage(models.Model):
@@ -202,3 +203,63 @@ def update_post_score(sender, instance, **kwargs):
      instance.post.hot_score = hot(instance.post.reacts.filter(type="star").count(),
                                    instance.post.spreads.count(), naive)
      instance.post.save()
+
+@receiver(post_save,sender=PostVideo,dispatch_uid="postVideo_delete_temp_folder")
+def delete_temp_folder(sender, instance, created, **kwargs):
+    path = 'C:\\Users\\Dimitris\\Desktop\\tmp'
+    if created and instance.video:
+        for root, dirs, files in os.walk(path):
+            for f in files:
+                try:
+                    os.unlink(os.path.join(root, f))
+                except (OSError,FileNotFoundError) as e:
+                    print("e",e)
+            for d in dirs:
+                try:
+                    shutil.rmtree(os.path.join(root, d))
+                except (OSError,FileNotFoundError) as e:
+                    print("e",e)
+
+
+import channels.layers
+from asgiref.sync import async_to_sync
+from django.core import serializers
+
+@receiver(post_save, sender=React)
+def create_notification(sender, instance, created, **kwargs):
+    if created:
+        description = "reacted to your leaf"
+        verb = "react"
+
+
+        notification = Notification.objects.create(recipient=instance.post.poster.owner,actor=instance.branch
+                                    ,verb=verb,target=instance.post.poster,
+                                    action_object=instance,description=description)
+
+        serialized_notification  = serializers.serialize('json', [ notification, ])
+
+        branch_name = 'branch_%s' % instance.post.poster
+
+        message = {
+            'notification': serialized_notification
+        }
+
+        react_from = {
+            'uri':instance.branch.uri,
+            'name':instance.branch.name,
+            'profile':instance.branch.branch_image.url
+        }
+
+        channel_layer = channels.layers.get_channel_layer()
+
+
+        async_to_sync(channel_layer.group_send)(
+            branch_name,
+            {
+                'type': 'send.react.notification',
+                'text': message,
+                'react_from':react_from,
+                'post': instance.post.id,
+                'id': notification.id
+            }
+        )

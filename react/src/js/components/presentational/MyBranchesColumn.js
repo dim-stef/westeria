@@ -3,13 +3,13 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {UserContext,CachedBranchesContext} from "../container/ContextContainer"
 import {useMyBranches} from "../container/BranchContainer"
 import {SmallBranch} from "./Branch"
+import {CreateNewBranch} from "./CreateNewBranch"
 import {SkeletonBranchList} from "./SkeletonBranchList";
 import axios from 'axios';
 
-export function MyBranchesColumnContainer({show=true,children}){
+export default function MyBranchesColumnContainer({show=true,children}){
     const context = useContext(UserContext);
     const branches = useMyBranches();
-
     function handleClick(branch){
         console.log(context.changeCurrentBranch)
         context.changeCurrentBranch(branch);
@@ -17,23 +17,36 @@ export function MyBranchesColumnContainer({show=true,children}){
 
     if(branches.length>0 && show){
         return(
-            branches.map(b=>{
-                console.log(b)
+            <>
+            {branches.map(b=>{
+                let isCurrentBranch = context.currentBranch.uri==b.uri?true:false;
+                let style = isCurrentBranch?
+                {
+                    backgroundColor:'#f5f5f5',
+                    borderRadius:25
+                }:null
                 return (
-                    <SmallBranch branch={b} key={b.id}>
-                        <button onClick={()=>handleClick(b)} style={{border:0,backgroundColor:'transparent'}}><RightArrow/></button>
-                    </SmallBranch>
+                    <div style={style} key={b.id}>
+                        <SmallBranch branch={b}>
+                            {isCurrentBranch?null:
+                            <button onClick={()=>handleClick(b)} style={{border:0,backgroundColor:'transparent'}}><RightArrow/></button>}
+                        </SmallBranch>
+                    </div>
                 )
-            })
+            })}
+            <CreateNewBranch/>
+            </>
         )
     }else{
         if(!show){
-            return null;
+            return <div style={{
+                backgroundColor:'#f5f5f5',
+                borderRadius:25
+            }}><SmallBranch branch={context.currentBranch}/></div>;
         }
         return <SkeletonBranchList/>
     }
 }
-
 
 
 function RightArrow(){

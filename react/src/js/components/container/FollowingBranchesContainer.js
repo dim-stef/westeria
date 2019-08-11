@@ -28,11 +28,40 @@ export function FollowingBranchesColumnContainer(){
         setBranches(branches);
     }
 
-    useEffect(()=>{
-        if(branches.length == 0 && !gotData){
-            populateBranches();
+    function arraysEqual(a, b) {
+        if (a === b) return true;
+        if (a == null || b == null) return false;
+        if (a.length != b.length) return false;
+      
+        // If you don't care about the order of the elements inside
+        // the array, you should sort both arrays here.
+        // Please note that calling sort on an array will modify that array.
+        // you might want to clone your array first.
+      
+        for (var i = 0; i < a.length; ++i) {
+          if (a[i] != b[i]) return false;
         }
-    },[])
+        return true;
+      }
+
+    useEffect(()=>{
+        if(context.isAuth){
+            // if currentBranch changed then we need to get new branches
+            // so we compare the ones on context with the ones of the currentBranch
+            let currentFollowing = branches.length>0?branches.map(b=>{
+                return b.uri
+            }):[]
+            
+            if(!arraysEqual(currentFollowing,context.currentBranch.follows) && (currentFollowing.length>0 || context.currentBranch.follows.length>0)){
+                populateBranches();
+            }
+    
+            if(branches.length == 0 && !gotData){
+                populateBranches();
+            }
+        }
+    })
+
 
     if(branches.length>0){
         return(
@@ -44,9 +73,13 @@ export function FollowingBranchesColumnContainer(){
         )
     }else{
         if(gotData){
-            return <p>You are not following anyone</p>
+            return <p style={{fontSize: '2rem', color:'#8f9ca7'}}>You are not following anyone</p>
         }else{
-            return <SkeletonBranchList/>
+            if(context.isAuth){
+                return <SkeletonBranchList/>
+            }else{
+                return null
+            }
         }
     }
 }

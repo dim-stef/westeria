@@ -9,6 +9,7 @@ import {UserActionsContext,CachedBranchesContext,UserContext} from "./ContextCon
 export function BranchesPageContainer(props){
     const [branches,setBranches] = useState([]);
     const [pending,setPending] = useState([]);
+    const userContext = useContext(UserContext);
     let branchUri = props.branch.uri;
     console.log(props);
 
@@ -53,17 +54,42 @@ export function BranchesPageContainer(props){
         <>
             <BranchList branches={branches} ownsBranch={props.ownsBranch} viewedBranch={props.branch}/>
             {/*fillerBox*/}
-            {props.ownsBranch || props.type=='siblings'?null:<AddBranch branch={props.branch} type={props.type}/>}
-            {pending.length>0 && props.ownsBranch?
+            {(userContext.isAuth && userContext.currentBranch.uri==props.branch.uri) || props.type=='siblings'?null:
+            <AddBranch branch={props.branch} type={props.type}/>}
+            {/*{pending.length>0 && props.ownsBranch?
             <>
                 <h1 style={{width:'100%',fontSize:'3rem'}}>Pending</h1>
                 <BranchList branches={pending} ownsBranch={props.ownsBranch} viewedBranch={props.branch} pending={true}/>
-            </>:null}
+            </>:null}*/}
         </>
         )
     }else{
         return null
     }
+}
+
+export function usePendingRequests(branch){
+    const userContext = useContext(UserContext);
+    const [requests,setPendingRequests] = useState([]);
+
+    async function getRequests(){
+        let uri = `/api/branches/${branch.uri}/received_requests/`
+        let response = await axios.get(uri, {withCredentials: true});
+
+        let requests = response.data.filter(r=>{
+            return r.status == "on hold"
+        })
+
+        setPendingRequests(requests)
+    }
+
+    useEffect(()=>{
+        if(userContext.isAuth){
+            getRequests();
+        }
+    },[])
+
+    return requests;
 }
 
 export function BranchContainer(props){

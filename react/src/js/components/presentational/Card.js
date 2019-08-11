@@ -95,7 +95,8 @@ export function FollowButton({id,uri,style=null}){
         }
     },[uri])
 
-    function onClick(){
+    function onClick(e){
+        e.stopPropagation();
         if(!context.isAuth){
             return;
         }

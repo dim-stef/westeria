@@ -1,20 +1,19 @@
-import React, { useState,useEffect,useContext,useRef,useCallback } from 'react';
-import ReactDOM from 'react-dom';
+import React, { useState,useEffect,useContext,useRef,useCallback,lazy,Suspense } from 'react';
 import { List,WindowScroller,AutoSizer,CellMeasurer,CellMeasurerCache } from 'react-virtualized';
 import Pullable from 'react-pullable';
 import { CSSTransition,Transition } from 'react-transition-group';
 import {isMobile} from 'react-device-detect';
 import {Link,NavLink} from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {RefreshContext,PostsContext,AllPostsContext,BranchPostsContext, UserContext,UserActionsContext} from "../container/ContextContainer"
+import {RefreshContext,PostsContext,AllPostsContext,BranchPostsContext,UserContext,UserActionsContext} from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
 import {ToggleContent,Modal} from "./Temporary"
 import {SmallBranch} from "./Branch"
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
-import {StatusUpdateAuthWrapper as StatusUpdate} from "./StatusUpdate"
 import {Post} from './SingularPost';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import StatusUpdate from "./StatusUpdate";
 
 axiosRetry(axios, 
     {
@@ -72,23 +71,16 @@ function FrontPageList(){
         </div>
     )
 }
-/*pullDownToRefresh
-pullDownToRefreshThreshold={300}
-refreshFunction={refresh}
-pullDownToRefreshContent={
-    <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
-}
-releaseToRefreshContent={
-    <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
-}*/
-function DisplayPosts2({isFeed,posts,setPosts,
+
+
+function DisplayPosts({isFeed,posts,setPosts,
     postsContext,resetPostsContext,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh}){
 
     return(
     <ul key={postsContext.branchUri} className="post-list">
-        {postsContext.content=='feed'?<FrontPageList/>:null}
+        {isFeed?<FrontPageList/>:null}
         <Pullable
             onRefresh={refresh}
             centerSpinner={false}
@@ -106,7 +98,7 @@ function DisplayPosts2({isFeed,posts,setPosts,
             hasMore={hasMore}
             endMessage={
                 <p style={{textAlign: 'center'}}>
-                <b>Yay! You have seen it all</b>
+                    <b style={{fontSize:'2rem'}}>Nothing more to see</b>
                 </p>
             }
 
@@ -131,21 +123,6 @@ function DisplayPosts2({isFeed,posts,setPosts,
             <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
                 showPostedTo={showPostedTo} posts={posts}
             />
-
-            {/*posts.map((post,i) => {
-                        
-                        let props = {
-                        post:post,
-                        key:[post.id,post.spreaders],
-                        removeFromEmphasized:null,
-                        showPostedTo:showPostedTo?true:false,
-                        viewAs:"post",
-                        activeBranch:activeBranch};
-
-                        return <li key={[post.id,post.spreaders]}><Post {...props} minimized/></li>
-                    }   
-                )
-            */}
         </InfiniteScroll>
         :
             hasMore?[...Array(8)].map((e, i) => 
@@ -165,7 +142,9 @@ function DisplayPosts2({isFeed,posts,setPosts,
                     </div>
                 </div>
             </div>
-            ):<p>Nothing seems to be here :/</p>}
+            ):<p style={{textAlign:'center'}}>
+                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
+            </p>}
             </Pullable>
     </ul>
     )
@@ -339,8 +318,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,resetPostsCo
             }
         }
 
-        console.log("uri",uri)
-
         const response = await axios(uri,{
             cancelToken: source.token
           });
@@ -366,22 +343,16 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,resetPostsCo
             resetPostsContext();
             setPosts([])
             fetchData();
-            //cache.clearAll()
-            //cache2.clearAll()
-            console.log("branchsetBranchPostsRefresh",branch,postsContext)
         }
         if(isFeed){
             refreshContext.feedRefresh = () =>{
-                console.log("called1")
                 source.cancel('Operation canceled by the user.');
                 CancelToken = axios.CancelToken;
                 source = CancelToken.source();
                 resetPostsContext(branch);
                 fetchData();
                 setPosts([]);
-                //cache.clearAll()
             };
-            console.log("changeFeed",refreshContext)
         }else{
             refreshContext.branchPostsRefresh = function(){
                 source.cancel('Operation canceled by the user.');
@@ -395,20 +366,12 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,resetPostsCo
         }
     },[branch])
 
-    useEffect(()=>{
-        console.log("opis",postsContext);
-    },[postsContext])
 
     useEffect(()=>{
         refreshContext.page = isFeed?'feed':'branch';
     },[])
 
-    useEffect(()=>{
-        console.log("changedposts",posts)
-    },[posts])
-
     const refresh = useCallback(()=>{
-        console.log("clearcache",usingCache);
         usingCache.clearAll();
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
@@ -421,13 +384,14 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,resetPostsCo
     const updateFeed = useCallback(
         (newPost) => {
             postsContext.loadedPosts = [newPost,...postsContext.loadedPosts];
+            usingCache.clearAll();
             setPosts([newPost,...posts])
         },
         [posts],
     );
 
     return(
-        <DisplayPosts2 isFeed={isFeed} refresh={refresh}
+        <DisplayPosts isFeed={isFeed} refresh={refresh}
         updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
         posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
         activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
@@ -436,7 +400,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,resetPostsCo
 }
 
 
-export function FeedPosts(props){
+export default function FeedPosts(props){
     const postsContext = useContext(PostsContext);
     const branchPostsContext = useContext(BranchPostsContext);
 
@@ -490,14 +454,12 @@ export const DisplayPosts3 = (props)=>{
     //let CancelToken = axios.CancelToken;
     //let source = CancelToken.source();
 
-    console.log("postscontext",postsContext)
 
     useEffect(()=>{
         context.page = 'feed'
     },[])
 
     function resetPostsContext(newBranch){
-        console.log("reset")
         postsContext.hasMore = true;
         postsContext.next = null;
         postsContext.lastVisibleElement = null;
@@ -694,7 +656,7 @@ function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunc
             defaultOption={postsContext.params?postsContext.params.ordering:null}/>
             <TimeFilter setParams={setParams} params={params} 
             defaultOption={postsContext.params?postsContext.params.past:null}/>
-            <ActionArrow refresh={refreshFunction}/>
+            {isMobile?null:<ActionArrow refresh={refreshFunction}/>}
         </div>
     )
 }
@@ -809,6 +771,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     const userContext = useContext(UserContext);
 
     function handleClick(e,show){
+        
         if(isMobile){
             setOpen(true);
             show();
@@ -827,6 +790,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
             if(childNodes.every(c=>{
                 return e.target!=c 
             }) && e.target !=ref.current){
+                console.log("close");
                 setOpen(false);
             }
         }
@@ -857,8 +821,9 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
             toggle={show=>(
                 <div className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}>
                     {preview?
-                    <div ref={ref} id={`${name}-filter`} className="flex-fill filter-selector" 
-                    onClick={e=>handleClick(e,show)}>
+                    <div ref={ref} onClick={e=>handleClick(e,show)}
+                    id={`${name}-filter`} className="flex-fill filter-selector" 
+                    >
                         {type=="text"?<span style={{color:'#585858'}}>{selected.label}</span>:
                         <SmallBranch branch={selected} isLink={false}/>}
                         <DownArrowSvg/>

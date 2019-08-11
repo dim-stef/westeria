@@ -1,26 +1,22 @@
-import React, {useState,useContext,useEffect,useRef} from 'react'
-import ReactDOM from 'react-dom';
+import React, {useState,useContext,useEffect,useRef,lazy,Suspense} from 'react'
 import {UserContext} from "../container/ContextContainer"
 import {isMobile} from 'react-device-detect';
-import { Editor } from 'slate-react'
 import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
 import Plain from 'slate-plain-serializer'
 import ReactPlayer from 'react-player'
 import axios from 'axios'
-
-var csrftoken = getCookie('csrftoken');
+//const Editor = lazy(() => import('slate-react'));
+import {Editor} from "slate-react";
 
 
 function MediaPreview(props){
-    console.log("props.files",props.files)
 
     function handleClick(file){
         let fileArray = Array.from(props.files);
         let newFiles = fileArray.filter(f=>{
             return f!=file
         })
-        console.log("newfiles",newFiles,file)
         props.setFiles(newFiles);
     }
 
@@ -78,7 +74,7 @@ const schema = {
     },
 }
 
-export function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}){
+export default function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}){
     const initialValue = Value.fromJSON({
     document: {
         nodes: [
@@ -131,28 +127,30 @@ export function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}
 
     return(
         <>
-        {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
-        <div className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
-        justifyContent:'stretch',borderTop:'1px solid #e2eaf1',zIndex:6,...style}}>
-            <div>
-                <img src={context.currentBranch.branch_image} className="profile-picture" 
-                style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
+        <Suspense fallback={null}>
+            {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
+            <div className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
+            justifyContent:'stretch',borderTop:'1px solid #e2eaf1',zIndex:6,...style}}>
+                <div>
+                    <img src={context.currentBranch.branch_image} className="profile-picture" 
+                    style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
+                </div>
+                <div style={{width:'100%'}}>
+                    <Editor
+                    ref={ref}
+                    value={value}
+                    onChange={handleChange}
+                    schema={schema}
+                    placeholder="Type something"
+                    style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
+                    wordBreak:'break-all',border:'1px solid #a6b7c5'}}/>
+                    {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
+                    <input type="file" multiple="multiple" onInput={e=>handleImageClick(e)}></input>
+                    <Toolbar editor={ref} files={files} ws={ws} branch={branch} room={roomId}
+                    updateMessages={updateMessages} value={value}/>
+                </div>
             </div>
-            <div style={{width:'100%'}}>
-                <Editor
-                ref={ref}
-                value={value}
-                onChange={handleChange}
-                schema={schema}
-                placeholder="Type something"
-                style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                wordBreak:'break-all',border:'1px solid #a6b7c5'}}/>
-                {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                <input type="file" multiple="multiple" onInput={e=>handleImageClick(e)}></input>
-                <Toolbar editor={ref} files={files} ws={ws} branch={branch} room={roomId}
-                updateMessages={updateMessages} value={value}/>
-            </div>
-        </div>
+        </Suspense>
         </>
     )
 }
@@ -174,7 +172,6 @@ function isFileVideo(file) {
 }
 
 function Toolbar({editor,updateMessages,ws,files,branch,room,value}){
-    console.log("branch",branch)
     const handleClick = (e)=>{
         
         let message = Plain.serialize(value);
@@ -190,7 +187,6 @@ function Toolbar({editor,updateMessages,ws,files,branch,room,value}){
                 if(isFileImage(files[i])){
                     formData.append('images',files[i])
                 }else if(isFileVideo(files[i])){
-                    console.log("isvideo")
                     formData.append('videos',files[i])
                 }
                 
@@ -206,15 +202,7 @@ function Toolbar({editor,updateMessages,ws,files,branch,room,value}){
                         'Content-Type': 'multipart/form-data',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                }).then(response => {
-                    axios.get(`/api/branches/${branch.uri}/chat_rooms/${room}/messages/${response.data.id}/`).then(response =>{
-                        //updateMessages([response.data]);
-                        console.log(response);
-                    })
-                    console.log(response);
-                }).catch(error => {
-                console.log(error)
-            })
+                })
         }else{
             ws.send(JSON.stringify({
                 'message': message,

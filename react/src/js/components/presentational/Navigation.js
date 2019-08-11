@@ -7,48 +7,13 @@ import {FrontPage,FrontPageFeed} from "./Routes"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
 import { RoutedTabs, NavTab } from "react-router-tabs";
+import {isMobile} from 'react-device-detect';
 import axios from 'axios'
 
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
 const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
 const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
-
-export default class NavigationBar extends Component{
-    static contextType = UserContext
-    render(){
-        return(
-            <div style={{
-                    height: 50,
-                    position: "fixed",
-                    width: "100%",
-                    backgroundColor: "white",
-                    zIndex: 5,
-                    top:0
-                }}
-            >
-            <div style={{display:'flex',
-                    justifyContent:'space-between',
-                    borderBottom:'2px solid #c3c3c3',
-                    height:'100%',
-                    margin:'0 auto',
-                    maxWidth:1200}}>
-                    <Home/>
-                    <Search/>
-                    <div style={{display:'flex'}}>
-                        {this.context.isAuth ?
-                            <>
-                                <Notifications/>
-                                <Profile/>
-                            </>
-                        : null}
-                    </div>
-            </div>
-                
-            </div>
-        )
-    }
-}
 
 export function TabbedNavigationBar(){
     const context = useContext(UserContext);
@@ -103,33 +68,32 @@ export function TabbedNavigationBar(){
 }
 
 export function MobileNavigationBar(){
-    /*if ('scrollRestoration' in history) {
-        // Back off, browser, I got this...
-        history.scrollRestoration = 'manual';
-    }*/
-
-    //console.log(history)
     const context = useContext(UserContext);
     return(
         <div className="flex-fill mobile-navigation" >
-                <NavLink exact to="/" className="flex-fill" activeStyle={{borderTop:'2px solid #2397f3'}}
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none'}}>
+                <NavLink exact to="/" className="flex-fill"
+                activeStyle={{borderTop:'2px solid #2397f3'}}
+                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none',
+                borderTop:'2px solid rgb(226, 234, 241)'}}>
                     <Home/>
                 </NavLink>
                 <NavLink to="/search" className="flex-fill" activeStyle={{borderTop:'2px solid #2397f3'}}
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',
+                borderTop:'2px solid rgb(226, 234, 241)'}}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
                     <NavLink to="/notifications" activeStyle={{borderTop:'2px solid #2397f3'}} className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',position:'relative'}}>
+                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',position:'relative',
+                    borderTop:'2px solid rgb(226, 234, 241)'}}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
 
                 {context.isAuth?
                     <NavLink to="/messages" activeStyle={{borderTop:'2px solid #2397f3'}} className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',
+                    borderTop:'2px solid rgb(226, 234, 241)'}}>
                         <MessageSvg/>
                     </NavLink>:null
                 }
@@ -241,8 +205,6 @@ function NotificationsBox({notifications}){
                         display:'inline-block'}}></div>
                         <span>{n.target.uri}</span>
                     </div>
-                    
-
                 </div>
             )
         })
@@ -299,12 +261,10 @@ function ProfileDropDown({setFocused}){
 
 function Home(props){
     return(
-        <Link to="/" style={{textDecoration:'none'}}>
-            <div style={{display:'flex',alignItems:'center'}}>
-                <span className="material-icons user-color">home</span>
-                <span style={{color: "#156bb7",fontWeight:500,fontSize:17}}>Home</span>
-            </div>
-        </Link>
+        <div style={{display:'flex',alignItems:'center'}}>
+            <span className="material-icons user-color">home</span>
+            <span style={{color: "#156bb7",fontWeight:500,fontSize:17}}>Home</span>
+        </div>
     )
 }
 
@@ -340,7 +300,7 @@ function Profile(){
                 height:32,
                 backgroundImage:`url(${imageUrl})`}}>
             </div>
-            {focused?<ProfileDropDown setFocused={setFocused}/>:null}
+            {focused && !isMobile?<ProfileDropDown setFocused={setFocused}/>:null}
         </div>
     )
 }

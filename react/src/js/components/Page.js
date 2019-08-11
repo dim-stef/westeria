@@ -2,7 +2,6 @@ import React, { Component,PureComponent,useState,useContext } from "react";
 import { Helmet } from "react-helmet";
 import MediaQuery from 'react-responsive';
 import Responsive from 'react-responsive';
-import {Content} from './presentational/Content'
 import NavigationBar, {MobileNavigationBar,TabbedNavigationBar} from './presentational/Navigation'
 import {UserContext} from './container/ContextContainer'
 

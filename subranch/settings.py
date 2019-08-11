@@ -66,6 +66,15 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
     os.path.join(BASE_DIR, 'subranch','credentials.json')
 )
 
+###
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_LOCATION = 'static'
+STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+###
+
 ASGI_APPLICATION = "subranch.routing.application"
 CHANNEL_LAYERS = {
     'default': {
@@ -85,7 +94,6 @@ PWA_APP_SCOPE = '/',
 PWA_APP_ORIENTATION = 'any'
 PWA_APP_START_URL = '/'
 PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'common', 'static','js', 'sw.js')
-print('PWA_SERVICE_WORKER_PATH',PWA_SERVICE_WORKER_PATH)
 PWA_APP_ICONS = [
         {
             'src': '/static/apple-touch-icon.png',
@@ -112,7 +120,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
-    'pwa',
+    'react',
     'widget_tweaks',
     'django_extensions',
     'channels',
@@ -239,6 +247,16 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+WEBPACK_LOADER = {
+    'DEFAULT': {
+        'CACHE': not DEBUG,
+        'BUNDLE_DIR_NAME':  'dist/', # must end with slash
+        'STATS_FILE': os.path.join(BASE_DIR, 'react','webpack-stats.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'IGNORE': [r'.+\.hot-update.js', r'.+\.map']
+    }
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
@@ -258,15 +276,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = '/static/'
-#STATIC_ROOT = os.path.join(BASE_DIR,'static')
-
+STATIC_ROOT = os.path.join(BASE_DIR,'static')
+print(STATIC_ROOT)
 MEDIA_URL = '/upload/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'react', 'dist'),
-    os.path.join(BASE_DIR),
+    os.path.join(BASE_DIR, 'react','dist'),
     os.path.join(BASE_DIR, 'common'),
     os.path.join(BASE_DIR, 'common', 'static'),
 ]

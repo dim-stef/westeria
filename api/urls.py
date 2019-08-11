@@ -6,19 +6,21 @@ schema_view = get_swagger_view(title='Pastebin API')
 from . import views
 
 router = routers.DefaultRouter()
+
 router.register(r'user', views.UserViewSet, base_name='user')
 router.register(r'user/following', views.UserFollowViewSet, base_name='user_following')
 router.register(r'notifications', views.NotificationsViewSet, base_name='notifications')
-router.register(r'reacts',views.ReactsViewSet,base_name="reacts"),
+router.register(r'reacts',views.ReactsViewSet,base_name="reacts")
 router.register(r'post/add_reply', views.AddPostReply, base_name='add_reply')
 router.register(r'post/remove_reply', views.RemovePostReply, base_name='remove_reply')
-router.register(r'post',views.BranchPost,base_name="post"),
-router.register(r'post/(?P<id>\d+)/replies',views.ReplyTree,base_name="reply_tree"),
+router.register(r'post',views.BranchPost,base_name="post")
+router.register(r'post/(?P<id>\d+)/replies',views.ReplyTree,base_name="reply_tree")
 router.register(r'owned_branches', views.OwnedBranchesViewSet, base_name='owned_branches')
 router.register(r'public_profile', views.BranchPublicProfileSerializer, base_name='public_profile')
 router.register(r'ROOT', views.BranchRootViewSet, base_name='branchroot')
 router.register(r'trending', views.TrendingScoreViewSet,base_name='trending_score')
 router.register(r'posts/all', views.AllPostsViewSet, base_name='all_posts')
+router.register(r'branches/new', views.CreateNewBranchViewSet, base_name='dfdas')
 router.register(r'branches', views.BranchViewSet, base_name='branch')
 router.register(r'branches/update', views.BranchUpdateViewSet, base_name='update')
 router.register(r'branches/add_follow', views.BranchAddFollowViewSet, base_name='add_follow')
@@ -64,7 +66,6 @@ urlpatterns = [
     path('branches/<str:uri>/reactions/', views.BranchReactions.as_view()),
     path('token/', views.CreateToken.as_view()),
     path('user/default_branch/', views.defaultBranch),
-
     url(r'^', include(router.urls)),
     url(r'^', include(branch_router.urls)),
     #url(r'^', include(chatroom_router.urls)),

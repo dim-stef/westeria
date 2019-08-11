@@ -95,7 +95,7 @@ function ImageNeighbour({el,branch}){
 function Identifiers({branch}){
     return(
 
-        <div className="flex-fill" style={{alignItems:'center'}}>
+        <div className="flex-fill" style={{alignItems:'center',flexFlow:'row wrap',WebkitFlexFlow:'row wrap'}}>
             <div>
                 <Name name={branch.name}/>
                 <Uri uri={branch.uri}/>

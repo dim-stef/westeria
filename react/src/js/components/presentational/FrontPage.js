@@ -1,6 +1,7 @@
-import React, { useState, useContext, useEffect,useRef } from "react"
-import {MyBranchesColumnContainer} from "./MyBranchesColumn"
+import React, { useState, useContext, useEffect,useRef,lazy,Suspense } from "react"
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
+//const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
+import MyBranchesColumnContainer from "./MyBranchesColumn";
 
 
 export function FrontPageLeftBar(){
@@ -21,7 +22,7 @@ export function FrontPageLeftBar(){
                             backgroundColor:'transparent'
                         }}>{show?"hide":"show"}</button>
                     </div>
-                    {show?<MyBranchesColumnContainer show={true}/>:<MyBranchesColumnContainer show={false}/>}
+                    <MyBranchesColumnContainer show={show}/>
                 </div>
                 <div style={{marginTop:10}}>
                     <FollowingBranches/>

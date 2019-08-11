@@ -1,6 +1,7 @@
 from django.db import models
+from django.db.models import Count
 from django.contrib.auth.models import AbstractUser
-from django.db.models.signals import post_save, post_init, pre_save
+from django.db.models.signals import post_save, post_init, pre_save, m2m_changed
 from django.core.exceptions import ValidationError,SuspiciousOperation
 from django.dispatch import receiver
 from accounts.models import User
@@ -55,7 +56,7 @@ class Branch(models.Model):
     accessibility = models.CharField(default=PUBLIC, choices=ACCESSIBILITY, max_length=2)
     description = models.TextField(blank=True, null=True, max_length=140)
     over_18 = models.BooleanField(default=False)
-    uri = models.CharField(blank=False, null=False, default=uuid.uuid4, max_length=60)
+    uri = models.CharField(blank=False, null=False, default=uuid.uuid4,unique=True, max_length=60)
     default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     trending_score = models.DecimalField(max_digits=14,decimal_places=5,default=0.0)
@@ -71,23 +72,18 @@ class Branch(models.Model):
             for branch in owned_branches:
                 branch.default = False
                 branch.save()
-        '''else:
-            defaults = [branch.default for branch in owned_branches]
-            if any(defaults):
-                pass
-            else:
-                raise ValidationError('You must have a default branch')'''
+
 
     def save(self, *args, **kwargs):
-
-        if not Branch.objects.filter(pk=self.pk).first():  #in case of new model instance
-            self.uri = generate_unique_uri(self.name)
+        if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
+            self.uri = self.uri if self.uri else generate_unique_uri(self.name)
         else:
             branch = Branch.objects.get(pk=self.pk)
             if branch.uri != self.uri:                     #need validation if uri updated
                 self.uri = generate_unique_uri(self.name)
 
-        self.full_clean()
+        if self.pk:
+            self.full_clean()
         super().save(*args, **kwargs)
 
 def validate_manytomany(self,instance,target):
@@ -96,19 +92,10 @@ def validate_manytomany(self,instance,target):
         raise ValidationError('Cannot branch to the same branch')
 
 
-from django.db.models import Sum
-
-@receiver(post_save, sender=Post, dispatch_uid="update_post")
-def update_post_score(sender, instance, **kwargs):
-    date_from = datetime.datetime.now() - datetime.timedelta(days=1)
-    for branch in Branch.objects.all():
-        last_24_hour_posts = Post.objects.filter(posted_to=branch,created__gte=date_from)
-        branch.trending_score = calculate_trending_score(last_24_hour_posts)
-        print(branch.trending_score)
-        branch.save()
-
-
 class BranchRequest(models.Model):
+    class Meta:
+        unique_together = ('request_to','request_from','type',)
+
     previous_state = None
 
     TYPE_ADD = 'add'
@@ -203,54 +190,56 @@ from django.core import serializers
 
 @receiver(post_save, sender=BranchRequest)
 def create_notification(sender, instance, created, **kwargs):
-    verb = instance.relation_type
+    if created:
+        verb = instance.relation_type
 
-    if instance.relation_type == BranchRequest.RELATION_TYPE_CHILD:
-        description = " wants to become child of "
-        verb = "become_child"
+        if instance.relation_type == BranchRequest.RELATION_TYPE_CHILD:
+            description = "wants to become child of"
+            verb = "become_child"
 
-    else:
-        description = " wants to become parent of "
-        verb = "become_parent"
+        else:
+            description = "wants to become parent of"
+            verb = "become_parent"
 
 
-    notification = Notification.objects.create(recipient=instance.request_to.owner,actor=instance.request_from,verb=verb,
-                                target=instance.request_to,action_object=instance,description=description)
+        notification = Notification.objects.create(recipient=instance.request_to.owner,actor=instance.request_from
+                                    ,verb=verb,target=instance.request_to,
+                                    action_object=instance,description=description)
 
-    serialized_notification  = serializers.serialize('json', [ notification, ])
+        serialized_notification  = serializers.serialize('json', [ notification, ])
 
-    request_to={
-        'uri': instance.request_to.uri,
-        'name': instance.request_to.name,
-        'image': instance.request_to.branch_image.url,
-        'banner': instance.request_to.branch_banner.url
-    }
-
-    request_from={
-        'uri': instance.request_from.uri,
-        'name': instance.request_from.name,
-        'image': instance.request_from.branch_image.url,
-        'banner': instance.request_from.branch_banner.url
-    }
-
-    branch_name = 'branch_%s' % instance.request_to
-
-    message = {
-        'notification': serialized_notification
-    }
-
-    channel_layer = channels.layers.get_channel_layer()
-
-    async_to_sync(channel_layer.group_send)(
-        branch_name,
-        {
-            'type': 'send.message',
-            'text': message,
-            'request_to': request_to,
-            'request_from': request_from,
-            'id': notification.id
+        request_to={
+            'uri': instance.request_to.uri,
+            'name': instance.request_to.name,
+            'image': instance.request_to.branch_image.url,
+            'banner': instance.request_to.branch_banner.url
         }
-    )
+
+        request_from={
+            'uri': instance.request_from.uri,
+            'name': instance.request_from.name,
+            'image': instance.request_from.branch_image.url,
+            'banner': instance.request_from.branch_banner.url
+        }
+
+        branch_name = 'branch_%s' % instance.request_to
+
+        message = {
+            'notification': serialized_notification
+        }
+
+        channel_layer = channels.layers.get_channel_layer()
+
+        async_to_sync(channel_layer.group_send)(
+            branch_name,
+            {
+                'type': 'send.message',
+                'text': message,
+                'request_to': request_to,
+                'request_from': request_from,
+                'id': notification.id
+            }
+        )
 
 
 class Follow(models.Model):
@@ -273,4 +262,48 @@ def create_group_chat(sender, instance, created, **kwargs):
         BranchChat.objects.create(owner=instance)
 
 
+@receiver(post_save, sender=Branch)
+def validate_default(sender, instance, created, **kwargs):
+    if created:
+        instance.full_clean()
 
+
+@receiver(m2m_changed,sender=Branch.follows.through)
+def modify_chat_room(sender, instance, **kwargs):
+    action = kwargs.pop('action', None)
+    pk_set = kwargs.pop('pk_set', None)
+
+    def already_exists(query_member):
+        instance_personal_rooms = BranchChat.objects.annotate(num_members=Count('members')) \
+            .filter(num_members=2, members__in=[instance])
+
+        if not instance_personal_rooms.filter(members__in=[query_member]).exists():
+            return None
+        return instance_personal_rooms.filter(members__in=[query_member])
+
+    # On follow create direct chat
+    if action == "post_add":
+        for pk in pk_set:
+            member = Branch.objects.get(pk=pk)
+            if not already_exists(member):
+                members = [member, instance]
+                new_room = BranchChat.objects.create(owner=instance)
+                new_room.members.add(*members)
+
+    # On unfollow delete direct chat
+    if action == "post_remove":
+        for pk in pk_set:
+            member = Branch.objects.get(pk=pk)
+            chat = already_exists(member)
+            if chat:
+                chat.delete()
+
+
+'''@receiver(post_save, sender=Post, dispatch_uid="update_post")
+def update_post_score(sender, instance, **kwargs):
+    date_from = datetime.datetime.now() - datetime.timedelta(days=1)
+    for branch in Branch.objects.all():
+        last_24_hour_posts = Post.objects.filter(posted_to=branch,created__gte=date_from)
+        branch.trending_score = calculate_trending_score(last_24_hour_posts)
+        print(branch.trending_score)
+        branch.save()'''

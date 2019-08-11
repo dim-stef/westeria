@@ -1,19 +1,18 @@
-import React, { useState,useContext,useEffect,useLayoutEffect,useRef,useCallback } from 'react';
+import React, { useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
 import {Link,withRouter} from 'react-router-dom'
-import {UserContext,PostsContext} from '../container/ContextContainer'
-import {StatusUpdateAuthWrapper as StatusUpdate} from "./StatusUpdate"
+import {UserContext} from '../container/ContextContainer'
+//const StatusUpdate = lazy(() => import('./StatusUpdate'));
+import StatusUpdate from "./StatusUpdate";
 import {ToggleContent} from './Temporary'
-import {CommentSection,ReplyTree} from './Comments'
+import {ReplyTree} from './Comments'
 import {SmallBranchList} from './BranchList'
 import {SmallCard} from "./Card"
-import { useSwipeable, Swipeable } from 'react-swipeable'
 import { useInView } from 'react-intersection-observer'
 import {Images2} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import LazyLoad from 'react-lazy-load';
-import { act } from 'react-testing-library';
 
 var csrftoken = getCookie('csrftoken');
 
@@ -30,30 +29,13 @@ function getPostedTo(post,activeBranch,context){
 }
 
 function authorizedGetPostedTo(post,activeBranch,context){
-    console.log("post",post)
     var intersection = post.posted_to.find(b=>{
         // if user follows branch and is not current active branch
         return context.currentBranch.follows.includes(b.uri) && b.uri!==context.currentBranch.uri
         && b.uri!==activeBranch.uri && b.uri!==post.poster;
     })
 
-    /*var postedOnActive = post.posted_to.find(b=>{
-        return activeBranch.uri===b.uri && post.poster!==b.uri;
-    })
-
-    if(postedOnActive){
-        return postedOnActive;
-    }*/
-
     if(intersection){
-        /*if(intersection.uri===activeBranch.uri || intersection.uri===post.poster){
-            return post.posted_to.find(b=>{
-                return activeBranch.uri===b.uri && post.poster!==b.uri && intersection.uri!==activeBranch.uri;
-            })
-        }
-        else{
-            return intersection;
-        }*/
         return intersection;
     }else{
         return post.posted_to.find(b=>{
@@ -150,12 +132,12 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                 hasMore={hasMore}
                 endMessage={
                     <p style={{textAlign: 'center'}}>
-                    <b>Yay! You have seen it all</b>
+                        <b style={{fontSize:'2rem'}}>Nothing more to see</b>
                     </p>
                 }
                 loader={
                     <p style={{textAlign: 'center'}}>
-                    <b>WATINGG.......</b>
+                    <b>Loading comments..</b>
                     </p>
                 }
                 >
@@ -174,56 +156,30 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 
 }
 
-export const Post = React.memo(function Post({post,parentPost=null,measure,postsContext,
-    isOpen=false,index,activeBranch,lastComment,viewAs="post",isSingular,updateTree}){
-    const context = useContext(UserContext);
-    //const postsContext = useContext(PostsContext);
-    console.log("postsContext",postsContext)
-    let ids = postsContext.cachedPosts.map(p=>p.id)
-    const [visibleComments,setVisibleComments] = useState(ids);
-    const [mainPostedBranch,setMainPostedBranch] = useState(getPostedTo(post,activeBranch,context))
+export const Post = React.memo(function Post({post,parentPost=null,
+    measure=()=>{},postsContext,
+    isOpen=false,index,activeBranch,lastComment,
+    viewAs="post",isSingular,updateTree=()=>{}}){
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
-    const didMount = useRef(null);
 
     const [ref, inView] = useInView({
         threshold: 0,
     })
 
-    function closePost(e){
-        e.preventDefault();
-        e.stopPropagation();
-        //setOpen(false);
-        setStatusUpdateActive(false);
-
-        postsContext.openPosts = [...new Set(postsContext.openPosts)];
-        postsContext.cachedPosts = postsContext.cachedPosts.filter(p=>{
-            return !post.replies.includes(p.id)
-        })
-
-        console.log("openPosts",postsContext.openPosts,postsContext.cachedPosts)
-        let ids = postsContext.cachedPosts.map(p=>p.id)
-        let uniq = [...new Set([...visibleComments,...ids])];
-        setVisibleComments(uniq)
-    }
-
-    function openPost(){
-        setStatusUpdateActive(true);
-        //setOpen(true);
-        let uniq = [...new Set([...visibleComments,post.id])];
-        setVisibleComments(uniq)
-        postsContext.openPosts.push(post.id);
-    }
-    
     useEffect(()=>{
         if(viewAs=="embeddedPost"){
-            //let inCache = postsContext.cachedPosts.some(p=>p.id==post.id);
             let inCache = postsContext.uniqueCached.some(ar=>{
-                return ar.post.id == parentPost.id && ar.embeddedPost!=undefined && ar.embeddedPost.id == post.id
+                // If post is from notifications parentPost doesnt exist
+                // needs fix
+                if(ar.post && parentPost){
+                    return ar.post.id == parentPost.id && ar.embeddedPost!=undefined && ar.embeddedPost.id == post.id
+                }
             });
-            if(!inCache){
+            if(!inCache && parentPost){
+                // If post is from notifications it gets pushed in context indefinetely
+                // needs fix
                 console.log("measure not in cache",postsContext.uniqueCached)
                 measure();
-                //postsContext.cachedPosts.push(post);
                 postsContext.uniqueCached.push({
                     post:parentPost,
                     embeddedPost:post
@@ -231,12 +187,13 @@ export const Post = React.memo(function Post({post,parentPost=null,measure,posts
             }
         }else{
             let inCache = postsContext.uniqueCached.some(bundle=>{
-                console.log("bundle",bundle)
-                return bundle.post.id == post.id && bundle.embeddedPost == undefined
+                if(bundle.post){
+                    return bundle.post.id == post.id && bundle.embeddedPost == undefined
+                }
+                
             })
 
             if(!inCache){
-                console.log("measure")
                 measure();
                 postsContext.uniqueCached.push({
                     post:post,
@@ -248,20 +205,20 @@ export const Post = React.memo(function Post({post,parentPost=null,measure,posts
 
     var date = new Date(post.created);
     return(
-        <PostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
+        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
-                <SmallPost post={post} viewAs={viewAs} lastComment={lastComment} 
-                mainPostedBranch={mainPostedBranch} date={date} cls="main-post"
-                showPostedTo activeBranch={activeBranch} openPost={openPost} 
-                open={open} closePost={closePost} measure={measure} postsContext={postsContext}
+                <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
+                date={date} cls="main-post"
+                showPostedTo activeBranch={activeBranch}
+                open={open} measure={measure} postsContext={postsContext}
                 isStatusUpdateActive={isStatusUpdateActive} isSingular={isSingular} updateTree={updateTree}
                 />
             </div>
-        </PostWrapper>
+        </StyledPostWrapper>
     )
 })
 
-function PostWrapper({post,viewAs,index,isSingular,children}){
+function StyledPostWrapper({post,viewAs,index,isSingular,children}){
     if(viewAs=="reply" || isSingular){
         return(
             <div id={post.id}>
@@ -270,9 +227,6 @@ function PostWrapper({post,viewAs,index,isSingular,children}){
         )
     }else{
         return(
-            /*<Link to={`/${post.poster}/leaves/${post.id}/`} style={{textDecoration:'none'}} data-index={index} id={post.id}>
-                {children}
-            </Link>*/
             <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id}>
                 {children}
             </LinkedPostWithRouter>
@@ -282,7 +236,8 @@ function PostWrapper({post,viewAs,index,isSingular,children}){
 
 function LinkedPost({history,dataIndex,id,to,children}){
 
-    function handleClick(){
+    function handleClick(e){
+        e.stopPropagation();
         console.log("click",to)
         history.push(to);
     }
@@ -329,6 +284,11 @@ function ShownBranch({branch,date,dimensions=48}){
         },500)
     }
 
+    function handleAnchorClick(e){
+        console.log("anchorclicked")
+        e.stopPropagation()
+    }
+
     return(
         <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
         display:'inline-flex',position:'relative'}} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
@@ -336,7 +296,7 @@ function ShownBranch({branch,date,dimensions=48}){
             style={{width:dimensions,height:dimensions}}
             uri={branch.uri}/>
             <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
-                <Link to={branch.uri} style={{textDecoration:'none', color:'black',marginRight:10}}>
+                <Link to={`/${branch.uri}`} onClick={handleAnchorClick} style={{textDecoration:'none', color:'black',marginRight:10}}>
                         <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
                 </Link>
                 <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
@@ -348,7 +308,7 @@ function ShownBranch({branch,date,dimensions=48}){
     )
 }
 
-function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,
+function StyledPost({post,postsContext,date,cls,showPostedTo,
     activeBranch,openPost,open,updateTree,measure,viewAs,isSingular}){
     const context = useContext(UserContext);
     const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
@@ -358,11 +318,11 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,
     let isOpen = postsContext.openPosts.some(p=>{
         return p==post.id
     })
+    let mainPostedBranch = getPostedTo(post,activeBranch,context);
 
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(isOpen && viewAs=="post" || isSingular);
     const ref = useRef(null);
 
-    let dateElement = timeDifference(date,new Date());
     let isEmbedded = viewAs=="embeddedPost" ? true : false;
     //let borderBottom = lastComment ? '1px solid #e2eaf1' : 'none';
     let borderBottom = viewAs=="post" || isEmbedded ? '1px solid #e2eaf1' : borderBottom;
@@ -383,18 +343,6 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,
         }
     }
 
-    function handleOpenPost(){
-        if(isEmbedded){
-            return
-        }
-
-        openPost();
-        if(post.level===0 || viewAs=="post"){
-            console.log(post.level)
-            setStatusUpdateActive(true);
-        }
-    }
-
     function onSpread(){
         post.spreads_count++;
         if(!post.spreaders.some(sp=>{
@@ -405,7 +353,15 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,
         setDidSelfSpread(true);
     }
 
-    console.log(post)
+    const mounted = useRef();
+    useEffect(() => {
+        if (!mounted.current) {
+            mounted.current = true;
+        } else {
+            // componentDidUpdate logic here
+            measure();
+        }
+    },[didSelfSpread]);
 
     
     return(
@@ -419,11 +375,11 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,
             <div className="flex-fill">
                 <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
                     <ShownBranch branch={post.posted_to.find(b=> post.poster==b.uri)} 
-                    date={date} post={post} dimensions={viewAs=='reply'?24:48}/>
+                    date={date} post={post} dimensions={viewAs=='reply'?24:null}/>
                     <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
-                    activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:48}/>
+                    activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:null}/>
                 </div>
-                <More/>
+                <More post={post}/>
                 </div>
                 <div style={{marginTop:10}}>
                     <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
@@ -568,16 +524,17 @@ Number.prototype.roundTo = function(num) {
 
 function PostPicture(props){
     console.log(props)
+
+    function handleAnchorClick(e){
+        console.log("anchorclicked")
+        e.stopPropagation()
+    }
+
     return(
-        <Link to={`/${props.uri}`} className="noselect" style={{marginRight:10}}>
-            <img src={props.picture} style={{
-            backgroundSize:'cover',
-            backgroundPosition:'center center',
-            backgroundRepeat:'no-repeat',
-            border:0,
-            borderRadius:'50%',
-            objectFit:'cover',
-            width:props.style.width,height:props.style.height}}/>
+        <Link to={`/${props.uri}`} onClick={handleAnchorClick} 
+        className="noselect" style={{marginRight:10}}>
+            <img src={props.picture} className="post-profile-picture round-picture" 
+            style={props.style?{...props.style}:null}/>
         </Link>
     )
 }
@@ -674,13 +631,11 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                     },
                     withCredentials: true
                 }).then(r=>{
-                    // update context
                     context.currentBranch.reacts.push(r.data);
                     type=='star'?setStarCount(starCount+1):setDislikeCount(dislikeCount+1);
                     setReact(type);
                 }).catch(r=>{
                     setReact(null);
-                    console.log(r)
             })
         }
     },[react])
@@ -700,7 +655,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             </div>
 
             <Comments post={post} handleCommentClick={handleCommentClick}/>
-            <Share post={post} handleSpread={handleSpread} didSelfSpread={didSelfSpread}/>
+            <Share post={post} handleSpread={handleSpread} didSelfSpread={didSelfSpread} />
         </div>
     )
 }
@@ -712,7 +667,6 @@ function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCou
 
     const onClick = (e) =>{
         e.stopPropagation();
-        //setReacted(!reacted);
         if(context.isAuth){
             handleStarClick();
         }else{
@@ -729,9 +683,7 @@ function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCou
     },[react])
 
     function handleStarClick(){
-        console.log("type2",react)
         if(react && react!='star'){
-            console.log("type3",react)
             changeReact('star');
         }else{
             createOrDeleteReact('star');
@@ -754,12 +706,10 @@ function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCou
 
 function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
     const [reacted,setReacted] = useState(false);
-    const [starCount,setStarCount] = useState(count);
     const context = useContext(UserContext);
 
     const onClick = (e) =>{
         e.stopPropagation();
-        //setReacted(!reacted);
         if(context.isAuth){
             handleStarClick();
         }else{
@@ -776,9 +726,7 @@ function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
     },[react])
 
     function handleStarClick(){
-        console.log("type2",react)
         if(react && react!='dislike'){
-            console.log("type3",react)
             changeReact('dislike');
         }else{
             createOrDeleteReact('dislike');
@@ -823,7 +771,6 @@ function StarCount({reacted,count}){
     )
 }
 
-import { Line } from 'rc-progress';
 
 function StarDislikeRatio({style,reacted,starCount,dislikeCount}){
     //let color = reacted?'#fb4c4c':'rgb(67, 78, 88)';
@@ -972,17 +919,7 @@ function Share({post,handleSpread,didSelfSpread}){
         ).then(response=>{
             handleSpread();
             console.log(response);
-
             let uri = `/api/post/${response.data.post}/`;
-            console.log(uri)
-            /*axios.get(uri).then(response=>{
-                console.log(response);
-                updateFeed([response.data])
-            }).catch(error=>{
-                console.log(error);
-                console.log(error.response);
-            })*/
-
         }).catch(error=>{
             console.log("error",error)
         })
@@ -1030,7 +967,7 @@ function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
         return(()=>{
             document.removeEventListener('mousedown',handleClickOutside);
         })
-    })
+    },[])
 
     return(
         <div ref={ref} className="spread-box" onClick={e=>e.stopPropagation()}>
@@ -1131,9 +1068,55 @@ function TopSpreadList({spreaders,selfSpread}){
     )
 }
 
-function More(){
+function More({post}){
+    const ref = useRef(null);
+    const [clicked,setClicked] = useState(false);
+
+    function handleClick(e){
+        e.stopPropagation();
+        setClicked(!clicked);
+    }
+
+    function handleClickOutside(event) {
+        if(ref.current && !ref.current.contains(event.target) && 
+        !document.getElementById("spread-wrapper").contains(event.target)) {
+            setClicked(false);
+        }
+    }
+
+    useEffect(()=>{
+        document.addEventListener('mousedown',handleClickOutside);
+        return(()=>{
+            document.removeEventListener('mousedown',handleClickOutside);
+        })
+    })
+
+    function handleCopyLink(){
+        var text = document.location.protocol + '//' + document.location.host + post.poster + '/' + post.id;
+        navigator.clipboard.writeText(text).then(function() {
+            //console.log('Async: Copying to clipboard was successful!');
+        }, function(err) {
+            console.error('Could not copy text: ', err);
+        });
+    }
+
     return(
-        <MoreSvg/>
+        <div ref={ref} onClick={handleClick} style={{position:'relative'}}>
+            <MoreSvg/>
+            {clicked?
+            <div className="more-btn-container" style={{position:'absolute',right:0}}>
+                <MoreOption value="Copy url" onClick={handleCopyLink}/>
+            </div>:null}
+        </div>
+    )
+}
+
+function MoreOption({value,onClick,children}){
+    return(
+        <div className="more-option" onClick={onClick}>
+            <span>{value}</span>
+            {children}
+        </div>
     )
 }
 

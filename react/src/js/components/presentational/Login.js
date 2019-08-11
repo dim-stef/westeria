@@ -97,7 +97,7 @@ export default class Login extends Component{
                     placeholder="Password" required value={this.state.password} onChange={this.handlePasswordChange}/>
                     
                     {errorMessages}
-                    <p><Link to="#">Forgot password?</Link></p>
+                    <p><Link to="/password/reset">Forgot password?</Link></p>
                     <input className="login-btn" type="submit" value="LOGIN" />
                     </form>
                     <p>Don't have an Account? <Link to="/register" 

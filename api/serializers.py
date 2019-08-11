@@ -1,4 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.core.files.images import ImageFile
+from django.core import serializers as ser
+import channels.layers
+from asgiref.sync import async_to_sync
 from rest_framework import serializers
 from accounts.models import User
 from branches.models import Branch, BranchRequest
@@ -6,6 +10,11 @@ from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
 from notifications.models import Notification
 from datetime import datetime, timedelta
+from moviepy.editor import VideoFileClip
+import os
+from random import uniform
+from uuid import uuid4
+import json
 from math import log
 
 
@@ -25,6 +34,24 @@ def hot(ups, date):
     print(order)
     seconds = epoch_seconds(date) - 1134028003
     return round(order + seconds / 45000, 7)
+
+def generate_thumbnail(file):
+    _id = uuid4()
+    path = 'C:\\Users\\Dimitris\\Desktop\\tmp\\%s' % _id
+    with open(path, 'ab+') as f:
+        f.write(file.read())
+        clip = VideoFileClip(f.name)
+        thumbnail = os.path.join('%s.png' % path)
+        clip.save_frame(thumbnail, t=uniform(0.1, clip.duration))
+        #img = Image.open(thumbnail)
+        #img.thumbnail((220, 130), Image.ANTIALIAS)
+        #output = BytesIO()
+        #img.save(output,format='PNG', quality=85)
+
+        image_file = ImageFile(open(thumbnail, 'rb'))
+        image_file.name = "%s.png" % str(_id)
+        clip.close()
+        return image_file
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -130,6 +157,13 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
         fields = ('branch_image', 'branch_banner', 'parents',
                   'name', 'uri', 'accessibility', 'description', 'over_18','default')
 
+class CreateNewBranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ('owner','branch_image', 'branch_banner',
+                  'name', 'uri', 'accessibility', 'description', 'default')
+        read_only_fields = ('owner','accessibility',)
+
 class BranchAddFollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -232,15 +266,7 @@ class PostVideoSerializer(serializers.ModelSerializer):
         fields='__all__'
         read_only_fields = ['post']
 
-from moviepy.editor import VideoFileClip
-import os
-from random import uniform
-from uuid import uuid4
-from django.core.files.images import ImageFile
-import channels.layers
-from asgiref.sync import async_to_sync
-from django.core import serializers as ser
-import json
+
 
 def create_message(instance):
     serialized_images = ser.serialize('python', instance.images.all())
@@ -288,24 +314,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
     def get_author_url(self,message):
         return message.author.uri
 
-    def generate_thumbnail(self,file):
-        _id = uuid4()
-        path = 'C:\\Users\\Dimitris\\Desktop\\tmp\\%s' % _id
-        with open(path, 'ab+') as f:
-            f.write(file.read())
-            clip = VideoFileClip(f.name)
-            thumbnail = os.path.join('%s.png' % path)
-            clip.save_frame(thumbnail, t=uniform(0.1, clip.duration))
-            #img = Image.open(thumbnail)
-            #img.thumbnail((220, 130), Image.ANTIALIAS)
-            #output = BytesIO()
-            #img.save(output,format='PNG', quality=85)
-
-            image_file = ImageFile(open(thumbnail, 'rb'))
-            image_file.name = "%s.png" % str(_id)
-
-            clip.close()
-            return image_file
 
     def create(self, validated_data):
         request = self.context['request']
@@ -331,7 +339,7 @@ class NewMessageSerializer(serializers.ModelSerializer):
         if 'videos' in request.FILES:
             for video_data in request.FILES.getlist('videos'):
                 print(video_data)
-                thumbnail = self.generate_thumbnail(video_data)
+                thumbnail = generate_thumbnail(video_data)
                 ChatVideo.objects.create(branch_message=message, video=video_data, thumbnail=thumbnail)
 
         # send message to websocket
@@ -347,25 +355,6 @@ class NewPostSerializer(serializers.ModelSerializer):
     replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
     images = PostImageSerializer(many=True)
     videos = PostVideoSerializer(many=True)
-
-    def generate_thumbnail(self,file):
-        _id = uuid4()
-        path = 'C:\\Users\\Dimitris\\Desktop\\tmp\\%s' % _id
-        with open(path, 'ab+') as f:
-            f.write(file.read())
-            clip = VideoFileClip(f.name)
-            thumbnail = os.path.join('%s.png' % path)
-            clip.save_frame(thumbnail, t=uniform(0.1, clip.duration))
-            #img = Image.open(thumbnail)
-            #img.thumbnail((220, 130), Image.ANTIALIAS)
-            #output = BytesIO()
-            #img.save(output,format='PNG', quality=85)
-
-            image_file = ImageFile(open(thumbnail, 'rb'))
-            image_file.name = "%s.png" % str(_id)
-
-            clip.close()
-            return image_file
 
     def create(self, validated_data):
         request = self.context['request']
@@ -396,7 +385,7 @@ class NewPostSerializer(serializers.ModelSerializer):
         if 'videos' in request.FILES:
             for video_data in request.FILES.getlist('videos'):
                 print(video_data)
-                thumbnail = self.generate_thumbnail(video_data)
+                thumbnail = generate_thumbnail(video_data)
                 PostVideo.objects.create(post=post, video=video_data, thumbnail=thumbnail)
 
         return post
@@ -679,6 +668,8 @@ class GenericNotificationRelatedField(serializers.RelatedField):
             serializer = BranchSerializer(value)
         elif isinstance(value, BranchRequest):
             serializer = BranchRequestSerializer(value)
+        elif isinstance(value,React):
+            serializer = ReactSerializer(value)
         return serializer.data
 
 

@@ -178,14 +178,12 @@
     }
 }
 
-@media all and (max-width: 1200px) {
-    .post-list{
-        flex-basis: 100%;
-        border:none !important;
-        margin: 0;
-    }
-}
 
+.post-to-branch-container{
+    width: 400px;
+    margin: 60px auto 0px;
+    background-color: white;
+}
 
 .post-to-branch-tab-list{
     display:flex;
@@ -206,6 +204,8 @@
 
 .post-to-branch-tab-panel{
     padding:15px 20px;
+    height:500px;
+    overflow: auto;
 }
 
 .checkbox-label {
@@ -341,6 +341,10 @@
     -webkit-align-items: center;
 }
 
+.front-page-list-item:hover{
+    background-color: #2196F3;
+}
+
 .filter-selector-wrapper{
     position: relative;
     font-size: 1.4em;
@@ -451,6 +455,15 @@ div.route-section {
     color:white;
     cursor: pointer;
 }
+
+.post-profile-picture{
+    object-fit: cover;
+    width: 40px;
+    height: 40px;
+    background: no-repeat;
+    border: 0;
+}
+
 .post-text{
     font-size: 1.5rem;
     overflow-wrap: break-word;
@@ -527,7 +540,6 @@ div.route-section {
 .branch-add-button{
     flex-flow: column;
     -webkit-flex-flow: column;
-    background-color: rgb(216, 225, 234);
     justify-content: center;
     -webkit-justify-content: center;
     align-items: center;
@@ -536,8 +548,12 @@ div.route-section {
     -webkit-flex-basis: 33%;
 }
 
-.branch-add-button:hover .branch-add-icon{fill: #2196f3  !important;}
-.branch-add-button:hover .branch-add-text{color: #2196f3;}
+.branch-add-button:hover{
+    background-color: #f7f5f5;
+}
+
+/*.branch-add-button:hover .branch-add-icon{fill: #2196f3  !important;}
+.branch-add-button:hover .branch-add-text{color: #2196f3;}*/
 
 .star:hover .star-icon{stroke: #fb4c4c  !important;}
 .star:hover .star-count{color: #fb4c4c !important;}
@@ -545,23 +561,40 @@ div.route-section {
 .comments:hover .comments-icon{stroke: #2196f3  !important;}
 .comments:hover .comments-count{color: #2196f3 !important;}
 
-
-
 .branch-add-icon{
-    fill: #71859b;
-    width: 100px;
-    height: 100px;
-    transition: fill 0.2s ease-in-out;
+    fill: #97a6b3;
+    width: 80px;
+    height: 80px;
 }
 
 .branch-add-text{
-    color:#71859b;
+    color:#97a6b3;
     font-size: 3em;
-    transition: color 0.2s ease-in-out;
 }
 
 .standard-border{
     border: 1px solid #efefef;
+}
+
+.more-btn-container{
+    background-color: white;
+    z-index: 20;
+    -webkit-box-shadow: 0px 1px 3px 0px #9c9c9c;
+    -moz-box-shadow: 0px 1px 3px 0px #9c9c9c;
+    box-shadow: 0px 1px 3px 0px #9c9c9c;
+    border-radius: 5px;
+    overflow: hidden;
+    width: max-content;
+    font-size: 1.8rem;
+}
+
+.more-option{
+    padding: 5px;
+    cursor: pointer;
+}
+
+.more-option:hover{
+    background-color: #eaeaea;
 }
 
 .post{
@@ -735,11 +768,10 @@ div.top-spread-list{
 .notification{
     font-size: 2em;
     padding: 10px;
-
 }
 
-.hoverable-box:hover{
-    background-color:#edf2f7;
+.notification:hover{
+    background-color: #edf2f7;
 }
 
 .arrow-right{
@@ -771,6 +803,25 @@ div.top-spread-list{
     background-color: #2196f329 !important;
 }
 
+.create-new-branch{
+    margin: 10px 0;
+    height: 48px;
+    border-radius: 25px;
+    border: 1px solid #e2eaf1;
+    justify-content: center;
+    -webkit-justify-content: center;
+    align-items: center;
+    -webkit-align-items: center;
+    font-size: 2rem;
+    color: #8f9ca7;
+    text-decoration: none;
+}
+
+.create-new-branch:hover{
+    background-color: #f0f4f7;
+    cursor: pointer;
+}
+
 .slide-bottom {
 	-webkit-animation: slide-bottom 0.05s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 	        animation: slide-bottom 0.05s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
@@ -784,7 +835,26 @@ div.top-spread-list{
     transition: opacity .10s ease-in-out;
 }
 
+@media all and (max-device-width: 767px){
+
+    .post-to-branch-container{
+        width: 100%;
+    }
+
+    .post-to-branch-tab-panel{
+        height: 50vh;
+    }
+}
+
 @media all and (max-device-width: 1223px){
+    .create-new-branch{
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+        border:0;
+        font-size: 1.3rem;
+    }
+
     .branch-type-selection-wrapper{
         width: 100%;
     }

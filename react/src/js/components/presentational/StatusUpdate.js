@@ -1,11 +1,9 @@
-import React, {useState,useContext,useEffect,useRef} from 'react'
+import React, {useState,useContext,useEffect,useRef,lazy,Suspense} from 'react'
 import ReactDOM from 'react-dom';
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {SkeletonBranchList} from "./SkeletonBranchList";
-import { Editor } from 'slate-react'
 import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
@@ -15,13 +13,7 @@ import EmojiPicker from 'emoji-picker-react';
 import { css } from '@emotion/core';
 import { MoonLoader } from 'react-spinners';
 import axios from 'axios'
-import EmojiConvertor from "emoji-js"
-let emoji = new EmojiConvertor(); 
-// some more settings...
-emoji.supports_css = true;
-emoji.allow_native = true;
-emoji.replace_mode = 'unified';
-//emoji.text_mode = true;
+import {Editor} from "slate-react"
 
 
 function MediaPreview(props){
@@ -32,7 +24,6 @@ function MediaPreview(props){
         let newFiles = fileArray.filter(f=>{
             return f!=file
         })
-        console.log("newfiles",newFiles,file)
         props.setFiles(newFiles);
     }
 
@@ -43,7 +34,8 @@ function MediaPreview(props){
                 let file = props.files[i];
                 let img = (
                 <div style={{width:100,height:100,position:'relative',margin: '10px 10px 10px 0px'}}>
-                    <img style={{objectFit:'cover',width:'100%',height:'100%',borderRadius:'10px',border: '1px solid #989898'}} src={URL.createObjectURL(file)}/>
+                    <img style={{objectFit:'cover',width:'100%',height:'100%',borderRadius:'10px',border: '1px solid #989898'}} 
+                    src={URL.createObjectURL(file)}/>
                     <button style={{position:'absolute',top:0,right:0}} onClick={()=>handleClick(file)}>x</button>
                 </div>
                 );
@@ -89,14 +81,15 @@ const schema = {
         },
     },
 }
-export function StatusUpdateAuthWrapper(props){
+export default function StatusUpdateAuthWrapper(props){
     const userContext = useContext(UserContext);
 
     return(
         userContext.isAuth?<StatusUpdate {...props}/>:<p>Not authorized</p>
     )
 }
-export default function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
+
+export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
     const initialValue = Value.fromJSON({
     document: {
         nodes: [
@@ -136,10 +129,16 @@ export default function StatusUpdate({currentPost,postsContext,measure=null,upda
     const wrapperRef = useRef(null);
     const context = useContext(UserContext);
     const [branch,setBranch] = useState(context.currentBranch)
+    const [parents,setParents] = useState(null);
+    const [siblings,setSiblings] = useState(null);
+    const [children,setChildren] = useState(null);
+    const [checkedBranches,setCheckedBranches] = useState([])
+
+    let postToProps = {parents:parents,setParents:setParents,siblings:siblings,setSiblings:setSiblings,
+    children:children,setChildren:setChildren,checkedBranches:checkedBranches,setCheckedBranches:setCheckedBranches};
 
     const handleChange = (e) =>{
         setValue(e.value);
-        console.log("e.vakye",e.value)
         if (e.value.document != value.document) {
             //const content = JSON.stringify(e.value.toJSON())
             const content = Plain.serialize(e.value)
@@ -186,41 +185,38 @@ export default function StatusUpdate({currentPost,postsContext,measure=null,upda
     })
 
     useEffect(()=>{
-        /*let inCache = postsContext.openPosts.some(p=>{
-            return p==currentPost.id
-        })*/
-
         if(measure && !ref){
-            console.log("remeasure")
             measure();
         }
     })
     
     return(
-        <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#C2E4FB',
-        justifyContent:'stretch',position:'relative',zIndex:4,...style}}>
-            <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
-            setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview">
-                <img src={branch.branch_image} className="profile-picture" 
-                style={{width:34,height:34,marginRight:10,display:'block'}}/>
-            </BranchSwitcher>
-            <div style={{width:'100%'}}>
-                <Editor
-                className="editor"
-                ref={ref}
-                value={value}
-                onChange={handleChange}
-                schema={schema}
-                placeholder="Add a leaf"
-                style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                wordBreak:'break-all',border:'2px solid #219ef3'}}/>
-                {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                {minimized?
-                null:
-                <Toolbar editor={ref} files={files} branch={branch} postedId={postedId} currentPost={currentPost} 
-                updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}/>}
+            <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#C2E4FB',
+            justifyContent:'stretch',position:'relative',zIndex:4,...style}}>
+                <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
+                setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview">
+                    <img src={branch.branch_image} className="profile-picture"
+                    style={{width:34,height:34,marginRight:10,display:'block',objectFit:'cover'}}/>
+                </BranchSwitcher>
+                <div style={{width:'100%'}}>
+                    <Editor
+                    className="editor"
+                    ref={ref}
+                    value={value}
+                    onChange={handleChange}
+                    schema={schema}
+                    placeholder="Add a leaf"
+                    style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
+                    wordBreak:'break-all',border:'2px solid #219ef3'}}/>
+                    {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
+                    {minimized?
+                    null:
+                    <Toolbar editor={ref} files={files} branch={branch} postedId={postedId} currentPost={currentPost} 
+                    updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
+                        {...postToProps}
+                    />}
+                </div>
             </div>
-        </div>
     )
 }
 
@@ -240,14 +236,10 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick}){
-    const [parents,setParents] = useState(null)
-    const [siblings,setSiblings] = useState([])
-    const [children,setChildren] = useState(null)
-    const [checkedBranches,setCheckedBranches] = useState([])
+function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick,
+    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches}){
     const [loading,setLoading] = useState(true);
 
-    console.log("editor",editor)
     const handleClick = (e)=>{
         
         let post = Plain.serialize(value);
@@ -260,7 +252,6 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                 if(isFileImage(files[i])){
                     formData.append('images',files[i])
                 }else if(isFileVideo(files[i])){
-                    console.log("isvideo")
                     formData.append('videos',files[i])
                 }
                 
@@ -294,19 +285,14 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
             }).then(response => {
                 axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
                     updateFeed(response.data);
-                    console.log(response);
                 })
-                console.log(response);
             }).catch(error => {
-            console.log(error)
         }).finally(()=>{
             setLoading(false);
         })
     }
     
     async function onSelect(index,lastIndex,event){
-        console.log("event",event)
-        //event.stopPropagation();
         let endpoint = "parents";
         if(index===0){
             endpoint = "parents";
@@ -319,7 +305,6 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
         let target = currentPost?currentPost.poster:branch.uri
         let response = await axios.get(`/api/branches/${target}/${endpoint}/`)
         let branches = await response.data.results;
-        console.log(response);
         if(index===0){
             setParents(branches);
         }else if(index===1){
@@ -329,20 +314,10 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
         }
     }
 
-    function handleCloseModal(e){
-        let values = []
-        var checkBoxes = document.querySelectorAll('.input-checkbox:checked');
-        for(var checkBox of checkBoxes){
-            values.push(checkBox.value);
-            console.log(checkBox.value);
-        }
-        setCheckedBranches(values);
-    }
-
     let renderParents,renderChildren,renderSiblings;
     if(parents){
         renderParents = parents.length>0?parents.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches}/>
+            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
         </SmallBranch>}):null;
     }else{
         renderParents = <SkeletonBranchList/>
@@ -350,7 +325,7 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
 
     if(siblings){
         renderSiblings = siblings.length>0?siblings.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches}/>
+            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
         </SmallBranch>}):null;
     }else{
         renderSiblings = <SkeletonBranchList/>
@@ -358,7 +333,7 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
 
     if(children){
         renderChildren = children.length>0?children.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches}/>
+            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
         </SmallBranch>}):null;
     }else{
         renderChildren = <SkeletonBranchList/>
@@ -378,14 +353,13 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                     <div style={{display:'flex'}}>
                         <input type="file" multiple="multiple" className="inputfile" id="media" onInput={e=>handleImageClick(e)}></input>
                         <label for="media" style={{height:26,padding:2,marginRight:10}}><MediaSvg/></label>
-                        <Emoji editor={editor}/>
                         <button style={{marginLeft:10}}
                         onClick={e=>{handleOpenModal(e,show)}}>Post to</button>
                         
                     </div>
                 )}
                 content={hide => (
-                <Modal onClick={handleCloseModal}>
+                <Modal>
                     <PostToBranches parents={renderParents} siblings={renderSiblings} children={renderChildren}
                         onSelect={onSelect}
                     />
@@ -403,47 +377,44 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
 }
 
 function PostToBranches({parents,siblings,children,onSelect}){
-
-
     return(
-        <div id="modal-post-to" style={{width:400,height:500,margin:'0 auto',marginTop:60,backgroundColor:'white'}}
+        <div id="modal-post-to" className="post-to-branch-container"
         >
-            <div onClick={()=>console.log("clicke2")}>
-            <Tabs onSelect={onSelect} defaultFocus={true}>
-                <TabList className="post-to-branch-tab-list" >
-                    <Tab className="post-to-branch-tab"
-                    selectedClassName="post-to-branch-tab-list-selected">Parents</Tab>
-                    <Tab className="post-to-branch-tab"
-                    selectedClassName="post-to-branch-tab-list-selected">Siblings</Tab>
-                    <Tab className="post-to-branch-tab"
-                    selectedClassName="post-to-branch-tab-list-selected">Children</Tab>
-                </TabList>
+            <div>
+                <Tabs onSelect={onSelect} defaultFocus={true}>
+                    <TabList className="post-to-branch-tab-list" >
+                        <Tab className="post-to-branch-tab"
+                        selectedClassName="post-to-branch-tab-list-selected">Parents</Tab>
+                        <Tab className="post-to-branch-tab"
+                        selectedClassName="post-to-branch-tab-list-selected">Siblings</Tab>
+                        <Tab className="post-to-branch-tab"
+                        selectedClassName="post-to-branch-tab-list-selected">Children</Tab>
+                    </TabList>
 
-                <TabPanel>
-                    <div className="post-to-branch-tab-panel">
-                        {parents}
-                    </div>
-                </TabPanel>
-                <TabPanel>
-                    <div className="post-to-branch-tab-panel">
-                        {siblings}
-                    </div>
-                </TabPanel>
-                <TabPanel>
-                    <div className="post-to-branch-tab-panel">
-                        {children}
-                    </div>
-                </TabPanel>
-            </Tabs>
+                    <TabPanel>
+                        <div className="post-to-branch-tab-panel">
+                            {parents}
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <div className="post-to-branch-tab-panel">
+                            {siblings}
+                        </div>
+                    </TabPanel>
+                    <TabPanel>
+                        <div className="post-to-branch-tab-panel">
+                            {children}
+                        </div>
+                    </TabPanel>
+                </Tabs>
             </div>
         </div>
     )
 }
 
-export function CheckBox({value,checkedBranches}){
+export function CheckBox({value,checkedBranches,setCheckedBranches}){
     const ref = useRef(null)
     
-
     useEffect(()=>{
         for(var value of checkedBranches){
             if(value==ref.current.value){
@@ -452,9 +423,15 @@ export function CheckBox({value,checkedBranches}){
         }
     },[])
 
+    function handleCheckClick(e){
+        if(e.target.checked){
+            setCheckedBranches([...checkedBranches,e.target.value]);
+        }
+    }
+
     return(
         <label className="checkbox-label">
-            <input type="checkbox" className="input-checkbox" value={value} ref={ref}></input>
+            <input type="checkbox" className="input-checkbox" onChange={handleCheckClick} value={value} ref={ref}></input>
             <span className="checkbox-custom rectangular"></span>
         </label>
     )
