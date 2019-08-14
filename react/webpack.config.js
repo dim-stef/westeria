@@ -46,9 +46,7 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebPackPlugin({
-      template: '../static/index.html'
-    }),
+    new HtmlWebPackPlugin(),
     new BundleAnalyzerPlugin(),
     new BundleTracker({path: __dirname, filename: './webpack-stats.json'}),
   ]

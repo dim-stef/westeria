@@ -151,6 +151,11 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
         let newFilesArray = Array.from(newFiles);
         setFiles([...files,...newFilesArray]);        
     }
+
+    function resetEditor(){
+        setValue(initialValue);
+        setFiles([]);
+    }
     
     const onBlur = (event, editor, next) => {
         next();
@@ -211,7 +216,8 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                     {minimized?
                     null:
-                    <Toolbar editor={ref} files={files} branch={branch} postedId={postedId} currentPost={currentPost} 
+                    <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
+                    postedId={postedId} currentPost={currentPost} 
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
                         {...postToProps}
                     />}
@@ -236,7 +242,7 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick,
+function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick,
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches}){
     const [loading,setLoading] = useState(true);
 
@@ -272,6 +278,11 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
             formData.append('replied_to',replyTo)
         }
 
+        if(formData.getAll('posted_to').length==0){
+            formData.append('posted_to',branch.id);
+            formData.append('posted',branch.id);
+        }
+
         let uri = `/api/branches/${branch.uri}/posts/new/`
         setLoading(true);
         axios.post(
@@ -283,6 +294,7 @@ function Toolbar({editor,files,branch,postedId,currentPost=null,updateFeed,value
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
+                resetEditor();
                 axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
                     updateFeed(response.data);
                 })

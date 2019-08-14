@@ -14,8 +14,6 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import LazyLoad from 'react-lazy-load';
 
-var csrftoken = getCookie('csrftoken');
-
 
 function getPostedTo(post,activeBranch,context){
     if(!context.isAuth){
@@ -374,7 +372,7 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
             :null}
             <div className="flex-fill">
                 <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
-                    <ShownBranch branch={post.posted_to.find(b=> post.poster==b.uri)} 
+                    <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
                     date={date} post={post} dimensions={viewAs=='reply'?24:null}/>
                     <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
                     activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:null}/>
@@ -399,16 +397,27 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
 
 function PostedToExtension({post,activeBranch,mainPostedBranch}){
     
+    const userContext = useContext(UserContext);
     const [branches,setBranches] = useState([]);
     
     function branchesToDisplay(){
-        return post.posted_to.filter(function(b) {
+        return post.posted_to.filter(b =>{
             return b.uri !== mainPostedBranch.uri && b.uri!==post.poster && b.uri!==activeBranch.uri;
         });
     }
 
+    function nonAuthBranchesToDisplay(){
+        return post.posted_to.filter(b=>{
+            return b.uri !== mainPostedBranch.uri && b.uri!==post.poster
+        })
+    }
+
     useEffect(()=>{
-        setBranches(branchesToDisplay())
+        if(userContext.isAuth){
+            setBranches(branchesToDisplay())
+        }else{
+            setBranches(nonAuthBranchesToDisplay())
+        }
     },[post])
 
     return(
@@ -568,7 +577,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
                 withCredentials: true
             }).then(r=>{
@@ -595,7 +604,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             let uri = `/api/reacts/${reactUUID}/`;
             const httpReqHeaders = {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
+                'X-CSRFToken': getCookie('csrftoken')
             };
 
             // check the structure here: https://github.com/axios/axios#request-config
@@ -647,7 +656,8 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                 <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
                     <Star postId={post.id} starCount={starCount} react={react} setReact={setReact} 
                     createOrDeleteReact={createOrDeleteReact} changeReact={changeReact} dislikeCount={dislikeCount}/>
-                    {starCount>0 || dislikeCount>0?<span style={{fontWeight:600,fontSize:'1.5em',color:color}}>{ratio}</span>:null}
+                    {starCount>0 || dislikeCount>0?<span style={{fontWeight:600,fontSize:'1.5em',color:color}}>
+                    {Math.ceil(ratio)}</span>:null}
                     <Dislike postId={post.id} count={post.stars} react={react} setReact={setReact} 
                     createOrDeleteReact={createOrDeleteReact} changeReact={changeReact}/>
                 </div>

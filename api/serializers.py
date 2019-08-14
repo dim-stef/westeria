@@ -151,7 +151,18 @@ class BranchSerializer(serializers.ModelSerializer):
             parents.append(parent.uri)
         return parents
 
+from branches.utils import generate_unique_uri
 class BranchUpdateSerializer(serializers.ModelSerializer):
+
+    def update(self, instance, validated_data):
+        uri = validated_data.pop('uri')
+        validated_uri = generate_unique_uri(uri)
+        instance.uri = validated_uri
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
     class Meta:
         model = Branch
         fields = ('branch_image', 'branch_banner', 'parents',
@@ -318,7 +329,7 @@ class NewMessageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         branch_chat = self.context['branch_chat']
-        print("reqhest",request.query_params)
+        print("validated data",validated_data)
         if not branch_chat.members.filter(uri=validated_data['author']).exists():
             raise serializers.ValidationError('Not member of chat')
 
@@ -358,6 +369,8 @@ class NewPostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         request = self.context['request']
+        branch_uri = self.context['branch_uri']
+        required_posted_to = request.user.owned_groups.get(uri=branch_uri)
         posted_to = validated_data.pop('posted_to')
 
         # files are not accessible in validated data, use request.FILES instead
@@ -366,15 +379,18 @@ class NewPostSerializer(serializers.ModelSerializer):
 
         if not validated_data['text'] and not request.FILES:
             raise serializers.ValidationError('text and media are None')
+
         post = Post.objects.create(**validated_data)
-        for branch in posted_to:
-            post.posted_to.add(branch)
 
         if post.replied_to:
             level = post.replied_to.level + 1
             post.level = level
             post.save()
+        else:
+            for branch in posted_to:
+                post.posted_to.add(branch)
 
+        post.posted_to.add(required_posted_to)
 
         print("files",type(request.FILES))
         if 'images' in request.FILES:

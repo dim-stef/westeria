@@ -26,6 +26,7 @@ class App extends Component {
         this.getNewCurrentBranch = this.getNewCurrentBranch.bind(this);
         this.getUserData=this.getUserData.bind(this);
         this.getUserBranches=this.getUserBranches.bind(this);
+        this.updateBranch=this.updateBranch.bind(this);
 
         this.unlisten = this.props.history.listen((location, action) => {
             if(location.pathname === "/login"){
@@ -69,12 +70,26 @@ class App extends Component {
     }
 
     async getNewCurrentBranch(newBranch){
-
         var reacts = await axios.get(`/api/branches/${newBranch.uri}/reactions/`).catch(er=>this.resetState());
         newBranch.reacts = reacts.data;
 
         this.setState({
             currentBranch:newBranch,
+        })
+    }
+
+    updateBranch(oldBranch,newBranchData){
+        let index = this.state.branches.findIndex(b => b.uri==oldBranch.uri);
+        let newBranches = this.state.branches.slice();
+        newBranches[index] = {
+            ...newBranches[index],
+            ...newBranchData
+        }
+
+        this.setState({
+            branches:newBranches
+        },()=>{
+            this.getNewCurrentBranch(newBranchData)
         })
     }
 
@@ -104,7 +119,9 @@ class App extends Component {
 
         let updateHandler = {updateUserData:this.getUserBranches}
         let changeBranchHandler = {changeCurrentBranch:this.getNewCurrentBranch}
-        let value = {...this.state,...updateHandler, ...changeBranchHandler}
+        let updateBranchHandler = {updateBranch:this.updateBranch}
+        let value = {...this.state,...updateHandler, ...changeBranchHandler,
+            ...updateBranchHandler}
         return (
             <UserContext.Provider value={value}>
                 <Routes/>

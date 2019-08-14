@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import datetime
+from google.oauth2 import service_account
+from .settings_secret import *
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,15 +25,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 
-
-SECRET_KEY = '1p$t45-4s#cjlve=!+0c1&xb9mj2nhqv@)zpg4x0n36)7rz=g0'
-EMAIL_HOST_PASSWORD = 'stapapariamas99'
-
-DEBUG = False
-
-
-ALLOWED_HOSTS = ['.subranch.com', 'subranch.com', '178.128.36.240']
+ALLOWED_HOSTS = ['*']
 
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_USER_EMAIL_FIELD = "email"
@@ -43,13 +40,77 @@ ACCOUNT_USER_MODEL_USERNAME_FIELD = None
 
 AUTH_USER_MODEL = 'accounts.User'
 
+LOGIN_URL = "/accounts/login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/accounts/signup"
 
+#ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
+ACCOUNT_FORMS = {'signup':'accounts.forms.CustomSignupForm'}
 
-# ACCOUNT_SIGNUP_FORM_CLASS = 'accounts.forms.SignupForm'
-# ACCOUNT_FORMS = {'signup':'accounts.forms.SignupForm'}
+REST_AUTH_REGISTER_SERIALIZERS = {
+        'REGISTER_SERIALIZER': 'accounts.serializers.RegistrationSerializer',
+}
 
+REST_USE_JWT = True
+OLD_PASSWORD_FIELD_ENABLED = True
+LOGOUT_ON_PASSWORD_CHANGE = False
+
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+}
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+#DEFAULT_FILE_STORAGE = 'subranch.storage_backends.MediaStorage'
+GS_BUCKET_NAME = 'subranch_bucket_test'
+
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, 'subranch','credentials.json')
+)
+
+###
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+
+AWS_S3_CALLING_FORMAT = 'boto.s3.connection.OrdinaryCallingFormat'
+AWS_LOCATION = 'static'
+STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+#STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+###
+
+ASGI_APPLICATION = "subranch.routing.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+PWA_APP_NAME = 'Subranch'
+PWA_APP_DESCRIPTION = "My app description"
+PWA_APP_THEME_COLOR = '#ffffff'
+PWA_APP_BACKGROUND_COLOR = '#ffffff'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/',
+PWA_APP_ORIENTATION = 'any'
+PWA_APP_START_URL = '/'
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'common', 'static','js', 'sw.js')
+PWA_APP_ICONS = [
+        {
+            'src': '/static/apple-touch-icon.png',
+            'sizes': '180x180'
+        }
+    ]
+PWA_APP_SPLASH_SCREEN = [
+        {
+            'src': '/static/apple-touch-icon.png',
+            'media': '(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)'
+        }
+    ]
+PWA_APP_DIR = 'ltr'
+PWA_APP_LANG = 'en-US'
 
 # Application definition
 
@@ -61,14 +122,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'widget_tweaks',
     'django_extensions',
+    'channels',
     'api',
+    'react',
     'core',
-    'groups',
+    'branches',
+    'branchchat',
+    'branchsettings',
+    'branchposts',
     'settings',
+    'notifications',
     'rest_framework',
+    'rest_framework.authtoken',
     'rest_framework_nested',
+    'rest_framework_swagger',
+    'rest_auth',
+    'rest_auth.registration',
     'webpack_loader',
     'allauth',
     'accounts',
@@ -76,9 +148,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
 ]
 
-SITE_ID = 1
+SITE_ID = 2
 
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -89,14 +162,14 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'subranch.urls'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
-'''EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'mail.privateemail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'jimstef@outlook.com'
+EMAIL_HOST_USER = 'contact@subranch.com'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-EMAIL_USE_TLS = True'''
 
 TEMPLATES = [
     {
@@ -128,40 +201,20 @@ AUTHENTICATION_BACKENDS = (
 
 WSGI_APPLICATION = 'subranch.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-'''DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}'''
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'subranch',
-        'USER': 'dimstef',
-        'PASSWORD': 'y8yby3y&',
-        'HOST': 'localhost',
-        'PORT': '',
-        'TEST': {
-            'NAME': 'test_postgres',
-        },
-    }
-}
-
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
 
+    'DEFAULT_PARSER_CLASSES': (
+        'rest_framework.parsers.MultiPartParser',
+        'rest_framework.parsers.JSONParser'
+    ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     )
@@ -185,7 +238,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
 
@@ -205,13 +257,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR,'static')
-
 MEDIA_URL = '/upload/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'upload')
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-    os.path.join(BASE_DIR, 'react', 'dist'),
+    os.path.join(BASE_DIR, 'react','dist'),
+    os.path.join(BASE_DIR, 'common'),
     os.path.join(BASE_DIR, 'common', 'static'),
 ]
 

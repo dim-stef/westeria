@@ -1,4 +1,4 @@
-import React, {useState,useContext,useEffect,useRef,lazy,Suspense} from 'react'
+import React, {useState,useContext,useEffect,useRef,useCallback,lazy,Suspense} from 'react'
 import {UserContext} from "../container/ContextContainer"
 import {isMobile} from 'react-device-detect';
 import { Block,Value } from 'slate'
@@ -97,8 +97,10 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
     })
 
     const [value,setValue] = useState(initialValue);
+    const [previousValue,setPreviousValue] = useState(value);
     const [files,setFiles] = useState([])
     const ref = useRef(null);
+    const editorRef = useRef(null);
     const context = useContext(UserContext);
     const [author,setAuthor] = useState(branch);
     let initIsMember = room.members.some(m=>m==branch.uri);
@@ -107,7 +109,6 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
 
     const handleChange = (e) =>{
         setValue(e.value);
-        console.log(value)
         if (e.value.document != value.document) {
             //const content = JSON.stringify(e.value.toJSON())
             const content = Plain.serialize(e.value)
@@ -115,10 +116,83 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
         }
     }
 
+    function handleSendMessage(editor){
+        let message = Plain.serialize(value);
+
+        const formData = new FormData();
+        formData.append('message',message);
+        formData.append('message_html',message);
+        formData.append('author',branch.id);
+
+        if(files.length>0){
+            for (var i = 0; i < files.length; i++)
+            {
+                if(isFileImage(files[i])){
+                    formData.append('images',files[i])
+                }else if(isFileVideo(files[i])){
+                    formData.append('videos',files[i])
+                }
+            }
+
+            let uri = `/api/branches/${branch.uri}/chat_rooms/${roomId}/messages/new/`;
+
+            axios.post(
+                uri,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                })
+        }else{
+            ws.send(JSON.stringify({
+                'message': message,
+                'room_name': roomId,
+                'from_branch': branch.uri,
+                'images':[],
+                'videos':[]
+            }));
+        }
+        resetEditor();
+    }
+    
+
+    useEffect(()=>{
+        if(Plain.serialize(value) == ''){
+            const documentNode = ref.current.querySelector(`[data-key="${value.document.key}"`)
+            documentNode.focus()
+        }
+    },[Plain.serialize(value)])
+
+    const handlerRef = useRef(onKeyDown);
+
+    function onKeyDown(event, editor, next){
+        // Return with no changes if the keypress is not '&'
+        if (event.which !== 13 || event.keyCode !== 13 || event.key !== "Enter") return next()
+    
+        // Prevent line break.
+        event.preventDefault();
+        handleSendMessage(editor);
+    }
+
+    // Update the current value of the ref after we successfully render.
+    useEffect(
+        () => {
+            handlerRef.current = onKeyDown;
+        },
+        [onKeyDown,value,branch,files]
+    );
+
     function handleImageClick(e){
         var newFiles = e.target.files;
         let newFilesArray = Array.from(newFiles);
         setFiles([...files,...newFilesArray]);        
+    }
+
+    function resetEditor(){
+        setValue(initialValue);
+        setFiles([]);
     }
 
     useEffect(()=>{
@@ -135,19 +209,21 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
                     <img src={context.currentBranch.branch_image} className="profile-picture" 
                     style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
                 </div>
-                <div style={{width:'100%'}}>
+                <div style={{width:'100%'}} ref={ref}>
                     <Editor
-                    ref={ref}
+                    autoFocus
+                    editorRef={editorRef}
                     value={value}
                     onChange={handleChange}
+                    onKeyDown={(e,editor,next)=>handlerRef.current(e,editor,next)}
+                    onFocus={(event, editor, next) => editor.focus()}
                     schema={schema}
                     placeholder="Type something"
                     style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
                     wordBreak:'break-all',border:'1px solid #a6b7c5'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                     <input type="file" multiple="multiple" onInput={e=>handleImageClick(e)}></input>
-                    <Toolbar editor={ref} files={files} ws={ws} branch={branch} room={roomId}
-                    updateMessages={updateMessages} value={value}/>
+                    <Toolbar handleSendMessage={handleSendMessage}/>
                 </div>
             </div>
         </Suspense>
@@ -171,55 +247,11 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-function Toolbar({editor,updateMessages,ws,files,branch,room,value}){
-    const handleClick = (e)=>{
-        
-        let message = Plain.serialize(value);
-
-        const formData = new FormData();
-        formData.append('message',message);
-        formData.append('message_html',message);
-        formData.append('author',branch.id);
-
-        if(files.length>0){
-            for (var i = 0; i < files.length; i++)
-            {
-                if(isFileImage(files[i])){
-                    formData.append('images',files[i])
-                }else if(isFileVideo(files[i])){
-                    formData.append('videos',files[i])
-                }
-                
-            }
-
-            let uri = `/api/branches/${branch.uri}/chat_rooms/${room}/messages/new/`;
-
-            axios.post(
-                uri,
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                })
-        }else{
-            ws.send(JSON.stringify({
-                'message': message,
-                'room_name': room,
-                //'branch': branch,
-                'from_branch': branch.uri,
-                'images':[],
-                'videos':[]
-            }));
-        }  
-    }
+function Toolbar({handleSendMessage}){
     
-
-
     return(
         <div style={{marginTop:5}}>
-            <button onClick={handleClick}>Send</button>
+            <button onClick={handleSendMessage}>Send</button>
         </div>
     )
 }

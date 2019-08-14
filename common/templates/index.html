@@ -1,6 +1,4 @@
 {% load static %}
-{% load render_bundle from webpack_loader %}
-
 
 <!DOCTYPE html>
 
@@ -11,7 +9,7 @@
     <meta charset="utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="manifest" href="{% static 'js/manifest.webmanifest' %}">
+    <link rel="manifest" href="/static/js/manifest.webmanifest" crossorigin="use-credentials">
     <script>
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', {scope: '/'})
@@ -42,7 +40,6 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'css/settings.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'accounts/auth.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'css/croppie.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/errors.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'core/css/modal.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'groups/css/creategroup.css' %}"/>
@@ -71,10 +68,7 @@
     <div id="modal-root"></div>
     <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>-->
     <script src="{% static 'js/csrf.js' %}"></script>
-    <script async src="{% static 'settings/settings.js' %}"></script>
-    <script async src="{% static 'js/croppie.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/app.bundle.js' %}"></script>
-    <script src="{% static 'js/uicontrol.js' %}"></script>
 </body>
 
 </html>

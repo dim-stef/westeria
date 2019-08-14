@@ -1,59 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="0.0.6 production update">
-      <change afterPath="$PROJECT_DIR$/react/__init__.py" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="0.0.7 production update">
+      <change afterPath="$PROJECT_DIR$/subranch/storage_backends.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/serializers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/urls.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/static/groupchat/css/groupchat.css" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/static/groupchat/css/groupchat.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/branches/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branches/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/static/groups/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/branches/static/groups/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchposts/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/templates/sw.js" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/sw.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notifications/consumers.py" beforeDir="false" afterPath="$PROJECT_DIR$/notifications/consumers.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/dist/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/dist/js/Router.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/Router.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/dist/js/groupApp.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/dist/js/main.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/dist/js/profileApp.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/Router.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/Page.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/Page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/container/AppContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/AppContainer.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/container/BranchContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/BranchContainer.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/FollowingBranchesContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/FollowingBranchesContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Content.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Login.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Login.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileNavigation.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranchesColumn.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranchesColumn.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/groupApp.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/profileApp.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/webpack-stats.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack-stats.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/react/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/static/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/subranch/production.py" beforeDir="false" afterPath="$PROJECT_DIR$/subranch/production.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/subranch/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/subranch/settings.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/subranch/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/subranch/urls.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -94,8 +64,44 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/api/serializers.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-277">
-              <caret line="320" column="28" selection-start-line="320" selection-end-line="321" />
+            <state relative-caret-position="329">
+              <caret line="335" column="35" selection-start-line="335" selection-start-column="35" selection-end-line="335" selection-end-column="35" />
+              <folding>
+                <element signature="e#0#46#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/api/urls.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="588">
+              <caret line="30" column="36" selection-start-line="30" selection-start-column="36" selection-end-line="30" selection-end-column="36" />
+              <folding>
+                <element signature="e#0#28#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/api/views.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="632">
+              <caret line="359" column="27" lean-forward="true" selection-start-line="359" selection-start-column="27" selection-end-line="359" selection-end-column="27" />
+              <folding>
+                <element signature="e#0#46#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/subranch/storage_backends.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="112">
+              <caret line="4" column="21" lean-forward="true" selection-start-line="4" selection-start-column="21" selection-end-line="4" selection-end-column="21" />
             </state>
           </provider>
         </entry>
@@ -103,8 +109,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/subranch/settings.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="295">
-              <caret line="277" lean-forward="true" selection-start-line="277" selection-end-line="277" />
+            <state relative-caret-position="327">
+              <caret line="66" column="48" lean-forward="true" selection-start-line="66" selection-start-column="48" selection-end-line="66" selection-end-column="48" />
               <folding>
                 <element signature="e#307#316#0" expanded="true" />
               </folding>
@@ -113,28 +119,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/subranch/settings_secret.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="532">
-              <caret line="19" column="32" selection-start-line="19" selection-start-column="32" selection-end-line="19" selection-end-column="32" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/templates/index.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="454">
-              <caret line="24" column="44" selection-start-line="24" selection-start-column="44" selection-end-line="24" selection-end-column="44" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/branches/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="125">
-              <caret line="196" column="27" selection-start-line="196" selection-start-column="27" selection-end-line="196" selection-end-column="27" />
+            <state relative-caret-position="410">
+              <caret line="282" column="41" selection-start-line="282" selection-start-column="41" selection-end-line="282" selection-end-column="41" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -145,8 +133,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/branchchat/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="460">
-              <caret line="36" column="36" selection-start-line="36" selection-start-column="36" selection-end-line="36" selection-end-column="36" />
+            <state relative-caret-position="1625">
+              <caret line="60" selection-start-line="60" selection-end-line="60" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -157,43 +145,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/branchposts/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4982">
+            <state relative-caret-position="3622">
               <caret line="232" selection-start-line="232" selection-end-line="232" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/notifications/consumers.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="752">
-              <caret line="47" column="24" selection-start-line="47" selection-start-column="24" selection-end-line="47" selection-end-column="24" />
-              <folding>
-                <element signature="e#0#61#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
-              <caret line="669" column="18" selection-start-line="669" selection-start-column="18" selection-end-line="669" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/subranch/urls.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="280">
-              <caret line="10" column="5" selection-start-line="10" selection-start-column="5" selection-end-line="10" selection-end-column="5" />
-              <folding>
-                <element signature="e#0#32#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -206,26 +161,13 @@
       <list>
         <option value="HTML File" />
         <option value="CSS File" />
-        <option value="Python Script" />
         <option value="JavaScript File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>createbranch</find>
-      <find>createnew</find>
-      <find>hover</find>
-      <find>side-dr</find>
-      <find>create</find>
-      <find>.post-list</find>
-      <find>wide-c</find>
-      <find>room-pr</find>
-      <find>room-</find>
-      <find>s</find>
-      <find>wide-content-container</find>
-      <find>center</find>
-      <find>default</find>
       <find>CreateNew</find>
       <find>React</find>
       <find>calculate_trending_score</find>
@@ -240,9 +182,22 @@
       <find>post</find>
       <find>generate_thumbnail</find>
       <find>post-to</find>
-      <find>newMe</find>
       <find>back-bu</find>
+      <find>newMe</find>
+      <find>NewPost</find>
+      <find>chatRo</find>
+      <find>UpdateBranchRequestSerializer</find>
+      <find>UpdateBranch</find>
+      <find>Branch</find>
+      <find>updateBra</find>
+      <find>Newpost</find>
       <find>BASE</find>
+      <find>APIView</find>
+      <find>Spread</find>
+      <find>newPost</find>
+      <find>Multi</find>
+      <find>message</find>
+      <find>new</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -252,14 +207,11 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/accounts/urls.py" />
-        <option value="$PROJECT_DIR$/accounts/static/accounts/token.js" />
         <option value="$PROJECT_DIR$/accounts/forms.py" />
         <option value="$PROJECT_DIR$/branches/forms.py" />
         <option value="$PROJECT_DIR$/branches/migrations/0001_initial.py" />
         <option value="$PROJECT_DIR$/branches/views.py" />
         <option value="$PROJECT_DIR$/accounts/templates/account/signup.html" />
-        <option value="$PROJECT_DIR$/branches/utils.py" />
         <option value="$PROJECT_DIR$/accounts/serializers.py" />
         <option value="$PROJECT_DIR$/common/static/css/settings.css" />
         <option value="$PROJECT_DIR$/accounts/models.py" />
@@ -285,24 +237,27 @@
         <option value="$PROJECT_DIR$/branchchat/routing.py" />
         <option value="$PROJECT_DIR$/branchchat/consumers.py" />
         <option value="$PROJECT_DIR$/accounts/static/accounts/auth.css" />
-        <option value="$PROJECT_DIR$/api/urls.py" />
         <option value="$PROJECT_DIR$/branchchat/static/groupchat/css/groupchat.css" />
-        <option value="$PROJECT_DIR$/api/views.py" />
         <option value="$PROJECT_DIR$/notifications/consumers.py" />
         <option value="$PROJECT_DIR$/react/__init__.py" />
         <option value="$PROJECT_DIR$/react/urls.py" />
         <option value="$PROJECT_DIR$/subranch/urls.py" />
         <option value="$PROJECT_DIR$/common/static/js/serviceworker.js" />
-        <option value="$PROJECT_DIR$/common/templates/index.html" />
         <option value="$PROJECT_DIR$/common/templates/sw.js" />
         <option value="$PROJECT_DIR$/branches/static/groups/css/index.css" />
         <option value="$PROJECT_DIR$/branchposts/models.py" />
-        <option value="$PROJECT_DIR$/branches/models.py" />
-        <option value="$PROJECT_DIR$/api/serializers.py" />
         <option value="$PROJECT_DIR$/branchchat/models.py" />
         <option value="$PROJECT_DIR$/common/static/css/index.css" />
+        <option value="$PROJECT_DIR$/branches/utils.py" />
+        <option value="$PROJECT_DIR$/api/urls.py" />
+        <option value="$PROJECT_DIR$/common/templates/index.html" />
         <option value="$PROJECT_DIR$/subranch/settings_secret.py" />
+        <option value="$PROJECT_DIR$/api/serializers.py" />
+        <option value="$PROJECT_DIR$/branches/models.py" />
+        <option value="$PROJECT_DIR$/api/views.py" />
+        <option value="$PROJECT_DIR$/subranch/storage_backends.py" />
         <option value="$PROJECT_DIR$/subranch/settings.py" />
+        <option value="$PROJECT_DIR$/subranch/production.py" />
       </list>
     </option>
   </component>
@@ -379,6 +334,36 @@
             </path>
             <path>
               <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.6 (env) &gt;" type="70bed36:NamedLibraryElementNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.6 (env) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="env" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.6 (env) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="env" type="462c0819:PsiDirectoryNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="&lt; Python 3.6 (env) &gt;" type="70bed36:NamedLibraryElementNode" />
+              <item name="env" type="462c0819:PsiDirectoryNode" />
               <item name="subranch" type="462c0819:PsiDirectoryNode" />
               <item name="subranch" type="462c0819:PsiDirectoryNode" />
             </path>
@@ -545,14 +530,7 @@
       <workItem from="1563724832996" duration="31074000" />
       <workItem from="1564336081238" duration="14276000" />
       <workItem from="1564569096203" duration="61195000" />
-      <workItem from="1565105763090" duration="46978000" />
-    </task>
-    <task id="LOCAL-00158" summary="JWT token creation">
-      <created>1543326218662</created>
-      <option name="number" value="00158" />
-      <option name="presentableId" value="LOCAL-00158" />
-      <option name="project" value="LOCAL" />
-      <updated>1543326218662</updated>
+      <workItem from="1565105763090" duration="83558000" />
     </task>
     <task id="LOCAL-00159" summary="Changed jquery path">
       <created>1543326237881</created>
@@ -890,11 +868,18 @@
       <option name="project" value="LOCAL" />
       <updated>1564864946223</updated>
     </task>
-    <option name="localTasksCounter" value="207" />
+    <task id="LOCAL-00207" summary="0.0.7 production update">
+      <created>1565541055847</created>
+      <option name="number" value="00207" />
+      <option name="presentableId" value="LOCAL-00207" />
+      <option name="project" value="LOCAL" />
+      <updated>1565541055848</updated>
+    </task>
+    <option name="localTasksCounter" value="208" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="946635000" />
+    <option name="totallyTimeSpent" value="983215000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -906,7 +891,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
     <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1696" />
@@ -938,7 +923,6 @@
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Using new component" />
     <MESSAGE value="Updated imports" />
     <MESSAGE value="Added GroupChatMessagesContainer" />
     <MESSAGE value="Updated code and added components" />
@@ -963,7 +947,8 @@
     <MESSAGE value="0.0.4 production update" />
     <MESSAGE value="0.0.5 production update" />
     <MESSAGE value="0.0.6 production update" />
-    <option name="LAST_COMMIT_MESSAGE" value="0.0.6 production update" />
+    <MESSAGE value="0.0.7 production update" />
+    <option name="LAST_COMMIT_MESSAGE" value="0.0.7 production update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -976,20 +961,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/../Lib/site-packages/django/core/files/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-719">
-          <caret column="6" selection-start-column="6" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Lib/site-packages/rest_framework/exceptions.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="125" column="8" selection-start-line="125" selection-start-column="8" selection-end-line="125" selection-end-column="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../Lib/site-packages/django/core/exceptions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="286">
@@ -1015,13 +986,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="158">
           <caret line="15" column="21" lean-forward="true" selection-start-line="15" selection-start-column="21" selection-end-line="15" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branches/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="5" column="39" selection-start-line="5" selection-start-column="39" selection-end-line="5" selection-end-column="39" />
         </state>
       </provider>
     </entry>
@@ -1069,13 +1033,6 @@
           <folding>
             <element signature="e#0#46#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/js/manifest.webmanifest">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="1" selection-start-column="1" selection-end-column="1" />
         </state>
       </provider>
     </entry>
@@ -1163,16 +1120,6 @@
     <entry file="file://$PROJECT_DIR$/subranch/wsgi.py">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/branches/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="13" column="69" selection-start-line="13" selection-start-column="49" selection-end-line="13" selection-end-column="69" />
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/subranch/credentials.json">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -1190,30 +1137,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/api/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="33" column="64" selection-start-line="33" selection-start-column="64" selection-end-line="33" selection-end-column="64" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/branchchat/static/groupchat/css/groupchat.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="196">
           <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/api/views.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="575" column="44" selection-start-line="575" selection-start-column="44" selection-end-line="575" selection-end-column="44" />
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1229,9 +1156,6 @@
           </folding>
         </state>
       </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/site.webmanifest">
-      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/common/static/js/serviceworker.js">
       <provider selected="true" editor-type-id="text-editor" />
@@ -1290,24 +1214,61 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="669" column="18" selection-start-line="669" selection-start-column="18" selection-end-line="669" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/static/js/manifest.webmanifest">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="1" selection-start-column="1" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/static/site.webmanifest">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/branches/urls.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="13" column="69" selection-start-line="13" selection-start-column="49" selection-end-line="13" selection-end-column="69" />
+          <folding>
+            <element signature="e#0#46#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/common/templates/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="454">
-          <caret line="24" column="44" selection-start-line="24" selection-start-column="44" selection-end-line="24" selection-end-column="44" />
+        <state relative-caret-position="991">
+          <caret line="42" selection-start-line="42" selection-end-line="42" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/branches/utils.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="4" selection-start-line="4" selection-end-line="4" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/api/serializers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-277">
-          <caret line="320" column="28" selection-start-line="320" selection-end-line="321" />
+        <state relative-caret-position="329">
+          <caret line="335" column="35" selection-start-line="335" selection-start-column="35" selection-end-line="335" selection-end-column="35" />
+          <folding>
+            <element signature="e#0#46#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/branches/models.py">
+    <entry file="file://$PROJECT_DIR$/api/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="125">
-          <caret line="196" column="27" selection-start-line="196" selection-start-column="27" selection-end-line="196" selection-end-column="27" />
+        <state relative-caret-position="588">
+          <caret line="30" column="36" selection-start-line="30" selection-start-column="36" selection-end-line="30" selection-end-column="36" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
           </folding>
@@ -1316,7 +1277,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/branchposts/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4982">
+        <state relative-caret-position="3622">
           <caret line="232" selection-start-line="232" selection-end-line="232" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
@@ -1326,32 +1287,62 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/branchchat/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="460">
-          <caret line="36" column="36" selection-start-line="36" selection-start-column="36" selection-end-line="36" selection-end-column="36" />
+        <state relative-caret-position="1625">
+          <caret line="60" selection-start-line="60" selection-end-line="60" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
+    <entry file="file://$PROJECT_DIR$/branches/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="669" column="18" selection-start-line="669" selection-start-column="18" selection-end-line="669" selection-end-column="18" />
+        <state relative-caret-position="410">
+          <caret line="282" column="41" selection-start-line="282" selection-start-column="41" selection-end-line="282" selection-end-column="41" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/api/views.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="632">
+          <caret line="359" column="27" lean-forward="true" selection-start-line="359" selection-start-column="27" selection-end-line="359" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#46#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/subranch/storage_backends.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="4" column="21" lean-forward="true" selection-start-line="4" selection-start-column="21" selection-end-line="4" selection-end-column="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/subranch/settings_secret.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="532">
-          <caret line="19" column="32" selection-start-line="19" selection-start-column="32" selection-end-line="19" selection-end-column="32" />
+        <state relative-caret-position="476">
+          <caret line="17" selection-start-line="17" selection-end-line="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/subranch/production.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+          <folding>
+            <element signature="e#307#316#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/subranch/settings.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="295">
-          <caret line="277" lean-forward="true" selection-start-line="277" selection-end-line="277" />
+        <state relative-caret-position="327">
+          <caret line="66" column="48" lean-forward="true" selection-start-line="66" selection-start-column="48" selection-end-line="66" selection-end-column="48" />
           <folding>
             <element signature="e#307#316#0" expanded="true" />
           </folding>

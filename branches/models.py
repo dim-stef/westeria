@@ -76,11 +76,11 @@ class Branch(models.Model):
 
     def save(self, *args, **kwargs):
         if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
-            self.uri = self.uri if self.uri else generate_unique_uri(self.name)
-        else:
+            self.uri = generate_unique_uri(self.name)
+        '''else:
             branch = Branch.objects.get(pk=self.pk)
             if branch.uri != self.uri:                     #need validation if uri updated
-                self.uri = generate_unique_uri(self.name)
+                self.uri = generate_unique_uri(self.name)'''
 
         if self.pk:
             self.full_clean()
@@ -273,19 +273,29 @@ def modify_chat_room(sender, instance, **kwargs):
     action = kwargs.pop('action', None)
     pk_set = kwargs.pop('pk_set', None)
 
+    # returns None or the object if it exists
     def already_exists(query_member):
-        instance_personal_rooms = BranchChat.objects.annotate(num_members=Count('members')) \
-            .filter(num_members=2, members__in=[instance])
+        instance_personal_rooms = (
+            BranchChat.objects
+                .annotate(num_members=Count("members"))
+                .filter(num_members=2)
+                .filter(members=query_member)
+                .filter(members=instance)
+        )
 
-        if not instance_personal_rooms.filter(members__in=[query_member]).exists():
+        print(instance_personal_rooms,query_member,instance)
+
+        if not instance_personal_rooms.exists():
             return None
-        return instance_personal_rooms.filter(members__in=[query_member])
+        return instance_personal_rooms[0]
 
     # On follow create direct chat
     if action == "post_add":
         for pk in pk_set:
             member = Branch.objects.get(pk=pk)
-            if not already_exists(member):
+            is_following = True if instance in member.follows.all() else False
+            is_being_followed_back = True if member in instance.follows.all() else False
+            if is_being_followed_back and is_following and not already_exists(member):
                 members = [member, instance]
                 new_room = BranchChat.objects.create(owner=instance)
                 new_room.members.add(*members)

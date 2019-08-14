@@ -20,7 +20,7 @@ router.register(r'public_profile', views.BranchPublicProfileSerializer, base_nam
 router.register(r'ROOT', views.BranchRootViewSet, base_name='branchroot')
 router.register(r'trending', views.TrendingScoreViewSet,base_name='trending_score')
 router.register(r'posts/all', views.AllPostsViewSet, base_name='all_posts')
-router.register(r'branches/new', views.CreateNewBranchViewSet, base_name='dfdas')
+router.register(r'branches/new', views.CreateNewBranchViewSet, base_name='new_branch')
 router.register(r'branches', views.BranchViewSet, base_name='branch')
 router.register(r'branches/update', views.BranchUpdateViewSet, base_name='update')
 router.register(r'branches/add_follow', views.BranchAddFollowViewSet, base_name='add_follow')

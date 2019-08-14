@@ -33,7 +33,6 @@ export function BranchesPage(props){
     let requests = usePendingRequests(props.branch);
     let externalTab = props.tabMatch.match.params.tab;
     let owns = context.isAuth?ownsBranch(context.branches,props.branch):false
-    console.log("branch[ages",props)
 
     if(requests.length>0){
         if(externalTab=='children' || !externalTab){
@@ -54,7 +53,10 @@ export function BranchesPage(props){
                     {requests.length>0 && owns?
                     <>
                         <h1 style={{width:'100%',fontSize:'3rem'}}>Pending</h1>
-                        <BranchList branches={requests.map(r=>r.request_from)} ownsBranch={owns} 
+                        <BranchList branches={requests.map(r=>r.request_from)} requestBundles={requests.map(r=>{
+                            return {branch:r.request_from.uri,requestId:r.id}
+                        })} 
+                        ownsBranch={owns} 
                         viewedBranch={props.branch} pending={true} pendingType={externalTab}/>
                     </>:null}
                     {/*<BranchList data={props.data}/>*/}
@@ -118,6 +120,13 @@ export function BranchList(props){
     //style={{display:'flex', width:'100%',flexBasis:'33%',flexFlow:'column'}}
     return(
         props.branches.map((c,i)=>{
+            console.log("branches",props.branches)
+            let requestId = null;
+            if(props.requestBundles){
+                console.log("requestundl",props.requestBundles)
+                requestId = props.requestBundles.find(b=>c.uri==b.branch).requestId
+            }
+
             return [
                 <div className="branch-container flex-fill" >
                     <ChildBranch
@@ -125,7 +134,8 @@ export function BranchList(props){
                     branch={c}>
                         
                     </ChildBranch>
-                    <BranchFooter branch={c} pending={props.pending} requestId={c.requestId} viewedBranch={props.viewedBranch}/>
+                    <BranchFooter branch={c} pending={props.pending} requestId={requestId} 
+                    viewedBranch={props.viewedBranch}/>
                 </div>
             ]
         })
@@ -141,7 +151,6 @@ export function AddBranch({branch,type='children'}){
     let text;
     let relation_type;
 
-    console.log("type",context)
     if(type=='children'){
         text = 'Become child';
         relation_type = 'child';
@@ -159,7 +168,6 @@ export function AddBranch({branch,type='children'}){
             request_to:branch.id
         }
 
-        console.log(data,branch.id)
         axios.post(
             uri,
             data,
@@ -169,7 +177,6 @@ export function AddBranch({branch,type='children'}){
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
-                console.log("response",response);
                 setRequestStatus(response.data.status)
                 setSubmitted(true);
             }).catch(error => {

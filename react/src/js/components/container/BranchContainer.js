@@ -93,7 +93,6 @@ export function usePendingRequests(branch){
 }
 
 export function BranchContainer(props){
-    console.log("match",props)
     const actionContext = useContext(UserActionsContext)
     const [branches,setBranches] = useState(null);
     let branchUri = props.match.params.uri

@@ -58,7 +58,7 @@ function WebSocketRooms({rooms,inBox,match}){
         }
     }else{
         return(
-            null
+            <RoomsPreviewColumn roomData={[]}/>
         )
     }
 }
@@ -156,10 +156,15 @@ function RoomContainer({roomData,match}){
 
     let previewName = data.room.members.find(uri=>uri!=context.currentBranch.uri);
 
+    // if you are talking to yourself
+    if(!previewName){
+        previewName = member;
+    }
+
     return(
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:'-webkit-fill-available',
-            flexFlow:'column',WebkitFlexFlow:'column',marginRight:0}}>
+            flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1}}>
                 <RoutedHeadline headline={'@' + previewName}/>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
                 flexFlow:'column',WebkitFlexFlow:'column'}}>
@@ -225,9 +230,7 @@ function Room({messages,members,branch,parentRef,wrapperRef}){
         var filtered = messageBoxes.filter(function (el) {
             return el != null;
         });
-        /*messageBoxes = filtered.map(m => {
-            return <MessageBox messageBox={m} key={m.created}/>
-        })*/
+
         return filtered;
     }
 
@@ -296,7 +299,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                         return (
                             <React.Fragment key={m.created}>
                                 {m.message?
-                                <div className="flex-fill" style={containerStyle}>
+                                <div className="flex-fill" style={{...containerStyle}}>
                                     <span style={messageStyle}>{m.message}</span>
                                 </div>:null}
                                 
@@ -325,7 +328,6 @@ function RoomsPreviewColumn({roomData,isGroup,inBox}){
                         return  <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
                     })
                 :<><MutualFollowMessage/></>}
-                <MutualFollowMessage/>
             </div>
         </PageWrapper>
     )
@@ -348,10 +350,21 @@ function RoomPreview({room,ws,isGroup,inBox}){
     const [latestMessage,setLatestMessage] = useState(room.latest_message)
 
     async function getPreviewBranch(){
-        let uri = room.members.find(uri=>uri!=userContext.currentBranch.uri);
-        let response = await axios.get(`/api/branches/${uri}/`);
-        cachedBranches.foreign.push(response.data);
-        setPreviewBranch(response.data);
+        let uri;
+        let response;
+        uri = room.members.find(uri=>uri!=userContext.currentBranch.uri);
+        if(uri){
+            response = await axios.get(`/api/branches/${uri}/`);
+            cachedBranches.foreign.push(response.data);
+            
+        }else{
+            uri = userContext.branches.find(b=>{
+                return room.members.find(m=>m==b.uri);
+            }).uri
+            response = await axios.get(`/api/branches/${uri}/`);
+            
+        }
+        setPreviewBranch(response.data);    
     }
 
 

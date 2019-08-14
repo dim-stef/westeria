@@ -206,29 +206,35 @@ function UpdateBranch({branch}){
         })
     }
 
-    function onSubmit(values){
+    async function onSubmit(values){
+        let errors = {};
         let form = document.getElementById("branchForm");
         var formData = new FormData(form)
-        console.log("submittying",values,formData)
         let url = `/api/branches/update/${branch.uri}/`;
-        axios.patch(
-            url,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-            }).then(response => {
-                axios.get(`/api/branches/${response.data.uri}/`).then(r=>{
-                    updateContext(userContext.branches,response.data);
-                    updateContext(cachedBranches.owned,response.data);
-                    resetDefaultBranch();
+        console.log(values);
+
+        try{
+            let response = await axios.patch(
+                url,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
                 })
-                console.log(response);
-            }).catch(error => {
-                console.log(error)
-            })
+            
+            let updatedBranchResponse = await axios.get(`/api/branches/${response.data.uri}/`);
+        
+            //updateContext(userContext.branches,updatedBranchResponse.data);
+            userContext.updateBranch(branch,updatedBranchResponse.data)
+            updateContext(cachedBranches.owned,updatedBranchResponse.data);
+            resetDefaultBranch();
+        }catch(err){
+            
+        }
+        
+        return errors;
     }
 
     return(
@@ -248,33 +254,32 @@ function CreateNewBranch(){
     }
 
     async function onSubmit(values){
+        console.log(values);
         let form = document.getElementById("branchForm");
         var formData = new FormData(form);
         let errors = {};
         let url = `/api/branches/new/`;
-        await axios.post(
-            url,
-            formData,
-            {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-            }).then(response => {
-                console.log(response);
-                if(response.data.uri){
-                    errors.uri = response.data.uri[0];
-                    return errors;
-                }else{
-                    axios.get(`/api/branches/${response.data.uri}/`).then(r=>{
-                        userContext.branches.push(r.data);
-                        userContext.changeCurrentBranch(r);
-                        history.push('/');
-                    })
-                }
-            }).catch(error => {
-                console.log(error)
-            })
+
+        try{
+            let response = await axios.post(
+                url,
+                formData,
+                {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                })
+            console.log(response);
+            let updatedResponse = await axios.get(`/api/branches/${response.data.uri}/`)
+            if(updatedResponse.status == 200){
+                userContext.branches.push(updatedResponse.data);
+                userContext.changeCurrentBranch(updatedResponse.data);
+                history.push('/')
+            }
+        }catch(e){
+            console.log(e);
+        }
         
         return errors;
     }
@@ -296,35 +301,44 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
         isDefaultSwitchDisabled = true;
     }
 
-    async function usernameAvailable(value){
+    const simpleMemoize = fn => {
+        let lastArg;
+        let lastResult;
+        return arg => {
+          if (arg !== lastArg) {
+            lastArg = arg;
+            lastResult = fn(arg);
+          }
+          return lastResult;
+        };
+      };
+      
+      const usernameAvailable = simpleMemoize(async value => {
         if (!value) {
             return "Required";
         }
-
-        const r = await axios.get(`/api/branches/${value}/`);
-        const status = await r.status;
-        
-        if(branch){
-            if(status == 200 && branch.uri != value){
-                console.log("status",r)
-                return "Username is not available";
-            }  
-        }else{
-            if(status == 200){
-                console.log("status",r)
-                return "Username is not available";
-            }
-        }
-
 
         let sanitizeRe = /^[a-zA-Z0-9]*$/;
         if(!value.match(sanitizeRe)){
             return "The username you entered contains invalid characters";
         }
-    };
+
+        let r;
+        try{
+            r = await axios.get(`/api/branches/${value}/`);
+            if(branch && branch.uri == value){
+                return undefined;
+            }
+            return "Username not available"
+        }catch(err){
+            console.log(err.response);
+        }
+
+
+        return undefined;
+      });
 
     function cancelSearch(val,prevVal){
-        console.log("val",val)
         if(val!=prevVal){
             source.cancel('Operation canceled by the user.');
             CancelToken = axios.CancelToken;
@@ -335,9 +349,7 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
     return(
         <Form onSubmit={onSubmit}
             initialValues={initialValues}
-            validate={validate}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
-                console.log("errors",errors)
                 return (
                     <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
                         <div>

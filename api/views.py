@@ -46,7 +46,7 @@ class ChildrenLimitOffsetPagination(LimitOffsetPagination):
 
 
 class BranchChatMessagePagination(CursorPagination):
-    page_size = 10
+    page_size = 30
 
 
 class BranchPostPagination(CursorPagination):
@@ -331,13 +331,14 @@ class BranchChatMessageViewSet(viewsets.GenericViewSet,
 
 
 class NewMessageViewSet(viewsets.GenericViewSet,
-                           mixins.CreateModelMixin):
+                       mixins.CreateModelMixin):
     parser_classes = (JSONParser, MultiPartParser)
     permission_classes = (permissions.IsAuthenticated,IsMemberOfChat)
     serializer_class = serializers.NewMessageSerializer
     queryset = Branch.objects.all()
 
     def create(self, request, *args, **kwargs):
+        print(request.data)
         branch_chat = BranchChat.objects.get(id=self.kwargs['id_pk'])
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request,'branch_chat':branch_chat})
@@ -351,13 +352,14 @@ class NewMessageViewSet(viewsets.GenericViewSet,
 class BranchNewPostViewSet(viewsets.GenericViewSet,
                            mixins.CreateModelMixin):
     parser_classes = (JSONParser, MultiPartParser)
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (permissions.IsAuthenticated,IsOwnerOfBranch)
     serializer_class = serializers.NewPostSerializer
     queryset = Branch.objects.all()
 
     def create(self, request, *args, **kwargs):
         self.poster = Branch.objects.get(uri=self.kwargs['branch_uri'])
-        serializer = self.serializer_class(data=request.data,context={'request': self.request})
+        serializer = self.serializer_class(data=request.data,context={'request': self.request,
+                                                                      'branch_uri':self.kwargs['branch_uri']})
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response(serializer.data)
