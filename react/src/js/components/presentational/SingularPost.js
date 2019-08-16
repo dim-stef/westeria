@@ -71,7 +71,6 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 
     
     async function fetchData(data){
-        console.log("replytrees",data)
         if(!hasMore){
             return;
         }
@@ -188,7 +187,6 @@ export const Post = React.memo(function Post({post,parentPost=null,
                 if(bundle.post){
                     return bundle.post.id == post.id && bundle.embeddedPost == undefined
                 }
-                
             })
 
             if(!inCache){
@@ -205,7 +203,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
     return(
         <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
-                <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
+                <RippledStyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 date={date} cls="main-post"
                 showPostedTo activeBranch={activeBranch}
                 open={open} measure={measure} postsContext={postsContext}
@@ -283,7 +281,6 @@ function ShownBranch({branch,date,dimensions=48}){
     }
 
     function handleAnchorClick(e){
-        console.log("anchorclicked")
         e.stopPropagation()
     }
 
@@ -306,8 +303,14 @@ function ShownBranch({branch,date,dimensions=48}){
     )
 }
 
+
+import '@material/react-ripple/dist/ripple.css';
+
+import {withRipple} from '@material/react-ripple';
+
 function StyledPost({post,postsContext,date,cls,showPostedTo,
-    activeBranch,openPost,open,updateTree,measure,viewAs,isSingular}){
+    activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
+
     const context = useContext(UserContext);
     const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
         return context.isAuth?s.uri===context.currentBranch.uri:false;
@@ -322,7 +325,6 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
     const ref = useRef(null);
 
     let isEmbedded = viewAs=="embeddedPost" ? true : false;
-    //let borderBottom = lastComment ? '1px solid #e2eaf1' : 'none';
     let borderBottom = viewAs=="post" || isEmbedded ? '1px solid #e2eaf1' : borderBottom;
     borderBottom = viewAs=="reply" ? 'none' : borderBottom
     let border = isEmbedded ? '1px solid rgb(226, 234, 241)' : 'none';
@@ -330,7 +332,6 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
     let marginTop = isEmbedded ? '10px' : '0';
 
     function handleCommentClick(){
-        console.log(post.level)
 
         //if its top level post always display status bar
         if(post.level===0){
@@ -364,29 +365,31 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
     
     return(
         <>
-        <div ref={ref} className={`post ${cls}`} 
-        style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
-        poststate={open?"open":"closed"}>
-            {post.spreaders.length>0 && !isEmbedded && context.isAuth?
-             <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
-            :null}
-            <div className="flex-fill">
-                <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
-                    <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
-                    date={date} post={post} dimensions={viewAs=='reply'?24:null}/>
-                    <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
-                    activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:null}/>
-                </div>
-                <More post={post}/>
-                </div>
-                <div style={{marginTop:10}}>
-                    <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
-                    text={post.text} postsContext={postsContext} images={post.images} videos={post.videos} 
-                    measure={measure} postRef={ref} viewAs={viewAs}/>
-                    <PostActions post={post} handleCommentClick={handleCommentClick}
-                    handleSpread={onSpread} didSelfSpread={didSelfSpread}/>
-                    
-                </div>
+        <div ref={initRipple} className={className} unbounded={unbounded}>
+            <div ref={ref} className={`post ${cls}`}
+            style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
+            poststate={open?"open":"closed"}>
+                {post.spreaders.length>0 && !isEmbedded && context.isAuth?
+                <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
+                :null}
+                <div className="flex-fill">
+                    <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
+                        <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
+                        date={date} post={post} dimensions={viewAs=='reply'?24:null}/>
+                        <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
+                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:null}/>
+                    </div>
+                    <More post={post}/>
+                    </div>
+                    <div style={{marginTop:10}}>
+                        <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
+                        text={post.text} postsContext={postsContext} images={post.images} videos={post.videos} 
+                        measure={measure} postRef={ref} viewAs={viewAs}/>
+                        <PostActions post={post} handleCommentClick={handleCommentClick}
+                        handleSpread={onSpread} didSelfSpread={didSelfSpread}/>
+                        
+                    </div>
+            </div>
         </div>
         {isStatusUpdateActive?
         <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}/>:null}
@@ -394,12 +397,15 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
     )
 }
 
+const RippledStyledPost = withRipple(StyledPost)
+
 
 function PostedToExtension({post,activeBranch,mainPostedBranch}){
     
     const userContext = useContext(UserContext);
     const [branches,setBranches] = useState([]);
     
+
     function branchesToDisplay(){
         return post.posted_to.filter(b =>{
             return b.uri !== mainPostedBranch.uri && b.uri!==post.poster && b.uri!==activeBranch.uri;
@@ -448,7 +454,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
 
 function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dimensions=48}){
 
-    //console.log(post.poster,mainPostedBranch.uri)
+
     return(
         mainPostedBranch && post.type!=="reply"?
             <div className="flex-fill" style={{alignItems:'center',margin:'0 10px'}}>
@@ -485,7 +491,6 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
             return;
         }
 
-        console.log("viewSs",viewAs)
         // !isEmbedded to prevent embedded recursion
         if(embeddedPostData && !isEmbedded && viewAs=="post"){
             getEmbeddedPost(embeddedPostData.uri,embeddedPostData.id)
@@ -556,11 +561,14 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
     let ratio = starCount/(starCount + dislikeCount) * 100;
 
     useEffect(()=>{
-        if(context.isAuth && context.currentBranch.reacts.find(x=>x.post===post.id)){
+        if(context.isAuth){
             let reactType = context.currentBranch.reacts.find(x=>x.post===post.id)
-            setReact(reactType.type);
+            if(reactType){
+                setReact(reactType.type);
+            }
         }
     },[])
+
 
     function changeReact(type){
         let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
@@ -581,9 +589,9 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                 },
                 withCredentials: true
             }).then(r=>{
-                console.log("putresposne",r)
                 // update context
-                context.currentBranch.reacts.push(r.data);
+                let index = context.currentBranch.reacts.findIndex(r=>r.post == post.id)
+                context.currentBranch.reacts[index] = r.data;
                 // update star count
                 if(type=='star'){
                     setStarCount(starCount + 1);
@@ -598,7 +606,6 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
 
     const createOrDeleteReact = useCallback((type) => {
         // delete react
-        console.log("type",type,react)
         if(type==react){
             let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
             let uri = `/api/reacts/${reactUUID}/`;
@@ -1028,9 +1035,6 @@ function ShareCount({spreads}){
 
 function TopSpreadList({spreaders,selfSpread}){
     const context = useContext(UserContext);
-    if(selfSpread){
-        console.log("spread")
-    }
 
     var topSpreadList = null;
     let postPicture = null;

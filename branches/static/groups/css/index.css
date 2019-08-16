@@ -603,7 +603,6 @@ div.route-section {
     padding: 10px;
     display: flex;
     transition: opacity 0.1s ease-in-out;
-    -webkit-tap-highlight-color: transparent;
 }
 
 [postState="closed"]:hover{
@@ -616,11 +615,11 @@ div.route-section {
     cursor: pointer;
 }
 
-@media (hover: none) {
+/*@media (hover: none) {
    [postState="closed"] {
       background-color: white !important;
    }
-}
+}*/
 
 .associated-branches{
     flex-flow: row wrap;
@@ -747,10 +746,10 @@ p.top-spread-list{
     margin: 0;
     font-weight: 600;
     color: #455d6f;
+    word-break: break-all;
 }
 
 div.top-spread-list{
-    /*border-bottom: 1px solid #e2eaf1;*/
     margin-bottom: 10px;
     padding-bottom: 5px;
 }

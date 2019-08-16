@@ -51,6 +51,7 @@
     "@babel/polyfill": "^7.0.0",
     "@babel/runtime": "^7.2.0",
     "@emotion/core": "^10.0.10",
+    "@material/react-ripple": "^0.15.0",
     "@rehooks/window-scroll-position": "^1.0.1",
     "@slate-editor/image-plugin": "^5.1.0",
     "@welldone-software/why-did-you-render": "^3.2.0",

@@ -384,6 +384,16 @@ class GenericPostList(viewsets.GenericViewSet, mixins.ListModelMixin,mixins.Retr
     ordering_fields = ('hot_score', 'created')
     ordering = ('-hot_score',)
 
+class PostListWithSpreader(GenericPostList):
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        following = branch.follows.all()
+        context.update({
+            "spreaders": following
+        })
+        return context
+
 def filter_posts(posts,content,past):
     if content == 'leaves':
         posts = posts.exclude(type="reply")
@@ -464,7 +474,7 @@ class BranchNewFollowViewSet(viewsets.ModelViewSet):
         return branch
 
 
-class FeedViewSet(GenericPostList):
+class FeedViewSet(PostListWithSpreader):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
     serializer_class = serializers.BranchPostSerializer
 
@@ -480,14 +490,6 @@ class FeedViewSet(GenericPostList):
 
         return filter_posts(posts,content,past)
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
-        following = branch.follows.all()
-        context.update({
-            "spreaders": following
-        })
-        return context
 
 class AllPostsViewSet(GenericPostList):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -507,7 +509,7 @@ class AllPostsViewSet(GenericPostList):
         return context
 
 
-class AuthAllPostsViewSet(GenericPostList):
+class AuthAllPostsViewSet(PostListWithSpreader):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.BranchPostSerializer
 
@@ -517,14 +519,45 @@ class AuthAllPostsViewSet(GenericPostList):
         past = self.request.query_params.get('past', None)
         return filter_posts(posts, content, past)
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
+class FollowingTreeViewSet(PostListWithSpreader):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
+    serializer_class = serializers.BranchPostSerializer
+
+    def get_tree_count(self,branch,count = 0):
+        children = branch.children.all()
+        count += 1
+        are_all_empty = all(child.children.count() == 0 for child in children.all())
+        print(are_all_empty)
+        if are_all_empty:
+            return count
+        for child in children:
+            self.get_tree_count(child,count)
+        return count
+
+
+    def get_children(self,branch):
+        children = branch.children.all()
+        self.qs |= children
+
+        for child in children:
+            if child.pk not in self.searched_branches:
+                self.searched_branches.append(child.pk)
+                self.get_children(child)
+        return self.qs
+
+    def get_queryset(self):
+        self.qs = Branch.objects.none()
+        self.searched_branches = []
         branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
         following = branch.follows.all()
-        context.update({
-            "spreaders": following
-        })
-        return context
+        self.qs |= following
+
+        for branch in following:
+            self.searched_branches.append(branch.pk)
+            self.get_children(branch)
+        post_tree = Post.objects.filter(poster__in=self.qs.distinct())
+
+        return post_tree
 
 
 class TrendingScoreViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):

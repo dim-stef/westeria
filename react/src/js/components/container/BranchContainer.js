@@ -11,7 +11,6 @@ export function BranchesPageContainer(props){
     const [pending,setPending] = useState([]);
     const userContext = useContext(UserContext);
     let branchUri = props.branch.uri;
-    console.log(props);
 
     async function getBranches(branchUri,type="children"){
         let uri;
@@ -53,14 +52,8 @@ export function BranchesPageContainer(props){
         return (
         <>
             <BranchList branches={branches} ownsBranch={props.ownsBranch} viewedBranch={props.branch}/>
-            {/*fillerBox*/}
             {(userContext.isAuth && userContext.currentBranch.uri==props.branch.uri) || props.type=='siblings'?null:
             <AddBranch branch={props.branch} type={props.type}/>}
-            {/*{pending.length>0 && props.ownsBranch?
-            <>
-                <h1 style={{width:'100%',fontSize:'3rem'}}>Pending</h1>
-                <BranchList branches={pending} ownsBranch={props.ownsBranch} viewedBranch={props.branch} pending={true}/>
-            </>:null}*/}
         </>
         )
     }else{
@@ -94,32 +87,41 @@ export function usePendingRequests(branch){
 
 export function BranchContainer(props){
     const actionContext = useContext(UserActionsContext)
-    const [branches,setBranches] = useState(null);
+    const [branch,setBranch] = useState(null);
+    const [loaded,setLoaded] = useState(false);
     let branchUri = props.match.params.uri
 
-    async function getBranches(branchUri){
+    async function getBranch(branchUri){
         let uri;
 
-        uri = `/api/branches/${branchUri}/`
-        let parentResponse = await axios.get(uri, {withCredentials: true});
-        let parentData = parentResponse.data;
-
-        setBranches(parentData);
+        uri = `/api/branches/${branchUri}/`;
+        try{
+            let parentResponse = await axios.get(uri);
+            let parentData = parentResponse.data;
+            setBranch(parentData);
+        }
+        catch(err){
+            //console.log(err.response)
+        }
+        setLoaded(true);
     }
 
     useEffect(()=>{
-        console.log("remount2")
         actionContext.lastPostListType = 'branch';
     },[])
 
     useEffect(() => {
-        getBranches(branchUri);
+        getBranch(branchUri);
     },[branchUri])
 
-    if(branches){
-        return <BranchPage externalPostId={props.match.params.externalPostId} branch={branches} match={branchUri}/>
+    if(loaded){
+        if(branch){
+            return <BranchPage externalPostId={props.match.params.externalPostId} branch={branch} match={branchUri}/>
+        }else{
+            return <p style={{margin:'0 auto',fontSize:'3rem',fontWeight:'bold',textAlign:'center'}}>Nothing seems to be here :/</p>
+        }
     }else{
-        return null
+        return null;
     }
 }
 

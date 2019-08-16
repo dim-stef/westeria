@@ -8,7 +8,7 @@ import {FollowButton} from "./Card"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import axios from 'axios'
 
-export function BranchPageWrapper({branch,children}){
+export function MobileBranchPageWrapper({branch,children}){
     const ref = useRef(null);
     const [left,setLeft] = useState(0);
     const [imageHeight,setImageHeight] = useState(0);

@@ -23,14 +23,17 @@ def epoch_seconds(date):
     td = date - epoch
     return td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000)
 
-def hot(ups,spreads, date):
-    s = ups * 10
+def score(ups, downs):
+    return ups - downs
+
+def hot(ups, downs, spreads , date):
+    s = score(ups, downs)
     spread_s = sigmoid(spreads) * 30 - 15
-    up_s = log(max(abs(s), 1), 10)
-    order = spread_s + up_s
-    print(spread_s,up_s)
+    order = log(max(abs(s), 1), 10) + spread_s
+    sign = 1 if s > 0 else -1 if s < 0 else 0
     seconds = epoch_seconds(date) - 1134028003
-    return round(order + seconds / 45000, 7)
+    return round(sign * order + seconds / 45000, 7)
+
 
 def calculate_score(votes,spreads, item_hour_age, gravity=1.8):
     spread_points = sigmoid(spreads)
@@ -191,22 +194,30 @@ class Dislikes(models.Model):
     react = models.OneToOneField(React,on_delete=models.CASCADE,related_name="dislikes")
 
 
+def get_spreads(instance):
+    # get and then exclude posters branches
+    posters_branches = instance.poster.owner.owned_groups.all()
+    return instance.spreads.exclude(branch__in=posters_branches).count()
+
+def update_score(instance):
+    naive = instance.created.replace(tzinfo=None)
+    stars = instance.reacts.filter(type="star").count()
+    downs = instance.reacts.filter(type="dislike").count()
+    spreads = get_spreads(instance)
+    instance.hot_score = hot(stars, downs, spreads, naive)
+    instance.save()
+
 @receiver(post_save, sender=Post, dispatch_uid="update_post")
 def update_post_score(sender, instance, **kwargs):
-     naive = instance.created.replace(tzinfo=None)
-     instance.hot_score = hot(instance.reacts.filter(type="star").count(),instance.spreads.count(), naive)
-     instance.save()
+     update_score(instance.post)
          
 @receiver(post_save, sender=React, dispatch_uid="update_react")
 def update_post_score(sender, instance, **kwargs):
-     naive = instance.post.created.replace(tzinfo=None)
-     instance.post.hot_score = hot(instance.post.reacts.filter(type="star").count(),
-                                   instance.post.spreads.count(), naive)
-     instance.post.save()
+     update_score(instance.post)
 
 @receiver(post_save,sender=PostVideo,dispatch_uid="postVideo_delete_temp_folder")
 def delete_temp_folder(sender, instance, created, **kwargs):
-    path = 'C:\\Users\\Dimitris\\Desktop\\tmp'
+    path = os.path.join(os.path.expanduser('~'), 'temp_thumbnails')
     if created and instance.video:
         for root, dirs, files in os.walk(path):
             for f in files:

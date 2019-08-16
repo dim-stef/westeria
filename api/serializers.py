@@ -17,27 +17,11 @@ from uuid import uuid4
 import json
 from math import log
 
-
-epoch = datetime(1970, 1, 1)
-
-def epoch_seconds(date):
-    print(date,epoch)
-    td = date - epoch
-    return td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000)
-
-def score(ups, downs):
-    return ups - downs
-
-def hot(ups, date):
-    s = ups
-    order = log(max(abs(s), 1), 10)
-    print(order)
-    seconds = epoch_seconds(date) - 1134028003
-    return round(order + seconds / 45000, 7)
+temp_path = os.path.join(os.path.expanduser('~'), 'temp_thumbnails')
 
 def generate_thumbnail(file):
     _id = uuid4()
-    path = 'C:\\Users\\Dimitris\\Desktop\\tmp\\%s' % _id
+    path = os.path.join(temp_path,str(_id))
     with open(path, 'ab+') as f:
         f.write(file.read())
         clip = VideoFileClip(f.name)
@@ -156,8 +140,9 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         uri = validated_data.pop('uri')
-        validated_uri = generate_unique_uri(uri)
-        instance.uri = validated_uri
+        if uri and uri != instance.uri:
+            validated_uri = generate_unique_uri(uri)
+            instance.uri = validated_uri
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -298,7 +283,6 @@ def create_message(instance):
     json_videos = json.dumps(video_dict)
 
     channel_layer = channels.layers.get_channel_layer()
-    print("instance",serialized_images)
     if instance.images.count() > 0 or instance.videos.length > 0:
         async_to_sync(channel_layer.group_send)(
             str('chat_%s' % str(instance.branch_chat.id)),
@@ -329,7 +313,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         request = self.context['request']
         branch_chat = self.context['branch_chat']
-        print("validated data",validated_data)
         if not branch_chat.members.filter(uri=validated_data['author']).exists():
             raise serializers.ValidationError('Not member of chat')
 
@@ -341,7 +324,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('message and media are None')
         message = BranchMessage.objects.create(**validated_data)
 
-        print("files",type(request.FILES))
         if 'images' in request.FILES:
             for image_data in request.FILES.getlist('images'):
                 print(image_data)

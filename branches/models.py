@@ -283,8 +283,6 @@ def modify_chat_room(sender, instance, **kwargs):
                 .filter(members=instance)
         )
 
-        print(instance_personal_rooms,query_member,instance)
-
         if not instance_personal_rooms.exists():
             return None
         return instance_personal_rooms[0]

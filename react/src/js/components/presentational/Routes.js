@@ -7,9 +7,10 @@ import Logout from "./Logout"
 import Register from "./Register"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
-import {UserContext,BranchPostsContext,PostsContext,AllPostsContext,UserActionsContext,SingularPostContext} from "../container/ContextContainer"
+import {UserContext,BranchPostsContext,PostsContext,AllPostsContext,TreePostsContext,
+    UserActionsContext,SingularPostContext} from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
-import FeedPosts,{ BranchPosts,AllPosts} from "./BranchPosts"
+import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
 import {BranchesPageRoutes} from "./BranchesPage"
@@ -27,19 +28,12 @@ import { TransitionGroup, CSSTransition } from "react-transition-group";
 import MyBranchesColumnContainer from "./MyBranchesColumn"
 //const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
 //const FeedPosts = lazy(() => import('./BranchPosts'));
+import {FrontPage,FrontPageLeftBar} from "./FrontPage"
 
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
 const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
 const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
-
-/*class Mobile extends PureComponent{
-    render(){
-        return(
-            <Responsive {...this.props} maxDeviceWidth={767} />
-        )
-    }
-}*/
 
 function RouteTransition({location,children}){
     return(
@@ -60,27 +54,7 @@ function RouteTransition({location,children}){
                                 </CSSTransition>
                             </TransitionGroup>*/
 const Routes = React.memo(function Routes({location}){
-    const [refresh,setRefresh] = useState(null);
-    const [feedRefresh,setFeedRefresh] = useState(null);
-    const [branchPostsRefresh,setBranchPostsRefresh] = useState(null);
 
-    useEffect(()=>{
-        console.log("routesrendered")
-    })
-
-    useEffect(()=>{
-        console.log("refreshchange")
-    },[branchPostsRefresh])
-
-    let value = {
-        refresh,
-        setRefresh,
-        feedRefresh,
-        setFeedRefresh,
-        branchPostsRefresh,
-        setBranchPostsRefresh,
-        page:'feed'
-    };
 
     return(
         <Switch>
@@ -117,7 +91,7 @@ function NonAuthenticationRoutes(){
     return(
         <Switch>
             <Route path='/settings' component={SettingsPage}/>
-            <Route exact path='/:page(popular|all)?/' component={FrontPage}/>
+            <Route exact path='/:page(popular|all|tree)?/' component={FrontPage}/>
             <Route path='/search' component={SearchPage} />
             <Route path='/notifications' component={NotificationsContainer}/>
             <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
@@ -147,75 +121,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-export const FrontPageFeed = React.memo(function FrontPageFeed(props){
-    const context = useContext(UserContext);
-    const postsContext = useContext(PostsContext);
-    const [uri,setUri] = useState('initialUri')
-    const branch = context.currentBranch.uri;
-    const [params,setParams] = useState(null);
-
-    useEffect(()=>{
-        return ()=>{
-            let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
-            postsContext.lastVisibleElement = lastVisibleElements[0];
-            let indexes = [];
-            for(let el of lastVisibleElements){
-                indexes.push(el.dataset.index)
-            }
-            let middle = indexes[Math.floor(indexes.length / 2)];
-            postsContext.lastVisibleIndex = indexes.length>0?middle:0;
-        }
-    },[])
-
-    if(context.isAuth){
-        return(
-            <FeedPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
-            postedId={context.currentBranch.id} usePostsContext showPostedTo 
-            branch={branch} params={params} setParams={setParams} isFeed
-            />
-        )
-    }else{
-        return null
-    }
-})
-
-export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
-    const context = useContext(UserContext);
-    const postsContext = useContext(AllPostsContext);
-    const [uri,setUri] = useState('initialUri')
-    const branch = context.isAuth?context.currentBranch.uri:null;
-    const [params,setParams] = useState(null);
-
-    useEffect(()=>{
-        return ()=>{
-            let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
-            postsContext.lastVisibleElement = lastVisibleElements[0];
-            postsContext.lastVisibleIndex = lastVisibleElements[0]?lastVisibleElements[0].dataset.index:0;
-            //postsContext.scroll = window.scrollY;
-            console.log("lastvisible",postsContext,lastVisibleElements)
-        }
-    },[])
-
-
-    return(
-        <AllPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
-        postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 
-        branch={branch} params={params} setParams={setParams} isFeed
-        />
-    )
-   
-})
-
-FrontPageFeed.whyDidYouRender = true;
-
-class FrontPageWrapper extends PureComponent{
-    render(){
-        return(
-            <FrontPage/>
-        )
-    }
-}
-
 function SingularPostWrapper({externalPostId}){
     const singularPostContext = useContext(SingularPostContext)
     const userContext = useContext(UserContext);
@@ -224,7 +129,7 @@ function SingularPostWrapper({externalPostId}){
     return(
         <>
             <Desktop>
-                <FrontPageLeftBar2/>
+                <FrontPageLeftBar/>
                 <ul className="post-list">
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
@@ -250,111 +155,6 @@ function SingularPostWrapper({externalPostId}){
         
     )
 }
-export const FrontPage = React.memo(function FrontPage({externalPostId}){
-
-    const actionContext = useContext(UserActionsContext);
-    const userContext = useContext(UserContext);
-
-    useEffect(()=>{
-        actionContext.lastPostListType = 'front'
-    },[])
-
-    return(
-        <>
-            <Desktop>
-                <FrontPageLeftBar2/>
-                <Switch>
-                    <Route exact path="/" component={
-                        (props) => userContext.isAuth?<FrontPageFeed device="desktop" {...props}/>:
-                        <FrontPageAllPosts device="desktop" {...props}/>
-                    }/>
-                    <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
-                </Switch>
-                {/*<FrontPageRightBar/>*/}
-            </Desktop>
-
-            <Tablet>
-            <Switch>
-                <Route exact path="/" component={
-                        (props) => userContext.isAuth?<FrontPageFeed device="desktop" {...props}/>:
-                        <FrontPageAllPosts device="desktop" {...props}/>
-                    }/>
-                    <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
-                </Switch>
-            </Tablet>
-
-            <Mobile>
-            <Switch>
-                    <Route exact path="/" component={
-                        (props) => userContext.isAuth?<FrontPageFeed device="desktop" {...props}/>:
-                        <FrontPageAllPosts device="desktop" {...props}/>
-                    }/>
-                    <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
-                </Switch>
-            </Mobile>
-            
-        </>
-    )
-})
-
-//FrontPage.whyDidYouRender = true;
-FrontPageWrapper.whyDidYouRender = true;
-
-
-function FrontPageLeftBar2(){
-    const [show,setShow] = useState(true);
-    const userContext = useContext(UserContext);
-
-    return(
-        <div style={{ flexBasis:'22%', height:'max-content'}}>
-            <div>
-            {userContext.isAuth?
-                <>
-                <div className="box-border" style={{padding:'10px 20px'}}>
-                    <div className="flex-fill" style={{alignItems:'center'}}>
-
-                        <h1>My branches</h1>
-                        <button role="button" onClick={()=>setShow(!show)} style={{
-                            border:0,
-                            color:'#1DA1F2',
-                            fontSize:'1.3rem',
-                            marginLeft:10,
-                            marginTop:3,
-                            backgroundColor:'transparent'
-                        }}>{show?"hide":"show"}</button>
-                    </div>
-                    <MyBranchesColumnContainer show={show}/>
-                </div>
-                <div style={{marginTop:10}}>
-                    <FollowingBranches/>
-                </div>
-                </>:
-                <NonAuthenticationColumn/>}
-                
-            </div>
-        </div>
-    )
-}
-
-function FollowingBranches(){
-    return(
-        <div style={{height:'max-content'}}>
-            <div className="box-border" style={{padding:'10px 20px'}}>
-            <p style={{
-                    fontSize: "1.6em",
-                    fontWeight: 600,
-                    paddingBottom: 5,
-                    margin: "-10px -20px",
-                    backgroundColor: "#219ef3",
-                    color: "white",
-                    padding: "10px 20px",
-                    marginBottom:10
-                }}>Following</p>
-                <FollowingBranchesColumnContainer/>
-            </div>
-        </div>
-    )
-}
 
 function FrontPageRightBar(){
     return(
@@ -377,41 +177,64 @@ function FrontPageRightBar(){
 }
 
 
-function TestBox(){
+import {MobileBranchPageWrapper} from "./MobileParentBranch"
+
+function ResponsiveBranchPage({branch,children}){
     return(
-        <div style={{height:300,backgroundColor:'white'}}>
-            <div style={{padding:'15px 10px'}}>
-                <h1 style={{margin:0}}>Info</h1>
+        <>
+            <Desktop>
+                <DesktopParentBranchWrapper branch={branch}>
+                    {children}
+                </DesktopParentBranchWrapper>
+            </Desktop>
+            <Tablet>
+                <MobileBranchPageWrapper branch={branch}>
+                    {children}
+                </MobileBranchPageWrapper>
+            </Tablet>
+            <Mobile>
+                <MobileBranchPageWrapper branch={branch}>
+                    {children}
+                </MobileBranchPageWrapper>
+            </Mobile>    
+            </>
+    )
+}
+
+function DesktopParentBranchWrapper(props){
+
+    return(
+        <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
+            <div style={{flexBasis:'100%'}}>
+                <div>
+                    <ParentBranch
+                        styleName="parent"
+                        style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%'}} 
+                        branch={props.branch}
+                        branchNavigation
+                        editMode={false}
+                    ></ParentBranch>
+                </div>
+                <Card branch={props.branch}/>
+                <BranchNavigation branch={props.branch} refresh={props.refresh}/>
+                {props.children}
             </div>
         </div>
     )
 }
 
-import {BranchPageWrapper} from "./MobileParentBranch"
 export function BranchPage(props){
     return(
-        <>
-        <Desktop>
-            <ParentBranchWrapper branch={props.branch}>
-                <Helmet title={props.branch.uri}>
-                </Helmet>
-                    <Switch>
-                        <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
-                        <Route path={`/${props.match}/`} component={()=> <BranchFrontPage {...props}/>}/>
-                    </Switch>
-            </ParentBranchWrapper>
-        </Desktop>
-        <Mobile>
-            <BranchPageWrapper branch={props.branch}>
-                <Helmet title={props.branch.uri}>
-                </Helmet>
-                    <Switch>
-                        <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
-                        <Route path={`/${props.match}/`} component={(idMatch)=><BranchFrontPage {...props}/>}/>
-                    </Switch>
-            </BranchPageWrapper>
-        </Mobile>
-        </>
+        <ResponsiveBranchPage branch={props.branch}>
+            <Helmet>
+                <title>{props.branch.name} (@{props.branch.uri}) - Subranch</title>
+                <meta name="description" content={props.branch.description} />
+            </Helmet>
+            <Switch>
+                <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
+                <Route path={`/${props.match}/`} component={()=> <BranchFrontPage {...props}/>}/>
+            </Switch>
+        </ResponsiveBranchPage>
     )        
 }
 
@@ -423,17 +246,12 @@ function BranchFrontPage(props){
     uri = `/api/branches/${props.match}/posts/`;
 
     useEffect(()=>{
-        if(postsContext.lastVisibleElement){
-            let lastElement = document.getElementById(postsContext.lastVisibleElement.id);
-            //lastElement.scrollIntoView();
-        }
         
         return ()=>{
             let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
             postsContext.lastVisibleElement = lastVisibleElements[0];
             postsContext.lastVisibleIndex = lastVisibleElements[0]?
             lastVisibleElements[0].dataset.index:0;
-            console.log("lastvisible",postsContext,lastVisibleElements)
         }
     },[])
 
@@ -464,7 +282,7 @@ function BranchFrontPage(props){
                         />}
                         
                         <div style={{flexBasis:'22%'}}>
-                            <TestBox/>
+                            
                         </div>
                     </div>
                 </div>
@@ -490,29 +308,6 @@ function BranchFrontPage(props){
     )
 }
 
-
-function ParentBranchWrapper(props){
-
-    console.log(props)
-    return(
-        <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
-            <div style={{flexBasis:'100%'}}>
-                <div>
-                    <ParentBranch
-                        styleName="parent"
-                        style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%'}} 
-                        branch={props.branch}
-                        branchNavigation
-                        editMode={false}
-                    ></ParentBranch>
-                </div>
-                <Card branch={props.branch}/>
-                <BranchNavigation branch={props.branch} refresh={props.refresh}/>
-                {props.children}
-            </div>
-        </div>
-    )
-}
 
 export default withRouter(Routes);
 

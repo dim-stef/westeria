@@ -75,6 +75,10 @@ export const AllPostsContext = React.createContext(
     Object.create({...frontPagePostList,content:'all'})
 );
 
+export const TreePostsContext = React.createContext(
+    Object.create({...frontPagePostList,content:'tree'})
+);
+
 export const BranchPostsContext = React.createContext(
     {
         content:'branch',
