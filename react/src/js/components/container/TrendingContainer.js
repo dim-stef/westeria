@@ -26,7 +26,6 @@ export function TrendingContainer(){
     if(branches.length>0){
         return(
             branches.map(b=>{
-                console.log(b)
                 return <SmallBranch branch={b} key={b.id}/>
             })
         )

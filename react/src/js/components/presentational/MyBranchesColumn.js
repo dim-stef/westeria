@@ -1,5 +1,4 @@
 import React , {useEffect,useState,useContext} from "react"
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import {UserContext,CachedBranchesContext} from "../container/ContextContainer"
 import {useMyBranches} from "../container/BranchContainer"
 import {SmallBranch} from "./Branch"
@@ -11,7 +10,7 @@ export default function MyBranchesColumnContainer({show=true,children}){
     const context = useContext(UserContext);
     const branches = useMyBranches();
     function handleClick(branch){
-        console.log(context.changeCurrentBranch)
+         
         context.changeCurrentBranch(branch);
     }
 
@@ -27,7 +26,7 @@ export default function MyBranchesColumnContainer({show=true,children}){
                 }:null
                 return (
                     <div style={style} key={b.id}>
-                        <SmallBranch branch={b}>
+                        <SmallBranch branch={b} hoverable={false}>
                             {isCurrentBranch?null:
                             <button onClick={()=>handleClick(b)} style={{border:0,backgroundColor:'transparent'}}><RightArrow/></button>}
                         </SmallBranch>
@@ -42,7 +41,7 @@ export default function MyBranchesColumnContainer({show=true,children}){
             return <div style={{
                 backgroundColor:'#f5f5f5',
                 borderRadius:25
-            }}><SmallBranch branch={context.currentBranch}/></div>;
+            }}><SmallBranch branch={context.currentBranch} hoverable={false}/></div>;
         }
         return <SkeletonBranchList/>
     }

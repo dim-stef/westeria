@@ -12,7 +12,7 @@ export class ExtendButton extends Component {
     }
 
     handleClick() {
-        console.log(this.state.newRoot);
+         
         jsPlumb.deleteEveryEndpoint();
         //this.props.updateNodeContainer(this.state.newRoot);
     }

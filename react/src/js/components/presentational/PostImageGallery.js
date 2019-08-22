@@ -26,7 +26,7 @@ Number.prototype.roundTo = function(num) {
 
 import SwipeableViews from 'react-swipeable-views';
 
-export function Images2(props){
+export function Images(props){
 
     function getTallerElement(){
         let heights = props.images.map(im=>{

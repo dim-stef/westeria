@@ -27,7 +27,7 @@ export class Branch extends Component{
 
     render(){
         let {styleName='', style=null, branch, branchNavigation=null,type="child",editMode, children} = this.props
-        console.log("this.props.editMode",this.props.editMode)
+         
 
         return(
             <>
@@ -122,7 +122,7 @@ class BranchImage extends Component {
     }
 
     componentDidMount(){
-        console.log(this.el)
+         
         this.setState({
             height:this.el.clientWidth
         })
@@ -201,7 +201,7 @@ class BranchImageEditMenu extends Component{
             withCredentials: true,
             crossdomain: true,
         }).then(response => { 
-            console.log(response)
+             
             this.context.updateUserData();
             if(this.props.type==="banner"){
                 this.props.updateBanner(response.data.branch_banner)
@@ -211,7 +211,7 @@ class BranchImageEditMenu extends Component{
             
         })
         .catch(error => {
-            console.log(error)
+             
         });
     }
 

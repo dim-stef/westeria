@@ -2,7 +2,7 @@ function connector(parent, child) {
     parent = document.getElementById(parent)
     child = document.getElementById(child)
     if (parent && child) {
-        console.log("connect")
+         
         jsPlumb.ready(function () {
             jsPlumb.connect({
                 connector: ["Flowchart"],
@@ -19,7 +19,7 @@ function connector(parent, child) {
 function treeOverflow() {
     var treeWidth = document.getElementById("tree").scrollWidth;
     var mapContainerWidth = document.getElementById("map-container").clientWidth;
-    console.log(treeWidth, mapContainerWidth)
+     
     if (treeWidth > mapContainerWidth) {
         return true;
     }
@@ -140,7 +140,7 @@ export class Node extends Component {
     }
 
     /*componentWillReceiveProps(nextProps) {
-        console.log("received props")
+         
         //jsPlumb.deleteEveryEndpoint();
         this.setState({ root: nextProps.groups });
     } 

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from 'react-router'
 import { Link } from 'react-router-dom'
+import {Helmet} from "react-helmet"
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
@@ -50,12 +51,12 @@ export default class Login extends Component{
             .then(function (response) {
                 localStorage.setItem("token",response.data.token);
                 self.setState({success:true})
-                console.log(response);
+                 
             })
             .catch(function (error) {
                 if (error.response) {
                     self.setState({errorMessages:error.response.data.non_field_errors})
-                  console.log("error.response.data",error.response.data);
+                   
                 }
         })
         e.preventDefault();
@@ -87,6 +88,11 @@ export default class Login extends Component{
         }
         
         return(
+            <>
+            <Helmet>
+                <title>Login - Subranch</title>
+                <meta name="description" content="Login to Subranch" />
+            </Helmet>
             <div className="main-layout">
                 <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
                 <div className="form-container" style={{width: '70%', margin: 'auto', paddingBottom: '14px'}}>
@@ -105,6 +111,7 @@ export default class Login extends Component{
                 </div>
                 </div>
             </div>
+            </>
         )
     }
 }

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link,withRouter,Redirect } from 'react-router-dom'
 import { Form, Field } from 'react-final-form'
+import {Helmet} from 'react-helmet'
 import {AuthFormWrapper,Error,Password,Save} from "./Forms"
 import axios from 'axios'
 
@@ -19,9 +20,9 @@ function PasswordResetConfirm({match}){
                     token:match.params.token
                 }
             );
-            console.log(response); 
+             
         }catch(error){
-            console.log(error);
+             
             if(error.response.data.email){
                 errors.email = error.response.data.email[0]
             }
@@ -47,6 +48,11 @@ function PasswordResetConfirm({match}){
     },[])
 
     return(
+        <>
+        <Helmet>
+            <title>Password reset confirm - Subranch</title>
+            <meta name="description" content="Confirm password reset" />
+        </Helmet>
         <AuthFormWrapper>
             <Form onSubmit={handlePasswordResetConfirm} validate={validate}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
@@ -63,6 +69,8 @@ function PasswordResetConfirm({match}){
                 )
             }}/>
         </AuthFormWrapper>
+        </>
+        
     )
 }
 

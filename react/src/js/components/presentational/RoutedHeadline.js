@@ -3,7 +3,7 @@ import { withRouter } from "react-router";
 
 function RoutedHeadline({match,location,history,headline,to,children}){
     
-    console.log('history',match,location,history)
+     
     const navigate = ()=>{
         if(to){
             history.push(to);

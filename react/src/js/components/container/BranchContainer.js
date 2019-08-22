@@ -118,7 +118,12 @@ export function BranchContainer(props){
         if(branch){
             return <BranchPage externalPostId={props.match.params.externalPostId} branch={branch} match={branchUri}/>
         }else{
-            return <p style={{margin:'0 auto',fontSize:'3rem',fontWeight:'bold',textAlign:'center'}}>Nothing seems to be here :/</p>
+            return <>
+            <Helmet>
+                <title>Branch not found - Subranch</title>
+                <meta name="description" content="Branch not found." />
+            </Helmet>
+            <p style={{margin:'0 auto',fontSize:'3rem',fontWeight:'bold',textAlign:'center'}}>Nothing seems to be here</p></>
         }
     }else{
         return null;

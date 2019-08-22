@@ -74,12 +74,12 @@ export function Post2({post,updateHiddenMode=null,showPostedTo,handleClick,clear
 
         if(!emphasized){
             document.addEventListener('scroll',hiddenElementListener);
-            console.log("i")
+             
         }
 
         return ()=>{
             document.removeEventListener('scroll',hiddenElementListener);
-            console.log("o")
+             
         }
     },[emphasized])
 
@@ -120,7 +120,7 @@ export function DisplayPosts(props){
     const context = useContext(RefreshContext);
 
     useEffect(()=>{
-        console.log(props)
+         
         const fetchData = async () =>{
             setPosts([])
             const response = await axios(props.uri);

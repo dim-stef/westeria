@@ -13,7 +13,7 @@ export function SkeletonBranchList(){
     }
 
     let branches=  getSkeletonBranches()
-    console.log("branches",branches)
+     
     return(
         <div>
             {branches}

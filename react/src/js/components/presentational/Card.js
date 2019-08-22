@@ -31,7 +31,7 @@ function FollowInfo({followersCount,followingCount}){
 }
 
 function Identifiers({branch}){
-    console.log(branch.uri,"in1")
+     
     return(
         <div style={{position:'absolute',left:270,width:672}}>
             <div style={{display:'flex',paddingTop:10,alignItems:'flex-end'}}>
@@ -119,7 +119,7 @@ export function FollowButton({id,uri,style=null}){
             },
             withCredentials: true,
         }).then(response => {
-            console.log(response)
+             
             if(response.status === 200){
                 if(following){
                     context.currentBranch.follows.splice(context.currentBranch.follows.indexOf(uri),1);
@@ -132,7 +132,7 @@ export function FollowButton({id,uri,style=null}){
                 }
             }
         }).catch(error => {
-            console.log(error)
+             
         })
     }
 
@@ -155,7 +155,7 @@ export function FollowButton({id,uri,style=null}){
 
 
 export function SmallCard({branch}){
-    console.log("branch2",branch)
+     
     return(
         <div style={{width:300,height:'auto',position:'absolute',
         boxShadow:'0px 1px 6px -3px',top:50,backgroundColor:'white',

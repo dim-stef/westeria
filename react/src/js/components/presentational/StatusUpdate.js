@@ -17,7 +17,7 @@ import {Editor} from "slate-react"
 
 
 function MediaPreview(props){
-    console.log("props.files",props.files)
+     
 
     function handleClick(file){
         let fileArray = Array.from(props.files);
@@ -71,16 +71,13 @@ function MediaPreview(props){
     )
 }
 
-const schema = {
-    document: {
-
-    },
-    blocks: {
-        image: {
-        isVoid: true,
-        },
-    },
-}
+const schema  = {
+	blocks: {
+		text: {
+			isVoid: true
+		}
+	}
+};
 export default function StatusUpdateAuthWrapper(props){
     const userContext = useContext(UserContext);
 
@@ -209,7 +206,6 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     ref={ref}
                     value={value}
                     onChange={handleChange}
-                    schema={schema}
                     placeholder="Add a leaf"
                     style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
                     wordBreak:'break-all',border:'2px solid #219ef3'}}/>
@@ -244,7 +240,7 @@ function isFileVideo(file) {
 
 function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick,
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches}){
-    const [loading,setLoading] = useState(true);
+    const [isLoading,setLoading] = useState(false);
 
     const handleClick = (e)=>{
         
@@ -359,32 +355,34 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
     }
 
     return(
-        <div style={{marginTop:5}}>
-             <ToggleContent 
+        <ToggleContent 
                 toggle={show=>(
-                    <div style={{display:'flex'}}>
+                <div className="flex-fill" style={{marginTop:5}}>
+             
+                    <div className="flex-fill" style={{flex:'1 1 auto'}}>
                         <input type="file" multiple="multiple" className="inputfile" id="media" onInput={e=>handleImageClick(e)}></input>
-                        <label for="media" style={{height:26,padding:2,marginRight:10}}><MediaSvg/></label>
-                        <button style={{marginLeft:10}}
-                        onClick={e=>{handleOpenModal(e,show)}}>Post to</button>
-                        
+                        <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
                     </div>
-                )}
-                content={hide => (
-                <Modal>
-                    <PostToBranches parents={renderParents} siblings={renderSiblings} children={renderChildren}
-                        onSelect={onSelect}
-                    />
-                </Modal>    
-                )}/>
-            <button onClick={handleClick}>Add</button>
-            <MoonLoader
-                sizeUnit={"px"}
-                size={15}
-                color={'#123abc'}
-                loading={loading}
-            />
+                    <button style={{marginRight:10}} className="editor-btn"
+                    onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
+                    {isLoading?
+                    <div style={{alignSelf:'center'}}>
+                        <MoonLoader
+                            sizeUnit={"px"}
+                            size={20}
+                            color={'#123abc'}
+                            loading={isLoading}
+                        />
+                    </div>:<button onClick={handleClick} className="editor-btn">Add</button>}
         </div>
+        )}
+        content={hide => (
+        <Modal>
+            <PostToBranches parents={renderParents} siblings={renderSiblings} children={renderChildren}
+                onSelect={onSelect}
+            />
+        </Modal>    
+        )}/>
     )
 }
 
@@ -454,8 +452,8 @@ function Emoji({editor}){
     const [isOpen,setOpen] = useState(false);
 
     function handleEmojiClick(code,data){
-        console.log(code,data)
-        console.log("emoji",emoji.replace_colons(`:${code}:`))
+         
+         
         // \u{1F604}
         //editor.current.insertText(emoji.replace_unified(`\\u{${code}}`));
         editor.current.insertBlock(emoji.replace_colons(`:${data.name}:`));
@@ -500,20 +498,32 @@ function EmojiSvg(){
     )
 }
 
-function MediaSvg(){
-    return(
-        <svg
-        className="messenger-icon"
-        height="512pt"
-        viewBox="0 -36 512 511"
-        width="512pt"
-        style={{ height: 26, width: 26 }}
-        >
-        <path d="M231.898 198.617c28.204 0 51.153-22.945 51.153-51.148 0-28.207-22.95-51.153-51.153-51.153s-51.148 22.946-51.148 51.153c0 28.203 22.945 51.148 51.148 51.148zm0-72.3c11.665 0 21.153 9.488 21.153 21.152 0 11.66-9.488 21.148-21.153 21.148-11.66 0-21.148-9.488-21.148-21.148 0-11.664 9.488-21.153 21.148-21.153zm0 0" />
-        <path d="M493.305.5H18.695C8.387.5 0 8.887 0 19.195v401.727c0 10.308 8.387 18.695 18.695 18.695h474.61c10.308 0 18.695-8.387 18.695-18.695V19.195C512 8.887 503.613.5 493.305.5zM482 30.5v237.406l-94.352-94.355c-6.152-6.14-16.156-6.137-22.304.012l-133.442 133.44-85.238-85.233a15.674 15.674 0 0 0-11.164-4.63c-4.215 0-8.176 1.641-11.156 4.622L30 316.105V30.5zM30 409.617v-51.086l105.5-105.5 85.234 85.235a15.694 15.694 0 0 0 11.168 4.632c4.211 0 8.176-1.644 11.153-4.625L376.5 204.828l105.504 105.504v99.285zm0 0" />
-        </svg>
-    )
-}
+
+const MediaSvg = props => (
+    <svg
+      id="Layer_1"
+      x="0px"
+      y="0px"
+      viewBox="0 0 260 260"
+      xmlSpace="preserve"
+      className="messenger-icon"
+      {...props}
+    >
+      <style>{".st0{fill:#212121}"}</style>
+      <path
+        className="st0"
+        d="M93.3 136c0-13.7 11.1-24.8 24.8-24.8 2.8 0 5-2.2 5-5s-2.2-5-5-5c-19.2 0-34.8 15.6-34.8 34.8 0 2.8 2.2 5 5 5s5-2.3 5-5z"
+      />
+      <path
+        className="st0"
+        d="M225.3 81.9h-50.5l-21.7-29.3c-.9-1.3-2.4-2-4-2h-62c-1.6 0-3.1.8-4 2L61.3 81.9H34.7c-2.8 0-5 2.2-5 5v117.6c0 2.8 2.2 5 5 5h190.7c2.8 0 5-2.2 5-5V86.9c-.1-2.8-2.3-5-5.1-5zm-22.4 30.2h17.4v65.5h-17.4v-65.5zm-139-20.2c1.6 0 3.1-.8 4-2l21.7-29.3h57l21.7 29.3c.9 1.3 2.4 2 4 2h48v10.2h-22.4c-2.8 0-5 2.2-5 5v3h-29c-9.1-16-26.2-26.8-45.9-26.8-19.6 0-36.8 10.8-45.9 26.8H39.7V91.9h24.2zm54.2 1.4c23.5 0 42.7 19.1 42.7 42.7 0 23.5-19.1 42.7-42.7 42.7-23.5 0-42.7-19.1-42.7-42.7s19.2-42.7 42.7-42.7zM39.7 199.5v-79.4h28.2c-1.6 5-2.4 10.3-2.4 15.8 0 29 23.6 52.7 52.7 52.7 29 0 52.7-23.6 52.7-52.7 0-5.5-.9-10.8-2.4-15.8h24.6v62.6c0 2.8 2.2 5 5 5h22.4v11.8H39.7z"
+      />
+      <path
+        className="st0"
+        d="M189.6 74h17.3c2.8 0 5-2.2 5-5s-2.2-5-5-5h-17.3c-2.8 0-5 2.2-5 5s2.2 5 5 5z"
+      />
+    </svg>
+  );
 
 const Modal = ({ children ,onClick}) => (
     ReactDOM.createPortal(

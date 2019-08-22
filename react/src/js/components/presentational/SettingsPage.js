@@ -1,7 +1,8 @@
 import React, {useContext,useState,useRef,useEffect,useLayoutEffect} from "react"
-import {Route,Link,Switch,withRouter} from "react-router-dom"
+import {Route,Link,Switch,Redirect,withRouter} from "react-router-dom"
 import { Form, Field } from 'react-final-form'
 import { OnChange } from 'react-final-form-listeners'
+import {Helmet} from 'react-helmet'
 import {useMyBranches} from "../container/BranchContainer"
 import { UserContext,CachedBranchesContext } from "../container/ContextContainer";
 import {SmallBranch} from "./Branch"
@@ -24,12 +25,22 @@ let border={
 }
 
 export function SettingsPage(){
+    const userContext = useContext(UserContext);
     return (
-    <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>
-        <div>
-            <SettingsRoutes/>
-        </div>
-    </div>
+        userContext.isAuth?
+            <>
+            <Helmet>
+                <title>Settings - Subranch</title>
+                <meta name="description" content="Manage your account settings and details here." />
+            </Helmet>
+            <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>
+                <div>
+                    <SettingsRoutes/>
+                </div>
+            </div>
+            
+            </>:
+        <Redirect to="/login"/>
     )
 }
 
@@ -53,6 +64,7 @@ function TopLevelSettings(){
     return(
         <>
             <RoutedHeadline to="/" headline="Settings"/>
+            
             <SettingsTab to="/settings/branches" style={border}>
                 <p style={{fontWeight:'bold',fontSize:'2em'}}>Profiles</p>
             </SettingsTab>
@@ -82,6 +94,10 @@ function BranchSettingsLayer(){
 
     return(
         <>
+        <Helmet>
+            <title>Branch settings - Subranch</title>
+            <meta name="description" content="Manage your branch settings here." />
+        </Helmet>
         <RoutedHeadline to="/settings" headline="Branch settings"/>
         <SettingsTab to={`/settings/branches/${userContext.currentBranch.uri}`} style={border}>
             <p style={{fontWeight:'bold',fontSize:'2em'}}>Update branch</p>
@@ -96,6 +112,11 @@ function BranchSettingsLayer(){
 function CreateNewBranchWrapper(){
     return(
         <>
+        <Helmet>
+            <title>Create new Branch - Subranch</title>
+            <meta name="description" content="Create a new branch." />
+        </Helmet>
+
         <RoutedHeadline to="/settings/branches" headline="Create new branch"/>
         <Setting>
             <CreateNewBranch/>
@@ -131,6 +152,10 @@ function BranchSettingsWrapper({match,history}){
     return(
         branch?
             <>
+            <Helmet>
+                <title>Update @{branch.uri} - Subranch</title>
+                <meta name="description" content="Update branch." />
+            </Helmet>
             <RoutedHeadline to="/settings/branches" headline={`${branch.uri} settings`}/>
             <BranchSwitcher defaultBranch={branch} setBranch={setBranch}/>
             <Setting>
@@ -139,6 +164,10 @@ function BranchSettingsWrapper({match,history}){
             </>
         :userContext.branches.some(b=>b.uri==match.params.uri)?null:
         <>
+        <Helmet>
+            <title>Branch not found - Subranch</title>
+            <meta name="description" content="Branch not found." />
+        </Helmet>
         <RoutedHeadline to="/settings/branches" headline="Branch settings"/>
         <p>Nothing seems to be here</p>
         </>
@@ -152,6 +181,10 @@ function PrivacySettingsWrapper({match}){
 
     return(
         <>
+        <Helmet>
+            <title>Privacy - Subranch</title>
+            <meta name="description" content="Manage your privacy settings here." />
+        </Helmet>
         <RoutedHeadline headline="Privacy settings"/>
         <Setting>
             <PrivacySettings/>
@@ -211,7 +244,7 @@ function UpdateBranch({branch}){
         let form = document.getElementById("branchForm");
         var formData = new FormData(form)
         let url = `/api/branches/update/${branch.uri}/`;
-        console.log(values);
+         
 
         try{
             let response = await axios.patch(
@@ -246,6 +279,8 @@ function UpdateBranch({branch}){
 
 function CreateNewBranch(){
     const userContext = useContext(UserContext);
+    const cachedBranches = useContext(CachedBranchesContext);
+
     let initialValues={
         name:'',
         uri:'',
@@ -254,7 +289,7 @@ function CreateNewBranch(){
     }
 
     async function onSubmit(values){
-        console.log(values);
+         
         let form = document.getElementById("branchForm");
         var formData = new FormData(form);
         let errors = {};
@@ -270,15 +305,16 @@ function CreateNewBranch(){
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                 })
-            console.log(response);
+             
             let updatedResponse = await axios.get(`/api/branches/${response.data.uri}/`)
             if(updatedResponse.status == 200){
                 userContext.branches.push(updatedResponse.data);
+                cachedBranches.owned.push(updatedResponse.data);
                 userContext.changeCurrentBranch(updatedResponse.data);
                 history.push('/')
             }
         }catch(e){
-            console.log(e);
+             
         }
         
         return errors;
@@ -331,7 +367,7 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
             }
             return "Username not available"
         }catch(err){
-            console.log(err.response);
+             
         }
 
 

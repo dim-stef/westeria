@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import {UserContext} from '../container/ContextContainer'
 import axios from 'axios'
 
-export class BranchImage extends Component {
+export class BranchImage2 extends Component {
     constructor(props){
         super(props);
 
@@ -140,7 +140,6 @@ export class BranchImageEditMenu extends Component{
     }
 
     onChange(e){
-        console.log("in")
         var url = `/api/branches/update/${this.props.branch.uri}/`;
 
         var data = new FormData();
@@ -162,7 +161,6 @@ export class BranchImageEditMenu extends Component{
             withCredentials: true,
             crossdomain: true,
         }).then(response => { 
-            console.log(response)
             this.context.updateUserData();
             if(this.props.type==="banner"){
                 this.props.updateBanner(response.data.branch_banner)
@@ -172,7 +170,6 @@ export class BranchImageEditMenu extends Component{
             
         })
         .catch(error => {
-            console.log(error)
         });
     }
 
@@ -194,7 +191,7 @@ export class BranchImageEditMenu extends Component{
     }
 }
 
-export function BranchImage2({branch,className}){
+export function BranchImage({branch,className}){
     let bottom = branch.description ? -170 : -80;
     return(
         <img src={branch.branch_image} className={className} style={{bottom:bottom}}></img>

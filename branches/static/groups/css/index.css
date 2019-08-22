@@ -342,7 +342,7 @@
 }
 
 .front-page-list-item:hover{
-    background-color: #2196F3;
+    background-color: #1187e4;
 }
 
 .filter-selector-wrapper{
@@ -558,8 +558,34 @@ div.route-section {
 .star:hover .star-icon{stroke: #fb4c4c  !important;}
 .star:hover .star-count{color: #fb4c4c !important;}
 
-.comments:hover .comments-icon{stroke: #2196f3  !important;}
-.comments:hover .comments-count{color: #2196f3 !important;}
+
+.dislike-icon{
+    height: 18px;
+}
+
+.more-icon{
+    border-radius: 50%;
+    padding:4px;
+    cursor: pointer;
+}
+
+.more-icon:hover{
+    background-color: #e5e9ea;
+}
+
+/*.dislike-icon path{
+    fill:rgb(67, 78, 88);
+}
+.dislike:hover .dislike-icon path{fill: #2196f3  !important;}
+*/
+
+.dislike:hover .dislike-icon{stroke: #3c3fff  !important;}
+
+.comments:hover .comments-icon path{fill: #1fab89  !important;}
+.comments:hover .comments-count{color: #1fab89 !important;}
+
+.spread:hover .spread-icon path{fill: #2196f3  !important;}
+.spread:hover .spread-count{color: #2196f3 !important;}
 
 .branch-add-icon{
     fill: #97a6b3;
@@ -682,14 +708,21 @@ div.route-section {
 }
 
 .star-clicked{
-    stroke-width: 0;
+    stroke-width: 0 !important;
     fill:#fb4c4c;
 }
+
+.dislike-clicked{
+    stroke-width: 0 !important;
+    fill:#3c3fff;
+}
+
 
 .comments-clicked{
     stroke-width: 0 !important;
     fill:#03A9F4;
 }
+
 
 .spread-box{
     height: 100px;

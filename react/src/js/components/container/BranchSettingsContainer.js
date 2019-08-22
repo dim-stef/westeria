@@ -31,7 +31,7 @@ export default class BranchSettingsContainer extends Component{
         const branch = this.context.branches.find(b=>{
             return b.uri = this.props.match.params.branchUri
         })
-        console.log("branch",branch)
+
         return(
             <div>
                 <form onSubmit={this.handleSubmit} className="settings-form" encType="multipart/form-data" method="PUT" 

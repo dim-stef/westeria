@@ -661,13 +661,14 @@ class NewSpreadSerializer(serializers.ModelSerializer):
 
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
-        print(value)
         if isinstance(value, Branch):
             serializer = BranchSerializer(value)
         elif isinstance(value, BranchRequest):
             serializer = BranchRequestSerializer(value)
         elif isinstance(value,React):
             serializer = ReactSerializer(value)
+        elif isinstance(value,BranchMessage):
+            serializer = BranchMessageSerializer(value)
         return serializer.data
 
 

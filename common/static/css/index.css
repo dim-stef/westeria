@@ -50,6 +50,22 @@ body {
 
 }
 
+.nav-icon{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    padding: 4px;
+    overflow: visible;
+}
+
+.nav-icon-container:hover svg{
+    background-color: #219ef31c;
+}
+
+.nav-icon-container:hover svg path{
+    fill: #2397f3;
+}
+
 .side-drawer-branch{
     border: 0;
     width: 100%;
@@ -220,6 +236,41 @@ body {
 
 .accept-btn:focus:not(:active)::after, .decline-btn:focus:not(:active)::after {
   animation: ripple 1s ease-out;
+}
+
+.editor-btn{
+    background-color: #219ef3;
+    border: 0;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 50px;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.new-circle{
+    height: 10px;
+    width: 10px;
+    position: absolute;
+    background-color: #03A9F4;
+    right: 0;
+    top: 0;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.load-spinner-wrapper{
+    align-items: center;
+    -webkit-align-items: center;
+    flex-flow: column;
+    -webkit-flex-flow: column;
+    margin-top: 50px;
+}
+
+.info-message-wrapper{
+    font-size: 2rem;
+    color: rgb(149, 166, 181);
+    padding: 10px;
 }
 
 .name-missing{
@@ -520,11 +571,7 @@ body {
     object-fit: cover;
 }
 
-.active-tab-route{
-    border-bottom:2px solid #2397f3;
-}
-
-.active-tab-route svg{
+.active-tab-route svg path{
     fill: #2397f3 !important;
 }
 
@@ -544,9 +591,12 @@ body {
     display: inline-block;
 }
 
-.inputfile:focus + label,
-.inputfile + label:hover {
-    background-color: red;
+.inputfile + label:hover svg{
+    background-color: #49c6ff;
+}
+
+.inputfile + label:hover svg path{
+    fill:white;
 }
 
 .inputfile + label {
@@ -560,6 +610,10 @@ body {
 
 .messenger-icon{
     fill: #607d8b;
+    height: 32px;
+    width: 32px;
+    padding: 5px;
+    border-radius: 50%;
 }
 
 .setting-input{

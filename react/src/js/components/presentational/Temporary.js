@@ -5,7 +5,7 @@ import {RefreshContext} from "../container/ContextContainer"
 import axios from "axios"
 
 export default function BranchFooter({branch,pending,requestId,viewedBranch}){
-    console.log(branch)
+     
 
     function handleAccept(){
         updateRequest('accepted');
@@ -29,9 +29,9 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
-                console.log(response);
+                 
             }).catch(error => {
-            console.log(error)
+             
         })
     }
 
@@ -121,7 +121,7 @@ var cumulativeOffset = function(element) {
         left += element.offsetLeft || 0;
         element = element.offsetParent;
     } while(element);
-    console.log(top)
+     
     return {
         top: top,
         left: left
@@ -158,7 +158,7 @@ export function ActionArrow(){
             window.scrollTo({ top: navigationTopPosition, behavior: 'smooth' });
         }
     }
-    console.log(windowScroll,navigationTopPosition);
+     
     return(
         <div ref={ref} style={{
             position: "absolute",

@@ -48,7 +48,6 @@ class BranchName extends Component{
     static contextType = UserContext
 
     render(){
-        console.log(this.context);
         return(
             <>
             <div style={{alignSelf:'flex-start',fontSize:'2em'}}>

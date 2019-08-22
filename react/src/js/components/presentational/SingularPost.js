@@ -4,12 +4,14 @@ import {Link,withRouter} from 'react-router-dom'
 import {UserContext} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
 import StatusUpdate from "./StatusUpdate";
+import {FollowButton} from "./Card"
 import {ToggleContent} from './Temporary'
 import {ReplyTree} from './Comments'
 import {SmallBranchList} from './BranchList'
+import {SmallBranch} from "./Branch"
 import {SmallCard} from "./Card"
 import { useInView } from 'react-intersection-observer'
-import {Images2} from './PostImageGallery'
+import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import LazyLoad from 'react-lazy-load';
@@ -139,7 +141,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                 }
                 >
                     {replyTrees.map(rt=>{
-                        console.log("rt",rt)
+                         
                         return <ReplyTree topPost={post} key={rt.id} parentPost={post} currentPost={rt} 
                         postsContext={postsContext} activeBranch={activeBranch}
                         isStatusUpdateActive={false}
@@ -175,7 +177,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
             if(!inCache && parentPost){
                 // If post is from notifications it gets pushed in context indefinetely
                 // needs fix
-                console.log("measure not in cache",postsContext.uniqueCached)
+                 
                 measure();
                 postsContext.uniqueCached.push({
                     post:parentPost,
@@ -234,7 +236,7 @@ function LinkedPost({history,dataIndex,id,to,children}){
 
     function handleClick(e){
         e.stopPropagation();
-        console.log("click",to)
+         
         history.push(to);
     }
 
@@ -441,9 +443,16 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
         )}
         content={hide => (
         <Modal onClick={e=>{e.stopPropagation();hide()}}>
-            <div style={{width:708,height:500,margin:'0 auto',marginTop:60,backgroundColor:'white'}} onClick={e=>e.stopPropagation()}> 
-                <div style={{padding:'30px 20px'}}>
-                    <SmallBranchList branches={branches}/>
+            <div className="post-to-branch-container" onClick={e=>e.stopPropagation()}> 
+
+                <div style={{height:500,padding:'15px 20px',overflow:'auto'}}>
+                    {branches.map(b=>{
+                        return <div key={b.id}>
+                        <SmallBranch branch={b}>
+                            <FollowButton uri={b.uri} id={b.id}/>
+                        </SmallBranch>
+                        </div>
+                    })}
                 </div>
             </div>
         </Modal>    
@@ -517,7 +526,7 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
     return(
         <div>
             {text?<p className="post-text">{text}</p>:null}
-            {images.length>0 || videos.length>0?<Images2 images={images} measure={measure} 
+            {images.length>0 || videos.length>0?<Images images={images} measure={measure} 
             videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
             {embeddedPost? <Post post={embeddedPost} parentPost={post} postsContext={postsContext} 
             measure={measure} activeBranch={activeBranch} 
@@ -537,10 +546,10 @@ Number.prototype.roundTo = function(num) {
 
 
 function PostPicture(props){
-    console.log(props)
+     
 
     function handleAnchorClick(e){
-        console.log("anchorclicked")
+         
         e.stopPropagation()
     }
 
@@ -625,7 +634,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                     return r.id !== reactUUID;
                 })
             }).catch(r=>{
-                console.log(r)
+                 
                 //setReact(null)
             });
         }else{
@@ -656,7 +665,14 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
         }
     },[react])
 
-    let color = react=='star'?'#fb4c4c':'rgb(67, 78, 88)';
+    let color = 'rgb(67, 78, 88)';
+
+    if(react=='star'){
+        color = '#fb4c4c';
+    }else if(react=='dislike'){
+        color = '#3c3fff';
+    }
+
     return(
         <div className="flex-fill post-actions">
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',width:'100%'}}>
@@ -751,13 +767,13 @@ function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
     }
 
     // hard-coded clicked class
-    let className = reacted ? 'star-clicked' : ''
+    let className = reacted ? 'dislike-clicked' : ''
     return(
-        <div className="post-action-container star flex-fill" style={{minWidth:0,width:'100%',justifyContent:'flex-end',
+        <div className="post-action-container dislike flex-fill" style={{minWidth:0,width:'100%',justifyContent:'flex-end',
         WebkitJustifyContent:'flex-end'}}>
             <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={e=>onClick(e)}>
                 <div className="flex-fill" style={{alignItems:'center'}}>
-                    <DislikeSvg className={className}/>
+                    <DislikeSvg className={`${className} dislike-icon`}/>
                 </div>
             </button>
         </div>
@@ -790,7 +806,6 @@ function StarCount({reacted,count}){
 
 
 function StarDislikeRatio({style,reacted,starCount,dislikeCount}){
-    //let color = reacted?'#fb4c4c':'rgb(67, 78, 88)';
     
     let ratio = starCount/(starCount + dislikeCount) * 100;
     
@@ -857,18 +872,18 @@ function Comments({post,handleCommentClick}){
     const [clicked,setClicked] = useState(false);
 
     const onClick = () =>{
-        console.log("clicked")
+         
         setClicked(!clicked);
         handleCommentClick();
     }
 
     //let className = clicked ? 'comments-clicked' : ''
-    let className = '';
+    let className = 'comments-icon';
 
     return(
         <div className="post-action-container flex-fill comments">
-            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={onClick}>
-                <div className="flex-fill">
+            <button style={{border:0,backgroundColor:'transparent',padding:0}} onClick={onClick}>
+                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
                     <CommentsSvg className={className}/>
                     <CommentsCount count={post.replies_count}/>
                 </div>
@@ -877,24 +892,35 @@ function Comments({post,handleCommentClick}){
     )
 }
 
-function CommentsSvg({className}){
-    return(
-        <svg
-        xmlnsXlink="http://www.w3.org/1999/xlink"
-        version="1.1"
-        x="0px"
-        y="0px"
-        viewBox="0 0 60 60"
-        viewBox="0 0 60 60"
-        className={`post-action-svg ${className} comments-icon`}
-        style={{strokeWidth:4.5}}
-        xmlSpace="preserve"
-        >
-            <path
-                d="M30 1.5c-16.542 0-30 12.112-30 27 0 5.205 1.647 10.246 4.768 14.604-.591 6.537-2.175 11.39-4.475 13.689a1 1 0 0 0 .847 1.697c.405-.057 9.813-1.412 16.617-5.338C21.622 54.711 25.738 55.5 30 55.5c16.542 0 30-12.112 30-27s-13.458-27-30-27z"/>
-        </svg>
-    )
-}
+const CommentsSvg = ({className}) => (
+    <svg
+      id="Layer_1"
+      x="0px"
+      y="0px"
+      viewBox="0 0 260 260"
+      style={{
+        height: 27,
+        strokeWidth:0
+      }}
+      xmlSpace="preserve"
+      fill="transparent"
+      className={`post-action-svg ${className}`}>
+    
+      <style>{".st0{fill:#rgb(67, 78, 88)}"}</style>
+      <path
+        className="st0"
+        d="M34.4 224.7c-2.3 0-4.6-1-6.2-2.8-2-2.3-2.6-5.6-1.4-8.5 2.8-7.1 4.8-15.4 5.4-23.1-10.8-10.9-16.7-24.6-16.7-38.7 0-25.1 18.1-47.4 46.2-56.8 2.6-.9 5.5.5 6.3 3.1.9 2.6-.5 5.5-3.1 6.3-23.9 8.1-39.3 26.6-39.3 47.3 0 12.1 5.4 23.8 15.2 33.1 1.1 1 1.6 2.4 1.6 3.9-.4 8.4-2.1 17.3-5 25.3 13.2-3.7 20.9-9.1 25.2-13.1 1.3-1.2 3.1-1.7 4.9-1.1 7.3 2.2 14.8 3.3 22.3 3.3 15.4 0 30.3-4.4 42-12.5 2.3-1.6 5.4-1 7 1.3 1.6 2.3 1 5.4-1.3 7-13.5 9.2-30.4 14.3-47.8 14.3-7.6 0-15.1-1-22.5-2.9-5.8 4.9-15.6 10.8-30.9 14.5-.6.1-1.3.1-1.9.1zM134.5 103.1c-2.8 0-5-2.2-5-5V94c0-2.8 2.2-5 5-5s5 2.2 5 5v4.1c0 2.7-2.2 5-5 5zM177.2 103.1c-2.8 0-5-2.2-5-5V94c0-2.8 2.2-5 5-5s5 2.2 5 5v4.1c0 2.7-2.2 5-5 5z"
+      />
+      <path
+        className="st0"
+        d="M220.5 204.2c-.7 0-1.5-.1-2.2-.3-16.8-4.1-31-10.8-41.4-19.4-7 1.4-14 2.2-21 2.2-48.6 0-88.1-33.1-88.1-73.9 0-40.7 39.5-73.9 88.1-73.9s88.1 33.2 88.1 74c0 18-7.8 35.2-22 48.7 1 10.2 3.6 20.7 7.2 29.7 1.3 3.3.7 7.1-1.6 9.8-1.9 2-4.4 3.1-7.1 3.1zm-.6-9.2zm-41.7-20.9c1.2 0 2.4.4 3.3 1.3 6.4 5.7 18.1 13.5 37.9 18.5-4.1-10.5-6.7-22.2-7.7-34-.1-1.6.5-3.1 1.7-4.1 13.2-11.8 20.5-27.1 20.5-43 0-35.2-35-63.9-78.1-63.9-43.1 0-78.1 28.7-78.1 63.9s35 63.9 78.1 63.9c7 0 14.2-.8 21.2-2.5.5 0 .9-.1 1.2-.1z"
+      />
+      <path
+        className="st0"
+        d="M155.9 158.2c-32.9 0-59.6-21.4-59.6-47.8 0-2.8 2.2-5 5-5s5 2.2 5 5c0 20.8 22.3 37.7 49.6 37.7 27.4 0 49.6-16.9 49.6-37.7 0-2.8 2.2-5 5-5s5 2.2 5 5c0 26.4-26.8 47.8-59.6 47.8z"
+      />
+    </svg>
+  );
 
 function CommentsCount({count}){
     let color = 'rgb(67, 78, 88)';
@@ -935,19 +961,19 @@ function Share({post,handleSpread,didSelfSpread}){
             }
         ).then(response=>{
             handleSpread();
-            console.log(response);
+             
             let uri = `/api/post/${response.data.post}/`;
         }).catch(error=>{
-            console.log("error",error)
+             
         })
     }
 
-    let className = '';
+    let className = 'spread-icon';
 
     return(
-        <div id="spread-wrapper" className="post-action-container flex-fill">
-            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0}} onClick={e=>onClick(e)}>
-                <div className="flex-fill">
+        <div id="spread-wrapper" className="post-action-container flex-fill spread">
+            <button style={{border:0,backgroundColor:'transparent'}} onClick={e=>onClick(e)}>
+                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
                     <ShareSvg className={className}/>
                     <ShareCount spreads={spreadCount}/>
                 </div>
@@ -972,7 +998,7 @@ function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
     }
 
     function handleClickOutside(event) {
-        console.log(event.target)
+         
         if (ref.current && !ref.current.contains(event.target) && 
         !document.getElementById("spread-wrapper").contains(event.target)) {
             setClicked(false);
@@ -1004,13 +1030,31 @@ function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
     )
 }
 
+
+
+/*const DislikeSvg = props => (
+    <svg x="0px" y="0px" viewBox="0 0 260 260" xmlSpace="preserve" {...props}>
+        <path
+        d="M98.3 222.3c-.6 0-1.3-.1-1.9-.4-2.1-.8-3.3-3-3.1-5.2l8.3-73.6H62.5c-1.7 0-3.3-.9-4.2-2.3-.9-1.4-1-3.2-.3-4.8l53.7-116.4c.8-1.8 2.6-2.9 4.5-2.9h80.6c1.8 0 3.5 1 4.4 2.6s.8 3.6-.2 5.1l-48.5 72.8h35.4c1.9 0 3.7 1.1 4.5 2.8.8 1.7.6 3.8-.5 5.3l-89.5 115c-1.1 1.4-2.6 2-4.1 2zm-28-89.1h36.9c1.4 0 2.8.6 3.7 1.7 1 1.1 1.4 2.5 1.2 3.9l-7 61.5 72.3-92.9h-34.5c-1.8 0-3.5-1-4.4-2.6s-.8-3.6.2-5.1l48.5-72.8h-68L70.3 133.2z"
+        fill="#212121"
+        />
+    </svg>
+);*/
+
 const DislikeSvg = props => (
-    <svg x="0px" y="0px" viewBox="0 0 60 60" xmlSpace="preserve" className={`post-action-svg star-icon ${props.className}`}>
-      <path d="M50.976 26.194C50.447 17.194 43.028 10 34.085 10c-5.43 0-10.688 2.663-13.946 7.008-.075-.039-.154-.066-.23-.102a9.322 9.322 0 00-.604-.269 9.062 9.062 0 00-.962-.317c-.115-.031-.229-.063-.345-.089a9.567 9.567 0 00-.687-.125c-.101-.015-.2-.035-.302-.046A9.096 9.096 0 0016 16c-4.963 0-9 4.037-9 9 0 .127.008.252.016.377v.004C2.857 27.649 0 32.399 0 37.154 0 44.237 5.762 50 12.845 50h24.508c.104 0 .207-.006.311-.014l.062-.008.134.008c.102.008.204.014.309.014h9.803C54.604 50 60 44.604 60 37.972c0-5.489-3.827-10.412-9.024-11.778zM47.972 48h-9.803c-.059 0-.116-.005-.174-.009l-.271-.011-.198.011c-.057.004-.115.009-.173.009H12.845C6.865 48 2 43.135 2 37.154 2 33 4.705 28.688 8.433 26.901L9 26.63V26c0-.127.008-.256.015-.386l.009-.16-.012-.21C9.006 25.163 9 25.082 9 25c0-3.859 3.141-7 7-7a6.995 6.995 0 011.15.103c.267.044.53.102.789.177.035.01.071.017.106.027.285.087.563.197.835.321.071.032.14.067.21.101A6.995 6.995 0 0123 25a1 1 0 102 0 8.98 8.98 0 00-3.2-6.871C24.667 14.379 29.388 12 34.085 12c7.745 0 14.177 6.135 14.848 13.888-1.022-.072-2.552-.109-4.083.124a1 1 0 00.3 1.977c2.227-.337 4.548-.021 4.684-.002C54.49 28.872 58 33.161 58 37.972 58 43.501 53.501 48 47.972 48z" />
+    <svg
+      x="0px"
+      y="0px"
+      viewBox="0 0 512 512"
+      xmlSpace="preserve"
+      className={`post-action-svg ${props.className}`}
+      style={{strokeWidth:34}}
+    >
+      <path d="M400.268 175.599a8.53 8.53 0 00-7.731-4.932h-101.12l99.797-157.568a8.529 8.529 0 00.265-8.678A8.533 8.533 0 00384.003 0H247.47a8.541 8.541 0 00-7.637 4.719l-128 256a8.522 8.522 0 00.375 8.294 8.546 8.546 0 007.262 4.053h87.748l-95.616 227.089a8.55 8.55 0 003.413 10.59 8.55 8.55 0 0010.983-1.775l273.067-324.267a8.541 8.541 0 001.203-9.104z" />
     </svg>
   );
 
-function ShareSvg({className}){
+/*function ShareSvg({className}){
     return(
         <svg viewBox="0 -22 512 511" 
         style={{strokeWidth:35}} 
@@ -1021,13 +1065,32 @@ function ShareSvg({className}){
         </svg>
 
     )
-}
+}*/
+
+const ShareSvg = ({className}) => (
+    <svg
+      x="0px"
+      y="0px"
+      viewBox="0 0 260 260"
+      style={{
+        height: 27,
+        strokeWidth:0
+      }}
+      xmlSpace="preserve"
+      className={`post-action-svg ${className}`}>
+    
+      <path
+        d="M205.4 122.3c0-7-2.8-13.6-7.8-18.7-3.9-3.9-8.7-6.5-13.9-7.5V48.4c0-4.2-2.4-7.9-6.3-9.6-3.8-1.7-8.1-.9-11.2 1.9-26.4 24.6-49.5 38.6-63.3 38.6H38C17.3 79.3.5 96.1.5 116.8v5.4c0 18.2 13.1 33.4 30.3 36.8v.3c0 5.2.9 10.2 2.7 15.1 0 .1.1.2.1.3.1.3 11.8 26.1 13.7 31.2l.4 1c2.2 6 6.9 18.5 20.5 18.5h5.4c2.4 0 10.4-.5 14.7-6.8 2-3 3.8-8.2.8-16.2-3-7.9-12.8-29.3-13.9-31.6-1.3-3.5-2-7.2-2-11H103c13.8 0 36.9 14.1 63.3 38.6 2 1.8 4.5 2.8 7 2.8 1.4 0 2.8-.3 4.2-.9 3.9-1.7 6.3-5.4 6.3-9.6v-42.3c12.1-2.3 21.6-13.3 21.6-26.1zm-194.9 0v-5.4c0-15.1 12.3-27.5 27.5-27.5h60v60.4H38c-15.1 0-27.5-12.3-27.5-27.5zM66 174.5c0 .1.1.2.1.3.1.2 10.7 23.3 13.7 31.1.8 2.2 1.6 5.2.3 7-1.2 1.7-4.1 2.5-6.5 2.5h-5.4c-5.6 0-8.3-4.2-11.2-11.9l-.4-1.1c-2-5.2-12.8-29.2-13.9-31.6-1.3-3.5-2-7.2-2-11h22.5c.2 5.1 1.1 10 2.8 14.7zm107.5 16.7c-.2.1-.3 0-.4-.1-15.4-14.3-43.3-37.6-65.1-40.9V89.1c21.8-3.3 49.7-26.6 65.1-40.9.1-.1.2-.2.4-.1.3.1.3.3.3.4v142.3c-.1.1-.1.3-.3.4zm10.2-53v-31.7c2.5.8 4.8 2.2 6.7 4.2 3.1 3.1 4.9 7.4 4.9 11.7.1 7.2-4.9 13.6-11.6 15.8z"
+        fill="#212121"
+      />
+    </svg>
+  );
 
 function ShareCount({spreads}){
     let color = 'rgb(67, 78, 88)';
 
     return(
-        <span className="comments-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
+        <span className="spread-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
             {spreads!==0?spreads:null}
         </span>
     )
@@ -1108,7 +1171,7 @@ function More({post}){
     function handleCopyLink(){
         var text = document.location.protocol + '//' + document.location.host + post.poster + '/' + post.id;
         navigator.clipboard.writeText(text).then(function() {
-            //console.log('Async: Copying to clipboard was successful!');
+            // 
         }, function(err) {
             console.error('Could not copy text: ', err);
         });
@@ -1116,7 +1179,7 @@ function More({post}){
 
     return(
         <div ref={ref} onClick={handleClick} style={{position:'relative'}}>
-            <MoreSvg/>
+            <MoreSvg className="more-icon"/>
             {clicked?
             <div className="more-btn-container" style={{position:'absolute',right:0}}>
                 <MoreOption value="Copy url" onClick={handleCopyLink}/>
@@ -1134,7 +1197,7 @@ function MoreOption({value,onClick,children}){
     )
 }
 
-function MoreSvg(){
+function MoreSvg({className}){
     return(
         <svg
         xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -1147,7 +1210,7 @@ function MoreSvg(){
         style={{ enableBackground: "new 0 0 408 408" }}
         xmlSpace="preserve"
         fill="rgba(0,0,0,0.75)"
-        >
+        className={className}>
             <path d="M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" />
         </svg>
     )

@@ -15,7 +15,6 @@ class GroupHomeContainer extends Component{
         var uri = `/api/branches/${this.state.uri}/`;
         var response = await axios.get(uri, {withCredentials:true})
         var data = response.data;
-        console.log(data);
         this.setState({branch:data});
     }
 

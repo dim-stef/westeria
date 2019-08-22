@@ -91,7 +91,6 @@ export class GroupChatMessagesContainer extends Component {
 
     render() {
         if (this.state.messages && this.state.ws) {
-            console.log(this.state.messages)
             return (
                 <GroupChatContainer ws={this.state.ws} roomName={this.state.roomName} messages={this.state.messages} branch={this.state.branch.id} />
             )
@@ -135,12 +134,10 @@ class GroupChatContainer extends Component {
 
         event.preventDefault();
         var data = event.dataTransfer.items;
-        console.log(data);
         var files = [];
         for (var i = 0; i < data.length; i++) {
             files.push(data[i].getAsFile());
         }
-        console.log(files)
         /*try {
             
         } catch (e) {
@@ -193,7 +190,6 @@ class GroupChatContainer extends Component {
     }
 
     componentDidMount() {
-        console.log("this.chatWindow",this.chatWindow);
         if(this.chatWindow.parentNode.clientHeight > window.innerHeight - 119){
             this.setState({
                 height:this.chatWindow.parentNode.clientHeight

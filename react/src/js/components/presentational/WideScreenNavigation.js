@@ -72,7 +72,7 @@ class BranchName extends Component{
     static contextType = UserContext
 
     render(){
-        console.log(this.context);
+         
         return(
             <>
             <div style={{alignSelf:'flex-start',fontSize:'2em'}}>
@@ -456,7 +456,7 @@ class Logout extends Component {
             localStorage.removeItem('token');
             this.setState({redirectToReferrer:true});
         }).catch(er=>{
-            console.log(er)
+             
         })
     }
 

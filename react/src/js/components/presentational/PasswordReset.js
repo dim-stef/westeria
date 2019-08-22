@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { Link,withRouter,Redirect } from 'react-router-dom'
 import { Form, Field } from 'react-final-form'
+import {Helmet} from "react-helmet"
 import {AuthFormWrapper} from "./Forms"
 import axios from 'axios'
 
@@ -16,9 +17,9 @@ function PasswordReset({history,location,match}){
                 url,
                 {...values}
             );
-            console.log(response); 
+             
         }catch(error){
-            console.log(error);
+             
             if(error.response.data.email){
                 errors.email = error.response.data.email[0]
             }
@@ -36,7 +37,12 @@ function PasswordReset({history,location,match}){
     },[])
 
     return(
-       <AuthFormWrapper>
+        <>
+        <Helmet>
+            <title>Password reset - Subranch</title>
+            <meta name="description" content="Forgot your password? You can reset it here." />
+        </Helmet>
+        <AuthFormWrapper>
             <Form onSubmit={handlePasswordReset}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
@@ -58,6 +64,8 @@ function PasswordReset({history,location,match}){
                 )
             }}/>
         </AuthFormWrapper>
+        </>
+        
     )
 }
 

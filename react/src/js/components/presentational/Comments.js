@@ -18,9 +18,9 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
     })
 
     useEffect(()=>{
-        console.log("incache",inCache)
+         
         if(!inCache){
-            console.log("not cached remeasure")
+             
             measure();
         }
 
@@ -42,7 +42,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
         // try to find post in cached posts
         
 
-        console.log("cached",inCache,postsContext)
+         
 
         if(inCache.length>0){
             setComments(inCache)
@@ -53,7 +53,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
 
     useEffect(()=>{
         if(justGotCached){
-            console.log("remeasure")
+             
             measure()
             setGotCached(false);
         }
@@ -74,7 +74,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
                 {comments.map((c,i)=>{
                     let last = false;
                     let isOpen = postsContext.openPosts.some(id=>{
-                        console.log("isOpen",c.id,currentPost.id)
+                         
                         return c.id==id
                     })
                     
@@ -119,7 +119,7 @@ export function ReplyTree({currentPost,topPost,
         return
     }
     //const postsContext = useContext(PostsContext);
-    console.log("currentPost1",currentPost,currentPost.replies)
+     
 
     let inCache = postsContext.cachedPosts.some(post=>{
         return currentPost.replies.some(id=>post.id==id)
@@ -151,26 +151,26 @@ export function ReplyTree({currentPost,topPost,
     };
 
     useEffect(()=>{
-        console.log("incache",inCache)
+         
         if(!inCache){
-            console.log("not cached remeasure")
+             
             measure();
         }
 
-        console.log("cached",inCache,postsContext)
+         
 
         if(inCache.length>0){
             //setComments(inCache)
         }else{
-            console.log("fetchdata2")
-            console.log("currentPost2",currentPost,currentPost.replies)
+             
+             
             fetchData();
         }
     },[])
 
     useEffect(()=>{
         if(justGotCached){
-            console.log("remeasure")
+             
             measure()
             setGotCached(false);
         }
@@ -178,7 +178,7 @@ export function ReplyTree({currentPost,topPost,
 
     useEffect(()=>{
         if(viewAll && next != null){
-            console.log("fetchdata1",viewAll,next)
+             
             fetchData();
         }
     },[comments,viewAll])
@@ -201,7 +201,7 @@ export function ReplyTree({currentPost,topPost,
         marginLeft = 10;
         borderLeft='3px solid #e2eaf1';
     }
-    console.log("postscontext",comments,postsContext)
+     
 /*{isStatusUpdateActive?<StatusUpdate replyTo={currentPost.id} postsContext={postsContext} currentPost={currentPost} 
             measure={measure} replyTo={post.id}
             style={{borderTop:'1px solid rgb(199, 210, 219)',borderBottom:'1px solid rgb(199, 210, 219)'}}/>:null}*/

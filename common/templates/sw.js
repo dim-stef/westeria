@@ -23,7 +23,7 @@ self.addEventListener('fetch', function(event) {
                 response.headers.has('content-type')) {
                 cache.put(event.request, clone);
             } else {
-                console.log('  Not caching the response to', event.request.url);
+                //console.log('  Not caching the response to', event.request.url);
             }
         });
         return response;
@@ -32,13 +32,6 @@ self.addEventListener('fetch', function(event) {
     })
   );
 });
-/*self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    fetch(event.request).catch(function() {
-      return caches.match(event.request);
-    })
-  );
-});*/
 
 self.addEventListener('activate', function(event) {
   event.waitUntil(

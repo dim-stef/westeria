@@ -64,14 +64,14 @@ export class BranchBanner2 extends Component{
     render(){
         var parent = this.props.parent ? true : false;
         var branchImage = this.props.parent ? null : (
-            <BranchImage branch={this.props.branch} 
+            <BranchImage2 branch={this.props.branch} 
             dimensions={this.props.dimensions} 
             parent={parent} 
             editMode={this.props.editMode}
             domPosition={this.state.domPosition}
             />
         )
-        var branchImage2 = <BranchImage2 branch={this.props.branch} className={this.props.className} />
+        var branchImage2 = <BranchImage branch={this.props.branch} className={this.props.className} />
         return(
         <div ref={(banner) => { this.banner = banner }} className="group-container" id={this.props.branch.id} style={{position:'relative'}} >
             <div onClick={() => this.onClick()} style={{paddingTop: '33.33333%', position: 'relative',width:"100%",
@@ -94,7 +94,7 @@ export function BranchBanner(props){
             backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center',
             backgroundColor:getRandomColor()}}>
                 <div>
-                    <BranchImage2 branch={props.branch} className={props.className} />
+                    <BranchImage branch={props.branch} className={props.className} />
                 </div>
             </div>
             {props.children}

@@ -63,7 +63,7 @@ export const Post = React.memo(function Post({post,parentPost=null,postsContext,
     isOpen=false,index,activeBranch,lastComment,measure,viewAs="post"}){
     const context = useContext(UserContext);
     //const postsContext = useContext(PostsContext);
-    console.log("postsContext",postsContext)
+     
     let ids = postsContext.cachedPosts.map(p=>p.id)
     const [visibleComments,setVisibleComments] = useState(ids);
     const [mainPostedBranch,setMainPostedBranch] = useState(getPostedTo(post,activeBranch,context))
@@ -87,7 +87,7 @@ export const Post = React.memo(function Post({post,parentPost=null,postsContext,
             return !post.replies.includes(p.id)
         })
 
-        console.log("openPosts",postsContext.openPosts,postsContext.cachedPosts)
+         
         let ids = postsContext.cachedPosts.map(p=>p.id)
         let uniq = [...new Set([...visibleComments,...ids])];
         setVisibleComments(uniq)
@@ -102,10 +102,10 @@ export const Post = React.memo(function Post({post,parentPost=null,postsContext,
     
 
     useEffect(()=>{
-        console.log("remeasure",isOpen,open)
+         
         if(open!=isOpen){
             isOpen = null
-            console.log("remeasure",isOpen,visibleComments)
+             
             measure();
         }
     },[open,visibleComments])
@@ -117,7 +117,7 @@ export const Post = React.memo(function Post({post,parentPost=null,postsContext,
                 return ar.post.id == parentPost.id && ar.embeddedPost.id == post.id
             });
             if(!inCache){
-                console.log("not in cache",postsContext.uniqueCached)
+                 
                 measure();
                 //postsContext.cachedPosts.push(post);
                 postsContext.uniqueCached.push({
@@ -217,7 +217,7 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,act
     let marginTop = isEmbedded ? '10px' : '0';
 
     function handleCommentClick(){
-        console.log(post.level)
+         
 
         //if its top level post always display status bar
         if(post.level===0){
@@ -235,7 +235,7 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,act
 
         openPost();
         if(post.level===0 || viewAs=="post"){
-            console.log(post.level)
+             
             setStatusUpdateActive(true);
         }
     }
@@ -250,7 +250,7 @@ function SmallPost({post,postsContext,mainPostedBranch,date,cls,showPostedTo,act
         setDidSelfSpread(true);
     }
 
-    console.log(post)
+     
 
     
     return(
@@ -334,7 +334,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
 
 function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null}){
 
-    //console.log(post.poster,mainPostedBranch.uri)
+    // 
     return(
         mainPostedBranch && post.type!=="reply"?
             <div className="flex-fill" style={{alignItems:'center',margin:'0 10px'}}>
@@ -371,7 +371,7 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
             return;
         }
 
-        console.log("viewSs",viewAs)
+         
         // !isEmbedded to prevent embedded recursion
         if(embeddedPostData && !isEmbedded && viewAs=="post"){
             getEmbeddedPost(embeddedPostData.uri,embeddedPostData.id)
@@ -447,7 +447,7 @@ function ImageArrow(){
 
 
 function PostPicture(props){
-    console.log(props)
+     
     return(
         <Link to={`/${props.uri}`} className="noselect" style={{marginRight:10}}>
             <img src={props.picture} style={{
@@ -519,7 +519,7 @@ function Star({postId,currentBranchId,count}){
                     setStarCount(starCount + 1);
                 }).catch(r=>{
                     setReacted(!reacted);
-                    console.log(r)
+                     
             })
         }
         else{
@@ -545,7 +545,7 @@ function Star({postId,currentBranchId,count}){
                 // update star count
                 setStarCount(starCount - 1);
             }).catch(r=>{
-                console.log(r)
+                 
             });
         }
     }
@@ -611,7 +611,7 @@ function Comments({post,handleCommentClick}){
     const [clicked,setClicked] = useState(false);
 
     const onClick = () =>{
-        console.log("clicked")
+         
         setClicked(!clicked);
         handleCommentClick();
     }
@@ -689,20 +689,20 @@ function Share({post,handleSpread,didSelfSpread}){
             }
         ).then(response=>{
             handleSpread();
-            console.log(response);
+             
 
             let uri = `/api/post/${response.data.post}/`;
-            console.log(uri)
+             
             /*axios.get(uri).then(response=>{
-                console.log(response);
+                 
                 updateFeed([response.data])
             }).catch(error=>{
-                console.log(error);
-                console.log(error.response);
+                 
+                 
             })*/
 
         }).catch(error=>{
-            console.log("error",error)
+             
         })
     }
 
@@ -736,7 +736,7 @@ function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
     }
 
     function handleClickOutside(event) {
-        console.log(event.target)
+         
         if (ref.current && !ref.current.contains(event.target) && 
         !document.getElementById("spread-wrapper").contains(event.target)) {
             setClicked(false);
@@ -794,7 +794,7 @@ function ShareCount({spreads}){
 function TopSpreadList({spreaders,selfSpread}){
     const context = useContext(UserContext);
     if(selfSpread){
-        console.log("spread")
+         
     }
 
     var topSpreadList = null;

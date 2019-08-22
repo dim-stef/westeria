@@ -13,7 +13,7 @@ export class Tree extends Component {
     }
 
     componentDidMount(){
-        console.log("props",this.props)
+         
     }
 
     render() {

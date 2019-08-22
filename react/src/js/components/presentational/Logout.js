@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Link,withRouter,Redirect } from 'react-router-dom'
+import {Helmet} from "react-helmet";
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
@@ -19,11 +20,11 @@ function Logout({history,location,match}){
                     }
                 }
             );
-            console.log(response);
+             
             document.location.replace('/');
             
         }catch(error){
-            console.log(error);
+             
             return
         }
     }
@@ -41,13 +42,20 @@ function Logout({history,location,match}){
     },[])
 
     return(
-        match.params.instant?null:<div className="main-layout">
+        <>
+        <Helmet>
+            <title>Logout - Subranch</title>
+            <meta name="description" content="Logout from Subranch" />
+        </Helmet>   
+        {match.params.instant?null:<div className="main-layout">
             <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
             <div className="form-container" style={{width: '70%', margin: 'auto', paddingBottom: '14px'}}>
                 <button className="login-btn" onClick={handleLogout}>Logout</button>
             </div>
             </div>
-        </div>
+        </div>}
+        </>
+        
     )
 }
 

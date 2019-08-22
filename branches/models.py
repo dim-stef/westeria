@@ -190,7 +190,7 @@ from django.core import serializers
 
 @receiver(post_save, sender=BranchRequest)
 def create_notification(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.request_from is not instance.request_to:
         verb = instance.relation_type
 
         if instance.relation_type == BranchRequest.RELATION_TYPE_CHILD:
@@ -237,6 +237,7 @@ def create_notification(sender, instance, created, **kwargs):
                 'text': message,
                 'request_to': request_to,
                 'request_from': request_from,
+                'verb': verb,
                 'id': notification.id
             }
         )
@@ -257,9 +258,9 @@ post_init.connect(BranchRequest.remember_state, sender=BranchRequest)
 
 
 @receiver(post_save, sender=Branch)
-def create_group_chat(sender, instance, created, **kwargs):
+def follow_self(sender, instance, created, **kwargs):
     if created:
-        BranchChat.objects.create(owner=instance)
+        instance.follows.add(instance)
 
 
 @receiver(post_save, sender=Branch)
@@ -306,7 +307,41 @@ def modify_chat_room(sender, instance, **kwargs):
             if chat:
                 chat.delete()
 
+@receiver(m2m_changed,sender=Branch.follows.through)
+def create_follow_notification(sender, instance, **kwargs):
+    action = kwargs.pop('action', None)
+    pk_set = kwargs.pop('pk_set', None)
 
+    if action == "post_add":
+        for pk in pk_set:
+            being_followed = Branch.objects.get(pk=pk)
+            verb = 'follow'
+            description = 'has started following you'
+
+            notification = Notification.objects.create(recipient=being_followed.owner, actor=instance
+                                                       ,verb=verb, target=being_followed,
+                                                       action_object=being_followed, description=description)
+
+            followed_by = {
+                'uri': instance.uri,
+                'name': instance.name,
+                'image': instance.branch_image.url,
+                'banner': instance.branch_banner.url
+            }
+
+            branch_name = 'branch_%s' % being_followed
+
+            channel_layer = channels.layers.get_channel_layer()
+
+            async_to_sync(channel_layer.group_send)(
+                branch_name,
+                {
+                    'type': 'send.new.follow',
+                    'followed_by': followed_by,
+                    'verb': verb,
+                    'id': notification.id
+                }
+            )
 '''@receiver(post_save, sender=Post, dispatch_uid="update_post")
 def update_post_score(sender, instance, **kwargs):
     date_from = datetime.datetime.now() - datetime.timedelta(days=1)

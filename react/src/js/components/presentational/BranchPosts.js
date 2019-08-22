@@ -192,7 +192,6 @@ function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo})
     }
 
     useEffect(()=>{
-        console.log("ref",ref)
         if(ref){
             ref.current.scrollToRow(postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
@@ -213,7 +212,6 @@ function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo})
                 onResize={({ width }) => {
                     if(ref){
                         if(previousWidth!=0){
-                            console.log("clearcache",width,previousWidth,ref)
                             cache.clearAll();
                             branchPostsCache.clearAll();
                             allPostsCache.clearAll();
@@ -526,7 +524,6 @@ export const DisplayPosts3 = (props)=>{
             setPosts([...posts,...response.data.results]);
             //setNext(response.data.next);
             postsContext.next = response.data.next;
-            console.log("next",response.data.next)
         }
     };
 
@@ -662,9 +659,7 @@ function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunc
     }
 
     useEffect(()=>{
-        console.log("params", params , postsContext.params)
         if(!shallowCompare(params , postsContext.params)){
-            console.log("same2",shallowCompare(params , postsContext.params),refreshFunction)
             postsContext.params = params;
             refreshFunction();
         }
@@ -694,7 +689,6 @@ var cumulativeOffset = function(element) {
         left += element.offsetLeft || 0;
         element = element.offsetParent;
     } while(element);
-    console.log(top)
     return {
         top: top,
         left: left
@@ -815,7 +809,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
             if(childNodes.every(c=>{
                 return e.target!=c 
             }) && e.target !=ref.current){
-                console.log("close");
+                 
                 setOpen(false);
             }
         }

@@ -238,7 +238,7 @@ from django.core import serializers
 
 @receiver(post_save, sender=React)
 def create_notification(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.branch is not instance.post.poster:
         description = "reacted to your leaf"
         verb = "react"
 
@@ -271,6 +271,7 @@ def create_notification(sender, instance, created, **kwargs):
                 'text': message,
                 'react_from':react_from,
                 'post': instance.post.id,
+                'verb': verb,
                 'id': notification.id
             }
         )

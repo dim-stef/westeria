@@ -8,7 +8,7 @@ import Register from "./Register"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
 import {UserContext,BranchPostsContext,PostsContext,AllPostsContext,TreePostsContext,
-    UserActionsContext,SingularPostContext} from "../container/ContextContainer"
+    UserActionsContext,SingularPostContext,NotificationsProvider,NotificationsConsumer} from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
@@ -19,7 +19,7 @@ import {TrendingContainer} from "../container/TrendingContainer"
 import Card from "./Card"
 import Responsive from 'react-responsive';
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
-import {MobileNavigationBar} from "./Navigation"
+import {ResponsiveNavigationBar} from "./Navigation"
 import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
@@ -55,7 +55,7 @@ function RouteTransition({location,children}){
                             </TransitionGroup>*/
 const Routes = React.memo(function Routes({location}){
 
-
+  
     return(
         <Switch>
             <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
@@ -63,29 +63,37 @@ const Routes = React.memo(function Routes({location}){
             <Route exact path='/register' component={(props) => <Register {...props} />} />
             <Route exact path='/password/reset' component={(props) => <PasswordReset {...props} />} />
             <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
-
-            <UserContext.Consumer>
-            {context =>(
-                <Page>
-                    <Desktop>
-                        <NonAuthenticationRoutes/>
-                    </Desktop>
-                    
-                    <Tablet>
-                        <MobileNavigationBar/>
-                        <NonAuthenticationRoutes/>
-                    </Tablet>
-                    
-                    <Mobile>
-                        <MobileNavigationBar/>
-                        <NonAuthenticationRoutes/>
-                    </Mobile>
+            <Page>
+                <ResponsiveNavigationBar/>
+                <NonAuthenticationRoutes/>
             </Page>
-        )}
-        </UserContext.Consumer>
-    </Switch>
+            
+        </Switch>
     )
 })
+
+
+
+const RoutesWrapper = () =>{
+  const setNotifications = (newnotifications) => {
+    setState({...state, notifications: newnotifications})
+  }
+
+  const initState = {
+    notifications: [],
+    setNotifications: setNotifications
+  } 
+
+  const [state, setState] = useState(initState)
+
+  return(
+    <NotificationsProvider value={state}>
+      <Routes/>
+    </NotificationsProvider>
+  )
+}
+
+export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
     return(
@@ -309,7 +317,7 @@ function BranchFrontPage(props){
 }
 
 
-export default withRouter(Routes);
+
 
 
 import { matchPath } from "react-router";

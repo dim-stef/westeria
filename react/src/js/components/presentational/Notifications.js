@@ -1,8 +1,10 @@
 import React, { useState,useEffect,useContext } from "react";
 import {Link, NavLink } from "react-router-dom"
 import {isMobile} from 'react-device-detect';
+import { MoonLoader } from 'react-spinners';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import {UserContext,SingularPostContext} from "../container/ContextContainer"
+import {Helmet} from "react-helmet"
+import {UserContext,SingularPostContext,NotificationsContext} from "../container/ContextContainer"
 import {FrontPageLeftBar} from "./FrontPage"
 import {Post} from "./SingularPost"
 import {Desktop,Tablet,Mobile} from "./Responsive"
@@ -10,7 +12,8 @@ import axios from 'axios'
 
 export function NotificationsContainer({inBox}){
     const context = useContext(UserContext);
-    const [notifications,setNotifications] = useState([]);
+    const notificationsContext = useContext(NotificationsContext);
+    const [loaded,setLoaded] = useState(false);
     const [id,setId] = useState(null);
     
     useEffect(()=>{
@@ -31,8 +34,6 @@ export function NotificationsContainer({inBox}){
     
         chatSocket.onmessage = function(e) {
             let data = JSON.parse(e.data);
-            let message = data['message'];
-            let request_to = data['request_to'];
             let id = data['id'];
             setId(id);
         }
@@ -42,23 +43,23 @@ export function NotificationsContainer({inBox}){
         if(id){
             let response = await axios.get(`/api/notifications/${id}/`);
             let data = await response.data
-            let newNotifications = [data,...notifications];
-            setNotifications(newNotifications);
+            let newNotifications = [data,...notificationsContext.notifications];
+            notificationsContext.setNotifications(newNotifications);
         }
     }
 
     async function getNotifications(){
         let response = await axios.get('/api/notifications/');
-        let data = await response.data
-        setNotifications(data);
+        notificationsContext.setNotifications(response.data);
+        setLoaded(true);
     }
 
     return(
-        <Notifications notifications={notifications} inBox={inBox}/>
+        <Notifications notifications={notificationsContext.notifications} inBox={inBox} loaded={loaded}/>
     )
 }
 
-export function Notifications({notifications,inBox}){
+export function Notifications({notifications,inBox,loaded}){
     const [isOpen,setOpen] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -84,29 +85,48 @@ export function Notifications({notifications,inBox}){
             <div
             onMouseEnter={isMobile?null:handleMouseEnter}
             onMouseLeave={isMobile?null:handleMouseLeave} style={{position:'relative'}}>
-                <button
-                style={{height:'100%',width:50,backgroundColor:'transparent',border:0}}>
-                    <NotificationsSvg/>
-                </button>
-                
-                {isOpen?<BoxNotifications notifications={notifications}/>:null}
+                <NotificationsSvg/>
+                {notifications.filter(n=>n.verb!='message' && n.unread==true).length>0?
+                <span className="new-circle">
+
+                </span>:null}
+                {isOpen && notifications.length>0?<BoxNotifications notifications={notifications}/>:null}
             </div>
         :<ResponsiveNotifications>
-            <PageNotifications notifications={notifications}/>
+            <PageNotifications notifications={notifications} loaded={loaded}/>
         </ResponsiveNotifications>
     )
 }
 
-function PageNotifications({notifications}){
+function PageNotifications({notifications,loaded}){
     return(
+        <>
+        <Helmet>
+            <title>Notifications - Subranch</title>
+            <meta name="description" content="Your notifications." />
+        </Helmet>
         <div className="main-column">
-            {notifications.length>0?
-            notifications.map(n=>{
-                return(
-                    <NotificationMatcher notification={n}/>
-                )
-            }):null}
+            {!loaded?
+            <div className="flex-fill load-spinner-wrapper">
+                <MoonLoader
+                    sizeUnit={"px"}
+                    size={20}
+                    color={'#123abc'}
+                    loading={true}
+                />
+            </div>:
+            notifications.length>0?
+                notifications.map(n=>{
+                    return(
+                        <NotificationMatcher notification={n}/>
+                    )}
+                ):
+                <div className="info-message-wrapper flex-fill center-items">
+                    <span>You don't have any new notifications</span>
+                </div>
+            }
         </div>
+        </>
     )
 }
 
@@ -133,9 +153,26 @@ function NotificationMatcher({notification}){
         return <BranchNotification notification={notification}/>
     }else if(notification.verb=='react'){
         return <ReactNotification notification={notification}/>;
+    }else if(notification.verb=='follow'){
+        return <FollowNotification notification={notification}/>;
     }else{
         return null;
     }
+}
+
+function FollowNotification({notification}){
+
+    let linkTo = `/${notification.actor.uri}`;
+    
+    return(
+        <div style={{borderBottom:'1px solid #e2eaf1'}}>
+            <NotificationLinkBody to={linkTo} id={notification.id}>
+                <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
+                <span style={{padding:10}}> {notification.description} </span>
+            </NotificationLinkBody>
+        </div>
+    )
+    
 }
 
 function ReactNotification({notification}){
@@ -168,8 +205,7 @@ function ReactNotification({notification}){
         )
     }else{
         return null;
-    }
-    
+    } 
 }
 
 function BranchNotification({notification}){
@@ -277,20 +313,11 @@ function BoxNotifications({notifications}){
     )
 }
 
-function NotificationsSvg(){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            viewBox="0 0 512 512"
-            style={{ enableBackground: "new 0 0 512 512",width:30 }}
-            xmlSpace="preserve"
-            >
-            <path d="M467.819 431.851l-36.651-61.056a181.486 181.486 0 0 1-25.835-93.312V224c0-82.325-67.008-149.333-149.333-149.333S106.667 141.675 106.667 224v53.483c0 32.875-8.939 65.131-25.835 93.312l-36.651 61.056a10.665 10.665 0 0 0-.149 10.731 10.704 10.704 0 0 0 9.301 5.419h405.333c3.84 0 7.403-2.069 9.301-5.419a10.665 10.665 0 0 0-.148-10.731zm-395.648-5.184l26.944-44.907A202.631 202.631 0 0 0 128 277.483V224c0-70.592 57.408-128 128-128s128 57.408 128 128v53.483c0 36.736 9.984 72.789 28.864 104.277l26.965 44.907H72.171z" />
-            <path d="M256 0c-23.531 0-42.667 19.136-42.667 42.667v42.667C213.333 91.221 218.112 96 224 96s10.667-4.779 10.667-10.667V42.667c0-11.776 9.557-21.333 21.333-21.333s21.333 9.557 21.333 21.333v42.667C277.333 91.221 282.112 96 288 96s10.667-4.779 10.667-10.667V42.667C298.667 19.136 279.531 0 256 0zm46.165 431.936c-3.008-5.077-9.515-6.741-14.613-3.819-5.099 2.987-6.805 9.536-3.819 14.613 2.773 4.715 4.288 10.368 4.288 15.936 0 17.643-14.357 32-32 32s-32-14.357-32-32c0-5.568 1.515-11.221 4.288-15.936 2.965-5.099 1.259-11.627-3.819-14.613-5.141-2.923-11.627-1.259-14.613 3.819-4.715 8.064-7.211 17.301-7.211 26.731C202.667 488.085 226.581 512 256 512s53.333-23.915 53.376-53.333c0-9.43-2.496-18.667-7.211-26.731z" />
-        </svg>
-
-    )
-}
+const NotificationsSvg = props => (
+    <svg className="nav-icon" x="0px" y="0px" viewBox="0 0 260 260" xmlSpace="preserve" {...props}>
+      <path
+        d="M205.2 167c-6.1-3.3-16.3-8.7-16.3-65.4 0-14.1-5.1-27.8-14.3-38.5-8.2-9.5-19.2-16.1-31.3-18.9-.4-6.1-4.7-11.3-10.6-12.5-.9-.2-1.8-.3-2.7-.3-7.2 0-13 5.7-13.3 12.8-12.1 2.8-23.1 9.4-31.3 18.9-9.2 10.7-14.3 24.3-14.3 38.5 0 25.6-2 43.7-6 53.9-3 7.6-6.2 9.3-9.7 11-5.5 2.8-10.1 6.1-10.1 18 0 5.2 4.2 9.5 9.5 9.5h43.6c-.9 1-1.4 2.3-1.3 3.7 1.1 17.3 15.5 30.9 32.9 30.9s31.8-13.6 32.9-30.9c.1-1.3-.4-2.7-1.3-3.7h43.6c5.2 0 9.5-4.2 9.5-9.5v-1.3c0-10.2-4.3-13.4-9.5-16.2zM130 218.5c-10.2 0-19-6.8-21.9-16.2H152c-3 9.4-11.8 16.2-22 16.2zm74.7-34.5H55.3c.1-6.2 1.3-6.8 4.6-8.5 8.9-4.6 21.1-10.8 21.1-73.9 0-24.2 17.4-44.5 41.3-48.3 2.4-.4 4.2-2.5 4.2-4.9v-3.6c0-2.1 1.9-3.7 4.1-3.3 1.5.3 2.6 1.8 2.6 3.6v3.2c0 2.5 1.8 4.6 4.2 4.9 24 3.7 41.3 24 41.3 48.3 0 57.9 10.2 68.2 21.5 74.3 3.4 1.8 4.3 2.3 4.3 7.4v.8z"
+        fill="#212121"
+      />
+    </svg>
+  );

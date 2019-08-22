@@ -28,7 +28,7 @@ export function BranchItem({setSelected,selected,option}){
     return(
         <div style={{...style}} 
         onClick={()=>setSelected(option)}  className="filter-dropdown-item">
-            <SmallBranch branch={option} isLink={false}/>
+            <SmallBranch branch={option} isLink={false} hoverable={false}/>
         </div>
         
     )

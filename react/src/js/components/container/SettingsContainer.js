@@ -28,7 +28,6 @@ export class SettingsContainer extends Component {
 
     handleSubmit(){
         event.preventDefault()
-        console.log("form submitted")
         var self = this;
         var formElement = document.querySelector(".settings-form");
         var formData = new FormData(formElement);

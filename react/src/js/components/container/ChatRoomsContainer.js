@@ -1,24 +1,29 @@
 import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef,lazy,Suspense } from "react";
 import {isMobile} from 'react-device-detect';
 import ReconnectingWebSocket from 'reconnecting-websocket';
-import {Images2} from "../presentational/PostImageGallery"
+import {Images} from "../presentational/PostImageGallery"
 import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
 import { Link } from 'react-router-dom'
+import { MoonLoader } from 'react-spinners';
+import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
-import {UserContext,CachedBranchesContext} from "./ContextContainer"
+import {UserContext,CachedBranchesContext,NotificationsContext} from "./ContextContainer"
 import axios from "axios";
 
 
 export function ChatRoomsContainer({inBox,match}){
     const [rooms,setRooms] = useState([]);
+    const [loaded,setLoaded] = useState(false);
+
     const context = useContext(UserContext);
 
     async function getRooms(){
         let uri = `/api/branches/${context.currentBranch.uri}/chat_rooms/`;
         let response = await axios.get(uri);
         setRooms(response.data);
+        setLoaded(true)
     }
 
     useEffect(() => {
@@ -26,11 +31,17 @@ export function ChatRoomsContainer({inBox,match}){
     },[])
 
     return(
-        <WebSocketRooms rooms={rooms} inBox={inBox} match={match}/>
+        <>
+        <Helmet>
+            <title>Messages - Subranch</title>
+            <meta name="description" content="Your messages." />
+        </Helmet>
+        <WebSocketRooms rooms={rooms} inBox={inBox} match={match} loaded={loaded}/>
+        </>
     )
 }
 
-function WebSocketRooms({rooms,inBox,match}){
+function WebSocketRooms({rooms,inBox,match,loaded}){
     const [roomData,setRoomData] = useState([]);
 
     useEffect(()=>{
@@ -47,19 +58,16 @@ function WebSocketRooms({rooms,inBox,match}){
                 ws: ws
             }
         })
+
         setRoomData(webSockets);
     }
 
-    if(!inBox && roomData.length>0){
+    if(!inBox){
         if(!match.params.roomName){
-            return <RoomsPreviewColumn roomData={roomData}/>
+            return <RoomsPreviewColumn roomData={roomData} loaded={loaded}/>
         }else{
-            return <RoomContainer roomData={roomData} match={match}/>
+            return roomData.length>0?<RoomContainer roomData={roomData} match={match}/>:null
         }
-    }else{
-        return(
-            <RoomsPreviewColumn roomData={[]}/>
-        )
     }
 }
 
@@ -74,10 +82,10 @@ function RoomContainer({roomData,match}){
     //let next = null;
     const [next,setNext] = useState(null);
     const [hasMore,setHasMore] = useState(true);
+    const [isFirstBatch,setFirstBatch] = useState(true);
     const [members,setMembers] = useState([]);
     const ref = useRef(null);
     const parentRef = useRef(null);
-    const [freshState,setFreshState] = useState(0);
 
     async function getMembers(){
         let memberList = [];
@@ -99,6 +107,9 @@ function RoomContainer({roomData,match}){
         
         let uri = next?next:`/api/branches/${member}/chat_rooms/${data.room.id}/messages/`;
         let response = await axios.get(uri);
+        if(response.data.previous){
+            setFirstBatch(false);
+        }
         if(!response.data.next){
             setHasMore(false);
         }
@@ -111,6 +122,7 @@ function RoomContainer({roomData,match}){
         if(parentRef.current.scrollTop==0){
             await getMessages(messages);
         }
+        setFirstBatch(false);
         //setScrollPosition(parentRef.current.scrollTop);
     }
 
@@ -132,7 +144,12 @@ function RoomContainer({roomData,match}){
     },[context.currentBranch])
 
     function updateMessages(newMessage){
+        //scrollToBottom();
         setMessages([...messages,...newMessage]);
+    }
+
+    function scrollToBottom(){
+        parentRef.current.scrollTop = parentRef.current.scrollHeight;
     }
 
     data.ws.onmessage = function (e) {
@@ -162,22 +179,29 @@ function RoomContainer({roomData,match}){
     }
 
     return(
+        <>
+        <Helmet>
+            <title>{data.room.name} - Subranch</title>
+            <meta name="description" content={`${data.room.name} messages.`} />
+        </Helmet>
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:'-webkit-fill-available',
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1}}>
                 <RoutedHeadline headline={'@' + previewName}/>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
                 flexFlow:'column',WebkitFlexFlow:'column'}}>
-                    <Room messages={messages} members={members} branch={author.uri} parentRef={parentRef} wrapperRef={ref}/> 
+                    <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
+                    setFirstBatch={setFirstBatch}
+                    parentRef={parentRef} wrapperRef={ref}/> 
                 </div>
-                <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} updateMessages={updateMessages}/>
+                <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} scrollToBottom={scrollToBottom}/>
             </div>
         </PageWrapper>
-        
+        </>
     )
 }
 
-function Room({messages,members,branch,parentRef,wrapperRef}){
+function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrapperRef}){
 
     const [imageWidth,setImageWidth] = useState(0);
     const [messageBoxes,setMessageBoxes] = useState([]);
@@ -238,12 +262,24 @@ function Room({messages,members,branch,parentRef,wrapperRef}){
         setMessageBoxes(getChatBoxes());
     },[messages])
 
-    return(
 
-        messageBoxes.map(box=>{
+    // handle automated scroll
+    useLayoutEffect(()=>{
+        if(parentRef.current){
+            let diff = parentRef.current.scrollHeight - (parentRef.current.scrollTop + parentRef.current.clientHeight)
+            if(diff < parentRef.current.clientHeight*0.5 || isFirstBatch){
+                parentRef.current.scrollTop = parentRef.current.scrollHeight;
+            }
+        }
+    })
+
+    return(
+        <>
+        {messageBoxes.map(box=>{
             return <MessageBox key={box.created} parentRef={parentRef} members={members} 
             messageBox={box} branch={branch} imageWidth={imageWidth}/>
-        })
+        })}
+        </>
     )
 }
 
@@ -251,17 +287,13 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let containerStyle={};
     let messageStyle={
         fontSize:'2em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
-        padding:'3px 6px',borderRadius:13,margin:'3px 0'
+        padding:'5px 10px',borderRadius:13,margin:'3px 0'
     };
 
     if(messageBox.author_url == branch){
         containerStyle = {alignSelf:'flex-end'}
         messageStyle = {...messageStyle,backgroundColor:'#219ef3',color:'white'}
     }
-
-    useLayoutEffect(()=>{
-        parentRef.current.scrollTop = parentRef.current.scrollHeight;
-    },[])
 
     
 
@@ -305,7 +337,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                                 
                                 {m.images.length>0 || m.videos.length>0?
                                     <div style={{...containerStyle,width:getMediaWidth(m)}}>
-                                        <Images2 images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
+                                        <Images images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
                                     </div>
                                 :null}
                             </React.Fragment>
@@ -319,15 +351,25 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 }
 
 
-function RoomsPreviewColumn({roomData,isGroup,inBox}){
+function RoomsPreviewColumn({roomData,isGroup,inBox,loaded}){
     return(
         <PageWrapper>
             <div className="main-column">
-                {roomData.length>0?
+                {!loaded?
+                <div className="flex-fill load-spinner-wrapper">
+                    <MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={'#123abc'}
+                        loading={true}
+                    />
+                </div>:
+                roomData.length>0?
                     roomData.map(data=>{
-                        return  <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
-                    })
-                :<><MutualFollowMessage/></>}
+                        return <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
+                    }):<MutualFollowMessage/>
+                }
+               
             </div>
         </PageWrapper>
     )
@@ -335,9 +377,10 @@ function RoomsPreviewColumn({roomData,isGroup,inBox}){
 
 function MutualFollowMessage(){
     return(
-        <div className="flex-fill center-items" style={{fontSize:'2rem',color:'#95a6b5',padding:10}}>
+        <div className="info-message-wrapper flex-fill center-items">
             <span>Mutually follow another person in order to message them</span>
         </div>
+
     )
 }
 

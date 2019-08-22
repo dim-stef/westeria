@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Redirect } from 'react-router'
 import { Link } from 'react-router-dom'
+import {Helmet} from 'react-helmet'
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
@@ -56,10 +57,10 @@ export default class Register extends Component{
             .then(function (response) {
                 localStorage.setItem("token",response.data.token);
                 self.setState({success:true})
-                console.log(response);
+                 
             })
             .catch(function (response) {
-                console.log(response);
+                 
         })
         e.preventDefault();
     }
@@ -82,6 +83,11 @@ export default class Register extends Component{
         }
         
         return(
+            <>
+            <Helmet>
+                <title>Register - Subranch</title>
+                <meta name="description" content="Register to Subranch" />
+            </Helmet>
             <div className="main-layout">
                 <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
                 <div className="form-container" style={{width: '70%', margin: 'auto', paddingBottom: '14px'}}>
@@ -100,6 +106,8 @@ export default class Register extends Component{
                 </div>
                 </div>
             </div>
+            </>
+            
         )
     }
 }

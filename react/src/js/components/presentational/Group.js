@@ -6,7 +6,7 @@ import {UserContext} from '../container/ContextContainer'
 import MediaQuery from 'react-responsive';
 
 const REACT_VERSION = React.version;
-console.log(REACT_VERSION);
+ 
 
 function ownBranch(targetBranch, branches){
     return branches.find(b=>{

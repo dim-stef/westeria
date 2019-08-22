@@ -1,5 +1,5 @@
 import React, { Component,useState,useContext,useEffect } from "react";
-import {PureMobileGroup} from "./PureGroup"
+import {Helmet} from 'react-helmet'
 import {ParentBranch,ChildBranch} from "./Branch"
 import { Switch, Route, Link, NavLink  } from 'react-router-dom'
 import {BranchContainer,BranchesPageContainer} from '../container/BranchContainer'
@@ -11,7 +11,6 @@ import axios from 'axios';
 
 
 function ownsBranch(branches,target){
-    console.log("dsfsdf",branches,target)
     return branches.some(b=>{
         return b.uri==target.uri
     })
@@ -44,7 +43,13 @@ export function BranchesPage(props){
         }
     }
 
+    let title = externalTab?externalTab.replace(externalTab[0], externalTab[0].toUpperCase()):'Children'
     return(
+        <>
+        <Helmet>
+            <title>{props.branch.name} @({props.branch.uri}) {title} {' '} - Subranch</title>
+            <meta name="description" content="Your messages." />
+        </Helmet>
         <div>
             <BranchTypeSelectionBar activeTab={externalTab} currentBranch={props.match}/>
             <div className="branch-details-container">
@@ -63,6 +68,7 @@ export function BranchesPage(props){
                 </div>
             </div>
         </div>
+        </>
     )
 }
 
@@ -120,10 +126,8 @@ export function BranchList(props){
     //style={{display:'flex', width:'100%',flexBasis:'33%',flexFlow:'column'}}
     return(
         props.branches.map((c,i)=>{
-            console.log("branches",props.branches)
             let requestId = null;
             if(props.requestBundles){
-                console.log("requestundl",props.requestBundles)
                 requestId = props.requestBundles.find(b=>c.uri==b.branch).requestId
             }
 
@@ -180,7 +184,6 @@ export function AddBranch({branch,type='children'}){
                 setRequestStatus(response.data.status)
                 setSubmitted(true);
             }).catch(error => {
-            console.log(error)
         })
     }
 

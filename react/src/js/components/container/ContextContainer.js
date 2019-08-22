@@ -32,6 +32,10 @@ let frontPagePostList = {
 }
 
 export const UserContext = React.createContext();
+export const NotificationsContext = React.createContext();
+export const NotificationsProvider= NotificationsContext.Provider
+export const NotificationsConsumer= NotificationsContext.Consumer
+
 export const UserActionsContext = React.createContext({
     lastFrontPageTab:'feed',
     lastPostListType:'front'
@@ -44,7 +48,7 @@ export const RefreshContext = React.createContext({
     branchPostsRefresh:()=>{return},
     setBranchPostsRefresh:()=>{return},
 });
-export const NotificationsContext = React.createContext();
+
 export const CachedBranchesContext = React.createContext({
     following:[],
     owned:[],
@@ -108,3 +112,4 @@ export const BranchPostsContext = React.createContext(
                 label:'All time'
             }
     }});
+

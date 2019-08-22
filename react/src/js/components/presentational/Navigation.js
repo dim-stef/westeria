@@ -2,62 +2,152 @@ import React, { Component, useState,useEffect,useRef,useContext } from "react";
 import {Link, NavLink } from "react-router-dom"
 import Responsive from 'react-responsive';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import {UserContext} from "../container/ContextContainer"
+import {UserContext,NotificationsContext} from "../container/ContextContainer"
 import {FrontPage,FrontPageFeed} from "./Routes"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import {isMobile} from 'react-device-detect';
+import {Desktop,Tablet,Mobile} from './Responsive'
 import axios from 'axios'
 
+export function ResponsiveNavigationBar(){
+    const notificationsContext = useContext(NotificationsContext);
 
-const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
-const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
-const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
+    function readNotifications(uri,callBack, match, location){
+        if (!match) {
+            return false
+        }
 
-export function TabbedNavigationBar(){
+        axios.get(uri)
+        callBack();
+    }
+
+    function readContextNotifications(){
+        let shouldUpdate = false;
+        if(notificationsContext.notifications.filter(n=>n.verb!='message' && n.unread==true).length!=0){
+            shouldUpdate = true;
+        }
+
+        let newNotifications = notificationsContext.notifications.map(n=>{
+            if(n.verb!='message'){
+                n.unread = false;
+            }
+
+            return n;
+        })
+
+        // prevent infinite update loop
+        if(shouldUpdate){
+            notificationsContext.setNotifications(newNotifications);
+        }
+    }
+
+    function readContextMessages(){
+        let shouldUpdate = false;
+        if(notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length!=0){
+            shouldUpdate = true;
+        }
+        
+        let newNotifications = notificationsContext.notifications.map(n=>{
+            if(n.verb=='message'){
+                n.unread = false;
+            }
+
+            return n;
+        })
+
+        // prevent infinite update loop
+        if(shouldUpdate){
+             
+            notificationsContext.setNotifications(newNotifications);
+        }
+    }
+
+    let notificationUri = '/api/notifications/mark_all_notifications_as_read/';
+    let messageUri = '/api/notifications/mark_all_messages_as_read/';
+
+    let props = {
+        readAllMessages:(match, location)=>readNotifications(messageUri,readContextMessages,match, location),
+        readAllNotifications:(match, location)=>readNotifications(notificationUri,readContextNotifications,match, location)
+    }
+
+    return(
+        <>
+        <Desktop>
+            <DesktopNavigationBar {...props}/>
+        </Desktop>
+        
+        <Tablet>
+            <MobileNavigationBar {...props}/>
+        </Tablet>
+        
+        <Mobile>
+            <MobileNavigationBar {...props}/>
+        </Mobile>
+        </>
+    )
+}
+
+export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
+
     const context = useContext(UserContext);
+    const notificationsContext = useContext(NotificationsContext);
 
+    let activeStyle={
+        borderBottom:'2px solid #2397f3'
+    };
+    let style={
+        justifyContent:'center',alignItems:'center',height:'100%',width:'100%'
+    }
     return(
         <div style={{
             height: 50,
             position: "fixed",
             width: "100%",
             backgroundColor: "white",
+            maxWidth:1200,
             zIndex: 5,
             top:0
         }}
         >
-            <div style={{display:'flex',
+            <div className="flex-fill" style={{
                 justifyContent:'space-between',
                 borderBottom:'2px solid rgb(226, 234, 241)',
                 height:'100%',
-                margin:'0 auto',
-                maxWidth:1200}}>
-                <NavLink exact to="/" className="flex-fill" activeClassName="active-tab-route"
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none'}}>
+                }}>
+                <NavLink exact to="/" className="flex-fill nav-icon-container"
+                activeStyle={activeStyle} activeClassName="active-tab-route"
+                style={style}>
                     <Home/>
                 </NavLink>
-                <NavLink to="/search" className="flex-fill" activeClassName="active-tab-route"
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                <NavLink to="/search" className="flex-fill nav-icon-container" activeClassName="active-tab-route"
+                style={style} activeStyle={activeStyle}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
-                    <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                    <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill nav-icon-container"
+                    style={style} activeStyle={activeStyle} isActive={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
 
                 {context.isAuth?
-                    <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
-                        <MessageSvg/>
+                    <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill nav-icon-container"
+                    style={style} activeStyle={activeStyle} isActive={readAllMessages}>
+                    <div style={{position:'relative'}}>
+                    <MessageSvg/>
+                    {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
+                        <span className="new-circle">
+
+                        </span>:null}
+                    </div>
+                        
                     </NavLink>:null
                 }
                 
                 <div className="flex-fill"
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%'}}>
+                style={style}>
                     <Profile/>
                 </div>
                 
@@ -67,34 +157,51 @@ export function TabbedNavigationBar(){
     )
 }
 
-export function MobileNavigationBar(){
+export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const context = useContext(UserContext);
+    const notificationsContext = useContext(NotificationsContext);
+
+    let style={justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none',
+    borderTop:'2px solid rgb(226, 234, 241)'}
+    let activeStyle={borderTop:'2px solid #2397f3'};
+
+
     return(
         <div className="flex-fill mobile-navigation" >
                 <NavLink exact to="/" className="flex-fill"
-                activeStyle={{borderTop:'2px solid #2397f3'}}
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none',
-                borderTop:'2px solid rgb(226, 234, 241)'}}>
+                activeClassName="active-tab-route"
+                activeStyle={activeStyle}
+                style={style}>
                     <Home/>
                 </NavLink>
-                <NavLink to="/search" className="flex-fill" activeStyle={{borderTop:'2px solid #2397f3'}}
-                style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',
-                borderTop:'2px solid rgb(226, 234, 241)'}}>
+                <NavLink to="/search" className="flex-fill"
+                activeClassName="active-tab-route" activeStyle={activeStyle}
+                style={style}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
-                    <NavLink to="/notifications" activeStyle={{borderTop:'2px solid #2397f3'}} className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',position:'relative',
-                    borderTop:'2px solid rgb(226, 234, 241)'}}>
+                    <NavLink to="/notifications"
+                    className="flex-fill"
+                    activeClassName="active-tab-route"
+                    activeStyle={activeStyle}
+                    style={style} isActive={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
 
                 {context.isAuth?
-                    <NavLink to="/messages" activeStyle={{borderTop:'2px solid #2397f3'}} className="flex-fill"
-                    style={{justifyContent:'center',alignItems:'center',height:'100%',width:'100%',
-                    borderTop:'2px solid rgb(226, 234, 241)'}}>
+                    <NavLink to="/messages"
+                    activeClassName="active-tab-route"
+                    className="flex-fill"
+                    activeStyle={activeStyle}
+                    style={style} isActive={readAllMessages}>
+                    <div style={{position:'relative'}}>
                         <MessageSvg/>
+                        {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
+                        <span className="new-circle">
+
+                        </span>:null}
+                        </div>
                     </NavLink>:null
                 }
                 <SideDrawer>
@@ -102,125 +209,6 @@ export function MobileNavigationBar(){
                 </SideDrawer>
         </div>
     )  
-}
-
-export function MobileNavigationBar2(){
-    return(
-        <Tabs>
-            <TabList>
-            <Tab>Title 1</Tab>
-            <Tab>Title 2</Tab>
-            <Tab>Title 3</Tab>
-            <Tab>Title 4</Tab>
-            </TabList>
-
-            <TabPanel>
-                <FrontPageFeed device="tablet"/>
-            </TabPanel>
-            <TabPanel>
-            <h2>Any content 2</h2>
-            </TabPanel>
-            <TabPanel>
-            <h2>Any content 3</h2>
-            </TabPanel>
-            <TabPanel>
-            <h2>Any content 4</h2>
-            </TabPanel>
-        </Tabs>
-    )  
-}
-
-function Notifications(props){
-    const context = useContext(UserContext);
-    const [isOpen,setOpen] = useState(false);
-    const [notifications,setNotifications] = useState([]);
-    const [id,setId] = useState(null);
-    
-    useEffect(()=>{
-        getNotifications();
-        connectToWebsocket();
-    },[context.currentBranch.uri])
-
-    useEffect(()=>{
-        receiveId(id);
-    },[id])
-
-
-    function connectToWebsocket(){
-        var chatSocket = new WebSocket(
-            'ws://' + window.location.host +
-            '/ws/notifications/' + context.currentBranch.uri + '/');
-    
-        chatSocket.onmessage = function(e) {
-            var data = JSON.parse(e.data);
-            var message = data['message'];
-            var request_to = data['request_to'];
-            var id = data['id'];
-            setId(id);
-            console.log(message,request_to,id)
-        }
-    }
-
-    async function receiveId(id){
-        let response = await axios.get(`/api/notifications/${id}/`);
-        let data = await response.data
-        let newNotifications = [data,...notifications];
-        setNotifications(newNotifications);
-    }
-
-    async function getNotifications(){
-        var response = await axios.get('/api/notifications/');
-        let data = await response.data
-        console.log(response);
-        setNotifications(data);
-    }
-
-    function handleClick(){
-        setOpen(!isOpen);
-    }
-
-    return(
-        <div style={{position:'relative'}}>
-            <button onClick={handleClick} style={{height:'100%',width:50,backgroundColor:'transparent',border:0}}>
-                <NotificationsSvg/>
-            </button>
-            {isOpen?<NotificationsBox notifications={notifications}/>:null}
-        </div>
-    )
-}
-
-function NotificationsBox({notifications}){
-    function renderNotifications(){
-        return notifications.map(n=>{
-            return(
-                <div key={n.id} className="notification">
-                    <div style={{display:'inline-block'}}>
-                        <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${n.actor.branch_image}')`,
-                        display:'inline-block'}}></div>
-                        <span>{n.actor.uri}</span>
-                    </div>
-                    <span>{n.description}</span>
-                    <div style={{display:'inline-block'}}>
-                        <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${n.target.branch_image}')`,
-                        display:'inline-block'}}></div>
-                        <span>{n.target.uri}</span>
-                    </div>
-                </div>
-            )
-        })
-    }
-    return(
-        <div style={{position:'absolute',width:500,marginTop:10,right:0}}>
-            <div style={{position:'relative',height:10}}>
-                <div style={{right:79,left:'auto'}} className="arrow-upper"></div>
-                <div style={{right:80,left:'auto'}} className="arrow-up"></div>
-            </div>
-            
-            <div style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a'}}> 
-                {notifications.length>0?renderNotifications():null}
-            </div>
-        </div>
-    )
 }
 
 function ProfileDropDown({setFocused}){
@@ -262,8 +250,9 @@ function ProfileDropDown({setFocused}){
 function Home(props){
     return(
         <div style={{display:'flex',alignItems:'center'}}>
-            <span className="material-icons user-color">home</span>
-            <span style={{color: "#156bb7",fontWeight:500,fontSize:17}}>Home</span>
+            {/*<span className="material-icons user-color">home</span>
+            <span style={{color: "#156bb7",fontWeight:500,fontSize:17}}>Home</span>*/}
+            <HomeSvg/>
         </div>
     )
 }
@@ -294,7 +283,7 @@ function Profile(){
     };
 
     return(
-        <div ref={ref} style={{position:'relative'}}>
+        <div ref={ref} style={{position:'relative',cursor:'pointer'}}>
             <div onClick={handleClick} className="round-picture" style={{
                 width:32,
                 height:32,
@@ -360,7 +349,7 @@ function SearchResults({results,onclic}){
     const [displayedResults, setDisplayedResults] = useState([]);
 
     useEffect(()=>{
-        console.log(results)
+         
         var r = results.map(r => {
             return <ResultBranch branch={r} onclic={onclic}/>
         })
@@ -399,56 +388,64 @@ function ResultBranch({branch,onclic}){
 
 
 
-function NotificationsSvg(){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            viewBox="0 0 512 512"
-            style={{ enableBackground: "new 0 0 512 512",width:30 }}
-            xmlSpace="preserve"
-            >
-            <path d="M467.819 431.851l-36.651-61.056a181.486 181.486 0 0 1-25.835-93.312V224c0-82.325-67.008-149.333-149.333-149.333S106.667 141.675 106.667 224v53.483c0 32.875-8.939 65.131-25.835 93.312l-36.651 61.056a10.665 10.665 0 0 0-.149 10.731 10.704 10.704 0 0 0 9.301 5.419h405.333c3.84 0 7.403-2.069 9.301-5.419a10.665 10.665 0 0 0-.148-10.731zm-395.648-5.184l26.944-44.907A202.631 202.631 0 0 0 128 277.483V224c0-70.592 57.408-128 128-128s128 57.408 128 128v53.483c0 36.736 9.984 72.789 28.864 104.277l26.965 44.907H72.171z" />
-            <path d="M256 0c-23.531 0-42.667 19.136-42.667 42.667v42.667C213.333 91.221 218.112 96 224 96s10.667-4.779 10.667-10.667V42.667c0-11.776 9.557-21.333 21.333-21.333s21.333 9.557 21.333 21.333v42.667C277.333 91.221 282.112 96 288 96s10.667-4.779 10.667-10.667V42.667C298.667 19.136 279.531 0 256 0zm46.165 431.936c-3.008-5.077-9.515-6.741-14.613-3.819-5.099 2.987-6.805 9.536-3.819 14.613 2.773 4.715 4.288 10.368 4.288 15.936 0 17.643-14.357 32-32 32s-32-14.357-32-32c0-5.568 1.515-11.221 4.288-15.936 2.965-5.099 1.259-11.627-3.819-14.613-5.141-2.923-11.627-1.259-14.613 3.819-4.715 8.064-7.211 17.301-7.211 26.731C202.667 488.085 226.581 512 256 512s53.333-23.915 53.376-53.333c0-9.43-2.496-18.667-7.211-26.731z" />
-        </svg>
+const HomeSvg = props => (
+    <svg className="nav-icon" x="0px" y="0px" viewBox="0 0 260 260" xmlSpace="preserve" {...props}>
+      <path
+        d="M228.9 100.7l-92.4-68.5c-4-3-9.4-3-13.4 0l-92.4 68.5c-1.3.9-2 2.4-2 4v21.7c0 2.8 2.2 5 5 5h7.5v88c0 6.2 5 11.2 11.2 11.2h154.9c6.2 0 11.2-5 11.2-11.2v-88h7.4c2.8 0 5-2.2 5-5v-21.7c0-1.6-.7-3.1-2-4zM110.1 220.5v-52h39.6v52h-39.6zm103.4-99.1h-12.4c-2.8 0-5 2.2-5 5s2.2 5 5 5h7.4v88c0 .7-.5 1.2-1.2 1.2h-47.7v-57c0-2.8-2.2-5-5-5H105c-2.8 0-5 2.2-5 5v57H52.4c-.7 0-1.2-.5-1.2-1.2v-88h7.4c2.8 0 5-2.2 5-5s-2.2-5-5-5H38.8v-14.2l90.4-67c.4-.3 1-.3 1.4 0l90.4 67v14.2h-7.5z"
+        fill="#212121"
+      />
+    </svg>
+);
 
-    )
-}
 
-function SearchSvg({fill='#424242'}){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            width="475.084px"
-            height="475.084px"
-            viewBox="0 0 475.084 475.084"
-            style={{ enableBackground: "new 0 0 475.084 475.084", height:25,width:25,fill:fill}}
-            xmlSpace="preserve"
-            >
-            <path d="M464.524 412.846l-97.929-97.925c23.6-34.068 35.406-72.047 35.406-113.917 0-27.218-5.284-53.249-15.852-78.087-10.561-24.842-24.838-46.254-42.825-64.241-17.987-17.987-39.396-32.264-64.233-42.826C254.246 5.285 228.217.003 200.999.003c-27.216 0-53.247 5.282-78.085 15.847C98.072 26.412 76.66 40.689 58.673 58.676c-17.989 17.987-32.264 39.403-42.827 64.241C5.282 147.758 0 173.786 0 201.004c0 27.216 5.282 53.238 15.846 78.083 10.562 24.838 24.838 46.247 42.827 64.234 17.987 17.993 39.403 32.264 64.241 42.832 24.841 10.563 50.869 15.844 78.085 15.844 41.879 0 79.852-11.807 113.922-35.405l97.929 97.641c6.852 7.231 15.406 10.849 25.693 10.849 9.897 0 18.467-3.617 25.694-10.849 7.23-7.23 10.848-15.796 10.848-25.693.003-10.082-3.518-18.651-10.561-25.694zM291.363 291.358c-25.029 25.033-55.148 37.549-90.364 37.549-35.21 0-65.329-12.519-90.36-37.549-25.031-25.029-37.546-55.144-37.546-90.36 0-35.21 12.518-65.334 37.546-90.36 25.026-25.032 55.15-37.546 90.36-37.546 35.212 0 65.331 12.519 90.364 37.546 25.033 25.026 37.548 55.15 37.548 90.36 0 35.216-12.519 65.331-37.548 90.36z" />
-        </svg>
+const SearchSvg = props => (
+    <svg
+      id="Layer_1"
+      x="0px"
+      y="0px"
+      viewBox="0 0 260 260"
+      xmlSpace="preserve"
+      className="nav-icon"
+      {...props}
+    >
+      <style>{".st0{fill:#212121}"}</style>
+      <path
+        className="st0"
+        d="M104.3 166.2c-34.1 0-61.9-27.8-61.9-61.9 0-34.1 27.8-61.9 61.9-61.9s61.9 27.8 61.9 61.9c0 34.2-27.7 61.9-61.9 61.9zm0-113.8c-28.6 0-51.9 23.3-51.9 51.9 0 28.6 23.3 51.9 51.9 51.9 28.6 0 51.9-23.3 51.9-51.9 0-28.6-23.3-51.9-51.9-51.9z"
+      />
+      <path
+        className="st0"
+        d="M69.1 123.6c-2 0-3.9-1.2-4.6-3.1-2.1-5.1-3.1-10.5-3.1-16.1 0-2.8 2.2-5 5-5s5 2.2 5 5c0 4.3.8 8.4 2.4 12.3 1 2.6-.2 5.5-2.8 6.5-.6.2-1.2.4-1.9.4zM69.1 95.1c-.6 0-1.3-.1-1.9-.4-2.6-1-3.8-4-2.8-6.5 6.6-16.3 22.2-26.8 39.8-26.8 2.8 0 5 2.2 5 5s-2.2 5-5 5c-13.5 0-25.5 8.1-30.5 20.6-.7 1.9-2.6 3.1-4.6 3.1z"
+      />
+      <path
+        className="st0"
+        d="M218.2 236.6c-4.7 0-9.4-1.8-13-5.4L147 173c-16.2 10.1-35.3 14.1-54.5 11.3-35.7-5.1-63.8-33.6-68.4-69.4-3.2-25.3 5.1-50 23-67.9C65 29.3 89.7 20.9 115 24.1c35.8 4.6 64.3 32.7 69.4 68.4 2.7 19.1-1.3 38.3-11.3 54.5l58.2 58.2c7.2 7.2 7.2 18.9 0 26.1-3.7 3.5-8.4 5.3-13.1 5.3zm-70.6-75c1.3 0 2.6.5 3.5 1.5l61 61c3.3 3.3 8.6 3.3 11.9 0 3.3-3.3 3.3-8.6 0-11.9l-61-61c-1.7-1.7-2-4.4-.6-6.4 10.3-14.8 14.5-32.8 12-50.9C170 62.7 145 38.1 113.7 34c-22.2-2.8-43.9 4.5-59.5 20.2-15.7 15.7-23 37.4-20.1 59.5 4 31.3 28.6 56.3 59.9 60.7 18 2.6 36.1-1.7 50.8-12 .8-.5 1.8-.8 2.8-.8z"
+      />
+    </svg>
+);
 
-    )
-}
-
-function MessageSvg({fill='#424242'}){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            viewBox="0 0 483.3 483.3"
-            style={{ enableBackground: "new 0 0 483.3 483.3", height:25,width:25,fill:fill }}
-            xmlSpace="preserve"
-            >
-            <path d="M424.3 57.75H59.1c-32.6 0-59.1 26.5-59.1 59.1v249.6c0 32.6 26.5 59.1 59.1 59.1h365.1c32.6 0 59.1-26.5 59.1-59.1v-249.5c.1-32.6-26.4-59.2-59-59.2zm32.1 308.7c0 17.7-14.4 32.1-32.1 32.1H59.1c-17.7 0-32.1-14.4-32.1-32.1v-249.5c0-17.7 14.4-32.1 32.1-32.1h365.1c17.7 0 32.1 14.4 32.1 32.1v249.5h.1z" />
-            <path d="M304.8 238.55l118.2-106c5.5-5 6-13.5 1-19.1-5-5.5-13.5-6-19.1-1l-163 146.3-31.8-28.4c-.1-.1-.2-.2-.2-.3-.7-.7-1.4-1.3-2.2-1.9L78.3 112.35c-5.6-5-14.1-4.5-19.1 1.1-5 5.6-4.5 14.1 1.1 19.1l119.6 106.9-119.1 111.5c-5.4 5.1-5.7 13.6-.6 19.1 2.7 2.8 6.3 4.3 9.9 4.3 3.3 0 6.6-1.2 9.2-3.6l120.9-113.1 32.8 29.3c2.6 2.3 5.8 3.4 9 3.4s6.5-1.2 9-3.5l33.7-30.2 120.2 114.2c2.6 2.5 6 3.7 9.3 3.7 3.6 0 7.1-1.4 9.8-4.2 5.1-5.4 4.9-14-.5-19.1l-118.7-112.7z" />
-        </svg>
-    )
-}
+const MessageSvg = props => (
+    <svg
+      id="Layer_1"
+      x="0px"
+      y="0px"
+      viewBox="0 0 260 260"
+      xmlSpace="preserve"
+      className="nav-icon"
+      {...props}
+    >
+      <style>{".st0{fill:#212121}"}</style>
+      <path
+        className="st0"
+        d="M219.8 204.6H40.2c-7.7 0-14-6.3-14-14V69.4c0-7.7 6.3-14 14-14h179.5c7.7 0 14 6.3 14 14v121.2c0 7.7-6.2 14-13.9 14zM40.2 65.4c-2.2 0-4 1.8-4 4v121.2c0 2.2 1.8 4 4 4h179.5c2.2 0 4-1.8 4-4V69.4c0-2.2-1.8-4-4-4H40.2z"
+      />
+      <path
+        className="st0"
+        d="M130 151.2c-9.7 0-18.9-3.8-25.8-10.7l-63-63.1c-2-2-2-5.1 0-7.1s5.1-2 7.1 0l63.1 63.1c5 5 11.6 7.7 18.7 7.7s13.7-2.7 18.7-7.7l63.1-63.1c2-2 5.1-2 7.1 0s2 5.1 0 7.1l-63.1 63.1c-7 6.9-16.2 10.7-25.9 10.7z"
+      />
+      <path
+        className="st0"
+        d="M44.7 191.1c-1.3 0-2.6-.5-3.5-1.5-2-2-2-5.1 0-7.1l49.4-49.4c2-2 5.1-2 7.1 0s2 5.1 0 7.1l-49.4 49.4c-1 1-2.3 1.5-3.6 1.5zM215.3 191.1c-1.3 0-2.6-.5-3.5-1.5l-49.4-49.4c-2-2-2-5.1 0-7.1s5.1-2 7.1 0l49.4 49.4c2 2 2 5.1 0 7.1-1.1 1-2.4 1.5-3.6 1.5z"
+      />
+    </svg>
+  );

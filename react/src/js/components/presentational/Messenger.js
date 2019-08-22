@@ -74,7 +74,7 @@ const schema = {
     },
 }
 
-export default function Messenger({ws,branch,room,roomId,updateMessages=null,style=null}){
+export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null}){
     const initialValue = Value.fromJSON({
     document: {
         nodes: [
@@ -144,6 +144,8 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
                         'Content-Type': 'multipart/form-data',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
+                }).then(r=>{
+                    scrollToBottom();
                 })
         }else{
             ws.send(JSON.stringify({
@@ -203,15 +205,14 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
         <>
         <Suspense fallback={null}>
             {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
-            <div className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
+            <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
             justifyContent:'stretch',borderTop:'1px solid #e2eaf1',zIndex:6,...style}}>
                 <div>
                     <img src={context.currentBranch.branch_image} className="profile-picture" 
                     style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
                 </div>
-                <div style={{width:'100%'}} ref={ref}>
+                <div className="flex-fill" style={{width:'100%'}} ref={ref}>
                     <Editor
-                    autoFocus
                     editorRef={editorRef}
                     value={value}
                     onChange={handleChange}
@@ -220,10 +221,9 @@ export default function Messenger({ws,branch,room,roomId,updateMessages=null,sty
                     schema={schema}
                     placeholder="Type something"
                     style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                    wordBreak:'break-all',border:'1px solid #a6b7c5'}}/>
+                    wordBreak:'break-all',border:'1px solid #a6b7c5',flex:'1 1 auto'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                    <input type="file" multiple="multiple" onInput={e=>handleImageClick(e)}></input>
-                    <Toolbar handleSendMessage={handleSendMessage}/>
+                    <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick}/>
                 </div>
             </div>
         </Suspense>
@@ -247,11 +247,41 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-function Toolbar({handleSendMessage}){
+function Toolbar({handleSendMessage,onInput}){
     
     return(
-        <div style={{marginTop:5}}>
-            <button onClick={handleSendMessage}>Send</button>
+        <div className="flex-fill" style={{marginTop:5}}>
+            <div className="flex-fill" style={{flex:'1 1 auto',margin:'0 10px'}}>
+                <input type="file" multiple="multiple" className="inputfile" id="media" onInput={onInput}></input>
+                <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
+            </div>
+            <button className="editor-btn" onClick={handleSendMessage}>Send</button>
         </div>
     )
 }
+
+const MediaSvg = props => (
+    <svg
+      id="Layer_1"
+      x="0px"
+      y="0px"
+      viewBox="0 0 260 260"
+      xmlSpace="preserve"
+      className="messenger-icon"
+      {...props}
+    >
+      <style>{".st0{fill:#212121}"}</style>
+      <path
+        className="st0"
+        d="M93.3 136c0-13.7 11.1-24.8 24.8-24.8 2.8 0 5-2.2 5-5s-2.2-5-5-5c-19.2 0-34.8 15.6-34.8 34.8 0 2.8 2.2 5 5 5s5-2.3 5-5z"
+      />
+      <path
+        className="st0"
+        d="M225.3 81.9h-50.5l-21.7-29.3c-.9-1.3-2.4-2-4-2h-62c-1.6 0-3.1.8-4 2L61.3 81.9H34.7c-2.8 0-5 2.2-5 5v117.6c0 2.8 2.2 5 5 5h190.7c2.8 0 5-2.2 5-5V86.9c-.1-2.8-2.3-5-5.1-5zm-22.4 30.2h17.4v65.5h-17.4v-65.5zm-139-20.2c1.6 0 3.1-.8 4-2l21.7-29.3h57l21.7 29.3c.9 1.3 2.4 2 4 2h48v10.2h-22.4c-2.8 0-5 2.2-5 5v3h-29c-9.1-16-26.2-26.8-45.9-26.8-19.6 0-36.8 10.8-45.9 26.8H39.7V91.9h24.2zm54.2 1.4c23.5 0 42.7 19.1 42.7 42.7 0 23.5-19.1 42.7-42.7 42.7-23.5 0-42.7-19.1-42.7-42.7s19.2-42.7 42.7-42.7zM39.7 199.5v-79.4h28.2c-1.6 5-2.4 10.3-2.4 15.8 0 29 23.6 52.7 52.7 52.7 29 0 52.7-23.6 52.7-52.7 0-5.5-.9-10.8-2.4-15.8h24.6v62.6c0 2.8 2.2 5 5 5h22.4v11.8H39.7z"
+      />
+      <path
+        className="st0"
+        d="M189.6 74h17.3c2.8 0 5-2.2 5-5s-2.2-5-5-5h-17.3c-2.8 0-5 2.2-5 5s2.2 5 5 5z"
+      />
+    </svg>
+  );

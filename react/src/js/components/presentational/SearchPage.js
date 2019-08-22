@@ -1,4 +1,5 @@
 import React, { useState,useContext,useEffect,useRef } from 'react';
+import {Helmet} from 'react-helmet'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
 import axios from 'axios';
@@ -36,7 +37,7 @@ function Search(){
         const response = safeText ? await axios.get(`/api/search/?branch=${safeText}`,{
             cancelToken: source.token
           }): null
-        console.log(response)
+         
         if(response && Array.isArray(response.data)){
             setResults(response.data)
         }
@@ -53,9 +54,14 @@ function Search(){
 
     },[text])
 
-    console.log(results.length)
+     
 
     return(
+        <>
+        <Helmet>
+            <title>Search - Subranch</title>
+            <meta name="description" content="Branch not found." />
+        </Helmet>
         <div ref={wrapperRef}>
             <div style={{padding:10}}>
                 <input
@@ -81,6 +87,7 @@ function Search(){
             </div>
             
         </div>
+        </>
     )
 }
 

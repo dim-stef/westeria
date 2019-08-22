@@ -126,6 +126,24 @@ def search(request):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def mark_all_as_read(request):
+    request.user.notifications.all().update(unread=False)
+    return Response(status=200)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def mark_all_notifications_as_read(request):
+    request.user.notifications.exclude(verb='message').update(unread=False)
+    return Response(status=200)
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def mark_all_messages_as_read(request):
+    request.user.notifications.filter(verb='message').update(unread=False)
+    return Response(status=200)
+
 class BranchPublicProfileSerializer(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
@@ -557,7 +575,9 @@ class FollowingTreeViewSet(PostListWithSpreader):
             self.get_children(branch)
         post_tree = Post.objects.filter(poster__in=self.qs.distinct())
 
-        return post_tree
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
+        return filter_posts(post_tree, content, past)
 
 
 class TrendingScoreViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
@@ -780,4 +800,4 @@ class NotificationsViewSet(viewsets.GenericViewSet,
     serializer_class = serializers.NotificationSerializer
     permission_classes = (permissions.IsAuthenticated,)
     def get_queryset(self):
-        return self.request.user.notifications.all()
+        return self.request.user.notifications.filter(unread=True)
