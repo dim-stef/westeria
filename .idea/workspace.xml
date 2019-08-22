@@ -1,148 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="0.0.9 production update">
-      <change afterPath="$PROJECT_DIR$/common/static/mstile-150x150.png" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.0.0 production update">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0002_auto_20180707_0113.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0003_auto_20180707_2045.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0004_fakeprofile_url.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0005_auto_20180708_0013.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0006_auto_20180724_2319.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0007_auto_20180727_0259.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0008_auto_20181031_0324.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0009_auto_20181204_0228.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0010_auto_20181204_1828.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0011_auto_20181204_2101.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0012_auto_20181204_2155.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0013_user_name.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0014_remove_user_name.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0015_auto_20181206_1933.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0016_auto_20181216_0017.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0017_auto_20190106_2221.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/migrations/0002_auto_20181210_0109.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/migrations/0003_auto_20190712_0443.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/migrations/0004_auto_20190712_1722.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/migrations/0005_auto_20190810_1701.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/branches/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0002_auto_20181210_0109.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0003_branch_default.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0004_auto_20181216_0017.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0005_auto_20190106_2221.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0006_auto_20190215_2357.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0007_auto_20190216_0137.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0008_auto_20190216_0156.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0009_auto_20190320_1748.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0010_branchrequest.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0011_auto_20190514_2000.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0012_auto_20190517_1723.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0013_branchrequest_relation_type.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0014_branch_trending_score.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0015_auto_20190804_2317.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/migrations/0016_auto_20190807_1723.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branches/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/static/groups/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/branches/static/groups/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchposts/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0002_auto_20190215_1845.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0003_auto_20190217_0044.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0004_react_star.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0005_post_replies.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0006_auto_20190406_2033.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0007_auto_20190406_2053.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0008_auto_20190408_1809.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0009_auto_20190423_2047.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0010_post_type.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0011_auto_20190427_2024.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0012_post_all_posted.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0013_auto_20190503_0014.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0014_post_hot_score.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0015_auto_20190507_0109.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0016_auto_20190508_0323.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0017_auto_20190508_0339.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0018_auto_20190510_1901.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0019_auto_20190517_1723.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0020_spread_created.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0021_post_photos.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0022_auto_20190521_0435.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0023_auto_20190524_0011.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0024_auto_20190525_0432.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0025_auto_20190525_0439.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0026_auto_20190526_2213.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0027_postvideo.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0028_auto_20190617_2242.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0029_auto_20190621_0030.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0030_postimage_url.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0031_auto_20190708_2316.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/migrations/0032_auto_20190726_2322.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchposts/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/android-chrome-192x192.png" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/android-chrome-192x192.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/android-chrome-256x256.png" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/android-chrome-256x256.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/apple-touch-icon.png" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/apple-touch-icon.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/browserconfig.xml" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/browserconfig.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/favicon-16x16.png" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/favicon-16x16.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/favicon-32x32.png" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/favicon-32x32.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/favicon.ico" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/favicon.ico" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/safari-pinned-tab.svg" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/safari-pinned-tab.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/templates/sw.js" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/sw.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/notifications/consumers.py" beforeDir="false" afterPath="$PROJECT_DIR$/notifications/consumers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/Page.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/Page.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/BranchContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/BranchContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/BranchSettingsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/BranchSettingsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ContextContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ContextContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/GroupChatContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/GroupChatContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/GroupHomeContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/GroupHomeContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/MyBranchesContainer.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/SettingsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/SettingsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/TrendingContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/TrendingContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchImage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchImage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPageLeftBar.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPageLeftBar.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchSwitcher.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchSwitcher.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Comments.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Comments.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/ExtendButton.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/ExtendButton.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Group.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Group.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Legacy.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Legacy.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Login.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Login.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Logout.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Logout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranchesColumn.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranchesColumn.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordReset.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordReset.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordResetConfirm.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordResetConfirm.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Post.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Post.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PureGroup.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PureGroup.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Register.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Register.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/RoutedHeadline.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/RoutedHeadline.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SkeletonBranchList.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SkeletonBranchList.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Tree.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Tree.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/WideScreenNavigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/WideScreenNavigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/useless.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/useless.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/webpack-stats.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack-stats.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/react/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -198,11 +59,32 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/templates/index.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="308">
               <caret line="12" column="82" selection-start-line="12" selection-start-column="82" selection-end-line="12" selection-end-column="82" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/subranch/settings_secret.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="476">
+              <caret line="17" selection-start-line="17" selection-end-line="17" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/subranch/settings.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="215">
+              <caret line="62" column="63" selection-start-line="62" selection-start-column="51" selection-end-line="62" selection-end-column="63" />
+              <folding>
+                <element signature="e#307#316#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -227,27 +109,6 @@
               <folding>
                 <element signature="e#0#46#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/api/views.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="692">
-              <caret line="579" column="40" selection-start-line="579" selection-start-column="40" selection-end-line="579" selection-end-column="40" />
-              <folding>
-                <element signature="e#0#46#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/common/static/js/sw.js">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="168">
-              <caret line="6" column="14" selection-start-line="6" selection-start-column="14" selection-end-line="6" selection-end-column="14" />
             </state>
           </provider>
         </entry>
@@ -714,14 +575,7 @@
       <workItem from="1564336081238" duration="14276000" />
       <workItem from="1564569096203" duration="61195000" />
       <workItem from="1565105763090" duration="103532000" />
-      <workItem from="1565913360341" duration="33744000" />
-    </task>
-    <task id="LOCAL-00161" summary="Get token path">
-      <created>1543326293578</created>
-      <option name="number" value="00161" />
-      <option name="presentableId" value="LOCAL-00161" />
-      <option name="project" value="LOCAL" />
-      <updated>1543326293578</updated>
+      <workItem from="1565913360341" duration="34775000" />
     </task>
     <task id="LOCAL-00162" summary="Get token via GET request">
       <created>1543326319048</created>
@@ -1059,11 +913,18 @@
       <option name="project" value="LOCAL" />
       <updated>1565943253401</updated>
     </task>
-    <option name="localTasksCounter" value="210" />
+    <task id="LOCAL-00210" summary="1.0.0 production update">
+      <created>1566502188315</created>
+      <option name="number" value="00210" />
+      <option name="presentableId" value="LOCAL-00210" />
+      <option name="project" value="LOCAL" />
+      <updated>1566502188316</updated>
+    </task>
+    <option name="localTasksCounter" value="211" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1036933000" />
+    <option name="totallyTimeSpent" value="1037964000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1075,8 +936,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1712" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -1107,7 +967,6 @@
     <option name="version" value="1" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Updated code and added components" />
     <MESSAGE value="Added class name" />
     <MESSAGE value="Removed unnecessary script" />
     <MESSAGE value="Minified files" />
@@ -1132,7 +991,8 @@
     <MESSAGE value="0.0.7 production update" />
     <MESSAGE value="0.0.8 production update" />
     <MESSAGE value="0.0.9 production update" />
-    <option name="LAST_COMMIT_MESSAGE" value="0.0.9 production update" />
+    <MESSAGE value="1.0.0 production update" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.0.0 production update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1336,27 +1196,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/subranch/settings_secret.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="17" selection-start-line="17" selection-end-line="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/subranch/production.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="364">
           <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
-          <folding>
-            <element signature="e#307#316#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/subranch/settings.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="327">
-          <caret line="66" column="48" selection-start-line="66" selection-start-column="48" selection-end-line="66" selection-end-column="48" />
           <folding>
             <element signature="e#307#316#0" expanded="true" />
           </folding>
@@ -1511,6 +1354,23 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="308">
           <caret line="12" column="82" selection-start-line="12" selection-start-column="82" selection-end-line="12" selection-end-column="82" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/subranch/settings_secret.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="476">
+          <caret line="17" selection-start-line="17" selection-end-line="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/subranch/settings.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="215">
+          <caret line="62" column="63" selection-start-line="62" selection-start-column="51" selection-end-line="62" selection-end-column="63" />
+          <folding>
+            <element signature="e#307#316#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
