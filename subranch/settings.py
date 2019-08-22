@@ -68,6 +68,7 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
 )
 
 ###
+AWS_IS_GZIPPED = True
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }

@@ -82,7 +82,7 @@ export default function StatusUpdateAuthWrapper(props){
     const userContext = useContext(UserContext);
 
     return(
-        userContext.isAuth?<StatusUpdate {...props}/>:<p>Not authorized</p>
+        userContext.isAuth?<StatusUpdate {...props}/>:null
     )
 }
 

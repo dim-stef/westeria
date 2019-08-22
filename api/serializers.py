@@ -500,6 +500,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
     poster_banner = serializers.SerializerMethodField('poster_banner_field')
     poster_name = serializers.SerializerMethodField('poster_name_field')
     poster_id = serializers.SerializerMethodField()
+    poster_description = serializers.SerializerMethodField()
     posted_picture = serializers.SerializerMethodField('posted_picture_field')
     posted_banner = serializers.SerializerMethodField('posted_banner_field')
     posted_name = serializers.SerializerMethodField('posted_name_field')
@@ -535,6 +536,9 @@ class BranchPostSerializer(serializers.ModelSerializer):
 
     def get_poster_id(self,post):
         return post.poster.id
+
+    def get_poster_description(self,post):
+        return post.poster.description
 
     def posted_picture_field(self,post):
         return post.posted.branch_image.url
@@ -595,7 +599,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
-                  'posted_to','text','type',
+                  'poster_description','posted_to','text','type',
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner',
                   'replied_to','replies','replies_count','spreads_count',

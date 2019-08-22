@@ -1,13 +1,14 @@
 import React, { useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
 import {Link,withRouter} from 'react-router-dom'
+import {Helmet} from 'react-helmet'
 import {UserContext} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
 import StatusUpdate from "./StatusUpdate";
 import {FollowButton} from "./Card"
 import {ToggleContent} from './Temporary'
 import {ReplyTree} from './Comments'
-import {SmallBranchList} from './BranchList'
+import RoutedHeadline from './RoutedHeadline'
 import {SmallBranch} from "./Branch"
 import {SmallCard} from "./Card"
 import { useInView } from 'react-intersection-observer'
@@ -111,9 +112,26 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     const measure = () =>{
         return;
     }
+
+    let title = 'Subranch';
+    let maxLength=100;
+    let trancuation = ''
+    if(post){
+        let endOfText = post.text.length > maxLength ? maxLength : post.text.length
+        trancuation =  post.text.length > maxLength ? '...':'';
+        if(post.text){
+            title = post.poster_name + ' ' + post.text.substring(0,endOfText)+ trancuation + ' - Subranch';
+        }
+    }
+    
     return (
         post?
-            <>
+        <>
+            <Helmet>
+                <title>{title}</title>
+                <meta name="description" content={post.poster_description}></meta>
+            </Helmet>
+            <RoutedHeadline/>
             <Post post={post} parentPost={parentPost} postsContext={postsContext}
                 index={0} activeBranch={activeBranch} lastComment={lastComment} measure={measure}
                 viewAs="post" isStatusUpdateActive updateTree={updateTree} isSingular

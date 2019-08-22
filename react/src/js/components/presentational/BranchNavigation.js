@@ -9,7 +9,7 @@ export class BranchNavigation extends Component{
 
     render(){
         return(
-            <div style={{position:'sticky',top:51}}>
+            <div style={{zIndex:1}}>
                 <div style={{height:'100%',position:'absolute',left:100,width:210,display:'flex',alignItems:'center'}}>
                     <DropProfile branch={this.props.branch}/>
                 </div>
