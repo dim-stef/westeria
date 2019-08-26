@@ -67,7 +67,6 @@ class Branch(models.Model):
 
     def clean(self, *args, **kwargs):
         owned_branches = self.owner.owned_groups.exclude(pk=self.pk)
-        print(self.default)
         if self.default:
             for branch in owned_branches:
                 branch.default = False

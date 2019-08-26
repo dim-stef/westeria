@@ -84,6 +84,9 @@ function RoomContainer({roomData,match}){
     const [hasMore,setHasMore] = useState(true);
     const [isFirstBatch,setFirstBatch] = useState(true);
     const [members,setMembers] = useState([]);
+    const [heightWithKeyboard,setHeightWithKeyboard] = useState(0);
+    const [heightWithoutKeyboard,heightWithoutKeyboard] = useState(window.innerHeight);
+    const [height,setHeight] = useState(window.innerHeight);
     const ref = useRef(null);
     const parentRef = useRef(null);
 
@@ -143,6 +146,20 @@ function RoomContainer({roomData,match}){
         setAuthor(context.currentBranch)
     },[context.currentBranch])
 
+    useEffect(()=>{
+        if(heightWithKeyboard){
+            setHeight(heightWithKeyboard);
+        }
+    },[heightWithKeyboard])
+
+    function setHeightOnBlur(){
+        setHeight(heightWithoutKeyboard);
+    }
+
+    function setHeightOnInput(){
+        setHeightWithKeyboard(window.innerHeight);
+    }
+
     function updateMessages(newMessage){
         //scrollToBottom();
         setMessages([...messages,...newMessage]);
@@ -185,7 +202,7 @@ function RoomContainer({roomData,match}){
             <meta name="description" content={`${data.room.name} messages.`} />
         </Helmet>
         <PageWrapper>
-            <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:'-webkit-fill-available',
+            <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1}}>
                 <RoutedHeadline headline={'@' + previewName}/>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
@@ -194,7 +211,9 @@ function RoomContainer({roomData,match}){
                     setFirstBatch={setFirstBatch}
                     parentRef={parentRef} wrapperRef={ref}/> 
                 </div>
-                <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} scrollToBottom={scrollToBottom}/>
+                <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} scrollToBottom={scrollToBottom}
+                    setHeightOnBlur={setHeightOnBlur} setHeightOnInput={setHeightOnInput}
+                />
             </div>
         </PageWrapper>
         </>
@@ -287,7 +306,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let containerStyle={};
     let messageStyle={
         fontSize:'2em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
-        padding:'5px 10px',borderRadius:13,margin:'3px 0'
+        padding:'5px 10px',borderRadius:25,margin:'3px 0'
     };
 
     if(messageBox.author_url == branch){
@@ -301,7 +320,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
         let mediaWidth = 0;
 
         if(m.videos.length>0 || m.images.length>1){
-            mediaWidth = imageWidth
+            mediaWidth = '100%';
         }else{
             let minWidth = 0.2 * imageWidth;
             let maxWidth = 0.7 * imageWidth;
@@ -430,7 +449,7 @@ function RoomPreview({room,ws,isGroup,inBox}){
                 <img className="round-picture" src={previewBranch.branch_image} style={{height:48,width:48,objectFit:'cover'}}></img>
                 <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
                     <span style={{fontWeight:600,color:'#292929'}}>{previewBranch.name}</span>
-                    <span style={{fontSize:'0.9em',color:'#708698'}}>{latestMessage}</span>
+                    <span style={{fontSize:'0.9em',color:'#708698',wordBreak:'break-all'}}>{latestMessage}</span>
                 </div>
             </Link>
         :null

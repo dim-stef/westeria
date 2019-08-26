@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from 'react-router'
-import { Link } from 'react-router-dom'
+import { Redirect, Link } from 'react-router-dom'
 import {Helmet} from 'react-helmet'
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'

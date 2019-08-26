@@ -1,112 +1,72 @@
 {% load static %}
+
 <!DOCTYPE html>
 
-
-<html lang="en">
+<html style="font-size: 10px;
+    font-family: Roboto, Arial, sans-serif;">
 
 <head>
-
-    <link rel="stylesheet" type="text/css" href="{% static 'accounts/register.css' %}">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css"
-          integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb"
-          crossorigin="anonymous">
-    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ"
-        crossorigin="anonymous"></script>-->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1">
+    <title>Subranch</title>
+    <meta name="description" content="Discover communities and people you did't know existed. Join the conversation. Become part of the Subranch tree" data-react-helmet="true">
+    <link rel="manifest" href="/static/js/manifest.webmanifest" crossorigin="use-credentials">
+    <script>
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js', {scope: '/'})
+               .then(reg => {
+				reg.onupdatefound = () => {
+                        const installingWorker = reg.installing;
+                        installingWorker.onstatechange = () => {
+                            switch (installingWorker.state) {
+                                case 'installed':
+                                    if (navigator.serviceWorker.controller) {
+                                        // new update available
+                                        resolve(true);
+                                    } else {
+                                        // no update available
+                                        resolve(false);
+                                    }
+                                    break;
+                            }
+                        };
+                    };
+               });
+    }
+    </script>
+    <link rel="stylesheet" type="text/css" href="{% static 'settings/settings.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/settings.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'accounts/auth.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/errors.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'core/css/modal.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'groups/css/creategroup.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'groups/css/index.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'groupchat/css/groupchat.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/tree.css' %}"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
+    <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    <script>
+        document.documentElement.className +=
+        (("ontouchstart" in document.documentElement) ? ' touch' : ' no-touch');
+    </script>
 </head>
 
-<body onload="">
-<div class="bar-container">
 
-
-</div>
-
-
-<div class="container-fluid">
-
-    <div class="row" style="margin-top:4%;">
-        <div class="col-sm-4"></div>
-        <div class="col-sm-4 main-div">
-            <!--<form method="POST" id="register-form">-->
-            {% block body %}
-
-                {% if messages %}
-                    <div>
-                        <strong>Messages:</strong>
-                        <ul>
-                            {% for message in messages %}
-                                <li>{{ message }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                {% endif %}
-
-                <div>
-                    <ul>
-                        <!--
-                        {/% if user.is_authenticated %/}
-                        <li><a href="{% url 'account_email' %}">Change E-mail</a></li>
-                        <li><a href="{% url 'account_logout' %}">Sign Out</a></li>
-                        
-                         {/% else %/}
-                        <li><a href="{% url 'account_login' %}">Sign In</a></li>
-                        <li><a href="{% url 'account_signup' %}">Sign Up</a></li> 
-                        {/% endif %/}
-                        -->
-                    </ul>
-                </div>
-                {% block content %}
-                {% endblock %}
-            {% endblock %}
-
-            {% block extra_body %}
-            {% endblock %}
+<body id="body">
+    <div class="page" style="height: 100%;">
+        {% block groups %} {% endblock %}
+        <div id="react-root" style="height: 100%;">
         </div>
     </div>
-
-</div>
-<footer class="_s5vm9" style="margin-top:20px;">
-    <div class="_g7lf5">
-        <nav>
-            <ul>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-                <li class="_538w0">
-                    <a href="text"></a>
-                </li>
-            </ul>
-        </nav>
-
-    </div>
-    <p class="text-align">copyrights</p>
-</footer>
-</div>
-</div>
-<script src="{% static 'js/jquery-3.2.1.js' %}" defer="defer"></script>
-<script src="{% static 'accounts/token.js' %}" defer="defer"></script>
-<script src="{% static 'accounts/events.js' %}" defer="defer"></script>
-<script src="{% static 'accounts/formValidation.js' %}" defer="defer"></script>
+    <div id="modal-root"></div>
+    <script src="{% static 'js/csrf.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/app.bundle.js' %}"></script>
 </body>
-
 
 </html>

@@ -9,16 +9,15 @@ import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
 import Plain from 'slate-plain-serializer'
 import ReactPlayer from 'react-player'
-import EmojiPicker from 'emoji-picker-react';
+//import EmojiPicker from 'emoji-picker-react';
 import { css } from '@emotion/core';
+import SlateReactPlaceholder from "slate-react-placeholder";
 import { MoonLoader } from 'react-spinners';
 import axios from 'axios'
 import {Editor} from "slate-react"
 
 
 function MediaPreview(props){
-     
-
     function handleClick(file){
         let fileArray = Array.from(props.files);
         let newFiles = fileArray.filter(f=>{
@@ -86,27 +85,38 @@ export default function StatusUpdateAuthWrapper(props){
     )
 }
 
+
 export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
     const initialValue = Value.fromJSON({
-    document: {
-        nodes: [
-            {
-                object: 'block',
-                type: 'paragraph',
-                nodes: [
+        document: {
+            nodes: [
                 {
-                    object: 'text',
-                    leaves: [
+                    object: 'block',
+                    type: 'paragraph',
+                    nodes: [
                     {
-                        text: '',
+                        object: 'text',
+                        leaves: [
+                        {
+                            text: '',
+                        },
+                        ],
                     },
                     ],
                 },
                 ],
             },
-            ],
-        },
-    })
+        })
+
+    const initValue = Plain.deserialize('');
+    /*const plugins = [
+        SlateReactPlaceholder({
+            placeholder: "placeholder text",
+            when: (editor, node) => {
+              return editor.value.document.text === '';
+            }
+        })
+    ]*/
 
     function renderNode(props, editor, next) {
         const { node, attributes, children } = props
@@ -119,7 +129,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
         }
     }
 
-    const [value,setValue] = useState(initialValue);
+    const [value,setValue] = useState('');
     const [files,setFiles] = useState([]);
     const [minimized,setMinimized] = useState(true);
     const ref = useRef(null);
@@ -135,12 +145,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     children:children,setChildren:setChildren,checkedBranches:checkedBranches,setCheckedBranches:setCheckedBranches};
 
     const handleChange = (e) =>{
-        setValue(e.value);
-        if (e.value.document != value.document) {
-            //const content = JSON.stringify(e.value.toJSON())
-            const content = Plain.serialize(e.value)
-            localStorage.setItem('content', content)
-        }
+        setValue(e.target.innerText);
     }
 
     function handleImageClick(e){
@@ -150,7 +155,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     }
 
     function resetEditor(){
-        setValue(initialValue);
+        setValue(initValue);
         setFiles([]);
     }
     
@@ -201,14 +206,13 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     style={{width:34,height:34,marginRight:10,display:'block',objectFit:'cover'}}/>
                 </BranchSwitcher>
                 <div style={{width:'100%'}}>
-                    <Editor
-                    className="editor"
-                    ref={ref}
-                    value={value}
-                    onChange={handleChange}
+                    <CustomEditor
+                    onInput={handleChange}
                     placeholder="Add a leaf"
+                    className="editor flex-fill"
+                    value={value}
                     style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                    wordBreak:'break-all',border:'2px solid #219ef3'}}/>
+                    wordBreak:'break-all',border:'2px solid #219ef3',minHeight:'2rem',alignItems:'center'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                     {minimized?
                     null:
@@ -219,6 +223,31 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     />}
                 </div>
             </div>
+    )
+}
+
+function CustomEditor({onInput,placeholder,className,style}){
+    const ref = useRef(null);
+
+    function handleInput(e){
+
+        if (e.target.innerText) {
+			e.target.dataset.divPlaceholderContent = 'true';
+		}
+		else {
+			delete(e.target.dataset.divPlaceholderContent);
+		}
+        onInput(e);
+    }
+
+    return(
+        <div
+        contentEditable
+        className={className}
+        ref={ref}
+        onInput={handleInput}
+        data-placeholder={placeholder}
+        style={style}/>
     )
 }
 
@@ -244,7 +273,8 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
 
     const handleClick = (e)=>{
         
-        let post = Plain.serialize(value);
+        let post = value;
+        //let post = value;
         let type = replyTo?'reply':'post';
 
         const formData = new FormData();
@@ -448,7 +478,7 @@ export function CheckBox({value,checkedBranches,setCheckedBranches}){
 }
 
 
-function Emoji({editor}){
+/*function Emoji({editor}){
     const [isOpen,setOpen] = useState(false);
 
     function handleEmojiClick(code,data){
@@ -476,7 +506,7 @@ function Emoji({editor}){
             }
         </div>
     )
-}
+}*/
 function EmojiSvg(){
     return(
         <svg

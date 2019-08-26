@@ -359,7 +359,8 @@ class NewPostSerializer(serializers.ModelSerializer):
         validated_data.pop('images')
         validated_data.pop('videos')
 
-        if not validated_data['text'] and not request.FILES:
+        print(validated_data['text'], request.FILES)
+        if not validated_data['text'] and not validated_data['text'].isspace() and not request.FILES:
             raise serializers.ValidationError('text and media are None')
 
         post = Post.objects.create(**validated_data)

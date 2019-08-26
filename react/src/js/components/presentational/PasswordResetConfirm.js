@@ -18,6 +18,11 @@ function PasswordResetConfirm({match}){
                     ...values,
                     uid:match.params.uid,
                     token:match.params.token
+                },
+                    {headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
                 }
             );
              

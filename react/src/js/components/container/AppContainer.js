@@ -29,14 +29,14 @@ class App extends Component {
         this.updateBranch=this.updateBranch.bind(this);
 
         this.unlisten = this.props.history.listen((location, action) => {
-            if(location.pathname === "/login"){
+            /*if(location.pathname === "/login"){
                 this.setState({
                     isAuth:null,
                     branches:null,
                     currentBranch:null,
                     startedLoading:false,
                 })
-            }
+            }*/
         });
     }
 

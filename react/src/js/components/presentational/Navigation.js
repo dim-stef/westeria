@@ -59,7 +59,6 @@ export function ResponsiveNavigationBar(){
 
         // prevent infinite update loop
         if(shouldUpdate){
-             
             notificationsContext.setNotifications(newNotifications);
         }
     }
@@ -127,14 +126,14 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
                 </NavLink>
                 {context.isAuth?
                     <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill nav-icon-container"
-                    style={style} activeStyle={activeStyle} isActive={readAllNotifications}>
+                    style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
 
                 {context.isAuth?
                     <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill nav-icon-container"
-                    style={style} activeStyle={activeStyle} isActive={readAllMessages}>
+                    style={style} activeStyle={activeStyle} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                     <MessageSvg/>
                     {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
@@ -184,7 +183,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     className="flex-fill"
                     activeClassName="active-tab-route"
                     activeStyle={activeStyle}
-                    style={style} isActive={readAllNotifications}>
+                    style={style} onClick={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
@@ -194,7 +193,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     activeClassName="active-tab-route"
                     className="flex-fill"
                     activeStyle={activeStyle}
-                    style={style} isActive={readAllMessages}>
+                    style={style} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                         <MessageSvg/>
                         {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
@@ -219,9 +218,9 @@ function ProfileDropDown({setFocused}){
     }
 
     return(
-        <div className="hoverable-box" style={{width:150,borderRadius:25}}>
+        <div className="hoverable-box" style={{width:150,borderRadius:15}}>
             <div className="flex-fill" 
-            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',borderRadius:25,
+            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',borderRadius:15,
             overflow:'hidden'}}> 
 
                 <RoutedTabs

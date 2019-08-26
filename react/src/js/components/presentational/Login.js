@@ -1,6 +1,5 @@
 import React, { Component } from "react";
-import { Redirect } from 'react-router'
-import { Link } from 'react-router-dom'
+import { Link , Redirect} from 'react-router-dom'
 import {Helmet} from "react-helmet"
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
@@ -59,7 +58,7 @@ export default class Login extends Component{
                    
                 }
         })
-        e.preventDefault();
+        e.preventDefault()
     }
 
 
@@ -103,9 +102,10 @@ export default class Login extends Component{
                     placeholder="Password" required value={this.state.password} onChange={this.handlePasswordChange}/>
                     
                     {errorMessages}
-                    <p><Link to="/password/reset">Forgot password?</Link></p>
                     <input className="login-btn" type="submit" value="LOGIN" />
                     </form>
+                    <p><Link to="/password/reset">Forgot password?</Link></p>
+
                     <p>Don't have an Account? <Link to="/register" 
                     style={{textDecoration: 'none', backgroundColor: 'transparent', fontWeight: 500}}>Sign Up</Link></p>
                 </div>

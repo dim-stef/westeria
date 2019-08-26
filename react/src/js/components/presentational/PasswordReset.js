@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect,useLayoutEffect } from "react";
 import { Link,withRouter,Redirect } from 'react-router-dom'
 import { Form, Field } from 'react-final-form'
 import {Helmet} from "react-helmet"
@@ -6,7 +6,7 @@ import {AuthFormWrapper} from "./Forms"
 import axios from 'axios'
 
 
-function PasswordReset({history,location,match}){
+function PasswordReset(){
 
     async function handlePasswordReset(values){
         let errors = {};
@@ -15,7 +15,12 @@ function PasswordReset({history,location,match}){
             let url = '/rest-auth/password/reset/';
             let response = await axios.post(
                 url,
-                {...values}
+                {...values},
+                    {headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                }
             );
              
         }catch(error){
@@ -28,7 +33,7 @@ function PasswordReset({history,location,match}){
         return errors;
     }
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         document.body.classList.add('body-auth');
 
         return()=>{
@@ -88,6 +93,5 @@ function Save({submitting,pristine,invalid,submitSucceeded,className="form-save-
         </button>
     )
 }
-
-export default withRouter(PasswordReset)
+export default PasswordReset
 

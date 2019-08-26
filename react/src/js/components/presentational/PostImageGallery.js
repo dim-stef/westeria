@@ -95,12 +95,12 @@ export function Images(props){
         <div ref={ref} style={{...style,overflow: 'hidden',maxHeight:maxHeight}}>
             <div style={{position:'relative',paddingTop:paddTop}} >
                 <div className="flex-fill post-image-wrapper" style={{maxHeight:maxHeight}}>
-                    {props.images.length>1?
+                    {props.images.length + props.videos.length>1?
                     <MediaButtons index={index} changeIndex={changeIndex} count={props.images.length + props.videos.length} 
                     imageWidth={props.imageWidth} left={left}
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
-                    <SwipeableViews index={isTouchScreen?0:index} onChangeIndex={handleChangeIndex} disableLazyLoading
+                    <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading
                     slideStyle={{position:'relative',overflow:'hidden'}}>
                         {props.images.map(img=>{
                             return <div key={img.image} onTouchStart={event => event.preventDefault()}>

@@ -16,6 +16,7 @@ import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import LazyLoad from 'react-lazy-load';
+const copy = require('clipboard-copy')
 
 
 function getPostedTo(post,activeBranch,context){
@@ -385,7 +386,7 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
     
     return(
         <>
-        <div ref={initRipple} className={className} unbounded={unbounded}>
+        <div ref={initRipple} className={className} unbounded={unbounded} className="no-highlight">
             <div ref={ref} className={`post ${cls}`}
             style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
             poststate={open?"open":"closed"}>
@@ -861,7 +862,7 @@ function StarDislikeRatio({style,reacted,starCount,dislikeCount}){
         </span>*/
         starCount>0 || dislikeCount>0?
         <div style={{width:'100%',height:3,backgroundColor:'#cacaca'}}>
-            <div style={{width:`${ratio}%`,height:'100%',backgroundColor:style?style.color:'rgb(67, 78, 88)'}}>
+            <div className="ratio-bar" style={{width:`${ratio}%`,height:'100%',backgroundColor:style?style.color:'rgb(67, 78, 88)'}}>
 
             </div>
         </div>:null
@@ -1187,12 +1188,13 @@ function More({post}){
     })
 
     function handleCopyLink(){
-        var text = document.location.protocol + '//' + document.location.host + post.poster + '/' + post.id;
+        /*var text = document.location.protocol + '//' + document.location.host + '/' +post.poster + '/' + post.id;
         navigator.clipboard.writeText(text).then(function() {
             // 
         }, function(err) {
             console.error('Could not copy text: ', err);
-        });
+        });*/
+        copy(document.location.protocol + '//' + document.location.host + '/' +post.poster + '/' + post.id)
     }
 
     return(

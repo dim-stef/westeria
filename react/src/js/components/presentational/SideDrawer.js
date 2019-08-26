@@ -96,7 +96,8 @@ function AuthenticatedDrawer({handleHide}){
         justifyContent:'center',WebkitJustifyContent:'center',flexFlow:'column',WebkitFlexFlow:'column',position:'relative'}}>
             <div className="flex-fill" style={{padding:10,flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-start',
             WebkitAlignItems:'flex-start',borderBottom:'1px solid rgb(226, 234, 241)'}}>
-                <button onClick={()=>setShowBranches(true)} style={{border:0,backgroundColor:'transparent'}}> 
+                <button onClick={()=>setShowBranches(true)} className="no-highlight" 
+                style={{border:0,backgroundColor:'transparent',width:'100%'}}> 
                     <span style={{fontWeight:500,fontSize:'1.2em'}}>Switch</span>
                     <SmallBranch branch={userContext.currentBranch} isLink={false} key={userContext.currentBranch.id}>
                     </SmallBranch>

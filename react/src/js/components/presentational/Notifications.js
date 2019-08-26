@@ -49,8 +49,10 @@ export function NotificationsContainer({inBox}){
     }
 
     async function getNotifications(){
-        let response = await axios.get('/api/notifications/');
-        notificationsContext.setNotifications(response.data);
+        if(notificationsContext.notifications.length == 0){
+            let response = await axios.get('/api/notifications/');
+            notificationsContext.setNotifications(response.data);
+        }
         setLoaded(true);
     }
 
@@ -287,7 +289,7 @@ function NotificationLinkBody({to,id,children}){
 function BoxNotifications({notifications}){
     return(
         <div className="hoverable-box" style={{width:500}}>
-            <div style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',borderRadius:25,overflow:'hidden',
+            <div style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',borderRadius:15,overflow:'hidden',
             color:'#333'}}> 
                 {notifications.length>0?
                 notifications.map(n=>{

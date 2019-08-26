@@ -3,6 +3,7 @@ import {UserContext} from "../container/ContextContainer"
 import {isMobile} from 'react-device-detect';
 import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
+import {CustomEditor} from "./Editor"
 import Plain from 'slate-plain-serializer'
 import ReactPlayer from 'react-player'
 import axios from 'axios'
@@ -56,7 +57,7 @@ function MediaPreview(props){
         return videos;
     }
     return(
-        <div style={{display:'flex'}}>
+        <div className="flex-fill" style={{alignItems:'center'}}>
             {renderImages()}
             {renderVideos()}
         </div>
@@ -74,7 +75,7 @@ const schema = {
     },
 }
 
-export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null}){
+export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null,setHeightOnBlur,setHeightOnInput}){
     const initialValue = Value.fromJSON({
     document: {
         nodes: [
@@ -96,7 +97,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         },
     })
 
-    const [value,setValue] = useState(initialValue);
+    const [value,setValue] = useState('');
     const [previousValue,setPreviousValue] = useState(value);
     const [files,setFiles] = useState([])
     const ref = useRef(null);
@@ -108,16 +109,12 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
 
 
     const handleChange = (e) =>{
-        setValue(e.value);
-        if (e.value.document != value.document) {
-            //const content = JSON.stringify(e.value.toJSON())
-            const content = Plain.serialize(e.value)
-            localStorage.setItem('message', content)
-        }
+        setValue(e.target.innerText);
+        setHeightOnInput()
     }
 
-    function handleSendMessage(editor){
-        let message = Plain.serialize(value);
+    function handleSendMessage(){
+        let message = value;
 
         const formData = new FormData();
         formData.append('message',message);
@@ -161,21 +158,25 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     
 
     useEffect(()=>{
-        if(Plain.serialize(value) == ''){
-            const documentNode = ref.current.querySelector(`[data-key="${value.document.key}"`)
+        if(value == ''){
+            const documentNode = ref.current
             documentNode.focus()
         }
-    },[Plain.serialize(value)])
+    },[value])
 
     const handlerRef = useRef(onKeyDown);
 
-    function onKeyDown(event, editor, next){
+    function onKeyDown(event){
         // Return with no changes if the keypress is not '&'
-        if (event.which !== 13 || event.keyCode !== 13 || event.key !== "Enter") return next()
-    
-        // Prevent line break.
+        if (event.which !== 13 || event.keyCode !== 13 || event.key !== "Enter"){
+            
+            return
+        }
+        
         event.preventDefault();
-        handleSendMessage(editor);
+        handleSendMessage();
+        // Prevent line break.
+        
     }
 
     // Update the current value of the ref after we successfully render.
@@ -193,7 +194,8 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     }
 
     function resetEditor(){
-        setValue(initialValue);
+        editorRef.current.innerText = '';
+        setValue('');
         setFiles([]);
     }
 
@@ -205,26 +207,30 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         <>
         <Suspense fallback={null}>
             {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
-            <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',backgroundColor:'white',
-            justifyContent:'stretch',borderTop:'1px solid #e2eaf1',zIndex:6,...style}}>
-                <div>
-                    <img src={context.currentBranch.branch_image} className="profile-picture" 
-                    style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
+            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',zIndex:6,backgroundColor:'white'}}>
+                <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',
+                justifyContent:'stretch',borderTop:'1px solid #e2eaf1',...style}}>
+                    <div>
+                        <img src={context.currentBranch.branch_image} className="profile-picture" 
+                        style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
+                    </div>
+                    <div className="flex-fill" style={{width:'100%'}} ref={ref}>
+                        <CustomEditor
+                        editorRef={editorRef}
+                        value={value}
+                        onInput={handleChange}
+                        onKeyDown={(e)=>handlerRef.current(e)}
+                        onBlur={setHeightOnBlur}
+                        schema={schema}
+                        className="flex-fill"
+                        placeholder="Type something"
+                        style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
+                        wordBreak:'break-all',border:'1px solid #a6b7c5',flex:'1 1 auto',minHeight:'2rem',alignItems:'center'}}/>
+                        
+                        <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick}/>
+                    </div>
                 </div>
-                <div className="flex-fill" style={{width:'100%'}} ref={ref}>
-                    <Editor
-                    editorRef={editorRef}
-                    value={value}
-                    onChange={handleChange}
-                    onKeyDown={(e,editor,next)=>handlerRef.current(e,editor,next)}
-                    onFocus={(event, editor, next) => editor.focus()}
-                    schema={schema}
-                    placeholder="Type something"
-                    style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                    wordBreak:'break-all',border:'1px solid #a6b7c5',flex:'1 1 auto'}}/>
-                    {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                    <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick}/>
-                </div>
+                {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
             </div>
         </Suspense>
         </>

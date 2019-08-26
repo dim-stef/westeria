@@ -67,7 +67,6 @@ function Search(){
                 <input
                     placeholder="Type something"
                     className="search-button"
-                    style={{height:50,width:'-webkit-fill-available'}}
                     value={text}
                     onChange={e=> setText(e.target.value)}
                     onFocus={e=> setFocused(true)}                

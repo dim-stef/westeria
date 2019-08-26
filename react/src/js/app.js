@@ -1,4 +1,5 @@
 global._babelPolyfill = false;
+require('intersection-observer');
 import "@babel/polyfill";
 import React from "react";
 import ReactDOM from "react-dom";

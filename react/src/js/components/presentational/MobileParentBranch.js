@@ -8,6 +8,16 @@ import {FollowButton} from "./Card"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import axios from 'axios'
 
+
+function getRandomColor() {
+    var letters = '0123456789ABCDEF';
+    var color = '#';
+    for (var i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
 export function MobileBranchPageWrapper({branch,children}){
     const ref = useRef(null);
     const [left,setLeft] = useState(0);
@@ -41,7 +51,8 @@ export function MobileBranchPageWrapper({branch,children}){
                     objectFit: 'cover',
                     top: '50%',
                     right: '50%',
-                    transform: 'translate(50%, -50%)'
+                    transform: 'translate(50%, -50%)',
+                    backgroundColor:getRandomColor()
                 }} src={branch.branch_banner}></img>
             </div>
             <img ref={ref} style={{

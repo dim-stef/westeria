@@ -4,6 +4,9 @@ from django.views.defaults import page_not_found
 from django.views.generic import TemplateView
 from django.conf import settings
 from django.conf.urls.static import static
+from django.conf.urls import url
+from allauth.account.views import confirm_email
+
 
 
 urlpatterns = [
@@ -15,6 +18,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('accounts/', include('accounts.urls')),
     path('email/', page_not_found, name="accounts_email", kwargs={'exception': Exception('Page not Found')}),
+    path("confirm-email/", page_not_found,name="account_email_verification_sent", kwargs={'exception': Exception('Page not Found')}),
     path('api/', include('api.urls')),
     path('drf/', include('rest_framework.urls')),
     path('', include('core.urls')),
