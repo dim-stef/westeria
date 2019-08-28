@@ -24,6 +24,14 @@ let border={
     borderBottom:'1px solid #e2eaf1'
 }
 
+function validateImageSize(target,maxSize){
+    var files = target.files;
+    if(files[0].size>maxSize){
+        return false;
+    }
+    return true;
+}
+
 export function SettingsPage(){
     const userContext = useContext(UserContext);
     return (
@@ -243,6 +251,7 @@ function UpdateBranch({branch}){
         let errors = {};
         let form = document.getElementById("branchForm");
         var formData = new FormData(form)
+        formData.set('description',formData.get('description').replace(/(\r\n|\n|\r)/gm, ""))
         let url = `/api/branches/update/${branch.uri}/`;
          
 
@@ -292,6 +301,7 @@ function CreateNewBranch(){
          
         let form = document.getElementById("branchForm");
         var formData = new FormData(form);
+        formData.set('description',formData.get('description').replace(/(\r\n|\n|\r)/gm, ""))
         let errors = {};
         let url = `/api/branches/new/`;
 
@@ -331,6 +341,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
     const profileRef = useRef(null);
     const bannerRef = useRef(null);
     const wrapperRef = useRef(null);
+    const [remainingCharacters,setRemainingCharecters] = 
+    useState(initialValues.description?140 - initialValues.description.length:140)
 
     let isDefaultSwitchDisabled = false;
     if(!createNew && branch.default){
@@ -382,6 +394,14 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
         }
     }
 
+    function validateRemainingCharacters(){
+        let textarea = document.getElementById('description')
+        if(textarea.value>140){
+            return `Too many characters (${textarea.value}). Maximum length is 140 characters`;
+        }
+        setRemainingCharecters(140 - textarea.value.length)
+    }
+
     return(
         <Form onSubmit={onSubmit}
             initialValues={initialValues}
@@ -415,14 +435,16 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                         </div>
 
                         <div style={{margin:'5px 0'}}>
-                            <Field name="description">
+                            <Field name="description"
+                            validate={validateRemainingCharacters}>
                                 {({ input, meta }) => (
                                 <div>
                                     <label className="setting-label">Description</label>
                                     <textarea {...input} className="setting-input"
                                     style={{resize:'none',maxHeight:400,minHeight:100,width:'90%'}} 
-                                    placeholder="Type something that describes your branch" maxLength="140" />
-                                    <span className="setting-info">Maximum of 140 characters</span>
+                                    placeholder="Type something that describes your branch" id="description" maxLength="140" />
+                                    <span className="setting-info">{remainingCharacters} characters left.</span>
+                                    {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
                                 </div>
                                 )}
                             </Field>             
@@ -434,6 +456,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                                 <Profile branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
                                 <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
                             </div>
+                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
+                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
                         </div>
                         <div style={{margin:'5px 0'}}>
                             <Field name="default" type="checkbox">
@@ -557,8 +581,23 @@ const Error = ({ name }) => (
   );
 
 function Profile({branch,wrapperRef,profileRef,createNew}){
+
+    function onInput(){
+
+        // 2mb
+        let max = 2097152;
+        let input = document.getElementById('branch-image')
+        if(input.files.length > 0){
+            let isValidSize = validateImageSize(input,max)
+            if(!isValidSize){
+                return 'The profile image you entered exceeds the maximum size of 2mb.'
+            }
+        }
+    }
+
     return(
-        <Field name="branch_image">
+        <Field name="branch_image"
+        validate={onInput}>
             {({ input, meta }) => (
             <div>
                 <label style={{height:'100%',padding:0}} className="setting-label" htmlFor="branch-image">
@@ -566,7 +605,6 @@ function Profile({branch,wrapperRef,profileRef,createNew}){
                     getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"/>
                 </label>
                 <input {...input} ref={profileRef} accept="image/*" id="branch-image" className="inputfile" type="file" />
-                {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
                 {/*{meta.validating && <p>loading</p>}*/}
             </div>
             )}
@@ -575,12 +613,30 @@ function Profile({branch,wrapperRef,profileRef,createNew}){
 }
 
 function Banner({branch,wrapperRef,bannerRef,createNew}){
+    function onInput(){
+
+        // 5mb
+        let max = 5242880;
+        let input = document.getElementById('branch_banner')
+        if(input.files.length > 0){
+            let isValidSize = validateImageSize(input,max)
+            if(!isValidSize){
+                return 'The banner image you entered exceeds the maximum size of 5mb.'
+            }
+        }
+    }
+
+    let defaultBannerUrl = '/images/group_images/banner/default.jpg';
+    let r = new RegExp(defaultBannerUrl);
+    let isDefault = r.test(branch?branch.branch_banner:true)
+
     return(
-        <Field name="branch_banner">
+        <Field name="branch_banner"
+        validate={onInput}>
             {({ input, meta }) => (
             <div>
                 <label style={{height:'100%',padding:0}} className="setting-label" htmlFor="branch_banner">
-                    <ImageInput key="banner" src={createNew?null:branch.branch_banner} wrapperRef={wrapperRef} nodeRef={bannerRef} 
+                    <ImageInput key="banner" src={createNew || isDefault?null:branch.branch_banner} wrapperRef={wrapperRef} nodeRef={bannerRef} 
                     getWidth={width=>width * 3} className="branch-banner-setting" alt="Banner"/>
                 </label>
                 <input {...input} ref={bannerRef} accept="image/*" id="branch_banner" className="inputfile" type="file" />
@@ -599,7 +655,7 @@ function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt}){
 
     if(nodeRef.current){
         let file = nodeRef.current.files[0];
-        var reader  = new FileReader();
+        var reader = new FileReader();
         if(file){
             reader.readAsDataURL(file);
         }

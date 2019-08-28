@@ -1,6 +1,7 @@
 import React, { useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom';
-import {Link,withRouter} from 'react-router-dom'
+import {Link,Redirect,withRouter} from 'react-router-dom'
+import history from "../../history"
 import {Helmet} from 'react-helmet'
 import {UserContext} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
@@ -565,8 +566,6 @@ Number.prototype.roundTo = function(num) {
 
 
 function PostPicture(props){
-     
-
     function handleAnchorClick(e){
          
         e.stopPropagation()
@@ -713,7 +712,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
 }
 
 
-function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCount}){
+function Star({postId,react,changeReact,createOrDeleteReact}){
     const [reacted,setReacted] = useState(false);
     const context = useContext(UserContext);
 
@@ -722,7 +721,7 @@ function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCou
         if(context.isAuth){
             handleStarClick();
         }else{
-            alert("not auth");
+            history.push('/login');
         }
     }
 
@@ -744,6 +743,7 @@ function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCou
 
     // hard-coded clicked class
     let className = reacted ? 'star-clicked' : ''
+
     return(
         <div className="post-action-container flex-fill star" style={{minWidth:0,width:'100%',
         justifyContent:'flex-start',WebkitJustifyContent:'flex-start'}}>
@@ -756,6 +756,7 @@ function Star({postId,react,changeReact,createOrDeleteReact,starCount,dislikeCou
     )
 }
 
+
 function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
     const [reacted,setReacted] = useState(false);
     const context = useContext(UserContext);
@@ -765,7 +766,7 @@ function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
         if(context.isAuth){
             handleStarClick();
         }else{
-            alert("not auth");
+            history.push('/login');
         }
     }
 

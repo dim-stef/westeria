@@ -103,7 +103,8 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     const ref = useRef(null);
     const editorRef = useRef(null);
     const context = useContext(UserContext);
-    const [author,setAuthor] = useState(branch);
+    const [imageError,setImageError] = useState(false);
+    const [videoError,setVideoError] = useState(false);
     let initIsMember = room.members.some(m=>m==branch.uri);
     const [isMember,setIsMember] = useState(initIsMember);
 
@@ -168,8 +169,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
 
     function onKeyDown(event){
         // Return with no changes if the keypress is not '&'
-        if (event.which !== 13 || event.keyCode !== 13 || event.key !== "Enter"){
-            
+        if (event.which !== 13 || event.keyCode !== 13 || event.key !== "Enter"){            
             return
         }
         
@@ -189,8 +189,28 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
 
     function handleImageClick(e){
         var newFiles = e.target.files;
+        let imgErr = false;
+        let videoErr = false;
         let newFilesArray = Array.from(newFiles);
-        setFiles([...files,...newFilesArray]);        
+        let validatedFiles = newFilesArray.map(f=>{
+            // 15mb limit
+            if(isFileImage(f) && f.size>15728640){
+                imgErr = true;
+                return false;
+            }
+
+            // 512mb limit
+            if(isFileVideo(f) && f.size>536870912){
+                imgErr = false;
+                return false;
+            }
+
+            return f;
+        })
+
+        setImageError(imgErr);
+        setVideoError(videoErr);
+        setFiles([...files,...validatedFiles]);        
     }
 
     function resetEditor(){
@@ -202,6 +222,13 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     useEffect(()=>{
         setIsMember(room.members.some(m=>m==branch.uri))
     },[branch])
+
+    let warningStyle ={
+        color:'#bf1b08',
+        fontSize:'1.5rem',
+        fontWeight:600,
+        padding:'0 10px'
+    }
 
     return(
         <>
@@ -230,6 +257,9 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick}/>
                     </div>
                 </div>
+                {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
+                {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
+
                 {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
             </div>
         </Suspense>
@@ -254,11 +284,11 @@ function isFileVideo(file) {
 }
 
 function Toolbar({handleSendMessage,onInput}){
-    
     return(
         <div className="flex-fill" style={{marginTop:5}}>
             <div className="flex-fill" style={{flex:'1 1 auto',margin:'0 10px'}}>
-                <input type="file" multiple="multiple" className="inputfile" id="media" onInput={onInput}></input>
+                <input type="file" accept="image/*|video/*" capture multiple 
+                className="inputfile" id="media" onInput={onInput}></input>
                 <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
             </div>
             <button className="editor-btn" onClick={handleSendMessage}>Send</button>

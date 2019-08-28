@@ -62,7 +62,7 @@ function Uri({uri}){
 
 function Description({description}){
     return(
-            <p style={{wordBreak:'break-word',fontSize:'2em'}}>{description}</p>
+            <p style={{overFlowWrap:'break-word',fontSize:'2em'}}>{description}</p>
     )
 }
 

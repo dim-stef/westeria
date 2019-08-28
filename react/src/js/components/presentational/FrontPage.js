@@ -5,7 +5,7 @@ import {UserContext,PostsContext,AllPostsContext,TreePostsContext,
     UserActionsContext} from "../container/ContextContainer"
 import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
 import {Helmet} from "react-helmet";
-import { Switch, Route, Link, withRouter  } from 'react-router-dom'
+import { Switch, Route, Link,Redirect, withRouter  } from 'react-router-dom'
 import {Desktop,Tablet,Mobile} from "./Responsive"
 
 function NonAuthenticationColumn(){
@@ -93,7 +93,8 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
                         <FrontPageAllPosts device="desktop" {...props}/>
                     }/>
                     <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
-                    <Route exact path="/tree" component={(props)=> <FrontPageTreePosts device="desktop" {...props}/>}/>
+                    <Route exact path="/tree" component={(props)=> userContext.isAuth?
+                    <FrontPageTreePosts device="desktop" {...props}/>:<Redirect to="/login"/>}/>
                 </Switch>
                 {/*<FrontPageRightBar/>*/}
             </Desktop>
@@ -105,7 +106,8 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
                         <FrontPageAllPosts device="tablet" {...props}/>
                     }/>
                     <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="tablet" {...props}/>}/>
-                    <Route exact path="/tree" component={(props)=> <FrontPageTreePosts device="tablet" {...props}/>}/>
+                    <Route exact path="/tree" component={(props)=> userContext.isAuth?
+                    <FrontPageTreePosts device="tablet" {...props}/>:<Redirect to="/login"/>}/>
                 </Switch>
             </Tablet>
 
@@ -116,7 +118,8 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
                         <FrontPageAllPosts device="mobile" {...props}/>
                     }/>
                     <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="mobile" {...props}/>}/>
-                    <Route exact path="/tree" component={(props)=> <FrontPageTreePosts device="mobile" {...props}/>}/>
+                    <Route exact path="/tree" component={(props)=> userContext.isAuth?
+                    <FrontPageTreePosts device="mobile" {...props}/>:<Redirect to="/login"/>}/>
                 </Switch>
             </Mobile>
             

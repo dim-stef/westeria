@@ -77,7 +77,7 @@ function NameBox({name,uri}){
 function DescriptionBox({description}){
     return(
         <div style={{height:'100%',width:'100%',marginTop:20}}>
-            <p style={{margin:'0 10px', fontSize:'1.5em'}}>{description}</p>
+            <p style={{margin:'0 10px', fontSize:'1.5em',overflowWrap:'break-word'}}>{description}</p>
         </div>
     )
 }

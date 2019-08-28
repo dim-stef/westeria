@@ -1,5 +1,6 @@
 import React, {useState,useContext,useEffect,useRef,lazy,Suspense} from 'react'
 import ReactDOM from 'react-dom';
+import history from "../../history"
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
@@ -131,6 +132,8 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
 
     const [value,setValue] = useState('');
     const [files,setFiles] = useState([]);
+    const [imageError,setImageError] = useState(false);
+    const [videoError,setVideoError] = useState(false);
     const [minimized,setMinimized] = useState(true);
     const ref = useRef(null);
     const wrapperRef = useRef(null);
@@ -151,7 +154,27 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     function handleImageClick(e){
         var newFiles = e.target.files;
         let newFilesArray = Array.from(newFiles);
-        setFiles([...files,...newFilesArray]);        
+        let imgErr = false;
+        let videoErr = false;
+        let validatedFiles = newFilesArray.map(f=>{
+            // 15mb limit
+            if(isFileImage(f) && f.size>15728640){
+                imgErr = true;
+                return false;
+            }
+
+            // 512mb limit
+            if(isFileVideo(f) && f.size>536870912){
+                imgErr = false;
+                return false;
+            }
+
+            return f;
+        })
+
+        setImageError(imgErr);
+        setVideoError(videoErr);
+        setFiles([...files,...validatedFiles]);        
     }
 
     function resetEditor(){
@@ -197,6 +220,13 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
         }
     })
     
+    let warningStyle ={
+        color:'#bf1b08',
+        fontSize:'1.5rem',
+        fontWeight:600,
+        padding:'0 10px'
+    }
+
     return(
             <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#C2E4FB',
             justifyContent:'stretch',position:'relative',zIndex:4,...style}}>
@@ -216,11 +246,16 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                     {minimized?
                     null:
+                    <>
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
                     postedId={postedId} currentPost={currentPost} 
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
                         {...postToProps}
-                    />}
+                    />
+                    {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
+                    {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
+                    </>
+                    }
                 </div>
             </div>
     )
@@ -390,7 +425,8 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                 <div className="flex-fill" style={{marginTop:5}}>
              
                     <div className="flex-fill" style={{flex:'1 1 auto'}}>
-                        <input type="file" multiple="multiple" className="inputfile" id="media" onInput={e=>handleImageClick(e)}></input>
+                        <input type="file" multiple className="inputfile" id="media"
+                        accept="image/*|video/*" capture onInput={e=>handleImageClick(e)}></input>
                         <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
                     </div>
                     <button style={{marginRight:10}} className="editor-btn"

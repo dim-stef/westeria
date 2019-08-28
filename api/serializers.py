@@ -283,7 +283,7 @@ def create_message(instance):
     json_videos = json.dumps(video_dict)
 
     channel_layer = channels.layers.get_channel_layer()
-    if instance.images.count() > 0 or instance.videos.length > 0:
+    if instance.images.count() > 0 or instance.videos.count() > 0:
         async_to_sync(channel_layer.group_send)(
             str('chat_%s' % str(instance.branch_chat.id)),
             {

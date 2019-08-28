@@ -86,11 +86,13 @@ export class BranchBanner2 extends Component{
 }
 
 export function BranchBanner(props){
-
+    let defaultBannerUrl = '/images/group_images/banner/default.jpg';
+    let r = new RegExp(defaultBannerUrl);
+    let isDefault = r.test(props.branch.branch_banner)
     return(
         <div id={props.branch.id} style={{position:'relative'}}>
             <div style={{paddingTop: '33.33333%', position: 'relative',width:"100%",
-            backgroundImage:`url(${props.branch.branch_banner})`, 
+            backgroundImage:`url(${isDefault?null:props.branch.branch_banner})`, 
             backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center',
             backgroundColor:getRandomColor()}}>
                 <div>

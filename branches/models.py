@@ -4,6 +4,9 @@ from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save, post_init, pre_save, m2m_changed
 from django.core.exceptions import ValidationError,SuspiciousOperation
 from django.dispatch import receiver
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from io import BytesIO
+from PIL import Image
 from accounts.models import User
 from branchchat.models import BranchChat
 from branchposts.models import Post
@@ -44,7 +47,7 @@ class Branch(models.Model):
                                     default='/images/group_images/profile/default.jpeg',
                                     blank=False)
     branch_banner = models.ImageField(upload_to='images/group_images/banner',
-                                     default='/images/group_images/banner/default.jpeg',
+                                     default='/images/group_images/banner/default.png',
                                      blank=False)
 
 
@@ -73,6 +76,25 @@ class Branch(models.Model):
                 branch.save()
 
 
+    def encode_image(self,image):
+
+        try:
+            if image:
+                im = Image.open(image)
+                im.load()
+                rbg_img = im.convert('RGB')
+                rbg_img.load()
+                # create a BytesIO object
+                im_io = BytesIO()
+                # save image to BytesIO object
+                rbg_img.save(im_io, 'JPEG', quality=75)
+                return InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % image.name.split('.')[0],
+                                            'image/jpeg', im_io.getbuffer().nbytes, None)
+            return None
+        except OSError as e:
+            return None
+
+
     def save(self, *args, **kwargs):
         if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
             self.uri = generate_unique_uri(self.name)
@@ -80,9 +102,12 @@ class Branch(models.Model):
             branch = Branch.objects.get(pk=self.pk)
             if branch.uri != self.uri:                     #need validation if uri updated
                 self.uri = generate_unique_uri(self.name)'''
-
         if self.pk:
             self.full_clean()
+
+        self.branch_image = self.encode_image(self.branch_image)
+        self.branch_banner = self.encode_image(self.branch_banner)
+
         super().save(*args, **kwargs)
 
 def validate_manytomany(self,instance,target):
@@ -321,6 +346,7 @@ def create_follow_notification(sender, instance, **kwargs):
                                                        ,verb=verb, target=being_followed,
                                                        action_object=being_followed, description=description)
 
+            print(instance.uri)
             followed_by = {
                 'uri': instance.uri,
                 'name': instance.name,

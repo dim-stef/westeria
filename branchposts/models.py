@@ -124,8 +124,6 @@ class PostImage(models.Model):
         super().save(*args, **kwargs)
 
 
-
-
 from moviepy.editor import VideoFileClip
 import os
 from random import random

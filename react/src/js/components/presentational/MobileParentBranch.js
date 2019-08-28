@@ -23,6 +23,10 @@ export function MobileBranchPageWrapper({branch,children}){
     const [left,setLeft] = useState(0);
     const [imageHeight,setImageHeight] = useState(0);
 
+    let defaultBannerUrl = '/images/group_images/banner/default.jpg';
+    let r = new RegExp(defaultBannerUrl);
+    let isDefault = r.test(branch.branch_banner)
+
     useLayoutEffect(()=>{
         let offsetLeft = ref.current.offsetLeft;
         setLeft(offsetLeft);
@@ -42,6 +46,7 @@ export function MobileBranchPageWrapper({branch,children}){
                     position: 'relative',
                     overflow: 'hidden',
                     padding: '34.37% 0 0 0',
+                    backgroundColor:getRandomColor()
             }}>
                 <img style={{
                     maxWidth: '100%',
@@ -52,8 +57,7 @@ export function MobileBranchPageWrapper({branch,children}){
                     top: '50%',
                     right: '50%',
                     transform: 'translate(50%, -50%)',
-                    backgroundColor:getRandomColor()
-                }} src={branch.branch_banner}></img>
+                }} src={isDefault?null:branch.branch_banner}></img>
             </div>
             <img ref={ref} style={{
                     width: '27%',
@@ -79,7 +83,7 @@ export function MobileBranchPageWrapper({branch,children}){
 
 function Description({description}){
     return(
-        <p style={{fontSize:'1.7rem', marginTop:8}}>{description}</p>
+        <p style={{fontSize:'1.7rem', marginTop:8,overflowWrap:'break-word'}}>{description}</p>
     )
 }
 

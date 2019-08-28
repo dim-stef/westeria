@@ -14,7 +14,7 @@ export default class Register extends Component{
             password1:'',
             password2:'',
             success:false,
-
+            errors:[]
         }
 
         this.handleNameChange = this.handleNameChange.bind(this);
@@ -58,8 +58,22 @@ export default class Register extends Component{
                 self.setState({success:true})
                  
             })
-            .catch(function (response) {
-                 
+            .catch(function (err) {
+                console.log(err.response)
+                let errors = [];
+                let email = err.response.data.email;
+                let password1 = err.response.data.password1;
+                let non_field_errors = err.response.data.non_field_errors;
+                if(email){
+                    errors=[...email]
+                }
+                if(password1){
+                    errors=[...errors,...password1]
+                }
+                if(non_field_errors){
+                    errors=[...errors, ...non_field_errors]
+                }
+                self.setState({errors:errors})
         })
         e.preventDefault();
     }
@@ -80,6 +94,13 @@ export default class Register extends Component{
                 <Redirect to="/"/>
             )
         }
+
+        let errorMessages = []
+        if(this.state.errors){
+            errorMessages = this.state.errors.map(er=>{
+                return <div className="auth-error">{er}</div>
+            })
+        }
         
         return(
             <>
@@ -99,6 +120,7 @@ export default class Register extends Component{
                         <p style={{margin: '10px', color: 'gray', fontSize: '0.8em'}}>By clicking Signup you are agreeing to our Terms and Conditions</p>
                         <div className="clear"> </div>
                     </div>
+                    {errorMessages}
                     <input className="submit-btn" type="submit" value="Sign Up" />
                     </form>
                     <p>Already have an account? <Link to="/login" style={{textDecoration: 'none', backgroundColor: 'transparent', fontWeight: 500}}>Login</Link></p>

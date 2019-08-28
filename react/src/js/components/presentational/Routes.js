@@ -1,6 +1,7 @@
 import React, { Component,PureComponent, useState, useContext, useEffect,useRef,Suspense, lazy } from "react"
-import { Switch, Route, Link, withRouter  } from 'react-router-dom'
+import { Switch, Route, Link, Redirect, withRouter  } from 'react-router-dom'
 import {Helmet} from "react-helmet";
+import history from "../../history"
 import { Page } from '../Page'
 import Login from "./Login"
 import Logout from "./Logout"
@@ -98,13 +99,14 @@ const RoutesWrapper = () =>{
 export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
+    const userContext = useContext(UserContext);
     return(
         <Switch>
-            <Route path='/settings' component={SettingsPage}/>
+            <Route path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
             <Route exact path='/:page(popular|all|tree)?/' component={FrontPage}/>
             <Route path='/search' component={SearchPage} />
-            <Route path='/notifications' component={NotificationsContainer}/>
-            <Route path='/messages/:roomName?' component={ChatRoomsContainer}/>
+            <Route path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
+            <Route path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>/>
             <Route path='/:uri/leaves/:externalId' component={({match}) => 
                 <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
             <Route path='/:uri?' component={BranchContainer}/>

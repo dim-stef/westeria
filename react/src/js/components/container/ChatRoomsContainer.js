@@ -85,7 +85,7 @@ function RoomContainer({roomData,match}){
     const [isFirstBatch,setFirstBatch] = useState(true);
     const [members,setMembers] = useState([]);
     const [heightWithKeyboard,setHeightWithKeyboard] = useState(0);
-    const [heightWithoutKeyboard,heightWithoutKeyboard] = useState(window.innerHeight);
+    const [heightWithoutKeyboard,setHeightWithoutKeyboard] = useState(window.innerHeight);
     const [height,setHeight] = useState(window.innerHeight);
     const ref = useRef(null);
     const parentRef = useRef(null);
@@ -305,7 +305,7 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
 function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let containerStyle={};
     let messageStyle={
-        fontSize:'2em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
+        fontSize:'1.6em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
         padding:'5px 10px',borderRadius:25,margin:'3px 0'
     };
 
