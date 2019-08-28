@@ -86,7 +86,7 @@ export class BranchBanner2 extends Component{
 }
 
 export function BranchBanner(props){
-    let defaultBannerUrl = '/images/group_images/banner/default.jpg';
+    let defaultBannerUrl = '/images/group_images/banner/default';
     let r = new RegExp(defaultBannerUrl);
     let isDefault = r.test(props.branch.branch_banner)
     return(

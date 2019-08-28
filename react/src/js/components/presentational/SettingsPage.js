@@ -626,7 +626,7 @@ function Banner({branch,wrapperRef,bannerRef,createNew}){
         }
     }
 
-    let defaultBannerUrl = '/images/group_images/banner/default.jpg';
+    let defaultBannerUrl = '/images/group_images/banner/default';
     let r = new RegExp(defaultBannerUrl);
     let isDefault = r.test(branch?branch.branch_banner:true)
 

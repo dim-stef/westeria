@@ -101,7 +101,7 @@ export function Images(props){
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
                     <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading
-                    slideStyle={{position:'relative',overflow:'hidden',alignSelf:'center'}}>
+                    slideStyle={{position:'relative',overflow:'hidden'}}>
                         {props.images.map(img=>{
                             return <div key={img.image} onTouchStart={event => event.preventDefault()}>
                             <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}

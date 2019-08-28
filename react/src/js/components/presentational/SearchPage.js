@@ -51,9 +51,7 @@ function Search(){
         if(focused){
             getResults();
         }
-
     },[text])
-
      
 
     return(

@@ -23,7 +23,7 @@ export function MobileBranchPageWrapper({branch,children}){
     const [left,setLeft] = useState(0);
     const [imageHeight,setImageHeight] = useState(0);
 
-    let defaultBannerUrl = '/images/group_images/banner/default.jpg';
+    let defaultBannerUrl = '/images/group_images/banner/default';
     let r = new RegExp(defaultBannerUrl);
     let isDefault = r.test(branch.branch_banner)
 
