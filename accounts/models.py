@@ -19,7 +19,7 @@ class User(AbstractUser):
     username = models.CharField(blank=True, null=True, unique=False, max_length=24)
     email = models.EmailField(unique=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
-    dummy = models.CharField(blank=True,null=True,max_length=1)
+    dummy = models.CharField(blank=True,null=True,max_length=2)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']

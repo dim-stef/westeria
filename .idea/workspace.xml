@@ -1,48 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.0.1 update">
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0002_auto_20180707_0113.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0003_auto_20180707_2045.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0004_fakeprofile_url.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0005_auto_20180708_0013.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0006_auto_20180724_2319.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0007_auto_20180727_0259.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0008_auto_20181031_0324.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0009_auto_20181204_0228.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0010_auto_20181204_1828.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0011_auto_20181204_2101.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0012_auto_20181204_2155.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0013_user_name.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0014_remove_user_name.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0015_auto_20181206_1933.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0016_auto_20181216_0017.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0017_auto_20190106_2221.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/accounts/migrations/0018_user_dummy.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/branches/migrations/0002_auto_20190828_1614.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/migrations/0001_initial.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/migrations/0001_initial.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branches/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchposts/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/templates/sw.js" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/sw.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Register.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Register.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/webpack-stats.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack-stats.json" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.0.2 update">
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0001_initial.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0002_auto_20180707_0113.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0003_auto_20180707_2045.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0004_fakeprofile_url.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0005_auto_20180708_0013.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0006_auto_20180724_2319.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0007_auto_20180727_0259.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0008_auto_20181031_0324.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0009_auto_20181204_0228.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0010_auto_20181204_1828.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0011_auto_20181204_2101.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0012_auto_20181204_2155.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0013_user_name.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0014_remove_user_name.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0015_auto_20181206_1933.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0016_auto_20181216_0017.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0017_auto_20190106_2221.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/migrations/0018_user_dummy.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -116,11 +93,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/branches/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="224">
-              <caret line="49" column="73" selection-start-line="49" selection-start-column="73" selection-end-line="49" selection-end-column="73" />
+            <state relative-caret-position="278">
+              <caret line="91" column="76" selection-start-line="91" selection-start-column="76" selection-end-line="91" selection-end-column="76" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -135,6 +112,18 @@
               <caret line="21" column="13" selection-start-line="21" selection-start-column="13" selection-end-line="21" selection-end-column="13" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/api/serializers.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="299">
+              <caret line="318" column="14" selection-start-line="318" selection-start-column="14" selection-end-line="318" selection-end-column="14" />
+              <folding>
+                <element signature="e#0#46#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -175,7 +164,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>new</find>
       <find>hot</find>
       <find>generate_thumbnail</find>
       <find>top-spr</find>
@@ -205,6 +193,7 @@
       <find>search-butt</find>
       <find>.search-button</find>
       <find>(max-device-width: 1223px)</find>
+      <find>length</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -601,14 +590,7 @@
       <workItem from="1565105763090" duration="103532000" />
       <workItem from="1565913360341" duration="48462000" />
       <workItem from="1566754243652" duration="1134000" />
-      <workItem from="1566776429449" duration="14628000" />
-    </task>
-    <task id="LOCAL-00165" summary="Changed class name">
-      <created>1543326488202</created>
-      <option name="number" value="00165" />
-      <option name="presentableId" value="LOCAL-00165" />
-      <option name="project" value="LOCAL" />
-      <updated>1543326488202</updated>
+      <workItem from="1566776429449" duration="15462000" />
     </task>
     <task id="LOCAL-00166" summary="Added groupchat route">
       <created>1543326540205</created>
@@ -946,11 +928,18 @@
       <option name="project" value="LOCAL" />
       <updated>1566822307414</updated>
     </task>
-    <option name="localTasksCounter" value="214" />
+    <task id="LOCAL-00214" summary="1.0.1 update">
+      <created>1567003387598</created>
+      <option name="number" value="00214" />
+      <option name="presentableId" value="LOCAL-00214" />
+      <option name="project" value="LOCAL" />
+      <updated>1567003387598</updated>
+    </task>
+    <option name="localTasksCounter" value="215" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1067413000" />
+    <option name="totallyTimeSpent" value="1068247000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -992,6 +981,42 @@
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
   </component>
+  <component name="Vcs.Log.History.Properties">
+    <option name="COLUMN_ORDER">
+      <list>
+        <option value="0" />
+        <option value="2" />
+        <option value="3" />
+        <option value="1" />
+      </list>
+    </option>
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Added new script" />
     <MESSAGE value="Now using branches instead of profiles" />
@@ -1017,8 +1042,8 @@
     <MESSAGE value="1.0.0 production update" />
     <MESSAGE value="updated requirements" />
     <MESSAGE value="last minute fixes" />
-    <MESSAGE value="1.0.1 update" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.0.1 update" />
+    <MESSAGE value="1.0.2 update" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.0.2 update" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1273,16 +1298,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/api/serializers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3053">
-          <caret line="289" column="39" selection-start-line="289" selection-start-column="39" selection-end-line="289" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#46#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/common/templates/index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="252">
@@ -1383,10 +1398,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/branches/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="224">
-          <caret line="49" column="73" selection-start-line="49" selection-start-column="73" selection-end-line="49" selection-end-column="73" />
+        <state relative-caret-position="278">
+          <caret line="91" column="76" selection-start-line="91" selection-start-column="76" selection-end-line="91" selection-end-column="76" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/api/serializers.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="299">
+          <caret line="318" column="14" selection-start-line="318" selection-start-column="14" selection-end-line="318" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#46#0" expanded="true" />
           </folding>
         </state>
       </provider>
