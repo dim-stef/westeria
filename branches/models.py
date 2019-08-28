@@ -44,10 +44,10 @@ class Branch(models.Model):
     )
 
     branch_image = models.ImageField(upload_to='images/group_images/profile',
-                                    default='/images/group_images/profile/default.jpeg',
+                                    default='images/group_images/profile/default.jpeg',
                                     blank=False)
     branch_banner = models.ImageField(upload_to='images/group_images/banner',
-                                     default='/images/group_images/banner/default.png',
+                                     default='images/group_images/banner/default.png',
                                      blank=False)
 
 
