@@ -2,7 +2,6 @@ import React, { useState,useContext,useEffect } from "react";
 import { withRouter } from "react-router";
 
 function RoutedHeadline({match,location,history,headline,to,children}){
-    
      
     const navigate = ()=>{
         if(to){
@@ -18,7 +17,8 @@ function RoutedHeadline({match,location,history,headline,to,children}){
             className="back-button" onClick={navigate}>
                 <LeftArrowSvg/>
             </button>
-            <span style={{fontWeight:'bold', fontSize:'2em'}}>{headline}</span>
+            {children?children:<span style={{fontWeight:'bold', fontSize:'2em'}}>{headline}</span>}
+            
         </div>
     )
 }

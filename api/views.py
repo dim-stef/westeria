@@ -3,8 +3,6 @@ from django.db.models import Count
 from django.core.exceptions import PermissionDenied
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from rest_framework import viewsets, views, mixins,generics,filters,permissions
-from rest_framework.views import APIView
-from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
@@ -162,6 +160,7 @@ class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
     serializer_class = serializers.OwnedBranchesSerializer
 
     def get_queryset(self):
+        print(self.request.version)
         user = self.request.user
         queryset = user.owned_groups.all()
         return queryset
@@ -201,7 +200,6 @@ class BranchViewSet(mixins.RetrieveModelMixin,
         queryset = Branch.objects.none()
         if self.kwargs['uri']:
             queryset = Branch.objects.filter(uri__iexact=self.kwargs['uri'])
-            print(queryset)
         return queryset
 
 
@@ -356,7 +354,6 @@ class NewMessageViewSet(viewsets.GenericViewSet,
     queryset = Branch.objects.all()
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
         branch_chat = BranchChat.objects.get(id=self.kwargs['id_pk'])
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request,'branch_chat':branch_chat})
@@ -385,7 +382,6 @@ class BranchNewPostViewSet(viewsets.GenericViewSet,
             return Response(serializer.errors)
 
     def perform_create(self, serializer):
-        print("files", self.request.FILES)
         if self.poster not in self.request.user.owned_groups.all():
             raise PermissionDenied
         serializer.save(poster=self.poster)
@@ -652,14 +648,16 @@ class UpdateReceivedBranchRequest(viewsets.GenericViewSet,
     serializer_class = serializers.UpdateBranchRequestSerializer
 
     def get_queryset(self):
-        print(BranchRequest.objects.filter(id=self.kwargs['pk']))
         return BranchRequest.objects.filter(id=self.kwargs['pk'])
 
     def partial_update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.serializer_class(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            if instance.status != BranchRequest.STATUS_ON_HOLD:
+                serializer.save(status=instance.status)
+            else:
+                serializer.save()
             return Response(serializer.data)
         else:
             return Response(serializer.errors)

@@ -73,3 +73,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'verb': verb,
             'id': id
         }))
+
+    async def send_chat_request(self, event):
+        branch_chat = event['branch_chat']
+        request_to = event['request_to']
+        request_from = event['request_from']
+        verb = event['verb']
+        id = event['id']
+
+        await self.send(text_data=json.dumps({
+            'branch_chat': branch_chat,
+            'request_to': request_to,
+            'request_from': request_from,
+            'verb': verb,
+            'id': id
+        }))

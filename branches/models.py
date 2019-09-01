@@ -193,7 +193,6 @@ class BranchRequest(models.Model):
     def pre_save(sender, **kwargs):
         instance = kwargs.get('instance')
         created = kwargs.get('created')
-        print(instance.previous_state, instance.status)
         if instance.previous_state != instance.status or created and instance.type!=instance.TYPE_REMOVE:
             if instance.previous_state != instance.STATUS_ON_HOLD and instance.previous_state is not None:
                 raise SuspiciousOperation('The request cannot change status after it has been accepted or declined')
@@ -320,7 +319,7 @@ def modify_chat_room(sender, instance, **kwargs):
             is_being_followed_back = True if member in instance.follows.all() else False
             if is_being_followed_back and is_following and not already_exists(member):
                 members = [member, instance]
-                new_room = BranchChat.objects.create(owner=instance)
+                new_room = BranchChat.objects.create(owner=instance,image=member.branch_image,name=member.name)
                 new_room.members.add(*members)
 
     # On unfollow delete direct chat
@@ -346,7 +345,6 @@ def create_follow_notification(sender, instance, **kwargs):
                                                        ,verb=verb, target=being_followed,
                                                        action_object=being_followed, description=description)
 
-            print(instance.uri)
             followed_by = {
                 'uri': instance.uri,
                 'name': instance.name,

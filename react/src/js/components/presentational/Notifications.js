@@ -92,7 +92,7 @@ export function Notifications({notifications,inBox,loaded}){
                 <span className="new-circle">
 
                 </span>:null}
-                {isOpen && notifications.length>0?<BoxNotifications notifications={notifications}/>:null}
+                {isOpen && notifications.length>0?/*<BoxNotifications notifications={notifications}/> */null:null}
             </div>
         :<ResponsiveNotifications>
             <PageNotifications notifications={notifications} loaded={loaded}/>
@@ -157,6 +157,8 @@ function NotificationMatcher({notification}){
         return <ReactNotification notification={notification}/>;
     }else if(notification.verb=='follow'){
         return <FollowNotification notification={notification}/>;
+    }else if(notification.verb=='conversation_invite'){
+        return <ChatRequestNotification notification={notification}/>
     }else{
         return null;
     }
@@ -173,9 +175,57 @@ function FollowNotification({notification}){
                 <span style={{padding:10}}> {notification.description} </span>
             </NotificationLinkBody>
         </div>
-    )
-    
+    ) 
 }
+
+
+function ChatRequestNotification({notification}){
+    const [status,setStatus] = useState(notification.action_object.status);
+
+    function updateRequest(event,status,viewedBranch,requestId){
+        let uri = `/api/v1/branches/${viewedBranch.uri}/conversation_invitations/${requestId}/`;
+        let data = {
+            status:status
+        }
+        axios.patch(
+            uri,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+            }).then(response => {
+                let status = response.data.status;
+                setStatus(status);
+            })
+    }
+
+    return(
+        <div style={{borderBottom:'1px solid #e2eaf1'}}>
+            <NotificationLinkBody to="#" id={notification.id}>
+                <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
+                <span style={{padding:10}}> {notification.description} </span>
+                <NotificationBranch image={notification.action_object.branch_chat.image} 
+                uri={notification.action_object.branch_chat.name}/>
+            </NotificationLinkBody>
+            <div>
+                
+                    {status=='on hold' || !status?
+                    <>
+                    <button className="accept-btn"
+                    onClick={(e)=>updateRequest(e,'accepted',notification.target,notification.action_object.id)}>accept</button>
+                    <button className="decline-btn" 
+                    onClick={(e)=>updateRequest(e,'declined',notification.target,notification.action_object.id)}>decline</button>
+                    </>:
+                    <p className="form-succeed-message" 
+                    style={{margin:10}}>{status=='accepted'?'Request accepted':'Request declined'}</p>}
+                    
+                </div>
+        </div>
+    ) 
+}
+
 
 function ReactNotification({notification}){
     const [post,setPost] = useState(null);
@@ -230,10 +280,9 @@ function BranchNotification({notification}){
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
-                let status = response.data.action_object;
+                let status = response.data.status;
                 setStatus(status);
-            }).catch(error => {
-        })
+            })
     }
 
     return(
@@ -292,7 +341,7 @@ function BoxNotifications({notifications}){
             <div style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',borderRadius:15,overflow:'hidden',
             color:'#333'}}> 
                 {notifications.length>0?
-                notifications.map(n=>{
+                notifications.filter(n=>n.verb!='message').map(n=>{
                     return(
                     <div key={n.id} className="notification">
                         <div style={{display:'inline-block'}}>

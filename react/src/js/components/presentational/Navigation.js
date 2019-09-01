@@ -220,7 +220,7 @@ function ProfileDropDown({setFocused}){
     return(
         <div className="hoverable-box" style={{width:150,borderRadius:15}}>
             <div className="flex-fill" 
-            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',borderRadius:15,
+            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',borderRadius:5,
             overflow:'hidden'}}> 
 
                 <RoutedTabs

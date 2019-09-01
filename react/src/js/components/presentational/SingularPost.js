@@ -172,7 +172,6 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         </>:null
         
     )
-
 }
 
 export const Post = React.memo(function Post({post,parentPost=null,
@@ -316,9 +315,10 @@ function ShownBranch({branch,date,dimensions=48}){
                 <Link to={`/${branch.uri}`} onClick={handleAnchorClick} style={{textDecoration:'none', color:'black',marginRight:10}}>
                         <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
                 </Link>
-                <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
+                {date?<div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
                     {dateElement}
-                </div> 
+                </div> :null}
+                
             </div>
             {showCard?<SmallCard branch={branch}/>:null}
         </div>
@@ -490,17 +490,18 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dim
                 <div className="arrow-right"></div>
                 <div style={{marginLeft:20}}>
                     <div className="flex-fill">
-                        <PostPicture style={{width:dimensions,height:dimensions}} 
+                        {/*<PostPicture style={{width:dimensions,height:dimensions}} 
                         picture={mainPostedBranch.branch_image} 
                         uri={mainPostedBranch.uri}/>
                         <div>
                             <Link to={post.poster} style={{textDecoration:'none', color:'black'}}>
-                                <strong style={{fontSize:'1.7em'}}>{mainPostedBranch.uri}</strong>
+                                <strong style={{fontSize:'1.7em'}}>{mainPostedBranch.name}</strong>
                                 <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600,fontSize:'1.4em'}}>
-                                    @{mainPostedBranch.name}
+                                    @{mainPostedBranch.uri}
                                 </div> 
                             </Link>
-                        </div>
+                        </div>*/}
+                        <ShownBranch branch={mainPostedBranch} dimensions={dimensions}/>
                         <PostedToExtension post={post} activeBranch={activeBranch} mainPostedBranch={mainPostedBranch}/>
                     </div>
                 </div>
@@ -585,6 +586,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
     const [react,setReact] = useState(null);
     const [starCount,setStarCount] = useState(post.stars);
     const [dislikeCount,setDislikeCount] = useState(post.dislikes);
+    const [isDisabled,setDisabled] = useState(false);
     let ratio = starCount/(starCount + dislikeCount) * 100;
 
     useEffect(()=>{
@@ -598,6 +600,8 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
 
 
     function changeReact(type){
+        setDisabled(true);
+
         let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
         let uri = `/api/reacts/${reactUUID}/`;
         let data = {
@@ -606,6 +610,16 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             post:post.id
         };
 
+        
+        if(type=='star'){
+            setStarCount(starCount + 1);
+            setDislikeCount(dislikeCount-1);
+        }else{
+            setStarCount(starCount - 1);
+            setDislikeCount(dislikeCount + 1);
+        }
+        
+        setReact(type);
         axios.patch(
             uri,
             data,
@@ -619,21 +633,17 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                 // update context
                 let index = context.currentBranch.reacts.findIndex(r=>r.post == post.id)
                 context.currentBranch.reacts[index] = r.data;
-                // update star count
-                if(type=='star'){
-                    setStarCount(starCount + 1);
-                    setDislikeCount(dislikeCount-1);
-                }else{
-                    setStarCount(starCount - 1);
-                    setDislikeCount(dislikeCount + 1);
-                }
-                setReact(r.data.type)
+            }).finally(r=>{
+                setDisabled(false);
             })
     }
 
     const createOrDeleteReact = useCallback((type) => {
+        setDisabled(true);
         // delete react
         if(type==react){
+            react=='star'?setStarCount(starCount - 1):setDislikeCount(dislikeCount - 1);
+            setReact(null)
             let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
             let uri = `/api/reacts/${reactUUID}/`;
             const httpReqHeaders = {
@@ -644,9 +654,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             // check the structure here: https://github.com/axios/axios#request-config
             const axiosConfigObject = {headers: httpReqHeaders};
             axios.delete(uri, axiosConfigObject).then(r=>{
-                react=='star'?setStarCount(starCount - 1):setDislikeCount(dislikeCount - 1);
-                setReact(null)
-
+                
                 //remove react from context
                 context.currentBranch.reacts = context.currentBranch.reacts.filter(r=>{
                     return r.id !== reactUUID;
@@ -654,9 +662,14 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             }).catch(r=>{
                  
                 //setReact(null)
+            }).finally(r=>{
+                setDisabled(false);
             });
         }else{
             // post react
+            
+            setReact(type);
+            type=='star'?setStarCount(starCount+1):setDislikeCount(dislikeCount+1);
             let uri = `/api/reacts/`;
             let data = {
                 type:type,
@@ -675,10 +688,12 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                     withCredentials: true
                 }).then(r=>{
                     context.currentBranch.reacts.push(r.data);
-                    type=='star'?setStarCount(starCount+1):setDislikeCount(dislikeCount+1);
-                    setReact(type);
+                    //setReact(type);
                 }).catch(r=>{
                     setReact(null);
+                    type=='star'?setStarCount(starCount-1):setDislikeCount(dislikeCount-1);
+            }).finally(r=>{
+                setDisabled(false);
             })
         }
     },[react])
@@ -696,11 +711,11 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',width:'100%'}}>
                 <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
                     <Star postId={post.id} starCount={starCount} react={react} setReact={setReact} 
-                    createOrDeleteReact={createOrDeleteReact} changeReact={changeReact} dislikeCount={dislikeCount}/>
+                    createOrDeleteReact={createOrDeleteReact} changeReact={changeReact} dislikeCount={dislikeCount} isDisabled={isDisabled}/>
                     {starCount>0 || dislikeCount>0?<span style={{fontWeight:600,fontSize:'1.5em',color:color}}>
                     {Math.ceil(ratio)}</span>:null}
                     <Dislike postId={post.id} count={post.stars} react={react} setReact={setReact} 
-                    createOrDeleteReact={createOrDeleteReact} changeReact={changeReact}/>
+                    createOrDeleteReact={createOrDeleteReact} changeReact={changeReact} isDisabled={isDisabled}/>
                 </div>
                 <StarDislikeRatio style={{color:color}} reacted={react} starCount={starCount} dislikeCount={dislikeCount}/>
             </div>
@@ -712,7 +727,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
 }
 
 
-function Star({postId,react,changeReact,createOrDeleteReact}){
+function Star({postId,react,changeReact,createOrDeleteReact,isDisabled}){
     const [reacted,setReacted] = useState(false);
     const context = useContext(UserContext);
 
@@ -747,7 +762,8 @@ function Star({postId,react,changeReact,createOrDeleteReact}){
     return(
         <div className="post-action-container flex-fill star" style={{minWidth:0,width:'100%',
         justifyContent:'flex-start',WebkitJustifyContent:'flex-start'}}>
-            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={e=>onClick(e)}>
+            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}}
+            disabled={isDisabled} onClick={e=>onClick(e)}>
                 <div className="flex-fill" style={{alignItems:'center'}}>
                     <StarSvg className={className}/>
                 </div>
@@ -757,7 +773,7 @@ function Star({postId,react,changeReact,createOrDeleteReact}){
 }
 
 
-function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
+function Dislike({postId,react,changeReact,createOrDeleteReact,count,isDisabled}){
     const [reacted,setReacted] = useState(false);
     const context = useContext(UserContext);
 
@@ -791,7 +807,8 @@ function Dislike({postId,react,changeReact,createOrDeleteReact,count}){
     return(
         <div className="post-action-container dislike flex-fill" style={{minWidth:0,width:'100%',justifyContent:'flex-end',
         WebkitJustifyContent:'flex-end'}}>
-            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} onClick={e=>onClick(e)}>
+            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} 
+            disabled={isDisabled} onClick={e=>onClick(e)}>
                 <div className="flex-fill" style={{alignItems:'center'}}>
                     <DislikeSvg className={`${className} dislike-icon`}/>
                 </div>
@@ -862,7 +879,7 @@ function StarDislikeRatio({style,reacted,starCount,dislikeCount}){
             {starCount>0 || dislikeCount>0?<Line percent={ratio} strokeWidth="4" strokeColor="#D3D3D3" />:null}
         </span>*/
         starCount>0 || dislikeCount>0?
-        <div style={{width:'100%',height:3,backgroundColor:'#cacaca'}}>
+        <div style={{width:'100%',height:3,backgroundColor:'#cacaca',marginTop:4}}>
             <div className="ratio-bar" style={{width:`${ratio}%`,height:'100%',backgroundColor:style?style.color:'rgb(67, 78, 88)'}}>
 
             </div>

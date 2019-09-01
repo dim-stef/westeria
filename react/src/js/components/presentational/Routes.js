@@ -12,6 +12,7 @@ import EmailConfirm from "./EmailConfirm"
 import {UserContext,BranchPostsContext,PostsContext,AllPostsContext,TreePostsContext,
     UserActionsContext,SingularPostContext,NotificationsProvider,NotificationsConsumer} from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
+import {CreateNewChat} from "./CreateNewChat"
 import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
@@ -103,13 +104,14 @@ function NonAuthenticationRoutes(){
     return(
         <Switch>
             <Route path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
-            <Route exact path='/:page(popular|all|tree)?/' component={FrontPage}/>
+            <Route exact path='/:page(popular|all|tree)?/' render={()=><FrontPage/>}/>
             <Route path='/search' component={SearchPage} />
             <Route path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
-            <Route path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>/>
-            <Route path='/:uri/leaves/:externalId' component={({match}) => 
+            <Route exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
+            <Route path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
+            <Route path='/:uri/leaves/:externalId' render={({match}) => 
                 <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
-            <Route path='/:uri?' component={BranchContainer}/>
+            <Route path='/:uri?' render={(props)=><BranchContainer {...props}/>}/>
         </Switch>
     )
 }

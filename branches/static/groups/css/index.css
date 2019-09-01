@@ -200,6 +200,7 @@
     display:block;
     font-size: 2rem;
     font-weight: bold;
+    cursor: pointer;
 }
 
 .post-to-branch-tab-panel{
@@ -684,7 +685,7 @@ div.route-section {
 
 .post-actions{
     height: 30px;
-    margin-top: 5px;
+    margin-top: 10px;
     align-items: center;
     width: 50%;
 }
@@ -820,10 +821,18 @@ div.top-spread-list{
     background: white;
 }
 
+.following-main:disabled{
+    background-color: transparent !important;
+}
+
 .following-secondary{
     color:white;
     border: 2px solid #2196F3;
     background-color: #2196F3;
+}
+
+.following-secondary:disabled{
+    background-color: #2196F3 !important;
 }
 
 .following-secondary:hover{

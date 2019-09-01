@@ -26,7 +26,7 @@ def epoch_seconds(date):
 def score(ups, downs):
     return ups - downs
 
-def hot(ups, downs, spreads , date):
+def hot(ups, downs, spreads, date):
     s = score(ups, downs)
     spread_s = sigmoid(spreads) * 30 - 15
     order = log(max(abs(s), 1), 10) + spread_s
@@ -205,9 +205,10 @@ def update_score(instance):
     instance.hot_score = hot(stars, downs, spreads, naive)
     instance.save()
 
-@receiver(post_save, sender=Post, dispatch_uid="update_post")
-def update_post_score(sender, instance, **kwargs):
-     update_score(instance.post)
+@receiver(post_save, sender=Post, dispatch_uid="init_score")
+def init_post_score(sender, instance,created, **kwargs):
+    if created:
+        update_score(instance)
          
 @receiver(post_save, sender=React, dispatch_uid="update_react")
 def update_post_score(sender, instance, **kwargs):
@@ -233,17 +234,26 @@ def delete_temp_folder(sender, instance, created, **kwargs):
 import channels.layers
 from asgiref.sync import async_to_sync
 from django.core import serializers
+from django.contrib.contenttypes.models import ContentType
 
 @receiver(post_save, sender=React)
 def create_notification(sender, instance, created, **kwargs):
-    if created and instance.branch is not instance.post.poster:
+    notification_exists = Notification.objects.filter(actor_content_type=ContentType.objects.get_for_model(instance.branch),
+                                    actor_object_id=instance.branch.id,
+                                    action_object_content_type=ContentType.objects.get_for_model(instance.post),
+                                    action_object_object_id=instance.post.id).exists()
+
+
+    if created and instance.branch is not instance.post.poster and not \
+            notification_exists:
+
         description = "reacted to your leaf"
         verb = "react"
 
 
         notification = Notification.objects.create(recipient=instance.post.poster.owner,actor=instance.branch
                                     ,verb=verb,target=instance.post.poster,
-                                    action_object=instance,description=description)
+                                    action_object=instance.post,description=description)
 
         serialized_notification  = serializers.serialize('json', [ notification, ])
 

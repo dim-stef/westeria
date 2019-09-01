@@ -1,16 +1,8 @@
 var version = 1;
-var staticCacheName = 'djangopwa-v1';
+var staticCacheName = 'djangopwa-v4';
 
 const staticAssets = [
     './',
-    './index.html',
-    './app.bundle.js',
-    './static/accounts/auth.css',
-    './static/core/css/modal.css',
-    './static/css/index.css',
-    './static/css/settings.css',
-    './static/groupchat/css/groupchat.css',
-    './static/groups/css/index.css'
 ];
 
 self.addEventListener('install', async e => {

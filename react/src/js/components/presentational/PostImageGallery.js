@@ -101,7 +101,7 @@ export function Images(props){
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
                     <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading
-                    slideStyle={{position:'relative',overflow:'hidden'}}>
+                    slideStyle={{position:'relative',overflow:'hidden',alignItems:'center'}} slideClassName="flex-fill">
                         {props.images.map(img=>{
                             return <div key={img.image} onTouchStart={event => event.preventDefault()}>
                             <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
@@ -109,7 +109,8 @@ export function Images(props){
                             /></div>
                         })}
                         {props.videos.map(vid=>{
-                            return <div key={vid.id} onTouchStart={event => event.preventDefault()}>
+                            return <div key={vid.id}
+                             onTouchStart={event => event.preventDefault()}>
                             <VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
                             /></div>
@@ -145,20 +146,23 @@ function getScrollbarWidth() {
     outer.style.overflow = 'scroll'; // forcing scrollbar to appear
     outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
     document.body.appendChild(outer);
-  
+
     // Creating inner element and placing it in the container
     const inner = document.createElement('div');
     outer.appendChild(inner);
-  
+
     // Calculating difference between container's full width and the child width
     const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
-  
+
     // Removing temporary elements from the DOM
     outer.parentNode.removeChild(outer);
-  
+
     return scrollbarWidth;
-  
-  }
+
+}
+
+import PinchToZoom from 'react-pinch-and-zoom';
+
 
 function ImageComponent({src,maxHeight,width,height}){
 
@@ -185,11 +189,12 @@ function ImageComponent({src,maxHeight,width,height}){
                         debounce={false}
                         offsetVertical={500}
                         >
-                        <img onClick={e=>{
-                            e.preventDefault();
-                            handleModalOpen(e,show)}} style={{width:'100%',
-                        objectFit:'cover',maxHeight:maxHeight,backgroundColor:'black',position:'absolute',
-                        top:'50%',right:'50%',transform:'translate(50%,-50%)'}} src={src}/>
+                        
+                            <img onClick={e=>{
+                                e.preventDefault();
+                                handleModalOpen(e,show)}} style={{width:'100%',
+                            objectFit:'cover',maxHeight:maxHeight,backgroundColor:'black',position:'absolute',
+                            top:'50%',right:'50%',transform:'translate(50%,-50%)'}} src={src}/>
                     </LazyLoad>
                     
                 </div>
@@ -198,7 +203,9 @@ function ImageComponent({src,maxHeight,width,height}){
             <Modal onClick={e=>handleModalClose(e,hide)}>
                     <div style={{height:'100%',display:'flex',overflowY:'scroll'}}>
                         <div style={{maxWidth:'70%',margin:'auto'}}>
-                            <img style={{width:'100%',backgroundColor:'#2d2d2d'}} onClick={(e)=>e.stopPropagation()} src={src}/>
+                            <PinchToZoom>
+                                <img style={{width:'100%',backgroundColor:'#2d2d2d'}} onClick={(e)=>e.stopPropagation()} src={src}/>
+                            </PinchToZoom>
                         </div>
                     </div>
             </Modal>    

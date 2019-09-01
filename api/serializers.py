@@ -6,7 +6,7 @@ from asgiref.sync import async_to_sync
 from rest_framework import serializers
 from accounts.models import User
 from branches.models import Branch, BranchRequest
-from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo
+from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
 from notifications.models import Notification
 from datetime import datetime, timedelta
@@ -222,8 +222,19 @@ class BranchChatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BranchChat
-        fields = ['id', 'name', 'owner','members','latest_message']
+        fields = ['id', 'name', 'owner','members','latest_message','image']
 
+
+class ChatRequestWithRoomSerializer(serializers.ModelSerializer):
+    branch_chat = serializers.SerializerMethodField()
+
+    def get_branch_chat(self,request):
+        return BranchChatSerializer(request.branch_chat).data
+
+    class Meta:
+        model = ChatRequest
+        fields = ['branch_chat','request_from','request_to','status','id']
+        read_only_fields = ['branch_chat','request_from','request_to']
 
 class BranchMessageSerializer(serializers.ModelSerializer):
     images = ChatImageSerializer(many=True)
@@ -359,7 +370,6 @@ class NewPostSerializer(serializers.ModelSerializer):
         validated_data.pop('images')
         validated_data.pop('videos')
 
-        print(validated_data['text'], request.FILES)
         if not validated_data['text'] and not validated_data['text'].isspace() and not request.FILES:
             raise serializers.ValidationError('text and media are None')
 
@@ -590,12 +600,14 @@ class BranchPostSerializer(serializers.ModelSerializer):
         return [i.thumbnail.url for i in post.videos.all()]
 
     def get_spreaders(self,post):
-        spreads = post.spreads.filter(branch__in=self.context['spreaders']).distinct('branch')
-        context = {"post": post.id}
-        branches = []
-        for spread in spreads:
-            branches.append(spread.branch)
-        return BranchSerializer(branches,many=True,context=context).data
+        if 'spreaders' in self.context:
+            spreads = post.spreads.filter(branch__in=self.context['spreaders']).distinct('branch')
+            context = {"post": post.id}
+            branches = []
+            for spread in spreads:
+                branches.append(spread.branch)
+            return BranchSerializer(branches,many=True,context=context).data
+        return []
 
     class Meta:
         model = Post
@@ -666,14 +678,17 @@ class NewSpreadSerializer(serializers.ModelSerializer):
 
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
+        print(value)
         if isinstance(value, Branch):
             serializer = BranchSerializer(value)
         elif isinstance(value, BranchRequest):
             serializer = BranchRequestSerializer(value)
-        elif isinstance(value,React):
-            serializer = ReactSerializer(value)
+        elif isinstance(value,Post):
+            serializer = BranchPostSerializer(value)
         elif isinstance(value,BranchMessage):
             serializer = BranchMessageSerializer(value)
+        elif isinstance(value,ChatRequest):
+            serializer = ChatRequestWithRoomSerializer(value)
         return serializer.data
 
 

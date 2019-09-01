@@ -5,14 +5,16 @@ import {RefreshContext} from "../container/ContextContainer"
 import axios from "axios"
 
 export default function BranchFooter({branch,pending,requestId,viewedBranch}){
-     
+    const [pendingStatus,setPending] = useState(pending);
 
     function handleAccept(){
         updateRequest('accepted');
+        setPending('accepted');
     }
 
     function handleDecline(){
         updateRequest('declined');
+        setPending('declined');
     }
 
     function updateRequest(status){
@@ -41,11 +43,15 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
             <DescriptionBox description={branch.description}/>
             <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around'}}>
                 <FollowButton uri={branch.uri} id={branch.id}/>
-                {pending?
-                <div>
-                    <button className="accept-btn" onClick={handleAccept}>accept</button>
-                    <button className="decline-btn" onClick={handleDecline}>decline</button>
-                </div>
+                {pendingStatus?
+                    pendingStatus=='accepted'?<div>
+                                <p className="form-succeed-message" >Request accepted</p>
+                            </div>
+                    :pendingStatus=='declined'?<p className="form-succeed-message" >Request declined</p>
+                    :<div>
+                        <button className="accept-btn" onClick={handleAccept}>accept</button>
+                        <button className="decline-btn" onClick={handleDecline}>decline</button>
+                    </div>
                 :null}
             </div>
         </div>

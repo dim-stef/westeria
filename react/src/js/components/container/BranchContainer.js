@@ -138,16 +138,11 @@ export function useMyBranches(){
     const [branches,setBranches] = useState(cachedBranches.owned)
 
     async function getUserBranches(){
-        let newBranches = []
-        for await (const branch of context.branches){
-            let response = await axios.get(`/api/branches/${branch.uri}/`)
-            let data = await response.data;
-            newBranches.push(data)
-        }
-
-        cachedBranches.owned = newBranches;
+        let response = await axios.get(`/api/v1/owned_branches/`)
+        let data = await response.data;
+        cachedBranches.owned = data;
         setGotData(true);
-        return newBranches
+        return data
     }
 
     async function populateBranches(){

@@ -70,7 +70,7 @@ GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
 ###
 AWS_IS_GZIPPED = True
 AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
+    'CacheControl': 'max-age=0',
 }
 
 AWS_S3_CALLING_FORMAT = 'boto.s3.connection.OrdinaryCallingFormat'
@@ -218,7 +218,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    )
+    ),
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning'
 }
 
 # Password validation

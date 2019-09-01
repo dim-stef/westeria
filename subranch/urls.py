@@ -19,6 +19,7 @@ urlpatterns = [
     path('accounts/', include('accounts.urls')),
     path('email/', page_not_found, name="accounts_email", kwargs={'exception': Exception('Page not Found')}),
     path("confirm-email/", page_not_found,name="account_email_verification_sent", kwargs={'exception': Exception('Page not Found')}),
+    path('api/v1/', include('api.v1.urls')),
     path('api/', include('api.urls')),
     path('drf/', include('rest_framework.urls')),
     path('', include('core.urls')),

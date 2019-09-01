@@ -3,6 +3,7 @@ import {isMobile} from 'react-device-detect';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {Images} from "../presentational/PostImageGallery"
 import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
+import history from '../../history'
 import { Link } from 'react-router-dom'
 import { MoonLoader } from 'react-spinners';
 import {Helmet} from 'react-helmet'
@@ -23,7 +24,7 @@ export function ChatRoomsContainer({inBox,match}){
         let uri = `/api/branches/${context.currentBranch.uri}/chat_rooms/`;
         let response = await axios.get(uri);
         setRooms(response.data);
-        setLoaded(true)
+        setLoaded(true);
     }
 
     useEffect(() => {
@@ -36,12 +37,12 @@ export function ChatRoomsContainer({inBox,match}){
             <title>Messages - Subranch</title>
             <meta name="description" content="Your messages." />
         </Helmet>
-        <WebSocketRooms rooms={rooms} inBox={inBox} match={match} loaded={loaded}/>
+        <WebSocketRooms rooms={rooms} inBox={inBox} match={match} loaded={loaded} rooms={rooms} setRooms={setRooms}/>
         </>
     )
 }
 
-function WebSocketRooms({rooms,inBox,match,loaded}){
+function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
     const [roomData,setRoomData] = useState([]);
 
     useEffect(()=>{
@@ -64,7 +65,7 @@ function WebSocketRooms({rooms,inBox,match,loaded}){
 
     if(!inBox){
         if(!match.params.roomName){
-            return <RoomsPreviewColumn roomData={roomData} loaded={loaded}/>
+            return <RoomsPreviewColumn roomData={roomData} loaded={loaded} rooms={rooms} setRooms={setRooms}/>
         }else{
             return roomData.length>0?<RoomContainer roomData={roomData} match={match}/>:null
         }
@@ -195,6 +196,10 @@ function RoomContainer({roomData,match}){
         previewName = member;
     }
 
+    let headline = <div className="flex-fill center-items">
+        <img src={data.room.image} className="round-picture" style={{height:32,width:32,objectFit:'cover'}}/>
+        <span style={{fontWeight:'bold', fontSize:'2em',marginLeft:10}}>{data.room.name}</span>
+    </div>
     return(
         <>
         <Helmet>
@@ -204,7 +209,9 @@ function RoomContainer({roomData,match}){
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1}}>
-                <RoutedHeadline headline={'@' + previewName}/>
+                <RoutedHeadline>
+                    {headline}
+                </RoutedHeadline>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
                 flexFlow:'column',WebkitFlexFlow:'column'}}>
                     <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
@@ -370,7 +377,8 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 }
 
 
-function RoomsPreviewColumn({roomData,isGroup,inBox,loaded}){
+function RoomsPreviewColumn({roomData,isGroup,inBox,loaded,rooms,setRooms}){
+    
     return(
         <PageWrapper>
             <div className="main-column">
@@ -388,18 +396,106 @@ function RoomsPreviewColumn({roomData,isGroup,inBox,loaded}){
                         return <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
                     }):<MutualFollowMessage/>
                 }
-               
+                {loaded?
+                    <>
+                    <ConversationRequests rooms={rooms} setRooms={setRooms}/>
+                    <Link to="/messages/create_conversation" style={{textDecoration:'none',borderBottom:'1px solid rgb(226, 234, 241)'}}
+                    className="info-message-wrapper flex-fill center-items">
+                        <span>Create conversation</span>
+                    </Link>
+                    </>:null}
+                
             </div>
         </PageWrapper>
     )
 }
+
+function ConversationRequests({rooms,setRooms}){
+    const [requests,setRequests] = useState([]);
+    const userContext = useContext(UserContext);
+
+    async function getRequests(){
+        let response = await axios.get(`/api/v1/branches/${userContext.currentBranch.uri}/conversation_invitations/`);
+        let filtered = response.data.filter(r=>r.status=='on hold');
+        setRequests(filtered);
+    }
+
+    useEffect(()=>{
+        getRequests();
+    },[])
+
+    return(
+        requests.map(r=>{
+            return <ConversationRequestsPreview request={r} rooms={rooms} setRooms={setRooms}/>
+        })
+    )
+}
+
+function ConversationRequestsPreview({request,rooms,setRooms}){
+    const userContext = useContext(UserContext);
+    const [status,setStatus] = useState(request.status);
+
+    async function getNewRoom(id){
+        let uri = `/api/branches/${userContext.currentBranch.uri}/chat_rooms/${id}/`;
+        let response = await axios.get(uri);
+        setRooms([...rooms,response.data]);
+    }
+
+    useEffect(()=>{
+        // if user accepted request wait for rooms to update then redirect
+        // must check if room is loaded on state update
+        if(status=='accepted' && rooms.some(r=>r.id==request.branch_chat.id)){
+            history.push(`/messages/${request.branch_chat.id}`);
+        }
+    },[rooms])
+
+    function updateRequest(event,status,branch,requestId){
+        let uri = `/api/v1/branches/${branch.uri}/conversation_invitations/${requestId}/`;
+        let data = {
+            status:status
+        }
+        axios.patch(
+            uri,
+            data,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+            }).then(response => {
+                let status = response.data.status;
+                getNewRoom(request.branch_chat.id);
+                setStatus(status);
+            })
+    }
+
+    return(
+        status=='on hold' || !status?
+        <div className="flex-fill room-preview">
+            <img className="round-picture" src={request.branch_chat.image} style={{height:48,width:48,objectFit:'cover'}}></img>
+            <div className="flex-fill" 
+            style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em',flex:'1 1 auto'}}>
+                <span style={{fontWeight:600,color:'#292929'}}>{request.branch_chat.name}</span>
+            </div>
+            <div className="flex-fill">
+                <button className="accept-btn"
+                onClick={(e)=>updateRequest(e,'accepted',userContext.currentBranch,request.id)}>join</button>
+                <button className="decline-btn" 
+                onClick={(e)=>updateRequest(e,'declined',userContext.currentBranch,request.id)}>decline</button>
+            </div>
+        </div>
+        :
+        null
+    )
+}
+
+
 
 function MutualFollowMessage(){
     return(
         <div className="info-message-wrapper flex-fill center-items">
             <span>Mutually follow another person in order to message them</span>
         </div>
-
     )
 }
 
@@ -411,31 +507,6 @@ function RoomPreview({room,ws,isGroup,inBox}){
     const [previewBranch,setPreviewBranch] = useState(isCachedInFollowing || isCachedInForeign);
     const [latestMessage,setLatestMessage] = useState(room.latest_message)
 
-    async function getPreviewBranch(){
-        let uri;
-        let response;
-        uri = room.members.find(uri=>uri!=userContext.currentBranch.uri);
-        if(uri){
-            response = await axios.get(`/api/branches/${uri}/`);
-            cachedBranches.foreign.push(response.data);
-            
-        }else{
-            uri = userContext.branches.find(b=>{
-                return room.members.find(m=>m==b.uri);
-            }).uri
-            response = await axios.get(`/api/branches/${uri}/`);
-            
-        }
-        setPreviewBranch(response.data);    
-    }
-
-
-    useEffect(()=>{
-        if(!previewBranch){
-            getPreviewBranch()
-        }
-    },[])
-
     ws.onmessage = function (e) {
         let data = JSON.parse(e.data);
         let message = data['message'];
@@ -444,15 +515,13 @@ function RoomPreview({room,ws,isGroup,inBox}){
     };
 
     return(
-        previewBranch?
-            <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
-                <img className="round-picture" src={previewBranch.branch_image} style={{height:48,width:48,objectFit:'cover'}}></img>
-                <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
-                    <span style={{fontWeight:600,color:'#292929'}}>{previewBranch.name}</span>
-                    <span style={{fontSize:'0.9em',color:'#708698',wordBreak:'break-all'}}>{latestMessage}</span>
-                </div>
-            </Link>
-        :null
+        <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
+            <img className="round-picture" src={room.image} style={{height:48,width:48,objectFit:'cover'}}></img>
+            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
+                <span style={{fontWeight:600,color:'#292929'}}>{room.name}</span>
+                <span style={{fontSize:'0.9em',color:'#708698',wordBreak:'break-all'}}>{latestMessage}</span>
+            </div>
+        </Link>
     )
 }
 

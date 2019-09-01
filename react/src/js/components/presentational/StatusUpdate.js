@@ -178,7 +178,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     }
 
     function resetEditor(){
-        setValue(initValue);
+        setValue('');
         setFiles([]);
     }
     
@@ -242,7 +242,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     className="editor flex-fill"
                     value={value}
                     style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                    wordBreak:'break-all',border:'2px solid #219ef3',minHeight:'2rem',alignItems:'center'}}/>
+                    wordBreak:'break-all',border:'2px solid #219ef3',minHeight:'2rem',alignItems:'center',display:'block'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                     {minimized?
                     null:
@@ -426,7 +426,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
              
                     <div className="flex-fill" style={{flex:'1 1 auto'}}>
                         <input type="file" multiple className="inputfile" id="media"
-                        accept="image/*|video/*" capture onInput={e=>handleImageClick(e)}></input>
+                        accept="image/*|video/*" style={{display:'block'}} capture onInput={e=>handleImageClick(e)}></input>
                         <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
                     </div>
                     <button style={{marginRight:10}} className="editor-btn"

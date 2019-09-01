@@ -67,6 +67,10 @@ function Description({description}){
 }
 
 
+let CancelToken = axios.CancelToken;
+let source = CancelToken.source();
+
+
 export function FollowButton({id,uri,style=null}){
 
     const context = useContext(UserContext);
@@ -82,7 +86,8 @@ export function FollowButton({id,uri,style=null}){
         initFollowing= false
     }
     const [className,setClassName] = useState(clsName);
-    const [following,setFollowing] = useState(initFollowing);   
+    const [following,setFollowing] = useState(initFollowing);
+    const [isDisabled,setDisabled] = useState(false);
 
     useEffect(()=>{
         if(context.isAuth && context.currentBranch.follows.includes(uri)){
@@ -95,12 +100,33 @@ export function FollowButton({id,uri,style=null}){
         }
     },[uri])
 
+    /*useEffect(()=>{
+        source.cancel('');
+        CancelToken = axios.CancelToken;
+        source = CancelToken.source();
+    },[following])*/
+
+    function followSetter(){
+        setDisabled(true);
+        if(following){
+            context.currentBranch.follows.splice(context.currentBranch.follows.indexOf(uri),1);
+            setClassName('following-main');
+            setFollowing(false);
+        }else{
+            context.currentBranch.follows.push(uri)
+            setClassName('following-secondary');
+            setFollowing(true);
+        }
+    }
+
     function onClick(e){
         e.stopPropagation();
         if(!context.isAuth){
             return;
         }
-        
+
+        followSetter();
+
         var url = `/api/branches/add_follow/${context.currentBranch.uri}/`;
         if(following){
             url = `/api/branches/remove_follow/${context.currentBranch.uri}/`;
@@ -117,32 +143,26 @@ export function FollowButton({id,uri,style=null}){
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
+            cancelToken: source.token,
             withCredentials: true,
         }).then(response => {
-             
-            if(response.status === 200){
-                if(following){
-                    context.currentBranch.follows.splice(context.currentBranch.follows.indexOf(uri),1);
-                    setClassName('following-main');
-                    setFollowing(false);
-                }else{
-                    context.currentBranch.follows.push(uri)
-                    setClassName('following-secondary');
-                    setFollowing(true);
-                }
-            }
+            setDisabled(false);
         }).catch(error => {
-             
+            setDisabled(false);
         })
     }
+
+
 
     return(
         <button
             onClick={onClick}
             className={className}
+            disabled={isDisabled}
             name="followAction"
             style={{
             borderRadius: 24,
+            display:'block',
             margin:'0 15px',
             padding: "8px",
             width:140,

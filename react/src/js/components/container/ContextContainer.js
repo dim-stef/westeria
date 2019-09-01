@@ -51,6 +51,7 @@ export const RefreshContext = React.createContext({
 
 export const CachedBranchesContext = React.createContext({
     following:[],
+    mutualFollows:[],
     owned:[],
     foreign:[]
 });

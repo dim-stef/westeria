@@ -93,6 +93,7 @@
     "react-measure": "^2.3.0",
     "react-modal-hook": "^1.1.1",
     "react-modal-image": "^2.3.2",
+    "react-pinch-and-zoom": "^1.2.4",
     "react-player": "^1.11.1",
     "react-pullable": "^1.0.3",
     "react-redux": "^5.0.7",

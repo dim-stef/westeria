@@ -30,7 +30,7 @@ export class ChildBranch extends Component{
 }
 
 export function SmallBranch({branch,isLink=true,
-    onClick=()=>{},hoverable=true,children}){
+    onClick=()=>{},hoverable=true,style=null,children}){
     const [showCard,setShowCard] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -59,7 +59,7 @@ export function SmallBranch({branch,isLink=true,
         onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}
          style={{position:'relative'}} className="noselect small-branch-container flex-fill">
             <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
-                <div className="flex-fill"
+                <div className="flex-fill center-items"
                 >
                     <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',backgroundColor:'#4d5058',minWidth:48}} 
                     alt="" src={branch.branch_image}/>

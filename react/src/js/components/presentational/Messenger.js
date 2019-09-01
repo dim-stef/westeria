@@ -252,7 +252,8 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         className="flex-fill"
                         placeholder="Type something"
                         style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                        wordBreak:'break-all',border:'1px solid #a6b7c5',flex:'1 1 auto',minHeight:'2rem',alignItems:'center'}}/>
+                        wordBreak:'break-all',border:'1px solid #a6b7c5',flex:'1 1 auto',minHeight:'2rem',alignItems:'center',
+                        display:'block'}}/>
                         
                         <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick}/>
                     </div>
@@ -288,7 +289,7 @@ function Toolbar({handleSendMessage,onInput}){
         <div className="flex-fill" style={{marginTop:5}}>
             <div className="flex-fill" style={{flex:'1 1 auto',margin:'0 10px'}}>
                 <input type="file" accept="image/*|video/*" capture multiple 
-                className="inputfile" id="media" onInput={onInput}></input>
+                className="inputfile" id="media" style={{display:'block'}} onInput={onInput}></input>
                 <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
             </div>
             <button className="editor-btn" onClick={handleSendMessage}>Send</button>

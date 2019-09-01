@@ -16,6 +16,7 @@ router.register(r'post/remove_reply', views.RemovePostReply, base_name='remove_r
 router.register(r'post',views.BranchPost,base_name="post")
 router.register(r'post/(?P<id>\d+)/replies',views.ReplyTree,base_name="reply_tree")
 router.register(r'owned_branches', views.OwnedBranchesViewSet, base_name='owned_branches')
+router.register(r'owned_branches_detailed', views.OwnedBranchesViewSet, base_name='owned_branches')
 router.register(r'public_profile', views.BranchPublicProfileSerializer, base_name='public_profile')
 router.register(r'ROOT', views.BranchRootViewSet, base_name='branchroot')
 router.register(r'trending', views.TrendingScoreViewSet,base_name='trending_score')

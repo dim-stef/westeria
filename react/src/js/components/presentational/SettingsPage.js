@@ -580,7 +580,7 @@ const Error = ({ name }) => (
     />
   );
 
-function Profile({branch,wrapperRef,profileRef,createNew}){
+export function Profile({branch,wrapperRef,profileRef,createNew,name="branch_image",showError=false}){
 
     function onInput(){
 
@@ -596,7 +596,7 @@ function Profile({branch,wrapperRef,profileRef,createNew}){
     }
 
     return(
-        <Field name="branch_image"
+        <Field name={name}
         validate={onInput}>
             {({ input, meta }) => (
             <div>
@@ -605,6 +605,8 @@ function Profile({branch,wrapperRef,profileRef,createNew}){
                     getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"/>
                 </label>
                 <input {...input} ref={profileRef} accept="image/*" id="branch-image" className="inputfile" type="file" />
+                {showError?
+                    meta.error && meta.touched && <span className="setting-error">{meta.error}</span>:null}
                 {/*{meta.validating && <p>loading</p>}*/}
             </div>
             )}

@@ -13,14 +13,16 @@ export function FollowingBranchesColumnContainer(){
 
     async function getUserBranches(){
         let newBranches = []
-        for await (const branch of context.currentBranch.follows){
+       /* for await (const branch of context.currentBranch.follows){
             let response = await axios.get(`/api/branches/${branch}/`)
             let data = await response.data;
             newBranches.push(data)
-        }
-        cachedBranches.following = newBranches;
+        }*/
+        let response = await axios.get(`/api/v1/branches/${context.currentBranch.uri}/follows/`);
+        let data = await response.data;
+        cachedBranches.following = data;
         setGotData(true);
-        return newBranches
+        return data
     }
 
     async function populateBranches(){
@@ -28,7 +30,7 @@ export function FollowingBranchesColumnContainer(){
         setBranches(branches);
     }
 
-    function arraysEqual(a, b) {
+    function branchesEqual(a, b) {
         if (a === b) return true;
         if (a == null || b == null) return false;
         if (a.length != b.length) return false;
@@ -39,7 +41,7 @@ export function FollowingBranchesColumnContainer(){
         // you might want to clone your array first.
       
         for (var i = 0; i < a.length; ++i) {
-          if (a[i] != b[i]) return false;
+          if (a[i].uri != b[i].uri) return false;
         }
         return true;
       }
@@ -52,7 +54,7 @@ export function FollowingBranchesColumnContainer(){
                 return b.uri
             }):[]
             
-            if(!arraysEqual(currentFollowing,context.currentBranch.follows) && (currentFollowing.length>0 || context.currentBranch.follows.length>0)){
+            if(!branchesEqual(currentFollowing,context.currentBranch.follows) && (currentFollowing.length>0 || context.currentBranch.follows.length>0)){
                 populateBranches();
             }
     
