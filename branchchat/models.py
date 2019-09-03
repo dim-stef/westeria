@@ -24,6 +24,7 @@ class BranchChat(models.Model):
     name = models.CharField(default="default", blank=False, null=False, max_length=80)
     owner = models.ForeignKey('branches.Branch', null=True, on_delete=models.CASCADE, related_name="chat")
     members = models.ManyToManyField('branches.Branch', null=True, related_name="chat_groups")
+    personal = models.BooleanField(default=False)
 
     def __str__(self):
         return '%s' % self.name

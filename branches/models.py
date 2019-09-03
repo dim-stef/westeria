@@ -319,7 +319,8 @@ def modify_chat_room(sender, instance, **kwargs):
             is_being_followed_back = True if member in instance.follows.all() else False
             if is_being_followed_back and is_following and not already_exists(member):
                 members = [member, instance]
-                new_room = BranchChat.objects.create(owner=instance,image=member.branch_image,name=member.name)
+                new_room = BranchChat.objects.create(owner=instance,image=member.branch_image,name=member.name,
+                                                     personal=True)
                 new_room.members.add(*members)
 
     # On unfollow delete direct chat

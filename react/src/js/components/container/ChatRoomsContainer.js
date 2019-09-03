@@ -10,6 +10,7 @@ import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
+import {useMyBranches} from "../container/BranchContainer"
 import {UserContext,CachedBranchesContext,NotificationsContext} from "./ContextContainer"
 import axios from "axios";
 
@@ -75,6 +76,7 @@ function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
 function RoomContainer({roomData,match}){
     let context = useContext(UserContext);
     let data = roomData.find(data=>data.room.id==match.params.roomName);
+    const previewBranch = usePreviewBranch(data.room);
     let member = data.room.members.find(m=>{
         return context.branches.find(b=>b.uri==m)
     })
@@ -196,15 +198,18 @@ function RoomContainer({roomData,match}){
         previewName = member;
     }
 
+    let image = data.room.personal?previewBranch?previewBranch.branch_image:null:data.room.image;
+    let name = data.room.personal?previewBranch?previewBranch.name:'':data.room.name
     let headline = <div className="flex-fill center-items">
-        <img src={data.room.image} className="round-picture" style={{height:32,width:32,objectFit:'cover'}}/>
-        <span style={{fontWeight:'bold', fontSize:'2em',marginLeft:10}}>{data.room.name}</span>
+        <img src={image} 
+        className="round-picture" style={{height:32,width:32,objectFit:'cover'}}/>
+        <span style={{fontWeight:'bold', fontSize:'2em',marginLeft:10}}>{name}</span>
     </div>
     return(
         <>
         <Helmet>
-            <title>{data.room.name} - Subranch</title>
-            <meta name="description" content={`${data.room.name} messages.`} />
+            <title>{name} - Subranch</title>
+            <meta name="description" content={`${name} messages.`} />
         </Helmet>
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
@@ -499,12 +504,43 @@ function MutualFollowMessage(){
     )
 }
 
-function RoomPreview({room,ws,isGroup,inBox}){
+
+function usePreviewBranch(room){
     const userContext = useContext(UserContext)
     const cachedBranches = useContext(CachedBranchesContext);
+    const branches = useMyBranches();
     let isCachedInFollowing = cachedBranches.following.find(b=>b.uri!=userContext.currentBranch.uri && room.members.includes(b.uri));
     let isCachedInForeign = cachedBranches.foreign.find(b=>b.uri!=userContext.currentBranch.uri && room.members.includes(b.uri));
     const [previewBranch,setPreviewBranch] = useState(isCachedInFollowing || isCachedInForeign);
+
+    async function getPreviewBranch(){
+        let uri;
+        let response;
+        let data;
+        uri = room.members.find(uri=>uri!=userContext.currentBranch.uri);
+        if(uri){
+            response = await axios.get(`/api/branches/${uri}/`);
+            cachedBranches.foreign.push(response.data);
+            data = response.data;
+        }else{
+            data = branches.find(b=>{
+                return room.members.find(m=>m==b.uri);
+            })            
+        }
+        setPreviewBranch(data);    
+    }
+
+    useLayoutEffect(()=>{
+        if(!previewBranch){
+            getPreviewBranch()
+        }
+    },[branches])
+
+    return previewBranch
+}
+
+function RoomPreview({room,ws,isGroup,inBox}){
+    const previewBranch = usePreviewBranch(room);
     const [latestMessage,setLatestMessage] = useState(room.latest_message)
 
     ws.onmessage = function (e) {
@@ -514,11 +550,13 @@ function RoomPreview({room,ws,isGroup,inBox}){
         //self.el.scrollIntoView({ behavior: "instant" });
     };
 
+
     return(
         <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
-            <img className="round-picture" src={room.image} style={{height:48,width:48,objectFit:'cover'}}></img>
+            <img className="round-picture" src={room.personal?previewBranch?previewBranch.branch_image:null:room.image} 
+            style={{height:48,width:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
-                <span style={{fontWeight:600,color:'#292929'}}>{room.name}</span>
+                <span style={{fontWeight:600,color:'#292929'}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
                 <span style={{fontSize:'0.9em',color:'#708698',wordBreak:'break-all'}}>{latestMessage}</span>
             </div>
         </Link>

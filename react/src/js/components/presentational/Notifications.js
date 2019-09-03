@@ -233,7 +233,8 @@ function ReactNotification({notification}){
     const postsContext = useContext(SingularPostContext);
 
     async function getPost(){
-        let response = await axios.get(`/api/post/${notification.action_object.post}/`);
+        console.log("asdasdasd")
+        let response = await axios.get(`/api/post/${notification.action_object.id}/`);
         setPost(response.data);
     }
 

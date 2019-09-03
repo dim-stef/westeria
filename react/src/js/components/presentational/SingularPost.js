@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom';
 import {Link,Redirect,withRouter} from 'react-router-dom'
 import history from "../../history"
 import {Helmet} from 'react-helmet'
-import {UserContext} from '../container/ContextContainer'
+import {UserContext,SingularPostContext,PostsContext,AllPostsContext,
+TreePostsContext,BranchPostsContext} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
 import StatusUpdate from "./StatusUpdate";
 import {FollowButton} from "./Card"
@@ -408,7 +409,7 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
                         text={post.text} postsContext={postsContext} images={post.images} videos={post.videos} 
                         measure={measure} postRef={ref} viewAs={viewAs}/>
                         <PostActions post={post} handleCommentClick={handleCommentClick}
-                        handleSpread={onSpread} didSelfSpread={didSelfSpread}/>
+                        handleSpread={onSpread} didSelfSpread={didSelfSpread} postsContext={postsContext}/>
                         
                     </div>
             </div>
@@ -582,6 +583,12 @@ function PostPicture(props){
 }
 
 function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
+
+    const postsContext = useContext(PostsContext);
+    const allPostsContext = useContext(AllPostsContext);
+    const treePostsContext = useContext(TreePostsContext);
+    const branchPostsContext = useContext(BranchPostsContext);
+
     const context = useContext(UserContext)
     const [react,setReact] = useState(null);
     const [starCount,setStarCount] = useState(post.stars);
@@ -597,7 +604,6 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             }
         }
     },[])
-
 
     function changeReact(type){
         setDisabled(true);
@@ -697,6 +703,25 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             })
         }
     },[react])
+
+    function updatePostsContext(postsContext){
+        postsContext.loadedPosts.forEach(p=>{
+            if(p.id==post.id){
+                p.stars = starCount;
+                p.dislikes = dislikeCount;
+            }
+        })
+    }
+
+    useEffect(()=>{
+
+        // sync react count with cached posts
+        // NEEDS FIX
+        updatePostsContext(postsContext);
+        updatePostsContext(allPostsContext);
+        updatePostsContext(treePostsContext);
+        updatePostsContext(branchPostsContext);
+    },[starCount,dislikeCount])
 
     let color = 'rgb(67, 78, 88)';
 

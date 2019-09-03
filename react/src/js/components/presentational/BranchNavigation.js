@@ -10,9 +10,9 @@ export class BranchNavigation extends Component{
     render(){
         return(
             <div style={{zIndex:1}}>
-                <div style={{height:'100%',position:'absolute',left:100,width:210,display:'flex',alignItems:'center'}}>
+                {/*<div style={{height:'100%',position:'absolute',left:100,width:210,display:'flex',alignItems:'center'}}>
                     <DropProfile branch={this.props.branch}/>
-                </div>
+                </div>*/}
                 <div style={{backgroundColor:'white',boxShadow:'0 4px 4px -4px rgba(0,0,0,0.25)'}}>
                     <div id="branch-navigation" className="group-navigation-container flex-fill">
                         <FeedButton branch={this.props.branch}/>

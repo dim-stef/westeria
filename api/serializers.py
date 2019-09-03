@@ -222,7 +222,7 @@ class BranchChatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BranchChat
-        fields = ['id', 'name', 'owner','members','latest_message','image']
+        fields = ['id', 'name', 'owner','members','latest_message','image','personal']
 
 
 class ChatRequestWithRoomSerializer(serializers.ModelSerializer):
