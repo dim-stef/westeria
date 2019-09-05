@@ -159,6 +159,8 @@ function NotificationMatcher({notification}){
         return <FollowNotification notification={notification}/>;
     }else if(notification.verb=='conversation_invite'){
         return <ChatRequestNotification notification={notification}/>
+    }else if(notification.verb=='reply'){
+        return <ReplyNotification notification={notification}/>
     }else{
         return null;
     }
@@ -233,7 +235,6 @@ function ReactNotification({notification}){
     const postsContext = useContext(SingularPostContext);
 
     async function getPost(){
-        console.log("asdasdasd")
         let response = await axios.get(`/api/post/${notification.action_object.id}/`);
         setPost(response.data);
     }
@@ -251,6 +252,48 @@ function ReactNotification({notification}){
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
                 <span style={{padding:10}}> {notification.description} </span>
                 <div style={{margin:10,fontSize:'0.5em',width:'100%'}}>
+                    <Post post={post} postsContext={postsContext} 
+                    activeBranch={userContext.currentBranch} viewAs="embeddedPost"/>
+                </div>
+            </div>
+        )
+    }else{
+        return null;
+    } 
+}
+
+function ReplyNotification({notification}){
+    const [post,setPost] = useState(null);
+    const [reply,setReply] = useState(null)
+    const userContext = useContext(UserContext);
+    const postsContext = useContext(SingularPostContext);
+
+    async function getPost(){
+        let response = await axios.get(`/api/post/${notification.action_object.id}/`);
+        setPost(response.data);
+    }
+
+    async function getReply(){
+        let response = await axios.get(`/api/post/${notification.action_object.replied_to.id}/`);
+        setReply(response.data);
+    }
+
+    useEffect(()=>{
+        getPost();
+        getReply();
+    },[])
+
+    if(post && reply){
+        let linkTo = `/${notification.target.uri}/leaves/${post.id}`;
+        return(
+            <div style={{alignItems:'center',
+            flexFlow:'row wrap',borderBottom:'1px solid #e2eaf1'}}
+            className="notification flex-fill">
+                <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
+                <span style={{padding:10}}> {notification.description} </span>
+                <div style={{margin:10,fontSize:'0.5em',width:'100%'}}>
+                    <Post post={reply} postsContext={postsContext} 
+                    activeBranch={userContext.currentBranch} viewAs="embeddedPost"/>
                     <Post post={post} postsContext={postsContext} 
                     activeBranch={userContext.currentBranch} viewAs="embeddedPost"/>
                 </div>

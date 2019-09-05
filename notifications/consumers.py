@@ -88,3 +88,18 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'verb': verb,
             'id': id
         }))
+
+    async def send_reply_notification(self,event):
+        reply_from = event['reply_from']
+        post = event['post']
+        reply = event['reply']
+        verb = event['verb']
+        id = event['id']
+
+        await self.send(text_data=json.dumps({
+            'reply_from': reply_from,
+            'post': post,
+            'reply': reply,
+            'verb': verb,
+            'id': id
+        }))

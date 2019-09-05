@@ -6,6 +6,7 @@ import {SmallBranch} from "./Branch"
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import {SkeletonBranchList} from "./SkeletonBranchList";
 import { Block,Value } from 'slate'
+import {CustomEditor} from './Editor'
 import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
 import Plain from 'slate-plain-serializer'
@@ -136,6 +137,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     const [videoError,setVideoError] = useState(false);
     const [minimized,setMinimized] = useState(true);
     const ref = useRef(null);
+    const editorRef = useRef(null);
     const wrapperRef = useRef(null);
     const context = useContext(UserContext);
     const [branch,setBranch] = useState(context.currentBranch)
@@ -178,6 +180,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     }
 
     function resetEditor(){
+        editorRef.current.innerText = '';
         setValue('');
         setFiles([]);
     }
@@ -237,6 +240,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                 </BranchSwitcher>
                 <div style={{width:'100%'}}>
                     <CustomEditor
+                    editorRef={editorRef}
                     onInput={handleChange}
                     placeholder="Add a leaf"
                     className="editor flex-fill"
@@ -261,7 +265,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
     )
 }
 
-function CustomEditor({onInput,placeholder,className,style}){
+/*function CustomEditor({onInput,placeholder,className,style}){
     const ref = useRef(null);
 
     function handleInput(e){
@@ -284,7 +288,7 @@ function CustomEditor({onInput,placeholder,className,style}){
         data-placeholder={placeholder}
         style={style}/>
     )
-}
+}*/
 
 function CodeNode(props) {
     return (

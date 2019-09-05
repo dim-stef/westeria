@@ -214,7 +214,7 @@ function RoomContainer({roomData,match}){
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1}}>
-                <RoutedHeadline>
+                <RoutedHeadline to="/messages">
                     {headline}
                 </RoutedHeadline>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,

@@ -1,10 +1,12 @@
 from django.db import models
+from django.apps import apps
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
+from push_notifications.models import APNSDevice, GCMDevice
 from accounts.models import User
 from notifications.models import Notification
 import uuid
@@ -82,6 +84,16 @@ class Post(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    @property
+    def description(self):
+        image_count = self.images.count()
+        video_count = self.videos.count()
+
+        if self.text:
+            return self.text
+        elif image_count > 0 or video_count > 0:
+            return "%s Media" % str(image_count + video_count)
+
     class Meta:
         unique_together = (("posted","id"),)
         ordering = ['-created']
@@ -98,19 +110,21 @@ class Post(models.Model):
         if not self.text and not self.images.exists():
             raise ValidationError('Field1 or field2 are both None')
 
-
 from io import BytesIO
 from PIL import Image
-
 
 class PostImage(models.Model):
     height = models.IntegerField()
     width = models.IntegerField()
     post = models.ForeignKey(Post,on_delete=models.CASCADE,related_name="images")
     url = models.URLField(null=True)
-    image = models.ImageField(upload_to='static/images',null=True,height_field='height', width_field='width')
+    image = models.ImageField(upload_to='static/images',null=True,blank=True,height_field='height', width_field='width')
+    original_image = models.ImageField(upload_to='static/original_images',null=True,blank=True,height_field='height',
+                                       width_field='width')
 
     def save(self, *args, **kwargs):
+        self.original_image = self.image
+
         im = Image.open(self.image)
         im.load()
         rbg_img = im.convert('RGB')
@@ -236,6 +250,72 @@ from asgiref.sync import async_to_sync
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 
+
+@receiver(post_save, sender=Post)
+def create_reply_notification(sender, instance, created, **kwargs):
+    if created:
+        # in case an error occurs fallback to this line so the post doesn't break
+        instance.posted_to.add(instance.poster)
+        if instance.replied_to and not instance.replied_to.poster.owner.owned_groups\
+            .filter(pk=instance.poster.pk).exists():
+
+            description = "replied to your leaf"
+            verb = "reply"
+
+            notification = Notification.objects.create(recipient=instance.replied_to.poster.owner,
+                                                       actor=instance.poster
+                                                       ,verb=verb, target=instance.replied_to.poster,
+                                                       action_object=instance, description=description)
+
+            branch_name = 'branch_%s' % instance.replied_to.poster
+
+            reply_from = {
+                'uri': instance.poster.uri,
+                'name': instance.poster.name,
+                'profile': instance.poster.branch_image.url
+            }
+
+            channel_layer = channels.layers.get_channel_layer()
+
+            async_to_sync(channel_layer.group_send)(
+                branch_name,
+                {
+                    'type': 'send.reply.notification',
+                    'reply_from': reply_from,
+                    'post':instance.replied_to.id,
+                    'reply':instance.id,
+                    'verb': verb,
+                    'id': notification.id
+                }
+            )
+
+            max_body_length = 200
+            fcm_device = GCMDevice.objects.filter(user=instance.replied_to.poster.owner)
+
+            if len(instance.replied_to.description) > max_body_length:
+                replied_to_synopsis = "%s..." % instance.replied_to.description[0:200]
+            else:
+                replied_to_synopsis = instance.replied_to.description
+
+            title = '%s (@%s) Replied to your leaf "%s" ' % (instance.poster.name, instance.poster.uri,replied_to_synopsis)
+
+            if len(instance.description) > max_body_length:
+                body = "%s..." % instance.description[0:200]
+            else:
+                body = instance.description
+
+            icon = ''
+            if instance.poster.icon:
+                icon = instance.poster.icon.url
+
+            fcm_device.send_message(body,
+                                    extra={"title": title,
+                                           "sound": 'default',
+                                           "icon": icon,
+                                           "badge": '/static/favicon-72x72.jpg',
+                                           "click_action": '/%s/leaves/%s' % (
+                                           instance.poster.uri, instance.id)}),
+
 @receiver(post_save, sender=React)
 def create_notification(sender, instance, created, **kwargs):
     notification_exists = Notification.objects.filter(actor_content_type=ContentType.objects.get_for_model(instance.branch),
@@ -243,8 +323,8 @@ def create_notification(sender, instance, created, **kwargs):
                                     action_object_content_type=ContentType.objects.get_for_model(instance.post),
                                     action_object_object_id=instance.post.id).exists()
 
-
-    if created and instance.branch is not instance.post.poster and not \
+    Branch = apps.get_model(app_label='branches', model_name='Branch')
+    if created and not instance.post.poster.owner.owned_groups.filter(pk=instance.branch.pk).exists() and not \
             notification_exists:
 
         description = "reacted to your leaf"
@@ -283,3 +363,24 @@ def create_notification(sender, instance, created, **kwargs):
                 'id': notification.id
             }
         )
+
+        max_body_length = 200
+        fcm_device = GCMDevice.objects.filter(user=instance.post.poster.owner)
+
+        title = "%s (@%s) Reacted to your leaf" % (instance.branch.name,instance.branch.uri)
+
+        if len(instance.post.description) > max_body_length:
+            body = "%s..." % instance.post.description[0:200]
+        else:
+            body =instance.post.description
+
+        icon = ''
+        if instance.branch.icon:
+            icon = instance.branch.icon.url
+
+        fcm_device.send_message(body,
+                                extra={"title": title,
+                                       "sound": 'default',
+                                       "icon": icon,
+                                       "badge": '/static/favicon-72x72.jpg',
+                                       "click_action": '/%s/leaves/%s' % (instance.post.poster.uri,instance.post.id)}),

@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.db.models import F
 from accounts.models import User
 import channels.layers
 from asgiref.sync import async_to_sync
@@ -9,7 +10,9 @@ from io import BytesIO
 from PIL import Image
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.contrib.contenttypes.models import ContentType
+from push_notifications.models import APNSDevice, GCMDevice
 from notifications.models import Notification
+from core.utils import JPEGSaveWithTargetSize
 import uuid
 
 
@@ -21,10 +24,13 @@ class BranchChat(models.Model):
     image = models.ImageField(upload_to='images/chat_groups/profile_image',
                             default='images/group_images/profile/default.jpeg',
                             blank=False)
+    icon = models.ImageField(upload_to='images/chat_groups/icons',
+                              blank=True)
     name = models.CharField(default="default", blank=False, null=False, max_length=80)
     owner = models.ForeignKey('branches.Branch', null=True, on_delete=models.CASCADE, related_name="chat")
     members = models.ManyToManyField('branches.Branch', null=True, related_name="chat_groups")
     personal = models.BooleanField(default=False)
+
 
     def __str__(self):
         return '%s' % self.name
@@ -56,13 +62,24 @@ class BranchChat(models.Model):
             composed_message = latest.message + ' + ' + media_message()
         return composed_message
 
-    '''def save(self, *args, **kwargs):
-        if not self.pk:
-            self.name = str(self.owner)
-        else:
-            self.name = ",".join(str(i) for i in self.members.all())
-            print(self.name)
-        super().save(*args, **kwargs)'''
+    def save(self, *args, **kwargs):
+        im = Image.open(self.image)
+        im.load()
+        rbg_img = im.convert('RGB')
+        rbg_img.load()
+        im_io = BytesIO()
+        rbg_img.save(im_io, 'JPEG', quality=75)
+        self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
+                                          'image/jpeg', im_io.getbuffer().nbytes, None)
+
+        try:
+            icon,im_io = JPEGSaveWithTargetSize(self.image,"%s_icon.jpg" % self.image.name,3000)
+            self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.image.name.split('.')[0],
+                                              'image/jpeg', im_io.getbuffer().nbytes, None)
+        except Exception as e:
+            # File too big to be compressed to 3kb
+            pass
+        super().save(*args, **kwargs)
 
 
 class ChatRequest(models.Model):
@@ -103,7 +120,6 @@ class BranchMessage(models.Model):
 
     def __str__(self):
         return self.message
-
 
 
 class ChatImage(models.Model):
@@ -204,12 +220,58 @@ def create_chat_request_notification(sender,instance,created,**kwargs):
             }
         )
 
+        fcm_device = GCMDevice.objects.filter(user=instance.request_to.owner)
+
+        title = "Conversation Invite - %s" % instance.branch_chat.name
+        body = "%s (@%s) Invited you %s (@%s) to a conversation" % \
+               (instance.request_from.name,instance.request_from.uri,instance.request_to.name,instance.request_to.uri)
+
+        icon = ''
+        if instance.branch_chat.icon:
+            icon = instance.branch_chat.icon.url
+
+        fcm_device.send_message(body,
+                                extra={"title": title,
+                                       "sound": 'default',
+                                       "icon": icon,
+                                       "badge": '/static/favicon-72x72.jpg',
+                                       "click_action": '/messages',
+                                       "tag": str(instance.branch_chat.id)}),
 
 
 @receiver(post_save, sender=BranchMessage)
 def create_notification(sender, instance, created, **kwargs):
     if created:
-        for member in instance.branch_chat.members.exclude(pk=instance.author.id):
+        # exluding authors branches
+        non_author_members = instance.branch_chat.members.exclude(pk__in=instance.author.owner.owned_groups.all())
+
+        # Push notifications
+        for member in non_author_members.distinct('owner'):
+            fcm_device = GCMDevice.objects.filter(user=member.owner)
+
+            title = "%s: %s sent a message" % (instance.branch_chat.name, instance.author.name)
+
+            icon = ''
+            if instance.branch_chat.icon:
+                icon = instance.branch_chat.icon.url
+
+            if instance.branch_chat.personal:
+                title = "%s sent you a message" % instance.author.name
+
+                # display other persons icon
+                if instance.author.icon:
+                    icon = instance.author.icon.url
+
+            fcm_device.send_message("%s" % str(instance.branch_chat.latest_message),
+                                    extra={"title": title,
+                                           "sound": 'default',
+                                           "icon": icon,
+                                           "badge": '/static/favicon-72x72.jpg',
+                                           "click_action": '/messages/%s' % str(instance.branch_chat.id),
+                                           "tag": str(instance.branch_chat.id)}),
+
+        # Regular notifications
+        for member in non_author_members:
             description = "sent a message"
             verb = "message"
 
@@ -232,3 +294,6 @@ def create_notification(sender, instance, created, **kwargs):
                     'id': notification.id
                 }
             )
+
+
+

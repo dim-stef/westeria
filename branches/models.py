@@ -5,13 +5,14 @@ from django.db.models.signals import post_save, post_init, pre_save, m2m_changed
 from django.core.exceptions import ValidationError,SuspiciousOperation
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from push_notifications.models import APNSDevice, GCMDevice
 from io import BytesIO
 from PIL import Image
 from accounts.models import User
 from branchchat.models import BranchChat
 from branchposts.models import Post
 from notifications.models import Notification
-from django.apps import apps
+from core.utils import JPEGSaveWithTargetSize
 from .utils import generate_unique_uri
 import uuid
 import datetime
@@ -49,7 +50,8 @@ class Branch(models.Model):
     branch_banner = models.ImageField(upload_to='images/group_images/banner',
                                      default='images/group_images/banner/default.png',
                                      blank=False)
-
+    icon = models.ImageField(upload_to='images/group_images/icons',
+                             blank=True)
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
@@ -77,7 +79,6 @@ class Branch(models.Model):
 
 
     def encode_image(self,image):
-
         try:
             if image:
                 im = Image.open(image)
@@ -108,6 +109,13 @@ class Branch(models.Model):
         self.branch_image = self.encode_image(self.branch_image)
         self.branch_banner = self.encode_image(self.branch_banner)
 
+        try:
+            icon, im_io = JPEGSaveWithTargetSize(self.branch_image, "%s_icon.jpg" % self.branch_image.name, 3000)
+            self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.branch_image.name.split('.')[0],
+                                             'image/jpeg', im_io.getbuffer().nbytes, None)
+        except Exception as e:
+            # File too big to be compressed to 3kb
+            pass
         super().save(*args, **kwargs)
 
 def validate_manytomany(self,instance,target):
@@ -265,6 +273,25 @@ def create_notification(sender, instance, created, **kwargs):
             }
         )
 
+        fcm_device = GCMDevice.objects.filter(user=instance.request_to.owner)
+
+        title = "Branch Request from - %s" % instance.request_from.name
+        body = "%s (@%s) %s %s (@%s)" % \
+               (
+               instance.request_from.name, instance.request_from.uri,description,
+               instance.request_to.name, instance.request_to.uri)
+
+        icon = ''
+        if instance.request_from.icon:
+            icon = instance.request_from.icon.url
+
+        fcm_device.send_message(body,
+                                extra={"title": title,
+                                       "sound": 'default',
+                                       "icon": icon,
+                                       "badge": '/static/favicon-72x72.jpg',
+                                       "click_action": '/%s/branches' % instance.request_to.uri}),
+
 
 class Follow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
@@ -339,33 +366,51 @@ def create_follow_notification(sender, instance, **kwargs):
     if action == "post_add":
         for pk in pk_set:
             being_followed = Branch.objects.get(pk=pk)
-            verb = 'follow'
-            description = 'has started following you'
+            if not being_followed.owner.owned_groups.filter(pk=instance.pk).exists():
+                verb = 'follow'
+                description = 'has started following you'
 
-            notification = Notification.objects.create(recipient=being_followed.owner, actor=instance
-                                                       ,verb=verb, target=being_followed,
-                                                       action_object=being_followed, description=description)
+                notification = Notification.objects.create(recipient=being_followed.owner, actor=instance
+                                                           ,verb=verb, target=being_followed,
+                                                           action_object=being_followed, description=description)
 
-            followed_by = {
-                'uri': instance.uri,
-                'name': instance.name,
-                'image': instance.branch_image.url,
-                'banner': instance.branch_banner.url
-            }
-
-            branch_name = 'branch_%s' % being_followed
-
-            channel_layer = channels.layers.get_channel_layer()
-
-            async_to_sync(channel_layer.group_send)(
-                branch_name,
-                {
-                    'type': 'send.new.follow',
-                    'followed_by': followed_by,
-                    'verb': verb,
-                    'id': notification.id
+                followed_by = {
+                    'uri': instance.uri,
+                    'name': instance.name,
+                    'image': instance.branch_image.url,
+                    'banner': instance.branch_banner.url
                 }
-            )
+
+                branch_name = 'branch_%s' % being_followed
+
+                channel_layer = channels.layers.get_channel_layer()
+
+                async_to_sync(channel_layer.group_send)(
+                    branch_name,
+                    {
+                        'type': 'send.new.follow',
+                        'followed_by': followed_by,
+                        'verb': verb,
+                        'id': notification.id
+                    }
+                )
+
+                fcm_device = GCMDevice.objects.filter(user=being_followed.owner)
+                title = "New follower"
+                body = "%s (@%s) is now following you %s (@%s)" % \
+                       (instance.name, instance.uri, being_followed.name, being_followed.uri)
+
+                icon = ''
+                if instance.icon:
+                    icon = instance.icon.url
+
+                fcm_device.send_message(body,
+                                        extra={"title":title,
+                                               "sound": 'default',
+                                               "icon": icon,
+                                               "badge": '/static/favicon-72x72.jpg',
+                                               "click_action": '/%s' % instance.uri}),
+
 '''@receiver(post_save, sender=Post, dispatch_uid="update_post")
 def update_post_score(sender, instance, **kwargs):
     date_from = datetime.datetime.now() - datetime.timedelta(days=1)

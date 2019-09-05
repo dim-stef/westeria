@@ -184,7 +184,7 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
     return(
         <>
         <Helmet>
-            <title>All - Subranch</title>
+            <title>Subranch</title>
             <meta name="description" content="Browse all the leaves created 
             by the subranch community." />
         </Helmet>

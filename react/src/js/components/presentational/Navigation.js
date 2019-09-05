@@ -9,6 +9,7 @@ import {SideDrawer} from "./SideDrawer"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import {isMobile} from 'react-device-detect';
 import {Desktop,Tablet,Mobile} from './Responsive'
+import { askForPermissionToReceiveNotifications } from '../../push-notification';
 import axios from 'axios'
 
 export function ResponsiveNavigationBar(){
@@ -24,6 +25,7 @@ export function ResponsiveNavigationBar(){
     }
 
     function readContextNotifications(){
+        askForPermissionToReceiveNotifications();
         let shouldUpdate = false;
         if(notificationsContext.notifications.filter(n=>n.verb!='message' && n.unread==true).length!=0){
             shouldUpdate = true;

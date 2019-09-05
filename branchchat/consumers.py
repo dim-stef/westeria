@@ -24,7 +24,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
             await self.accept()
         else:
-            print("not in")
+            pass
 
     async def disconnect(self, close_code):
         # Leave room group
@@ -78,6 +78,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def is_member_of_chat(self, user, room_name):
+
         branch_chat = BranchChat.objects.get(id=room_name)
         is_member = branch_chat.members.filter(uri__in=[branch.uri for branch in user.owned_groups.all()]).exists()
         #is_member = branch_chat.members.filter(uri=branch).exists()
@@ -91,7 +92,6 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from room group
     async def chat_message(self, event):
-        print("innnnnnnnnnnnnnnnnnnnnn", event)
         message = event['message']
         images = event['images']
         videos = event['videos']
