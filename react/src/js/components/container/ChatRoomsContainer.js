@@ -317,7 +317,7 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
 function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let containerStyle={};
     let messageStyle={
-        fontSize:'1.6em',wordBreak:'break-all',backgroundColor:'rgba(225, 231, 236, 0.58)',
+        fontSize:'1.6em',wordBreak:'break-word',backgroundColor:'rgba(225, 231, 236, 0.58)',
         padding:'8px 15px',borderRadius:25,margin:'1px 0',maxWidth:'70%'
     };
 
@@ -350,6 +350,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let memberImage = member?member.branch_image:null
 
     let messageBoxHeader = messageBox.author_url == branch?(
+        
         <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
             <span style={{margin:'0 6px',fontSize:'1.3rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
             <img className="round-picture" src={memberImage} 
@@ -375,7 +376,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                         return (
                             <React.Fragment key={m.created}>
                                 {m.message?
-                                <div className="flex-fill" style={{...containerStyle}}>
+                                <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
                                     <span style={messageStyle}>{m.message}</span>
                                 </div>:null}
                                 
