@@ -365,9 +365,6 @@ class NewMessageViewSet(viewsets.GenericViewSet,
             return Response(serializer.errors)
 
 
-from drf_nested_field_multipart import NestedMultipartParser
-
-
 class BranchNewPostViewSet(viewsets.GenericViewSet,
                            mixins.CreateModelMixin):
     parser_classes = [MultiPartParser,FormParser,JSONParser]
