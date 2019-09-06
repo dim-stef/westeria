@@ -317,16 +317,15 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
 function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let containerStyle={};
     let messageStyle={
-        fontSize:'1.6em',wordBreak:'break-all',backgroundColor:'#e1e7ec',
-        padding:'5px 10px',borderRadius:25,margin:'3px 0'
+        fontSize:'1.6em',wordBreak:'break-all',backgroundColor:'rgba(225, 231, 236, 0.58)',
+        padding:'8px 15px',borderRadius:25,margin:'1px 0',maxWidth:'70%'
     };
 
     if(messageBox.author_url == branch){
-        containerStyle = {alignSelf:'flex-end'}
+        containerStyle = {alignSelf:'flex-end',WebkitAlignSelf:'flex-end',
+        justifyContent:'flex-end',WebkitjustifyContent:'flex-end'}
         messageStyle = {...messageStyle,backgroundColor:'#219ef3',color:'white'}
     }
-
-    
 
     function getMediaWidth(m){
         let mediaWidth = 0;
@@ -349,14 +348,28 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 
     let member = members.find(m=>messageBox.author_url==m.uri)
     let memberImage = member?member.branch_image:null
+
+    let messageBoxHeader = messageBox.author_url == branch?(
+        <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
+            <span style={{margin:'0 6px',fontSize:'1.3rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
+            <img className="round-picture" src={memberImage} 
+            style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}
+            alt={`${messageBox.author_name}`}></img>
+        </div>
+    ):
+    (
+        <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
+            <img className="round-picture" src={memberImage} 
+            style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}
+            alt={`${messageBox.author_name}`}></img>
+            <span style={{margin:'0 6px',fontSize:'1.3rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
+        </div>
+    )
     return (
         <div>
             <img/>
             <div className="flex-fill" style={{...containerStyle,flexFlow:'column'}}>
-                <div style={containerStyle}>
-                    <img className="round-picture" src={memberImage} 
-                    style={{height:48,width:48,objectFit:'cover'}} alt={`${messageBox.author_name}`}></img>
-                </div>
+                {messageBoxHeader}
                 <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column'}}>
                     {messageBox.messages.map(m=>{
                         return (

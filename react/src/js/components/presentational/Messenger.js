@@ -1,8 +1,9 @@
-import React, {useState,useContext,useEffect,useRef,useCallback,lazy,Suspense} from 'react'
+import React, {useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,lazy,Suspense} from 'react'
 import {UserContext} from "../container/ContextContainer"
 import {isMobile} from 'react-device-detect';
 import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
+import { MoonLoader } from 'react-spinners';
 import {CustomEditor} from "./Editor"
 import Plain from 'slate-plain-serializer'
 import ReactPlayer from 'react-player'
@@ -76,29 +77,8 @@ const schema = {
 }
 
 export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null,setHeightOnBlur,setHeightOnInput}){
-    const initialValue = Value.fromJSON({
-    document: {
-        nodes: [
-            {
-                object: 'block',
-                type: 'paragraph',
-                nodes: [
-                {
-                    object: 'text',
-                    leaves: [
-                    {
-                        text: '',
-                    },
-                    ],
-                },
-                ],
-            },
-            ],
-        },
-    })
 
-    const [value,setValue] = useState('');
-    const [previousValue,setPreviousValue] = useState(value);
+    const [value,setValue] = useState(null);
     const [files,setFiles] = useState([])
     const ref = useRef(null);
     const editorRef = useRef(null);
@@ -107,6 +87,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     const [videoError,setVideoError] = useState(false);
     let initIsMember = room.members.some(m=>m==branch.uri);
     const [isMember,setIsMember] = useState(initIsMember);
+    const [isLoading,setLoading] = useState(false);
 
 
     const handleChange = (e) =>{
@@ -114,9 +95,12 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         setHeightOnInput()
     }
 
-    function handleSendMessage(){
+    function handleSendMessage(e){
+        setLoading(true);
         let message = value;
-
+        if(message==null){
+            message='';
+        }
         const formData = new FormData();
         formData.append('message',message);
         formData.append('message_html',message);
@@ -143,9 +127,11 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                 }).then(r=>{
+                    setLoading(false);
                     scrollToBottom();
                 })
         }else{
+            setLoading(false);
             ws.send(JSON.stringify({
                 'message': message,
                 'room_name': roomId,
@@ -154,13 +140,14 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                 'videos':[]
             }));
         }
+        
         resetEditor();
     }
     
 
     useEffect(()=>{
         if(value == ''){
-            const documentNode = ref.current
+            const documentNode = editorRef.current
             documentNode.focus()
         }
     },[value])
@@ -219,7 +206,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         setFiles([]);
     }
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         setIsMember(room.members.some(m=>m==branch.uri))
     },[branch])
 
@@ -241,7 +228,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         <img src={context.currentBranch.branch_image} className="profile-picture" 
                         style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
                     </div>
-                    <div className="flex-fill" style={{width:'100%'}} ref={ref}>
+                    <div className="flex-fill" style={{width:'100%',alignItems:'center',WebkitAlignItems:'center'}} ref={ref}>
                         <CustomEditor
                         editorRef={editorRef}
                         value={value}
@@ -250,12 +237,12 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         onBlur={setHeightOnBlur}
                         schema={schema}
                         className="flex-fill"
-                        placeholder="Type something"
-                        style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                        wordBreak:'break-all',border:'1px solid #a6b7c5',flex:'1 1 auto',minHeight:'2rem',alignItems:'center',
-                        display:'block'}}/>
+                        placeholder="Type message"
+                        style={{padding:'10px 10px',minWidth:0,borderRadius:25,
+                        wordBreak:'break-all',border:'1px solid rgb(199, 208, 214)',flex:'1 1 auto',
+                        minHeight:'2rem',maxHeight:100,overflow:'auto'}}/>
                         
-                        <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick}/>
+                        <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick} isLoading={isLoading}/>
                     </div>
                 </div>
                 {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
@@ -284,7 +271,13 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-function Toolbar({handleSendMessage,onInput}){
+function Toolbar({handleSendMessage,onInput,isLoading}){
+
+    function preventBlur(e){
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
     return(
         <div className="flex-fill" style={{marginTop:5}}>
             <div className="flex-fill" style={{flex:'1 1 auto',margin:'0 10px'}}>
@@ -292,8 +285,20 @@ function Toolbar({handleSendMessage,onInput}){
                 className="inputfile" id="media" style={{display:'block'}} onInput={onInput}></input>
                 <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
             </div>
-            <button className="editor-btn" onClick={handleSendMessage}>Send</button>
+            {isLoading?
+                <div style={{alignSelf:'center'}}>
+                    <MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={'#123abc'}
+                        loading={isLoading}
+                    />
+                </div>:
+            <button className="editor-btn" onClick={handleSendMessage} onMouseDown={preventBlur}
+             ontouchstart={preventBlur}>Send</button>}
+            
         </div>
+        
     )
 }
 

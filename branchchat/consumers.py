@@ -66,11 +66,12 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def create_message(self, room_name, message, from_branch):
         branch_chat = BranchChat.objects.get(id=room_name)
-        BranchMessage.objects.create(branch_chat=branch_chat,
-                                     author=from_branch,
-                                     message=message,
-                                     message_html=message
-                                     )
+        if not message.isspace() and message is not None and len(message)>0:
+            BranchMessage.objects.create(branch_chat=branch_chat,
+                                         author=from_branch,
+                                         message=message,
+                                         message_html=message
+                                         )
 
     @database_sync_to_async
     def get_sender_branch(self, uri):
