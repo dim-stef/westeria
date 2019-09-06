@@ -309,8 +309,8 @@ def create_message(instance):
         )
 
 class NewMessageSerializer(serializers.ModelSerializer):
-    images = ChatImageSerializer(many=True)
-    videos = ChatVideoSerializer(many=True)
+    images = ChatImageSerializer(many=True,required=False)
+    videos = ChatVideoSerializer(many=True,required=False)
     author_name = serializers.SerializerMethodField()
     author_url = serializers.SerializerMethodField()
 
@@ -328,8 +328,8 @@ class NewMessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Not member of chat')
 
         # files are not accessible in validated data, use request.FILES instead
-        validated_data.pop('images')
-        validated_data.pop('videos')
+        '''validated_data.pop('images')
+        validated_data.pop('videos')'''
 
         if not validated_data['message'] and not request.FILES:
             raise serializers.ValidationError('message and media are None')
@@ -357,18 +357,19 @@ class NewMessageSerializer(serializers.ModelSerializer):
 
 class NewPostSerializer(serializers.ModelSerializer):
     replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
-    images = PostImageSerializer(many=True)
-    videos = PostVideoSerializer(many=True)
+    images = PostImageSerializer(many=True,required=False)
+    videos = PostVideoSerializer(many=True,required=False)
 
     def create(self, validated_data):
+        print("got this fat")
         request = self.context['request']
         branch_uri = self.context['branch_uri']
         required_posted_to = request.user.owned_groups.get(uri=branch_uri)
         posted_to = validated_data.pop('posted_to')
 
         # files are not accessible in validated data, use request.FILES instead
-        validated_data.pop('images')
-        validated_data.pop('videos')
+        '''validated_data.pop('images')
+        validated_data.pop('videos')'''
 
         if not validated_data['text'] and not validated_data['text'].isspace() and not request.FILES:
             raise serializers.ValidationError('text and media are None')

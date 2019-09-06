@@ -1,11 +1,15 @@
 from django.urls import path
 from django.conf.urls import url, include
 from rest_framework_nested import routers
+from rest_framework import routers as drf_routers
 from rest_framework_swagger.views import get_swagger_view
 schema_view = get_swagger_view(title='Pastebin API')
 from . import views
 
 router = routers.DefaultRouter()
+drf_router = drf_routers.DefaultRouter()
+
+drf_router.register(r'^branches/(?P<branch__uri>.+)/posts/new2', views.BranchNewPostViewSet, base_name='new_post2')
 
 router.register(r'user', views.UserViewSet, base_name='user')
 router.register(r'user/following', views.UserFollowViewSet, base_name='user_following')
@@ -71,6 +75,7 @@ urlpatterns = [
     path('branches/<str:uri>/reactions/', views.BranchReactions.as_view()),
     path('token/', views.CreateToken.as_view()),
     path('user/default_branch/', views.defaultBranch),
+    url(r'^', include(drf_router.urls)),
     url(r'^', include(router.urls)),
     url(r'^', include(branch_router.urls)),
     url(r'^', include(branchupdate_router.urls)),

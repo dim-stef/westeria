@@ -25,7 +25,7 @@ class FollowingBranchesViewSet(viewsets.GenericViewSet,
     serializer_class = serializers_v0.BranchSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         return branch.follows.all()
 
 
@@ -35,7 +35,7 @@ class MutualFollowsViewSet(viewsets.GenericViewSet,
     serializer_class = serializers_v0.BranchSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         return branch.follows.filter(follows__in=branch.followed_by.all()).exclude(pk=branch.pk).distinct()
 
 
@@ -46,7 +46,7 @@ class CreateConversationViewSet(viewsets.GenericViewSet,
     parser_classes = (MultiPartParser, JSONParser, FileUploadParser,)
 
     def create(self, request, *args, **kwargs):
-        owner = Branch.objects.get(uri=self.kwargs['branch_uri'])
+        owner = Branch.objects.get(uri=self.kwargs['branch__uri'])
         serializer = self.serializer_class(data=request.data,
                                            context={'owner': owner})
         if serializer.is_valid():
@@ -64,7 +64,7 @@ class ConversationInvitationsViewSet(viewsets.GenericViewSet,
     serializer_class = serializers_v0.ChatRequestWithRoomSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri=self.kwargs['branch__uri'])
         return ChatRequest.objects.filter(request_to=branch)
 
     def partial_update(self, request, *args, **kwargs):

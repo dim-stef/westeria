@@ -72,13 +72,13 @@ class BranchChat(models.Model):
         self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
                                           'image/jpeg', im_io.getbuffer().nbytes, None)
 
-        try:
+        '''try:
             icon,im_io = JPEGSaveWithTargetSize(self.image,"%s_icon.jpg" % self.image.name,3000)
             self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.image.name.split('.')[0],
                                               'image/jpeg', im_io.getbuffer().nbytes, None)
         except Exception as e:
             # File too big to be compressed to 3kb
-            pass
+            pass'''
         super().save(*args, **kwargs)
 
 
@@ -251,16 +251,18 @@ def create_notification(sender, instance, created, **kwargs):
 
             title = "%s: %s sent a message" % (instance.branch_chat.name, instance.author.name)
 
-            icon = ''
+            icon = instance.branch_chat.image.url
+            '''icon = ''
             if instance.branch_chat.icon:
-                icon = instance.branch_chat.icon.url
+                icon = instance.branch_chat.icon.url'''
 
             if instance.branch_chat.personal:
                 title = "%s sent you a message" % instance.author.name
 
                 # display other persons icon
-                if instance.author.icon:
-                    icon = instance.author.icon.url
+                icon = instance.author.branch_image.url
+                '''if instance.author.icon:
+                    icon = instance.author.icon.url'''
 
             fcm_device.send_message("%s" % str(instance.branch_chat.latest_message),
                                     extra={"title": title,
@@ -272,6 +274,7 @@ def create_notification(sender, instance, created, **kwargs):
 
         # Regular notifications
         for member in non_author_members:
+            print("this fat")
             description = "sent a message"
             verb = "message"
 

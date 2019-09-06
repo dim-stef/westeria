@@ -109,13 +109,11 @@ class Branch(models.Model):
         self.branch_image = self.encode_image(self.branch_image)
         self.branch_banner = self.encode_image(self.branch_banner)
 
-        try:
-            icon, im_io = JPEGSaveWithTargetSize(self.branch_image, "%s_icon.jpg" % self.branch_image.name, 3000)
-            self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.branch_image.name.split('.')[0],
+        '''icon, im_io = JPEGSaveWithTargetSize(self.branch_image, "%s_icon.jpg" % self.branch_image.name, 3000)
+        self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.branch_image.name.split('.')[0],
                                              'image/jpeg', im_io.getbuffer().nbytes, None)
-        except Exception as e:
             # File too big to be compressed to 3kb
-            pass
+        pass'''
         super().save(*args, **kwargs)
 
 def validate_manytomany(self,instance,target):

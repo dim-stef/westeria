@@ -64,7 +64,7 @@ class ReplyTreePagination(CursorPagination):
 class IsOwnerOfBranch(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        lookup = 'branch_uri' if 'branch_uri' in request.resolver_match.kwargs else 'uri'
+        lookup = 'branch__uri' if 'branch__uri' in request.resolver_match.kwargs else 'uri'
         print(request.resolver_match.kwargs.get(lookup))
         branch = Branch.objects.get(uri=request.resolver_match.kwargs.get(lookup))
         if request.user.owned_groups.filter(uri=branch).exists():
@@ -73,9 +73,9 @@ class IsOwnerOfBranch(permissions.BasePermission):
 
 class IsMemberOfChat(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        print(request.resolver_match.kwargs.get('branch_uri'))
-        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch_uri'))
-        branch_chat = BranchChat.objects.get(id=request.resolver_match.kwargs.get('id_pk'))
+        print(request.resolver_match.kwargs.get('branch__uri'))
+        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch__uri'))
+        branch_chat = BranchChat.objects.get(id=request.resolver_match.kwargs.get('id__pk'))
         if branch_chat.members.filter(uri=branch).exists():
             return True
         return False
@@ -224,8 +224,8 @@ class ChildrenViewSet(BranchRelationsMixin):
 
     def get_queryset(self):
         queryset = Branch.objects.none()
-        if self.kwargs['branch_uri']:
-            children = Branch.objects.get(uri__iexact=self.kwargs['branch_uri']).children.all()
+        if self.kwargs['branch__uri']:
+            children = Branch.objects.get(uri__iexact=self.kwargs['branch__uri']).children.all()
             queryset = children
         return queryset
 
@@ -233,8 +233,8 @@ class ParentViewSet(BranchRelationsMixin):
 
     def get_queryset(self):
         queryset = Branch.objects.none()
-        if self.kwargs['branch_uri']:
-            parents = Branch.objects.get(uri__iexact=self.kwargs['branch_uri']).parents.all()
+        if self.kwargs['branch__uri']:
+            parents = Branch.objects.get(uri__iexact=self.kwargs['branch__uri']).parents.all()
             queryset = parents
         return queryset
 
@@ -242,10 +242,10 @@ class SiblingsViewSet(BranchRelationsMixin):
 
     def get_queryset(self):
         queryset = Branch.objects.none()
-        if self.kwargs['branch_uri']:
-            parents = Branch.objects.get(uri__iexact=self.kwargs['branch_uri']).parents.all()
+        if self.kwargs['branch__uri']:
+            parents = Branch.objects.get(uri__iexact=self.kwargs['branch__uri']).parents.all()
             siblings = Branch.objects.filter(parents__in=parents)\
-                .exclude(uri__iexact=self.kwargs['branch_uri'])\
+                .exclude(uri__iexact=self.kwargs['branch__uri'])\
                 .distinct()
             queryset = siblings
         return queryset
@@ -302,7 +302,7 @@ class BranchChatViewSet(viewsets.GenericViewSet,
     def get_queryset(self):
         queryset = BranchChat.objects.none()
         if self.kwargs['name']:
-            branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+            branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
             queryset = BranchChat.objects.filter(name__iexact=self.kwargs['branch'], branch=branch)
         return queryset
 
@@ -313,7 +313,7 @@ class BranchChatRoomsViewSet(viewsets.GenericViewSet,
     serializer_class = serializers.BranchChatSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         queryset = branch.chat_groups.all()
         return queryset
 
@@ -325,7 +325,7 @@ class ChatRoomViewSet(viewsets.GenericViewSet,
     serializer_class = serializers.BranchChatSerializer
 
     def get_queryset(self):
-        queryset = BranchChat.objects.get(id=self.kwargs['id_pk'])
+        queryset = BranchChat.objects.get(id=self.kwargs['id__pk'])
         return queryset
 
 
@@ -339,9 +339,9 @@ class BranchChatMessageViewSet(viewsets.GenericViewSet,
     def get_queryset(self):
         queryset = BranchMessage.objects.none()
         print(self.kwargs)
-        if self.kwargs['id_pk']:
-            #branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
-            branch_chat = BranchChat.objects.get(id=self.kwargs['id_pk'])
+        if self.kwargs['id__pk']:
+            #branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+            branch_chat = BranchChat.objects.get(id=self.kwargs['id__pk'])
             queryset = BranchMessage.objects.filter(branch_chat=branch_chat)
         return queryset
 
@@ -354,7 +354,8 @@ class NewMessageViewSet(viewsets.GenericViewSet,
     queryset = Branch.objects.all()
 
     def create(self, request, *args, **kwargs):
-        branch_chat = BranchChat.objects.get(id=self.kwargs['id_pk'])
+        print(request.data)
+        branch_chat = BranchChat.objects.get(id=self.kwargs['id__pk'])
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request,'branch_chat':branch_chat})
         if serializer.is_valid():
@@ -364,17 +365,20 @@ class NewMessageViewSet(viewsets.GenericViewSet,
             return Response(serializer.errors)
 
 
+from drf_nested_field_multipart import NestedMultipartParser
+
+
 class BranchNewPostViewSet(viewsets.GenericViewSet,
                            mixins.CreateModelMixin):
-    parser_classes = (JSONParser, MultiPartParser)
+    parser_classes = [MultiPartParser,FormParser,JSONParser]
     permission_classes = (permissions.IsAuthenticated,IsOwnerOfBranch)
     serializer_class = serializers.NewPostSerializer
-    queryset = Branch.objects.all()
 
     def create(self, request, *args, **kwargs):
-        self.poster = Branch.objects.get(uri=self.kwargs['branch_uri'])
+        print(request.data)
+        self.poster = Branch.objects.get(uri=self.kwargs['branch__uri'])
         serializer = self.serializer_class(data=request.data,context={'request': self.request,
-                                                                      'branch_uri':self.kwargs['branch_uri']})
+                                                                      'branch_uri':self.kwargs['branch__uri']})
         if serializer.is_valid():
             self.perform_create(serializer)
             return Response(serializer.data)
@@ -401,7 +405,7 @@ class GenericPostList(viewsets.GenericViewSet, mixins.ListModelMixin,mixins.Retr
 class PostListWithSpreader(GenericPostList):
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch__uri'])
         following = branch.follows.all()
         context.update({
             "spreaders": following
@@ -440,7 +444,7 @@ class BranchPostListViewSet(GenericPostList):
     def get_queryset(self):
         content = self.request.query_params.get('content', None)
         past = self.request.query_params.get('past', None)
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
 
         self_list = branch.posts.all()
         from_list = branch.posts_from_all.all()
@@ -451,7 +455,7 @@ class BranchPostListViewSet(GenericPostList):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch__uri'])
         following = branch.follows.all()
         context.update({
             "spreaders": following
@@ -473,7 +477,7 @@ class BranchFollowsViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
     serializer_class = serializers.FollowSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.filter(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.filter(uri__iexact=self.kwargs['branch__uri'])
         return branch
 
 
@@ -484,7 +488,7 @@ class BranchNewFollowViewSet(viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def get_queryset(self):
-        branch = Branch.objects.filter(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.filter(uri__iexact=self.kwargs['branch__uri'])
         return branch
 
 
@@ -495,7 +499,8 @@ class FeedViewSet(PostListWithSpreader):
     def get_queryset(self):
         content = self.request.query_params.get('content', None)
         past = self.request.query_params.get('past', None)
-        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        print(self.kwargs)
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch__uri'])
         following = branch.follows.all()
 
         posts_from_following = Post.objects.filter(poster__in=following)
@@ -562,7 +567,7 @@ class FollowingTreeViewSet(PostListWithSpreader):
     def get_queryset(self):
         self.qs = Branch.objects.none()
         self.searched_branches = []
-        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch__uri'])
         following = branch.follows.all()
         self.qs |= following
 
@@ -629,7 +634,7 @@ class CreateBranchRequest(BranchRequestMixin):
 
     def perform_create(self, serializer):
         status = BranchRequest.STATUS_ON_HOLD
-        request_from = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        request_from = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         request_to = serializer.validated_data['request_to']
         owned_branches = self.request.user.owned_groups.all()
 
@@ -670,7 +675,7 @@ class ReceivedBranchRequest(viewsets.GenericViewSet,
     serializer_class = serializers.BranchRequestSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         return branch.requests_received.all()
 
 
@@ -682,7 +687,7 @@ class SentBranchRequest(viewsets.GenericViewSet,
     serializer_class = serializers.BranchRequestSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         return branch.requests_sent.all()
 
 
@@ -782,7 +787,7 @@ class NewSpread(viewsets.GenericViewSet,
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
 
     def perform_create(self, serializer):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch_uri'])
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
         owned_branches = self.request.user.owned_groups.all()
 
         if branch not in owned_branches:

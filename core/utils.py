@@ -14,6 +14,7 @@ def JPEGSaveWithTargetSize(image, filename, target):
     im = image.copy()
 
     # try to guess for big numbers
+
     while Qmax>Qmin:
         m = math.floor((Qmin + Qmax) / 2)
 
