@@ -1,59 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.3.1 messaging ui changes">
-      <change afterPath="$PROJECT_DIR$/branchposts/migrations/0004_auto_20190907_1801.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/branchposts/migrations/0005_auto_20190907_1802.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/branchposts/migrations/0006_auto_20190907_2154.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/react/src/js/components/container/MutualFollows.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/react/src/js/components/presentational/AreYouSure.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/react/src/js/components/presentational/ChatRoomSettings.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/react/src/js/components/presentational/DropdownActionList.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/react/src/js/components/presentational/EditorMediaPreview.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/react/src/js/components/presentational/InfoMessage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/accounts/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/permissions.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/permissions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/v1/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/v1/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/admin.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/static/groups/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/branches/static/groups/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchposts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchposts/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/common/templates/sw.js" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/sw.js" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.4.0 new features, spread rework">
       <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ContextContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ContextContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/TrendingContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/TrendingContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Comments.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Comments.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/CreateNewChat.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/CreateNewChat.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Editor.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/EmailConfirm.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/EmailConfirm.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Logout.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Logout.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordReset.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordReset.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordResetConfirm.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordResetConfirm.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/webpack-stats.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack-stats.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/react/yarn.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/subranch/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/subranch/settings.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -106,7 +57,7 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="548">
+            <state relative-caret-position="169">
               <caret line="924" selection-start-line="924" selection-end-line="924" />
             </state>
           </provider>
@@ -635,14 +586,7 @@
       <workItem from="1566754243652" duration="1134000" />
       <workItem from="1566776429449" duration="22816000" />
       <workItem from="1567084608917" duration="73069000" />
-      <workItem from="1567680357266" duration="80313000" />
-    </task>
-    <task id="LOCAL-00177" summary="Updated imports">
-      <created>1543326867713</created>
-      <option name="number" value="00177" />
-      <option name="presentableId" value="LOCAL-00177" />
-      <option name="project" value="LOCAL" />
-      <updated>1543326867713</updated>
+      <workItem from="1567680357266" duration="82356000" />
     </task>
     <task id="LOCAL-00178" summary="Added GroupChatMessagesContainer">
       <created>1543326906790</created>
@@ -980,11 +924,18 @@
       <option name="project" value="LOCAL" />
       <updated>1567814373328</updated>
     </task>
-    <option name="localTasksCounter" value="226" />
+    <task id="LOCAL-00226" summary="1.4.0 new features, spread rework">
+      <created>1568289550099</created>
+      <option name="number" value="00226" />
+      <option name="presentableId" value="LOCAL-00226" />
+      <option name="project" value="LOCAL" />
+      <updated>1568289550100</updated>
+    </task>
+    <option name="localTasksCounter" value="227" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1228983000" />
+    <option name="totallyTimeSpent" value="1231026000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -996,9 +947,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1216" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1216" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -1012,7 +964,7 @@
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.32998884" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32937366" />
-      <window_info anchor="bottom" id="Version Control" order="11" weight="0.32998884" />
+      <window_info anchor="bottom" id="Version Control" order="11" weight="0.5574136" />
       <window_info anchor="bottom" id="Docker" order="12" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="13" weight="0.32998884" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -1077,7 +1029,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Reformatted names" />
     <MESSAGE value="Reformatted names, added OwnedBranchesViewSet" />
     <MESSAGE value="First migrations" />
     <MESSAGE value="Commit groupchat.css" />
@@ -1102,7 +1053,8 @@
     <MESSAGE value="1.3.x push notifications" />
     <MESSAGE value="1.3.x fixes" />
     <MESSAGE value="1.3.1 messaging ui changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.3.1 messaging ui changes" />
+    <MESSAGE value="1.4.0 new features, spread rework" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.4.0 new features, spread rework" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1495,7 +1447,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="548">
+        <state relative-caret-position="169">
           <caret line="924" selection-start-line="924" selection-end-line="924" />
         </state>
       </provider>

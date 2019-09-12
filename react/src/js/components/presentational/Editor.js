@@ -17,7 +17,10 @@ export function CustomEditor({onInput,onKeyDown,placeholder,className,style,edit
 
     function onPaste(event){
         event.preventDefault();
-        var items = (event.clipboardData || event.originalEvent.clipboardData).items;
+        var items = (event || event.originalEvent).clipboardData.items;
+        var text = (event || event.originalEvent).clipboardData.getData('text/plain');
+        document.execCommand("insertHTML", false, text);
+        
         for (var index in items) {
             var item = items[index];
             if (item.kind === 'file') {  
