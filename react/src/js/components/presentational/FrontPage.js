@@ -2,7 +2,8 @@ import React, { useState, useContext, useEffect,useRef,lazy,Suspense } from "rea
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import MyBranchesColumnContainer from "./MyBranchesColumn";
 import {UserContext,PostsContext,AllPostsContext,TreePostsContext,
-    UserActionsContext} from "../container/ContextContainer"
+    UserActionsContext} from "../container/ContextContainer";
+import {TrendingWithWrapper as Trending}  from "../container/TrendingContainer";
 import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
 import {Helmet} from "react-helmet";
 import { Switch, Route, Link,Redirect, withRouter  } from 'react-router-dom'
@@ -96,7 +97,7 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
                     <Route exact path="/tree" component={(props)=> userContext.isAuth?
                     <FrontPageTreePosts device="desktop" {...props}/>:<Redirect to="/login"/>}/>
                 </Switch>
-                {/*<FrontPageRightBar/>*/}
+                <Trending/>
             </Desktop>
 
             <Tablet>

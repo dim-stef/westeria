@@ -112,6 +112,7 @@ function Trending(){
     useEffect(()=>{
         getTrending();
     },[])
+
     return(
         <>
         <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
@@ -127,7 +128,7 @@ function Trending(){
             }):null}
         </div>
         <div className="flex-fill center-items">
-            <button className="load-more" onClick={handleClick}>Load more</button>
+            {next?<button className="load-more" onClick={handleClick}>Load more</button>:null}
         </div>
         </>
     )

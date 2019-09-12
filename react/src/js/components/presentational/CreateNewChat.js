@@ -1,6 +1,7 @@
 import React, {useContext,useState,useRef,useEffect,useLayoutEffect} from "react"
 import { Form, Field } from 'react-final-form'
 import {CachedBranchesContext,UserContext} from '../container/ContextContainer';
+
 import {SmallBranch} from './Branch';
 import {Profile} from './SettingsPage'
 import {Save} from './Forms'
@@ -19,7 +20,7 @@ function useMutualFollows(){
 
     useEffect(()=>{
         getMutualFollows();
-    },[])
+    },[userContext.currentBranch.uri])
 
     return branches;
 }
@@ -61,6 +62,7 @@ export function CreateNewChat(){
                 url,
                 formData,
                 {
+                    withCredentials: true,
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         'X-CSRFToken': getCookie('csrftoken')

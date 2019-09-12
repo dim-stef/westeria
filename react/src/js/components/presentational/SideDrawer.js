@@ -110,7 +110,7 @@ function AuthenticatedDrawer({handleHide}){
             {showBranches?
                 <>
                 <div style={{position:'absolute',height:'100%',width:'100%',zIndex:2,backgroundColor:'white',overflow:'auto'}}>
-                    <span style={{margin:10,fontSize:'2em'}} onClick={()=>setShowBranches(false)}>X</span>
+                    <span style={{margin:10,fontSize:'2em'}} onClick={()=>setShowBranches(false)}>x</span>
                     {branches.map(b=>{
                         let isCurrentBranch = userContext.currentBranch.uri==b.uri?true:false;
                         let backgroundColor = isCurrentBranch?

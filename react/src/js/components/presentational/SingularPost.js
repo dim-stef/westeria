@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom';
 import {Link,Redirect,withRouter} from 'react-router-dom'
 import history from "../../history"
 import {Helmet} from 'react-helmet'
+import { CSSTransition,Transition } from 'react-transition-group';
+import ReactTooltip from 'react-tooltip'
+import { MoonLoader } from 'react-spinners';
 import {UserContext,SingularPostContext,PostsContext,AllPostsContext,
 TreePostsContext,BranchPostsContext} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
@@ -50,11 +53,13 @@ function authorizedGetPostedTo(post,activeBranch,context){
 
 export function PostContainer(props){
     const [post,setPost] = useState(null);
+    const [loaded,setLoaded] = useState(false);
 
     async function getPost(){
         let uri = `/api/post/${props.postId}/`;
         let response = await axios.get(uri);
         let data = await response.data
+        setState(true);
         setPost(data);
     }
 
@@ -63,13 +68,14 @@ export function PostContainer(props){
     },[])
 
     return(
-        post?<Post {...props} post={post}/>:null
+        post?<Post {...props} post={post}/>:loaded?<p>This leaf was deleted.</p>:null
     )
 }
 
 export function SingularPost({postId,parentPost=null,postsContext,activeBranch,lastComment}){
 
     const [post,setPost] = useState(null);
+    const [loaded,setLoaded] = useState(false);
     const [replyTrees,setReplyTrees] = useState([]);
     const [userReplies,setUserReplies] = useState([]);
     const [hasMore,setHasMore] = useState(true);
@@ -98,10 +104,15 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 
     async function getPost(){
         let uri = `/api/post/${postId}/`;
-        let response = await axios.get(uri);
-        let data = await response.data
-        fetchData(data)
-        setPost(data);
+        try{
+            let response = await axios.get(uri);
+            let data = await response.data
+            fetchData(data)
+            setPost(data);
+            setLoaded(true);
+        }catch(e){
+            setLoaded(true);
+        }
     }
 
     useEffect(()=>{
@@ -170,13 +181,22 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                     })}
                 </InfiniteScroll>
             </div>
-        </>:null
+        </>:loaded?<p style={{textAlign: 'center'}}>
+            <b style={{fontSize:'2rem'}}>This leaf was deleted</b>
+        </p>:<div className="flex-fill load-spinner-wrapper">
+            <MoonLoader
+                sizeUnit={"px"}
+                size={20}
+                color={'#123abc'}
+                loading={true}
+            />
+        </div>
         
     )
 }
 
 export const Post = React.memo(function Post({post,parentPost=null,
-    measure=()=>{},postsContext,
+    measure=()=>{},postsContext,posts,setPosts,
     isOpen=false,index,activeBranch,lastComment,
     viewAs="post",isSingular,updateTree=()=>{}}){
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
@@ -226,7 +246,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
         <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
                 <RippledStyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
-                date={date} cls="main-post"
+                date={date} cls="main-post" posts={posts} setPosts={setPosts}
                 showPostedTo activeBranch={activeBranch}
                 open={open} measure={measure} postsContext={postsContext}
                 isStatusUpdateActive={isStatusUpdateActive} isSingular={isSingular} updateTree={updateTree}
@@ -331,13 +351,17 @@ import '@material/react-ripple/dist/ripple.css';
 
 import {withRipple} from '@material/react-ripple';
 
-function StyledPost({post,postsContext,date,cls,showPostedTo,
+function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
 
     const context = useContext(UserContext);
-    const [didSelfSpread,setDidSelfSpread] = useState(post.spreaders.some(s=>{
-        return context.isAuth?s.uri===context.currentBranch.uri:false;
-    }))
+    let initSelfSpread = post.spreaders.find(s=>{
+        if(context.isAuth && s.branch){
+            return s.branch.uri===context.currentBranch.uri
+        }
+    })
+
+    const [selfSpread,setSelfSpread] = useState(initSelfSpread)
 
     let isOpen = postsContext.openPosts.some(p=>{
         return p==post.id
@@ -365,14 +389,16 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
         }
     }
 
-    function onSpread(){
+    function onSpread(id,times){
+        let newSpreader = {branch:context.currentBranch,id:id,times:times}
         post.spreads_count++;
         if(!post.spreaders.some(sp=>{
-            return sp == context.currentBranch
+            return sp.branch.uri == context.currentBranch.uri
         })){
-            post.spreaders.push(context.currentBranch);
+            post.spreaders.push(newSpreader);
         }
-        setDidSelfSpread(true);
+
+        setSelfSpread(newSpreader);
     }
 
     const mounted = useRef();
@@ -383,7 +409,7 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
             // componentDidUpdate logic here
             measure();
         }
-    },[didSelfSpread]);
+    },[selfSpread]);
 
     
     return(
@@ -393,7 +419,7 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
             style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
             poststate={open?"open":"closed"}>
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
-                <TopSpreadList spreaders={post.spreaders} selfSpread={didSelfSpread}/>
+                <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
                 <div className="flex-fill">
                     <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
@@ -402,14 +428,14 @@ function StyledPost({post,postsContext,date,cls,showPostedTo,
                         <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
                         activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:null}/>
                     </div>
-                    <More post={post}/>
+                    <More post={post} posts={posts} setPosts={setPosts}/>
                     </div>
                     <div style={{marginTop:10}}>
                         <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
                         text={post.text} postsContext={postsContext} images={post.images} videos={post.videos} 
                         measure={measure} postRef={ref} viewAs={viewAs}/>
                         <PostActions post={post} handleCommentClick={handleCommentClick}
-                        handleSpread={onSpread} didSelfSpread={didSelfSpread} postsContext={postsContext}/>
+                        handleSpread={onSpread} selfSpread={selfSpread} postsContext={postsContext}/>
                         
                     </div>
             </div>
@@ -582,7 +608,7 @@ function PostPicture(props){
     )
 }
 
-function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
+function PostActions({post,handleCommentClick,handleSpread,selfSpread}){
 
     const postsContext = useContext(PostsContext);
     const allPostsContext = useContext(AllPostsContext);
@@ -687,6 +713,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
                 uri,
                 data,
                 {
+                    withCredentials: true,
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
@@ -746,7 +773,7 @@ function PostActions({post,handleCommentClick,handleSpread,didSelfSpread}){
             </div>
 
             <Comments post={post} handleCommentClick={handleCommentClick}/>
-            <Share post={post} handleSpread={handleSpread} didSelfSpread={didSelfSpread} />
+            <Share post={post} handleSpread={handleSpread} selfSpread={selfSpread} />
         </div>
     )
 }
@@ -994,59 +1021,107 @@ function CommentsCount({count}){
     )
 }
 
-function Share({post,handleSpread,didSelfSpread}){
+function Share({post,handleSpread,selfSpread}){
     const [clicked,setClicked] = useState(false);
     const [spreadCount,setSpreadCount] = useState(post.spreads_count);
+    const [selfSpreadCount,setSelfSpreadCount] = useState(selfSpread?selfSpread.times:0);
+    const [selfSpreadId,setSelfSpreadId] = useState(selfSpread?selfSpread.id:null);
     const context = useContext(UserContext);
     const ref = useRef(null);
+    const spreadRef = useRef(null);
+    const [left,setLeft] = useState(0);
+    const clickTimer = useRef(false);
+
+    function createOrUpdateSpread(){
+        let config = {
+            withCredentials: true,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        }
+
+        if(!selfSpread){
+            let uri = `/api/v1/branches/${context.currentBranch.uri}/spreads/new/`;
+            let data = {
+                post:post.id,
+                times:selfSpreadCount>50?50:selfSpreadCount + 1
+            }
+            axios.post(uri,data,config).then(r=>{
+                handleSpread(r.data.id,r.data.times);
+                setSelfSpreadId(r.data.id);
+            });
+        }else{
+            let uri = `/api/v1/branches/${context.currentBranch.uri}/spreads/update/${selfSpread.id}/`;
+            let data = {
+                // 1 spread difference between the user and the data
+                // so adding it manually
+                times:selfSpreadCount + 1 >= 50 ? 50 : selfSpreadCount + 1
+            }
+            axios.patch(uri,data,config).then(r=>{
+                handleSpread(r.data.id,r.data.times);
+            });
+        }
+    }
+
 
     const onClick = (e) =>{
+        if(clickTimer.current){
+            clearTimeout(clickTimer.current);
+        }
+
         e.stopPropagation();
-        spread();
-        setSpreadCount(spreadCount + 1);
+        if(selfSpreadCount<50){
+            setSpreadCount(spreadCount + 1);
+            setSelfSpreadCount(selfSpreadCount + 1);
+        }
+        
         setClicked(!clicked);
+
+        clickTimer.current = setTimeout(()=>{
+            createOrUpdateSpread();
+        },1000)
     }
 
-    const spread = () =>{
-        let uri = `/api/branches/${context.currentBranch.uri}/spreads/new/`;
-        let data = {post:post.id};
+    useEffect(()=>{
+        if(selfSpreadCount>=50){
+            setSelfSpreadCount(50);
+        }
+    },[selfSpreadCount])
 
-        axios.post(
-            uri,
-            data,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                withCredentials: true
-            }
-        ).then(response=>{
-            handleSpread();
-             
-            let uri = `/api/post/${response.data.post}/`;
-        }).catch(error=>{
-             
-        })
-    }
+    useEffect(()=>{
+        if(spreadRef.current){
+            setLeft(spreadRef.current.clientWidth)
+        }
+    },[spreadRef])
 
     let className = 'spread-icon';
 
+    function overridePosition(position, currentEvent, currentTarget, node, place, desiredPlace, effect, offset){
+        return {left:ref.current.offsetLeft + 60,top:ref.current.offsetTop - 10}
+    }
+
     return(
         <div id="spread-wrapper" className="post-action-container flex-fill spread">
-            <button style={{border:0,backgroundColor:'transparent'}} onClick={e=>onClick(e)}>
-                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
+            <button ref={ref}
+            style={{border:0,backgroundColor:'transparent'}} onClick={e=>onClick(e)}>
+                
+                <div ref={spreadRef} className="flex-fill" 
+                style={{alignItems:'center',WebkitAlignItems:'center',position:'relative'}}>
                     <ShareSvg className={className}/>
                     <ShareCount spreads={spreadCount}/>
+                    {selfSpread?
+                        <span style={{position:'absolute',left:left,marginLeft:10,
+                        color:'#2196f3',paddingTop:3,fontWeight:'bold'}}>({selfSpreadCount>=50?50:selfSpreadCount})</span>
+                    :null}
                 </div>
             </button>
             {/*clicked?
-            <ShareBox post={post} didSelfSpread={didSelfSpread} handleSpread={spread} setClicked={setClicked}/>:null*/}
+            <ShareBox post={post} selfSpread={selfSpread} handleSpread={spread} setClicked={setClicked}/>:null*/}
         </div>
     )
 }
 
-function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
+function ShareBox({post,selfSpread,handleSpread,setClicked}){
     const ref = useRef(null);
 
     const copyText = (e) =>{
@@ -1077,7 +1152,7 @@ function ShareBox({post,didSelfSpread,handleSpread,setClicked}){
     return(
         <div ref={ref} className="spread-box" onClick={e=>e.stopPropagation()}>
             <div style={{height:49,borderBottom:'1px solid #eaeaea',position:'relative'}}>
-                {didSelfSpread?
+                {selfSpread?
                     <button className="spread-button" onClick={handleSpread}>Undo spread</button>:
                     <button className="spread-button" onClick={handleSpread}>Spread this leaf</button>
                 }
@@ -1183,20 +1258,20 @@ function TopSpreadList({spreaders,selfSpread}){
     }
     else{
         postPicture = <PostPicture style={{width:24,height:24}} 
-                            picture={spreaders[0].branch_image} 
-                            uri={spreaders[0].uri}/>
+                            picture={spreaders[0].branch.branch_image} 
+                            uri={spreaders[0].branch.uri}/>
 
         if(spreaders.length===1){
             topSpreadList = 
             <>
                 {postPicture}
-                <p className="top-spread-list">{spreaders[0].uri} spread this leaf</p>
+                <p className="top-spread-list">{spreaders[0].branch.uri} spread this leaf</p>
             </>
             
         }else{
             topSpreadList = <>
                 {postPicture}
-                <p className="top-spread-list">{spreaders[0].uri} and {spreaders.length - 1} other branches you follow have spread this leaf</p>
+                <p className="top-spread-list">{spreaders[0].branch.uri} and {spreaders.length - 1} other branches you follow have spread this leaf</p>
             </>
         }
     }
@@ -1207,47 +1282,73 @@ function TopSpreadList({spreaders,selfSpread}){
     )
 }
 
-function More({post}){
+import {DropdownActionList} from "./DropdownActionList"
+import {InfoMessage} from "./InfoMessage"
+
+function More({post,posts,setPosts}){
     const ref = useRef(null);
     const [clicked,setClicked] = useState(false);
+    const [isDeleted,setDeleted] = useState(false);
+    const [message,setMessage] = useState(
+        "Leaf successfully removed. Effects will be noticable upon refresh."
+    );
+    const userContext = useContext(UserContext);
+
+    let isOwnerOfPost = userContext.isAuth?
+    userContext.branches.some(b=>b.uri==post.poster):false
 
     function handleClick(e){
         e.stopPropagation();
         setClicked(!clicked);
     }
 
-    function handleClickOutside(event) {
-        if(ref.current && !ref.current.contains(event.target) && 
-        !document.getElementById("spread-wrapper").contains(event.target)) {
-            setClicked(false);
+    function handleCopyLink(){
+        copy(document.location.protocol + '//' + document.location.host + '/' +post.poster + '/leaves/' + post.id)
+    }
+
+    async function deletePost(){
+        let url = `/api/post/${post.id}/`
+        const httpReqHeaders = {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        };
+        const axiosConfigObject = {headers: httpReqHeaders};
+
+        try{
+            let response = await axios.delete(url,axiosConfigObject);
+            setDeleted(true);
+        }catch(e){
+            //console.log("an error occured")
+            setMessage('An error occured. Could not delete message');
         }
     }
 
-    useEffect(()=>{
-        document.addEventListener('mousedown',handleClickOutside);
-        return(()=>{
-            document.removeEventListener('mousedown',handleClickOutside);
-        })
-    })
+    let actions = [
+        {
+            label:'Copy link',
+            action:handleCopyLink
+        }
+    ]
 
-    function handleCopyLink(){
-        /*var text = document.location.protocol + '//' + document.location.host + '/' +post.poster + '/' + post.id;
-        navigator.clipboard.writeText(text).then(function() {
-            // 
-        }, function(err) {
-            console.error('Could not copy text: ', err);
-        });*/
-        copy(document.location.protocol + '//' + document.location.host + '/' +post.poster + '/' + post.id)
+    if(isOwnerOfPost){
+        actions = [...actions, {
+            label:'Delete leaf', 
+            action:deletePost,
+            confirmation:true,
+            confirmation_message:'Are you sure you want to delete this leaf?'
+        }]
     }
 
     return(
-        <div ref={ref} onClick={handleClick} style={{position:'relative'}}>
-            <MoreSvg className="more-icon"/>
-            {clicked?
-            <div className="more-btn-container" style={{position:'absolute',right:0}}>
-                <MoreOption value="Copy url" onClick={handleCopyLink}/>
-            </div>:null}
-        </div>
+        <>
+        {isDeleted?<InfoMessage message={message} time={5000}/>:null}
+        <DropdownActionList isOpen={clicked} setOpen={setClicked} actions={actions}
+        style={{left:'auto',minWidth:'auto',fontSize:'1.4rem'}} onclick={(e)=>{handleClick(e)}}>
+            <div ref={ref}>
+                <MoreSvg className="more-icon"/>
+            </div>
+        </DropdownActionList>
+        </>
     )
 }
 

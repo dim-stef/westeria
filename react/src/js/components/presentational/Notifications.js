@@ -123,7 +123,7 @@ function PageNotifications({notifications,loaded}){
                         <NotificationMatcher notification={n}/>
                     )}
                 ):
-                <div className="info-message-wrapper flex-fill center-items">
+                <div className="info-message flex-fill center-items">
                     <span>You don't have any new notifications</span>
                 </div>
             }

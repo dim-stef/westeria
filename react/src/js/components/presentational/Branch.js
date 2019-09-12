@@ -69,8 +69,9 @@ export function SmallBranch({branch,isLink=true,
                         <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
                     </div>
                 </div>
-                {showCard?<SmallCard branch={branch}/>:null}
+                
             </SmallBranchWrapper>
+            {showCard?<SmallCard branch={branch}/>:null}
             {children}
         </div>
         

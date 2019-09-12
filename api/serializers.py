@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.files.images import ImageFile
+from django.db.models import Sum, Count
 from django.core import serializers as ser
 import channels.layers
 from asgiref.sync import async_to_sync
@@ -15,7 +16,8 @@ import os
 from random import uniform
 from uuid import uuid4
 import json
-from math import log
+from datetime import datetime, timedelta
+
 
 temp_path = os.path.join(os.path.expanduser('~'), 'temp_thumbnails')
 
@@ -82,20 +84,21 @@ class BranchSerializer(serializers.ModelSerializer):
                   'children_uri_field','follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner','default',
-                  'post_context','spread_count','trending_score']
+                  'post_context','spread_count','last_day_spread_count']
         read_only_fields = ['id', 'owner', 'parents',
                   'parent_uri_field','followers_count','following_count',
                   'children', 'name', 'uri',
                   'children_uri_field', 'follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner', 'default','spread_count'
-                  ,'trending_score']
+                  ,'last_day_spread_count']
 
     follows = serializers.StringRelatedField(many=True)
     followed_by = serializers.StringRelatedField(many=True)
     followers_count = serializers.SerializerMethodField('get_followed_by_count')
     following_count = serializers.SerializerMethodField()
     branch_count = serializers.SerializerMethodField()
+    last_day_spread_count = serializers.SerializerMethodField()
     children_uri_field = serializers.SerializerMethodField('children_uri')
     parent_uri_field = serializers.SerializerMethodField('parents_uri')
     post_context = serializers.SerializerMethodField()
@@ -110,9 +113,17 @@ class BranchSerializer(serializers.ModelSerializer):
 
     def get_spread_count(self,branch):
         if 'post' in self.context:
-            return branch.spreads.filter(post=self.context['post']).count()
+            return branch.spreads.filter(post=self.context['post']).aggregate(Sum('times'))['times__sum']
         else:
             return 0
+
+    def get_last_day_spread_count(self,branch):
+        last_day = datetime.today() - timedelta(days=1)
+        '''branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day,
+                                         posts__spreads__updated__gte=last_day) \
+            .aggregate(Sum('posts_from_all__spreads__times'))'''
+        dd = branch.posts_from_all.filter(spreads__updated__gte=last_day).aggregate(Sum('spreads__times'))['spreads__times__sum']
+        return dd
 
     def get_followed_by_count(self,branch):
         return branch.followed_by.count()
@@ -235,6 +246,15 @@ class ChatRequestWithRoomSerializer(serializers.ModelSerializer):
         model = ChatRequest
         fields = ['branch_chat','request_from','request_to','status','id']
         read_only_fields = ['branch_chat','request_from','request_to']
+
+
+class CreateChatRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ChatRequest
+        fields = ['branch_chat','request_from','request_to','status','id']
+        read_only_fields = ['request_from','status']
+
 
 class BranchMessageSerializer(serializers.ModelSerializer):
     images = ChatImageSerializer(many=True)
@@ -406,104 +426,6 @@ class NewPostSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','poster','level')
 
 
-class BranchPostSerializer2(serializers.ModelSerializer):
-    poster = serializers.StringRelatedField()
-    posted = serializers.StringRelatedField()
-    posted_to = serializers.SerializerMethodField()
-    poster_name = serializers.SerializerMethodField('poster_name_field')
-    poster_id = serializers.SerializerMethodField()
-    posted_name = serializers.SerializerMethodField('posted_name_field')
-    spreaders = serializers.SerializerMethodField()
-    posted_id = serializers.SerializerMethodField()
-    stars = serializers.SerializerMethodField()
-    replied_to = serializers.SerializerMethodField()
-    replies_count = serializers.SerializerMethodField()
-    spreads_count = serializers.SerializerMethodField()
-
-    def get_posted_to_uri(self,post):
-        uri_list = []
-        for branch in post.posted_to.all():
-            uri_list.append(branch.uri)
-        return uri_list
-
-    def get_posted_to(self,post):
-        posted_to = post.posted_to.all()
-        return BranchSerializer(posted_to,many=True).data
-
-    def poster_picture_field(self,post):
-        return post.poster.branch_image.url
-
-    def poster_banner_field(self,post):
-        return post.poster.branch_banner.url
-
-    def poster_name_field(self,post):
-        return post.poster.name
-
-    def get_poster_id(self,post):
-        return post.poster.id
-
-    def posted_picture_field(self,post):
-        return post.posted.branch_image.url
-
-    def posted_banner_field(self,post):
-        return post.posted.branch_banner.url
-
-    def posted_name_field(self,post):
-        return post.posted.name
-
-    def get_posted_id(self,post):
-        return post.posted.id
-
-    def get_stars(self,post):
-        return post.reacts.filter(type="star").count()
-
-    def get_replied_to(self,post):
-        if post.type == "reply":
-            return {
-                'uri':post.replied_to.poster.uri,
-                'id':post.replied_to.id
-            }
-        else:
-            return None
-
-    def get_replies_count(self,post):
-        def count_comments(post):
-                count = post.replies.count()
-                for reply in post.replies.all():
-                    count += count_comments(reply)
-                return count
-        return count_comments(post)
-
-    def get_spreads_count(self,post):
-        return post.spreads.count()
-
-    def get_images(self,post):
-        #return [i.image.url for i in post.images.all()]
-        return PostImageSerializer(post.images.all(), many=True).data
-
-    def get_videos(self,post):
-        return PostVideoSerializer(post.videos.all(), many=True).data
-
-    def get_thumbnails(self,post):
-        return [i.thumbnail.url for i in post.videos.all()]
-
-    def get_spreaders(self,post):
-        spreads = post.spreads.filter(branch__in=self.context['spreaders']).distinct('branch')
-        context = {"post": post.id}
-        branches = []
-        for spread in spreads:
-            branches.append(spread.branch)
-        return BranchSerializer(branches,many=True,context=context).data
-
-    class Meta:
-        model = Post
-        fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
-                  'posted_to','text','type',
-                  'created','updated',
-                  'replied_to','replies','replies_count','spreads_count',
-                  'level','stars','hot_score')
-        read_only_fields = ('level',)
-
 class BranchPostSerializer(serializers.ModelSerializer):
     poster = serializers.StringRelatedField()
     posted = serializers.StringRelatedField()
@@ -588,7 +510,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
         return count_comments(post)
 
     def get_spreads_count(self,post):
-        return post.spreads.count()
+        return post.spreads.aggregate(Sum('times'))['times__sum']
 
     def get_images(self,post):
         #return [i.image.url for i in post.images.all()]
@@ -606,8 +528,13 @@ class BranchPostSerializer(serializers.ModelSerializer):
             context = {"post": post.id}
             branches = []
             for spread in spreads:
-                branches.append(spread.branch)
-            return BranchSerializer(branches,many=True,context=context).data
+                if spread.times > 0:
+                    branches.append({
+                        'branch': BranchSerializer(spread.branch,context=context).data,
+                        'times': spread.times,
+                        'id':spread.id
+                    })
+            return branches
         return []
 
     class Meta:
@@ -675,6 +602,13 @@ class NewSpreadSerializer(serializers.ModelSerializer):
         model = Spread
         fields = '__all__'
         read_only_fields = ('id','branch')
+
+
+class UpdateSpreadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Spread
+        fields = '__all__'
+        read_only_fields = ('id','branch','post','created','updated')
 
 
 class GenericNotificationRelatedField(serializers.RelatedField):

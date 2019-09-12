@@ -481,6 +481,10 @@ div.route-section {
     width: 100%;
 }
 
+.post-image-wrapper > div:last-child{
+    width: 100%;
+}
+
 .post-image-gallery{
     display: flex;
     height: 100%;
@@ -588,6 +592,27 @@ div.route-section {
 .spread:hover .spread-icon path{fill: #2196f3  !important;}
 .spread:hover .spread-count{color: #2196f3 !important;}
 
+.self-spread-count{
+    position: absolute;
+    margin-left: 10px;
+    padding-top: 3px;
+    color: #434e58c7;
+    font-weight: bold;
+    color: #2196f3;
+    transition: all 0.1s ease;
+    font-size: 1em;
+}
+
+.remove-media-btn{
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: #00000085;
+    border: 0;
+    margin: 4px;
+    color: white;
+}
+
 .branch-add-icon{
     fill: #97a6b3;
     width: 80px;
@@ -626,10 +651,10 @@ div.route-section {
 
 .post{
     border-bottom: 1px solid rgb(226, 234, 241);
-    background-color: white;
     padding: 10px;
     display: flex;
     transition: opacity 0.1s ease-in-out;
+    position: relative;
 }
 
 [postState="closed"]:hover{

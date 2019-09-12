@@ -7,10 +7,6 @@ class GroupMessageInline(admin.TabularInline):
 
 
 class GroupChatAdmin(admin.ModelAdmin):
-    inlines = [
-        GroupMessageInline,
-    ]
-
     filter_horizontal = ('members',)
 
 

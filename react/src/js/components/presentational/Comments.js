@@ -198,7 +198,7 @@ export function ReplyTree({currentPost,topPost,
     if(currentPost.level - 1 == topPost.level){
         marginLeft = 0;
     }else{
-        marginLeft = 10;
+        marginLeft = 15;
         borderLeft='3px solid #e2eaf1';
     }
      

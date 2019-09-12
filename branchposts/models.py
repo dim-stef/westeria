@@ -163,14 +163,22 @@ class PostVideo(models.Model):
             self.thumbnail = self.generate_thumbnail()
         super().save(*args, **kwargs)'''
 
+from django.core.validators import MaxValueValidator
+
 class Spread(models.Model):
+    class Meta:
+        unique_together = ('branch','post')
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     branch = models.ForeignKey('branches.Branch', on_delete=models.CASCADE, related_name="spreads")
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="spreads")
+    times = models.PositiveSmallIntegerField( validators=[MaxValueValidator(50)],default=0)
     created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return str(self.branch)  + " spread " + str(self.post)
+
 
 class React(models.Model):
     TYPE_STAR = 'star'

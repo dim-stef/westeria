@@ -17,7 +17,9 @@ function EmailConfirm({match}){
                 {
                     key:match.params.token
                 },
-                    {headers: {
+                    {
+                        withCredentials: true,
+                        headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     }

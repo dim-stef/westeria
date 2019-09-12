@@ -310,6 +310,7 @@ function CreateNewBranch(){
                 url,
                 formData,
                 {
+                    withCredentials: true,
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         'X-CSRFToken': getCookie('csrftoken')
@@ -453,7 +454,7 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                         <div style={{margin:'5px 0'}}>
                             <label style={{height:'100%'}} className="setting-label">Profile Image And Banner</label>
                             <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
-                                <Profile branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
                                 <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
                             </div>
                             {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
@@ -496,6 +497,7 @@ function PrivacySettings(){
                 url,
                 data,
                 {
+                    withCredentials: true,
                     headers:{
                         'Content-Type':'application/json',
                         'X-CSRFToken':getCookie('csrftoken')
@@ -580,8 +582,7 @@ const Error = ({ name }) => (
     />
   );
 
-export function Profile({branch,wrapperRef,profileRef,createNew,name="branch_image",showError=false}){
-
+export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_image",showError=false}){
     function onInput(){
 
         // 2mb
@@ -601,7 +602,7 @@ export function Profile({branch,wrapperRef,profileRef,createNew,name="branch_ima
             {({ input, meta }) => (
             <div>
                 <label style={{height:'100%',padding:0}} className="setting-label" htmlFor="branch-image">
-                    <ImageInput  key="profile" src={createNew?null:branch.branch_image} wrapperRef={wrapperRef} nodeRef={profileRef} 
+                    <ImageInput key="profile" src={src?src:null} wrapperRef={wrapperRef} nodeRef={profileRef} 
                     getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"/>
                 </label>
                 <input {...input} ref={profileRef} accept="image/*" id="branch-image" className="inputfile" type="file" />

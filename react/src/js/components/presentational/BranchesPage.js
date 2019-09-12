@@ -175,11 +175,14 @@ export function AddBranch({branch,type='children'}){
         axios.post(
             uri,
             data,
+            
             {
+                withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': getCookie('csrftoken'),
                 },
+                
             }).then(response => {
                 setRequestStatus(response.data.status)
                 setSubmitted(true);

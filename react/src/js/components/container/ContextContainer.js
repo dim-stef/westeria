@@ -53,6 +53,7 @@ export const CachedBranchesContext = React.createContext({
     following:[],
     mutualFollows:[],
     owned:[],
+    trending:[],
     foreign:[]
 });
 export const SingularPostContext = React.createContext(

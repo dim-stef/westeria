@@ -100,6 +100,7 @@ export function Images(props){
                     imageWidth={props.imageWidth} left={left}
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
+                    {/* <SwipeableViews> must be the last child of .post-image-wrapper in order to apply css*/}
                     <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading
                     slideStyle={{position:'relative',overflow:'hidden',alignItems:'center'}} slideClassName="flex-fill">
                         {props.images.map(img=>{
@@ -109,7 +110,7 @@ export function Images(props){
                             /></div>
                         })}
                         {props.videos.map(vid=>{
-                            return <div key={vid.id}
+                            return <div key={vid.id} style={{width:'100%'}}
                              onTouchStart={event => event.preventDefault()}>
                             <VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
@@ -128,9 +129,9 @@ function VideoComponent({src,thumbnail,width}){
     let height = width / (16/9);
 
     return(
-        <div onClick={e=>{e.stopPropagation()}}>
+        <div onClick={e=>{e.stopPropagation()}} style={{width:'100%'}}>
             <ReactPlayer pip={false} 
-             width={width} height={height} url={src} volume={0} muted controls playing light={thumbnail}
+             width="100%" height={height} url={src} volume={0} muted controls playing light={thumbnail}
              config={{ file: { attributes: { controlsList: 'nodownload',disablepictureinpicture: 'true' } } }}>
             </ReactPlayer>
         </div>

@@ -14,6 +14,7 @@ function Logout({history,location,match}){
                 url,
                 {},
                 {
+                    withCredentials: true,
                     headers:{
                         'Content-Type':'application/json',
                         'X-CSRFToken':getCookie('csrftoken')

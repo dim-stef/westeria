@@ -30,7 +30,7 @@ export function ChatRoomsContainer({inBox,match}){
 
     useEffect(() => {
         getRooms();
-    },[])
+    },[context.currentBranch.uri])
 
     return(
         <>
@@ -200,10 +200,11 @@ function RoomContainer({roomData,match}){
 
     let image = data.room.personal?previewBranch?previewBranch.branch_image:null:data.room.image;
     let name = data.room.personal?previewBranch?previewBranch.name:'':data.room.name
-    let headline = <div className="flex-fill center-items">
+    let headline = <div className="flex-fill center-items" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
         <img src={image} 
         className="round-picture" style={{height:32,width:32,objectFit:'cover'}}/>
-        <span style={{fontWeight:'bold', fontSize:'2em',marginLeft:10}}>{name}</span>
+        <span style={{fontWeight:'bold', fontSize:'2em',marginLeft:10,flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>{name}</span>
+        <DropdownOptions room={data.room}/>
     </div>
     return(
         <>
@@ -412,14 +413,16 @@ function RoomsPreviewColumn({roomData,isGroup,inBox,loaded,rooms,setRooms}){
                 </div>:
                 roomData.length>0?
                     roomData.map(data=>{
-                        return <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
+                        return <React.Fragment key={data.room.id}>
+                            <RoomPreview ws={data.ws} room={data.room} key={data.room}/>
+                        </React.Fragment>
                     }):<MutualFollowMessage/>
                 }
                 {loaded?
                     <>
                     <ConversationRequests rooms={rooms} setRooms={setRooms}/>
                     <Link to="/messages/create_conversation" style={{textDecoration:'none',borderBottom:'1px solid rgb(226, 234, 241)'}}
-                    className="info-message-wrapper flex-fill center-items">
+                    className="info-message flex-fill center-items">
                         <span>Create conversation</span>
                     </Link>
                     </>:null}
@@ -445,7 +448,9 @@ function ConversationRequests({rooms,setRooms}){
 
     return(
         requests.map(r=>{
-            return <ConversationRequestsPreview request={r} rooms={rooms} setRooms={setRooms}/>
+            return <React.Fragment key={r.id}>
+            <ConversationRequestsPreview request={r} rooms={rooms} setRooms={setRooms}/>
+            </React.Fragment>
         })
     )
 }
@@ -512,7 +517,7 @@ function ConversationRequestsPreview({request,rooms,setRooms}){
 
 function MutualFollowMessage(){
     return(
-        <div className="info-message-wrapper flex-fill center-items">
+        <div className="info-message flex-fill center-items">
             <span>Mutually follow another person in order to message them</span>
         </div>
     )
@@ -566,14 +571,16 @@ function RoomPreview({room,ws,isGroup,inBox}){
 
 
     return(
-        <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
-            <img className="round-picture" src={room.personal?previewBranch?previewBranch.branch_image:null:room.image} 
-            style={{height:48,width:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
-            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
-                <span style={{fontWeight:600,color:'#292929'}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
-                <span style={{fontSize:'0.9em',color:'#708698',wordBreak:'break-all'}}>{latestMessage}</span>
-            </div>
-        </Link>
+        <React.Fragment key={room.id}>
+            <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
+                <img className="round-picture" src={room.personal?previewBranch?previewBranch.branch_image:null:room.image} 
+                style={{height:48,width:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
+                <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
+                    <span style={{fontWeight:600,color:'#292929'}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
+                    <span style={{fontSize:'0.7em',color:'#708698',wordBreak:'break-word'}}>{latestMessage}</span>
+                </div>
+            </Link>
+        </React.Fragment>
     )
 }
 
@@ -591,5 +598,69 @@ function PageWrapper({children}){
                 {children}
             </Mobile>
         </>
+    )
+}
+
+import {DropdownActionList} from "../presentational/DropdownActionList"
+
+function DropdownOptions({room}){
+    const ref = useRef(null);
+    const [clicked,setClicked] = useState(false);
+    const userContext = useContext(UserContext);
+    const isOwnerOfRoom = userContext.branches.some(b=>b.uri==room.owner)
+
+    function handleClick(e){
+        e.stopPropagation();
+        setClicked(!clicked);
+    }
+
+    let actions = [];
+
+    if(isOwnerOfRoom){
+        actions = [...actions,{
+            label:'Settings',
+            action:()=>{
+                history.push(`/messages/${room.id}/settings`)
+            }
+        },]
+    }
+
+    if(!room.personal){
+        actions = [...actions,{
+            label:'Invite members',
+            action:()=>{
+                history.push(`/messages/${room.id}/invite`)
+            }
+        },]
+    }
+
+    return(
+        <>
+        <DropdownActionList isOpen={clicked} setOpen={setClicked} actions={actions}
+        style={{left:'auto',minWidth:'auto',fontSize:'1.4rem'}} onclick={(e)=>{handleClick(e)}}>
+            <div ref={ref} style={{position:'relative'}} className="flex-fill">
+                <MoreSvg className="more-icon"/>
+            </div>
+        </DropdownActionList>
+        </>
+    )
+}
+
+function MoreSvg({className}){
+    return(
+        <svg
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+        x="0px"
+        y="0px"
+        width="30px"
+        height="20px"
+        viewBox="0 0 408 408"
+        style={{ enableBackground: "new 0 0 408 408" }}
+        xmlSpace="preserve"
+        fill="rgba(0,0,0,0.75)"
+        className={className}>
+            <path d="M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" />
+        </svg>
     )
 }

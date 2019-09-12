@@ -1,69 +1,15 @@
 import React, {useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,lazy,Suspense} from 'react'
+import {Redirect} from 'react-router-dom';
 import {UserContext} from "../container/ContextContainer"
 import {isMobile} from 'react-device-detect';
-import { Block,Value } from 'slate'
 import {ToggleContent} from './Temporary'
 import { MoonLoader } from 'react-spinners';
 import {CustomEditor} from "./Editor"
-import Plain from 'slate-plain-serializer'
+import {MediaPreview} from './EditorMediaPreview'
+
 import ReactPlayer from 'react-player'
 import axios from 'axios'
 //const Editor = lazy(() => import('slate-react'));
-import {Editor} from "slate-react";
-
-
-function MediaPreview(props){
-
-    function handleClick(file){
-        let fileArray = Array.from(props.files);
-        let newFiles = fileArray.filter(f=>{
-            return f!=file
-        })
-        props.setFiles(newFiles);
-    }
-
-    function renderImages(){
-        let images = [];
-        for (var i = 0; i < props.files.length; i++){
-            if(isFileImage(props.files[i])){
-                let file = props.files[i];
-                let img = (
-                <div style={{width:100,height:100,position:'relative'}}>
-                    <img style={{objectFit:'cover',width:'100%',height:'100%'}} src={URL.createObjectURL(file)}/>
-                    <button style={{position:'absolute',top:0,right:0}} onClick={()=>handleClick(file)}>x</button>
-                </div>
-                );
-                images.push(img)
-            }
-        }
-        return images;
-    }
-
-    function renderVideos(){
-        let videos = [];
-        for (var i = 0; i < props.files.length; i++){
-            if(isFileVideo(props.files[i])){
-                let file = props.files[i];
-                let vid = (
-                <div className="player-wrapper">
-                    <ReactPlayer width={100} height={100} url={URL.createObjectURL(file)} 
-                    volume={0} muted playing loop>
-                    </ReactPlayer>
-                    <button style={{position:'absolute',top:0,right:0}} onClick={()=>handleClick(file)}>x</button>
-                </div>
-                );
-                videos.push(vid)
-            }
-        }
-        return videos;
-    }
-    return(
-        <div className="flex-fill" style={{alignItems:'center'}}>
-            {renderImages()}
-            {renderVideos()}
-        </div>
-    )
-}
 
 const schema = {
     document: {
@@ -76,6 +22,14 @@ const schema = {
     },
 }
 
+function isFileImage(file) {
+    return file && file['type'].split('/')[0] === 'image';
+}
+
+function isFileVideo(file) {
+    return file && file['type'].split('/')[0] === 'video';
+}
+
 export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null,setHeightOnBlur,setHeightOnInput}){
 
     const [value,setValue] = useState(null);
@@ -85,7 +39,9 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     const context = useContext(UserContext);
     const [imageError,setImageError] = useState(false);
     const [videoError,setVideoError] = useState(false);
-    let initIsMember = room.members.some(m=>m==branch.uri);
+
+    // could either be object or just uri, need to check for both
+    let initIsMember = room.members.some(m=>m==branch || m==branch.uri);
     const [isMember,setIsMember] = useState(initIsMember);
     const [isLoading,setLoading] = useState(false);
 
@@ -122,6 +78,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                 uri,
                 formData,
                 {
+                    withCredentials: true,
                     headers: {
                         'Content-Type': 'multipart/form-data',
                         'X-CSRFToken': getCookie('csrftoken')
@@ -161,9 +118,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         }
         
         event.preventDefault();
-        handleSendMessage();
-        // Prevent line break.
-        
+        handleSendMessage();        
     }
 
     // Update the current value of the ref after we successfully render.
@@ -207,7 +162,8 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     }
 
     useLayoutEffect(()=>{
-        setIsMember(room.members.some(m=>m==branch.uri))
+        // could either be object or just uri, need to check for both
+        setIsMember(room.members.some(m=>m==branch ||m==branch.uri))
     },[branch])
 
     let warningStyle ={
@@ -220,7 +176,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     return(
         <>
         <Suspense fallback={null}>
-            {!isMember?<p>You are not a part of this group so you can't send a message</p>:null}
+            {!isMember?<Redirect to="/messages"/>:null}
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',zIndex:6,backgroundColor:'white'}}>
                 <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',
                 justifyContent:'stretch',borderTop:'1px solid #e2eaf1',...style}}>
@@ -230,6 +186,8 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                     </div>
                     <div className="flex-fill" style={{width:'100%',alignItems:'center',WebkitAlignItems:'center'}} ref={ref}>
                         <CustomEditor
+                        files={files}
+                        setFiles={setFiles}
                         editorRef={editorRef}
                         value={value}
                         onInput={handleChange}
@@ -263,13 +221,6 @@ function CodeNode(props) {
     )
 }
 
-function isFileImage(file) {
-    return file && file['type'].split('/')[0] === 'image';
-}
-
-function isFileVideo(file) {
-    return file && file['type'].split('/')[0] === 'video';
-}
 
 function Toolbar({handleSendMessage,onInput,isLoading}){
 

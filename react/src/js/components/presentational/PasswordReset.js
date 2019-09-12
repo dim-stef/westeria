@@ -16,7 +16,9 @@ function PasswordReset(){
             let response = await axios.post(
                 url,
                 {...values},
-                    {headers: {
+                    {
+                        withCredentials: true,
+                        headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     }

@@ -120,6 +120,24 @@ export function Modal({children ,onClick}){
     )
 };
 
+export function AreYouSureModal({children ,onClick}){
+
+    // prevents background scroll events
+    function preventScrollEvents(e){
+        e.stopPropagation();
+    }
+
+    return(
+        ReactDOM.createPortal(
+            <div className="confirmation-modal flex-fill center-items" 
+            onClick={onClick} onTouchMove={preventScrollEvents}>
+                {children}
+            </div>,
+            document.getElementById('confirmation-modal-root')
+        )
+    )
+};
+
 var cumulativeOffset = function(element) {
     var top = 0, left = 0;
     do {

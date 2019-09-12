@@ -23,6 +23,7 @@ branchchat_router.register(r'create_conversation', views.CreateConversationViewS
 branchchat_router.register(r'conversation_invitations', views.ConversationInvitationsViewSet,base_name='conversation_invitations')
 
 
+
 urlpatterns = [
     url(r'^$', schema_view),
     url(r'^', include(router.urls)),

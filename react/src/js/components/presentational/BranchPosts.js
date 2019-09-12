@@ -78,7 +78,8 @@ function DisplayPosts({isFeed,posts,setPosts,
     postsContext,resetPostsContext,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh}){
-
+    
+    
     return(
     <ul key={postsContext.branchUri} className="post-list">
         {isFeed?<FrontPageList/>:null}
@@ -122,7 +123,7 @@ function DisplayPosts({isFeed,posts,setPosts,
             </div>
             )}>
             <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
-                showPostedTo={showPostedTo} posts={posts}
+                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts}
             />
         </InfiniteScroll>
         :
@@ -175,7 +176,7 @@ const treePostsCache = new CellMeasurerCache({
     defaultHeight: 500
 })
 
-function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo}){
+function VirtualizedPosts({isFeed,posts,setPosts,postsContext,activeBranch,showPostedTo}){
     const ref = useRef(null);
     const cellRef = useRef(null);
     const [previousWidth,setPreviousWidth] = useState(0);
@@ -240,6 +241,8 @@ function VirtualizedPosts({isFeed,posts,postsContext,activeBranch,showPostedTo})
                     let props = {
                         isOpen:isOpen,
                         post:post,
+                        posts:posts,
+                        setPosts:setPosts,
                         key:[post.id,post.spreaders,postsContext.content],
                         removeFromEmphasized:null,
                         showPostedTo:showPostedTo?true:false,
@@ -701,6 +704,7 @@ function ActionArrow({refresh}){
     const [navigationTopPosition,setNavigationTopPosition] = useState(0);
     const [windowScroll,setWindowScroll] = useState(0);
 
+    // future support for scroll to top
     useEffect(()=>{
         if(ref){
             setNavigationTopPosition(cumulativeOffset(ref.current).top - 50);
@@ -718,17 +722,13 @@ function ActionArrow({refresh}){
     },[ref])
 
     function onClick(){
-        if(windowScroll<navigationTopPosition + 1){
-            refresh();
-        }else{
-            window.scrollTo({ top: navigationTopPosition, behavior: 'smooth' });
-        }
+        refresh();
     }
 
     return(
         <div ref={ref} className="filter-action-arrow flex-fill">
             <button className="filter-action-arrow-button" style={{border:0,backgroundColor:'transparent'}} onClick={onClick}>
-                {windowScroll<navigationTopPosition + 1 ?<RefreshArrowSvg/>:<TopArrowSvg/>}
+                <RefreshArrowSvg/>
             </button>
         
         </div>
@@ -781,8 +781,14 @@ function TimeFilter({setParams,params,defaultOption}){
     )
 }
 
+import { useMediaQuery } from 'react-responsive'
+
+
 export function DropdownList({type="text",component=null,options,defaultOption,name,
 setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',children}){
+    const isDesktopOrLaptop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+      })
     const [selected,setSelected] = useState(defaultOption)
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
@@ -791,7 +797,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
 
     function handleClick(e,show){
         
-        if(isMobile){
+        if(!isDesktopOrLaptop){
             setOpen(true);
             show();
         }else{
@@ -849,7 +855,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                     </div>:
                     <div onClick={e=>handleClick(e,show)}>{children}</div>}
                     
-                    {isOpen && !isMobile?<div className="flex-fill filter-dropdown">
+                    {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown">
                         {options.map(op=>{
                             let props = {setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>

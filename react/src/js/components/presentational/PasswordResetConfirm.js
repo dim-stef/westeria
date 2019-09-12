@@ -19,7 +19,9 @@ function PasswordResetConfirm({match}){
                     uid:match.params.uid,
                     token:match.params.token
                 },
-                    {headers: {
+                    {
+                        withCredentials: true,
+                        headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     }

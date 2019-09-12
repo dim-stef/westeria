@@ -5,72 +5,15 @@ import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import {SkeletonBranchList} from "./SkeletonBranchList";
-import { Block,Value } from 'slate'
 import {CustomEditor} from './Editor'
 import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
-import Plain from 'slate-plain-serializer'
 import ReactPlayer from 'react-player'
 //import EmojiPicker from 'emoji-picker-react';
 import { css } from '@emotion/core';
-import SlateReactPlaceholder from "slate-react-placeholder";
+import {MediaPreview} from './EditorMediaPreview'
 import { MoonLoader } from 'react-spinners';
 import axios from 'axios'
-import {Editor} from "slate-react"
-
-
-function MediaPreview(props){
-    function handleClick(file){
-        let fileArray = Array.from(props.files);
-        let newFiles = fileArray.filter(f=>{
-            return f!=file
-        })
-        props.setFiles(newFiles);
-    }
-
-    function renderImages(){
-        let images = [];
-        for (var i = 0; i < props.files.length; i++){
-            if(isFileImage(props.files[i])){
-                let file = props.files[i];
-                let img = (
-                <div style={{width:100,height:100,position:'relative',margin: '10px 10px 10px 0px'}}>
-                    <img style={{objectFit:'cover',width:'100%',height:'100%',borderRadius:'10px',border: '1px solid #989898'}} 
-                    src={URL.createObjectURL(file)}/>
-                    <button style={{position:'absolute',top:0,right:0}} onClick={()=>handleClick(file)}>x</button>
-                </div>
-                );
-                images.push(img)
-            }
-        }
-        return images;
-    }
-
-    function renderVideos(){
-        let videos = [];
-        for (var i = 0; i < props.files.length; i++){
-            if(isFileVideo(props.files[i])){
-                let file = props.files[i];
-                let vid = (
-                <div className="player-wrapper">
-                    <ReactPlayer width={100} height={100} url={URL.createObjectURL(file)} 
-                    volume={0} muted playing loop>
-                    </ReactPlayer>
-                    <button style={{position:'absolute',top:0,right:0}} onClick={()=>handleClick(file)}>x</button>
-                </div>
-                );
-                videos.push(vid)
-            }
-        }
-        return videos;
-    }
-    return(
-        <div style={{display:'flex',flexFlow:'row wrap'}}>
-            {renderImages()}
-            {renderVideos()}
-        </div>
-    )
-}
 
 const schema  = {
 	blocks: {
@@ -88,29 +31,16 @@ export default function StatusUpdateAuthWrapper(props){
 }
 
 
-export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
-    const initialValue = Value.fromJSON({
-        document: {
-            nodes: [
-                {
-                    object: 'block',
-                    type: 'paragraph',
-                    nodes: [
-                    {
-                        object: 'text',
-                        leaves: [
-                        {
-                            text: '',
-                        },
-                        ],
-                    },
-                    ],
-                },
-                ],
-            },
-        })
+function isFileImage(file) {
+    return file && file['type'].split('/')[0] === 'image';
+}
 
-    const initValue = Plain.deserialize('');
+function isFileVideo(file) {
+    return file && file['type'].split('/')[0] === 'video';
+}
+
+export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
+
     /*const plugins = [
         SlateReactPlaceholder({
             placeholder: "placeholder text",
@@ -240,6 +170,8 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                 </BranchSwitcher>
                 <div style={{width:'100%'}}>
                     <CustomEditor
+                    files={files}
+                    setFiles={setFiles}
                     editorRef={editorRef}
                     onInput={handleChange}
                     placeholder="Add a leaf"
@@ -298,13 +230,6 @@ function CodeNode(props) {
     )
 }
 
-function isFileImage(file) {
-    return file && file['type'].split('/')[0] === 'image';
-}
-
-function isFileVideo(file) {
-    return file && file['type'].split('/')[0] === 'video';
-}
 
 function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick,
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches}){
@@ -354,6 +279,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             uri,
             formData,
             {
+                withCredentials: true,
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'X-CSRFToken': getCookie('csrftoken')
