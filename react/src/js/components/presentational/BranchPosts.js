@@ -811,11 +811,14 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
 
     function handleOutsideClick(e){
         if(ref.current){
-            let childNodes = [...ref.current.childNodes]
+            /*let childNodes = [...ref.current.childNodes]
             if(childNodes.every(c=>{
                 return e.target!=c 
             }) && e.target !=ref.current){
                  
+                setOpen(false);
+            }*/
+            if(!ref.current.contains(e.target)){
                 setOpen(false);
             }
         }
@@ -841,23 +844,28 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
         }
     },[])
 
+    function handleSelect(option){
+        setSelected(option);
+        setOpen(false);
+    }
+
     return (
         <ToggleContent 
             toggle={show=>(
-                <div className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}>
+                <div ref={ref} onClick={e=>handleClick(e,show)} className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}>
                     {preview?
-                    <div ref={ref} onClick={e=>handleClick(e,show)}
+                    <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 
                     >
                         {type=="text"?<span style={{color:'#585858'}}>{selected.label}</span>:
                         <SmallBranch branch={selected} isLink={false}/>}
                         <DownArrowSvg/>
                     </div>:
-                    <div onClick={e=>handleClick(e,show)}>{children}</div>}
+                    <div>{children}</div>}
                     
                     {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown">
                         {options.map(op=>{
-                            let props = {setSelected:setSelected, selected:selected, option:op}
+                            let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>
                         })}
                     </div>:null}
@@ -868,7 +876,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                 <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
                     <MobileModal>
                         {options.map(op=>{
-                            let props = {setSelected:setSelected, selected:selected, option:op}
+                            let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component  {...props}/>
                         })}
                     </MobileModal>
@@ -878,12 +886,12 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     )
 }
 
-function DropdownItem({setSelected,selected,option}){
+function DropdownItem({setSelected,handleSelect,selected,option}){
     let style = option.value==selected.value?{backgroundColor:'#e2eaf1'}:null
 
     return(
         <span style={{...style}} 
-        onClick={()=>setSelected(option)} 
+        onClick={()=>handleSelect(option)} 
         className="filter-dropdown-item">{option.label}</span>
     )
 }

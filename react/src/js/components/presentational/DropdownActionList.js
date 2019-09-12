@@ -12,6 +12,7 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
     })
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
+    const mobileRef = useRef(null);
 
     function handleClick(e,show){
         e.stopPropagation();
@@ -31,9 +32,15 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
 
     function handleOutsideClick(e){
         e.stopPropagation();
-        if(ref.current){
-            if(!ref.current.contains(e.target)){
-                //setOpen(false);
+        if(mobileRef.current){
+            if(!ref.current.contains(e.target) && !mobileRef.current.contains(e.target)){
+                setOpen(false);
+            }
+        }else{
+            if(ref.current){
+                if(!ref.current.contains(e.target)){
+                    setOpen(false);
+                }
             }
         }
     }
@@ -64,7 +71,7 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
             content={hide => (
             <Modal onClick={(e)=>handleHide(e,hide)}>
                 <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
-                    <MobileModal>
+                    <MobileModal mobileRef={mobileRef}>
                         {actions.map(a=>{
                             return <Action action={a}/>
                         })}
