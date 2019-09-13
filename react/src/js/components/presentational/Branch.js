@@ -18,7 +18,7 @@ export class ChildBranch extends Component{
             <>
             <div className="item-container flex-fill" style={{marginTop:style.marginTop,
             marginBottom:style.marginBottom,
-            flexBasis:style.flexBasis}}>
+            flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis}}>
                 <Link to={"/" + branch.uri} className={`group-link ${ styleName }`} style={{width:style.width}}>
                     <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
                 </Link>
@@ -63,7 +63,8 @@ export function SmallBranch({branch,isLink=true,
                 >
                     <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',backgroundColor:'#4d5058',minWidth:48}} 
                     alt="" src={branch.branch_image}/>
-                    <div className="flex-fill" style={{flexDirection:'column',justifyContent:'center',marginLeft:10,
+                    <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
+                    justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10,
                     wordBreak:'break-all'}}>
                         <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
                         <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>

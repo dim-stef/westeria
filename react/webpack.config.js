@@ -1,7 +1,4 @@
 const path = require("path");
-const {InjectManifest} = require('workbox-webpack-plugin');
-const {GenerateSW} = require('workbox-webpack-plugin');
-
 
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const BundleTracker = require("webpack-bundle-tracker");

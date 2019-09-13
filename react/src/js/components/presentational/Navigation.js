@@ -114,27 +114,28 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
         >
             <div className="flex-fill" style={{
                 justifyContent:'space-between',
+                WebkitJustifyContent:'space-between',
                 borderBottom:'2px solid rgb(226, 234, 241)',
                 height:'100%',
                 }}>
-                <NavLink exact to="/" className="flex-fill nav-icon-container"
+                <NavLink exact to="/" className="flex-fill nav-icon-container center-items"
                 activeStyle={activeStyle} activeClassName="active-tab-route"
                 style={style}>
                     <Home/>
                 </NavLink>
-                <NavLink to="/search" className="flex-fill nav-icon-container" activeClassName="active-tab-route"
+                <NavLink to="/search" className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
                 style={style} activeStyle={activeStyle}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
-                    <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill nav-icon-container"
+                    <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
                     style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
 
                 {context.isAuth?
-                    <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill nav-icon-container"
+                    <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
                     style={style} activeStyle={activeStyle} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                     <MessageSvg/>
@@ -147,7 +148,7 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
                     </NavLink>:null
                 }
                 
-                <div className="flex-fill"
+                <div className="flex-fill center-items"
                 style={style}>
                     <Profile/>
                 </div>
@@ -162,27 +163,27 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const context = useContext(UserContext);
     const notificationsContext = useContext(NotificationsContext);
 
-    let style={justifyContent:'center',alignItems:'center',height:'100%',width:'100%',textDecoration:'none',
+    let style={height:'100%',width:'100%',textDecoration:'none',
     borderTop:'2px solid rgb(226, 234, 241)'}
     let activeStyle={borderTop:'2px solid #2397f3'};
 
 
     return(
         <div className="flex-fill mobile-navigation" >
-                <NavLink exact to="/" className="flex-fill"
+                <NavLink exact to="/" className="flex-fill center-items"
                 activeClassName="active-tab-route"
                 activeStyle={activeStyle}
                 style={style}>
                     <Home/>
                 </NavLink>
-                <NavLink to="/search" className="flex-fill"
+                <NavLink to="/search" className="flex-fill center-items"
                 activeClassName="active-tab-route" activeStyle={activeStyle}
                 style={style}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
                     <NavLink to="/notifications"
-                    className="flex-fill"
+                    className="flex-fill center-items"
                     activeClassName="active-tab-route"
                     activeStyle={activeStyle}
                     style={style} onClick={readAllNotifications}>
@@ -193,7 +194,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                 {context.isAuth?
                     <NavLink to="/messages"
                     activeClassName="active-tab-route"
-                    className="flex-fill"
+                    className="flex-fill center-items"
                     activeStyle={activeStyle}
                     style={style} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
@@ -222,8 +223,8 @@ function ProfileDropDown({setFocused}){
     return(
         <div className="hoverable-box" style={{width:150,borderRadius:15}}>
             <div className="flex-fill" 
-            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',borderRadius:5,
-            overflow:'hidden'}}> 
+            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',WebkitFlexFlow:'column',borderRadius:5,
+            overflow:'hidden'}}>
 
                 <RoutedTabs
                 tabClassName="profile-dropdown-option"

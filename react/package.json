@@ -79,6 +79,7 @@
     "path-to-regexp": "^3.0.0",
     "radium": "^0.22.1",
     "rc-progress": "^2.5.1",
+    "react-app-polyfill": "^1.0.2",
     "react-bootstrap": "^0.32.4",
     "react-circular-progressbar": "^2.0.1",
     "react-cookie": "^2.1.4",
