@@ -109,7 +109,7 @@ function AuthenticatedDrawer({handleHide}){
             <Link to="/logout" className="flex-fill auth-drawer-item" >Log out</Link>
             {showBranches?
                 <>
-                <div style={{position:'absolute',height:'100%',width:'100%',zIndex:2,backgroundColor:'white',overflow:'auto'}}>
+                <div style={{position:'absolute',top:0,height:'100%',width:'100%',zIndex:2,backgroundColor:'white',overflow:'auto'}}>
                     <span style={{margin:10,fontSize:'2em'}} onClick={()=>setShowBranches(false)}>x</span>
                     {branches.map(b=>{
                         let isCurrentBranch = userContext.currentBranch.uri==b.uri?true:false;

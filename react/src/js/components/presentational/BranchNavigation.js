@@ -14,7 +14,7 @@ export class BranchNavigation extends Component{
                     <DropProfile branch={this.props.branch}/>
                 </div>*/}
                 <div style={{backgroundColor:'white',boxShadow:'0 4px 4px -4px rgba(0,0,0,0.25)'}}>
-                    <div id="branch-navigation" className="group-navigation-container flex-fill">
+                    <div id="branch-navigation" className="branch-navigation-container flex-fill">
                         <FeedButton branch={this.props.branch}/>
                         <BranchesButton branch={this.props.branch}/>
                     </div>
@@ -65,9 +65,10 @@ function DropProfile({branch}){
 
 const FeedButton = ({branch}) => {
     return(
-        <NavLink exact to={`/${branch.uri}`} className="user-color group-navigation-button" activeClassName="clicked-navigation-button">
+        <NavLink exact to={`/${branch.uri}`} className="user-color branch-navigation-button flex-fill" 
+        activeClassName="clicked-navigation-button">
             
-            <div className="navigation-button-text">
+            <div className="navigation-button-text flex-fill center-items">
                 {/*<i className="material-icons navigation-icon">list</i>*/}
                 <div style={{padding:10}}>Posts</div>
             </div>
@@ -78,8 +79,9 @@ const FeedButton = ({branch}) => {
 const BranchesButton = ({branch}) => {
 
     return(
-        <NavLink to={`/${branch.uri}/branches`} className="user-color group-navigation-button" activeClassName="clicked-navigation-button">
-            <div className="navigation-button-text">
+        <NavLink to={`/${branch.uri}/branches`} className="user-color branch-navigation-button flex-fill" 
+        activeClassName="clicked-navigation-button">
+            <div className="navigation-button-text flex-fill center-items">
                 {/*<i className="material-icons navigation-icon">more</i>*/}
                 <div style={{padding:10}}>{branch.children.length} Branches</div>
             </div>

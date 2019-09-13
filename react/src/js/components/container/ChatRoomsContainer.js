@@ -369,8 +369,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
         </div>
     )
     return (
-        <div>
-            <img/>
+        <div style={{display:'inline-table'}}>
             <div className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
                 {messageBoxHeader}
                 <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>

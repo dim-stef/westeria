@@ -1,10 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.5.1 added polyfills">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.5.1 css changes">
       <change beforePath="$PROJECT_DIR$/branches/static/groups/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/branches/static/groups/css/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/webpack-stats.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack-stats.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack.config.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -54,20 +63,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="268">
-              <caret line="35" column="5" selection-start-line="35" selection-start-column="1" selection-end-line="35" selection-end-column="5" />
+            <state relative-caret-position="436">
+              <caret line="114" column="32" selection-start-line="114" selection-start-column="32" selection-end-line="114" selection-end-column="32" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="299">
-              <caret line="701" column="44" selection-start-line="701" selection-start-column="44" selection-end-line="701" selection-end-column="44" />
+            <state relative-caret-position="268">
+              <caret line="881" column="18" selection-start-line="881" selection-start-column="1" selection-end-line="881" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -167,13 +176,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>get_spreads_count</find>
-      <find>get_spread_count</find>
-      <find>BranchPosts</find>
-      <find>post</find>
-      <find>Sum</find>
-      <find>Branch</find>
-      <find>Count</find>
       <find>Trending</find>
       <find>DEFAULT_FILTER_BACKENDS</find>
       <find>spread-count</find>
@@ -197,6 +199,13 @@
       <find>post-list</find>
       <find>filter</find>
       <find>big-</find>
+      <find>navigation-button-text</find>
+      <find>group-navigation-container</find>
+      <find>group-link</find>
+      <find>item-container</find>
+      <find>18px</find>
+      <find>auth-draw</find>
+      <find>create-new-branch</find>
     </findStrings>
     <dirStrings>
       <dir>C:\Users\Dimitris\Desktop\env\subranch</dir>
@@ -258,8 +267,8 @@
         <option value="$PROJECT_DIR$/accounts/templates/base.html" />
         <option value="$PROJECT_DIR$/api/urls.py" />
         <option value="$PROJECT_DIR$/api/views.py" />
-        <option value="$PROJECT_DIR$/common/static/css/index.css" />
         <option value="$PROJECT_DIR$/branches/static/groups/css/index.css" />
+        <option value="$PROJECT_DIR$/common/static/css/index.css" />
       </list>
     </option>
   </component>
@@ -587,14 +596,7 @@
       <workItem from="1566776429449" duration="22816000" />
       <workItem from="1567084608917" duration="73069000" />
       <workItem from="1567680357266" duration="83063000" />
-      <workItem from="1568327456848" duration="6775000" />
-    </task>
-    <task id="LOCAL-00181" summary="Removed unnecessary script">
-      <created>1543327004728</created>
-      <option name="number" value="00181" />
-      <option name="presentableId" value="LOCAL-00181" />
-      <option name="project" value="LOCAL" />
-      <updated>1543327004728</updated>
+      <workItem from="1568327456848" duration="8968000" />
     </task>
     <task id="LOCAL-00182" summary="Minified files">
       <created>1543327023973</created>
@@ -932,11 +934,18 @@
       <option name="project" value="LOCAL" />
       <updated>1568407082221</updated>
     </task>
-    <option name="localTasksCounter" value="230" />
+    <task id="LOCAL-00230" summary="1.5.1 css changes">
+      <created>1568408013263</created>
+      <option name="number" value="00230" />
+      <option name="presentableId" value="LOCAL-00230" />
+      <option name="project" value="LOCAL" />
+      <updated>1568408013263</updated>
+    </task>
+    <option name="localTasksCounter" value="231" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1238508000" />
+    <option name="totallyTimeSpent" value="1240701000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -948,7 +957,8 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.122666664" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -1029,7 +1039,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="committed index.html" />
     <MESSAGE value="First commit" />
     <MESSAGE value="0.0.2 production update" />
     <MESSAGE value="0.0.3 production update" />
@@ -1054,7 +1063,8 @@
     <MESSAGE value="1.4.1 paste editor fix" />
     <MESSAGE value="1.5.0 new post lists" />
     <MESSAGE value="1.5.1 added polyfills" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.5.1 added polyfills" />
+    <MESSAGE value="1.5.1 css changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.5.1 css changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1438,17 +1448,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
+    <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="299">
-          <caret line="701" column="44" selection-start-line="701" selection-start-column="44" selection-end-line="701" selection-end-column="44" />
+        <state relative-caret-position="436">
+          <caret line="114" column="32" selection-start-line="114" selection-start-column="32" selection-end-line="114" selection-end-column="32" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
+    <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="268">
-          <caret line="35" column="5" selection-start-line="35" selection-start-column="1" selection-end-line="35" selection-end-column="5" />
+          <caret line="881" column="18" selection-start-line="881" selection-start-column="1" selection-end-line="881" selection-end-column="18" />
         </state>
       </provider>
     </entry>

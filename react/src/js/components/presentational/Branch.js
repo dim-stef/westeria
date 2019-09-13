@@ -16,10 +16,10 @@ export class ChildBranch extends Component{
 
         return(
             <>
-            <div className="item-container flex-fill" style={{marginTop:style.marginTop,
+            <div className="flex-fill" style={{marginTop:style.marginTop,
             marginBottom:style.marginBottom,
             flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis}}>
-                <Link to={"/" + branch.uri} className={`group-link ${ styleName }`} style={{width:style.width}}>
+                <Link to={"/" + branch.uri} className={`${ styleName }`} style={{width:style.width}}>
                     <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
                 </Link>
                 {children}
@@ -106,8 +106,9 @@ export class ParentBranch extends Component{
             <div className="item-container" style={{marginTop:style.marginTop,
             marginBottom:style.marginBottom, 
             flexBasis:style.flexBasis,
+            WebkitFlexBasis:style.flexBasis,
             display:'block'}}>
-                <div className={`group-link ${ styleName }`} style={{width:style.width,border:0}}>
+                <div className={`${ styleName }`} style={{width:style.width,border:0}}>
                     <BranchBanner branch={branch} dimensions={style.branchDimensions} parent className="branch-parent-picture" editMode={editMode}>
                     </BranchBanner>
                 </div>

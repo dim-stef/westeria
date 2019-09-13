@@ -25,12 +25,12 @@ export function FrontPageLeftBar(){
     const userContext = useContext(UserContext);
 
     return(
-        <div style={{ flexBasis:'22%', height:'max-content'}}>
+        <div style={{ flexBasis:'22%',WebkitFlexBasis:'22%', height:'max-content'}}>
             <div>
             {userContext.isAuth?
                 <>
                 <div className="box-border" style={{padding:'10px 20px'}}>
-                    <div className="flex-fill" style={{alignItems:'center'}}>
+                    <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
 
                         <h1>My branches</h1>
                         <button role="button" onClick={()=>setShow(!show)} style={{

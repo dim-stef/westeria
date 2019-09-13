@@ -57,20 +57,20 @@
     flex-basis: 20%;
 }
 
-.group-navigation-container{
+.branch-navigation-container{
     width:400px;
     margin-left: 270px;
     height: 60px;
-    display: flex;
 }
 
-.group-navigation-button{
+.branch-navigation-button{
     font-weight: 500;
     text-decoration: none;
     color: #2d2d2d;
     flex-basis: 100%;
-    display: flex;
+    -webkit-flex-basis: 100%;
     align-items: center;
+    -webkit-align-items: center;
     position: relative;
 }
 
@@ -82,11 +82,9 @@
 
 .navigation-button-text{
     flex-basis: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     font-size: 2em;
     align-self: center;
+    -webkit-align-self: center;
 }
 
 .small-branch-container{
@@ -576,6 +574,7 @@ div.route-section {
 
 .dislike-icon{
     height: 18px;
+    width: 18px;
 }
 
 .more-icon{
@@ -730,6 +729,7 @@ div.route-section {
     stroke: rgb(67, 78, 88);
     stroke-width: 4;
     height: 18px;
+    width: 18px;
     overflow: visible;
     -webkit-transition: all .1s ease;
     -moz-transition: all .1s ease;

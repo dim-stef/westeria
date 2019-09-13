@@ -173,7 +173,7 @@ function SingularPostWrapper({externalPostId}){
 
 function FrontPageRightBar(){
     return(
-        <div style={{ flexBasis:'22%',height:'max-content', backgroundColor:'white'}}>
+        <div style={{ flexBasis:'22%',WebkitFlexBasis:'22%',height:'max-content', backgroundColor:'white'}}>
             <div className="box-border" style={{padding:'10px 20px'}}>
             <p style={{
                     fontSize: "1.6em",
@@ -220,7 +220,7 @@ function DesktopParentBranchWrapper(props){
 
     return(
         <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
-            <div style={{flexBasis:'100%'}}>
+            <div style={{flexBasis:'100%',WebkitFlexBasis:'100%'}}>
                 <div>
                     <ParentBranch
                         styleName="parent"
@@ -289,8 +289,8 @@ function BranchFrontPage(props){
         <Desktop>
             <div>
                 <div style={{marginTop:10}}>
-                    <div style={{display:'flex',width:'100%'}}>
-                        <div style={{flexBasis:'22%'}}>
+                    <div className="flex-fill" style={{width:'100%'}}>
+                        <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
                         {userContext.isAuth?
                             <div className="box-border" style={{backgroundColor:'white',padding:'10px 20px'}}>
                                 <div className="flex-fill" style={{alignItems:'center'}}>

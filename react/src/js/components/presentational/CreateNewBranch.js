@@ -18,7 +18,8 @@ const PlusSvg = props => (
       y="0px"
       viewBox="0 0 42 42"
       style={{
-        height: 15
+        height: 15,
+        width: 15,
       }}
       xmlSpace="preserve"
       fill="#8f9ca7"

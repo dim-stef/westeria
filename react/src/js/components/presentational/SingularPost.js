@@ -425,9 +425,9 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
                 <div className="flex-fill">
                     <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
                         <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
-                        date={date} post={post} dimensions={viewAs=='reply'?24:null}/>
+                        date={date} post={post} dimensions={viewAs=='reply'?24:36}/>
                         <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
-                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:null}/>
+                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:36}/>
                     </div>
                     <More post={post} posts={posts} setPosts={setPosts}/>
                     </div>
@@ -990,6 +990,7 @@ const CommentsSvg = ({className}) => (
       viewBox="0 0 260 260"
       style={{
         height: 27,
+        width: 27,
         strokeWidth:0
       }}
       xmlSpace="preserve"
@@ -1212,6 +1213,7 @@ const ShareSvg = ({className}) => (
       viewBox="0 0 260 260"
       style={{
         height: 27,
+        width: 27,
         strokeWidth:0
       }}
       xmlSpace="preserve"

@@ -110,7 +110,9 @@ body {
     text-decoration: none;
     color: black;
     justify-content: flex-start;
+    -webkit-justify-content: flex-start;
     align-items: center;
+    -webkit-align-items: center;
     border-bottom: 1px solid rgb(226, 234, 241);
     font-size: 2em;
     height: 15%;
