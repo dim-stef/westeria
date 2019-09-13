@@ -985,7 +985,7 @@ a,button { /* removes outline */
     outline: none;
 }
 
-button {
+input,button {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;

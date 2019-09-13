@@ -369,7 +369,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
         </div>
     )
     return (
-        <div style={{display:'inline-table'}}>
+        <div style={{display:'inline-table',width:'100%'}}>
             <div className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
                 {messageBoxHeader}
                 <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>
@@ -499,7 +499,7 @@ function ConversationRequestsPreview({request,rooms,setRooms}){
     return(
         status=='on hold' || !status?
         <div className="flex-fill room-preview">
-            <img className="round-picture" src={request.branch_chat.image} style={{height:48,width:48,objectFit:'cover'}}></img>
+            <img className="round-picture" src={request.branch_chat.image} style={{height:48,width:48,minWidth:48,objectFit:'cover'}}></img>
             <div className="flex-fill" 
             style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em',flex:'1 1 auto'}}>
                 <span style={{fontWeight:600,color:'#292929'}}>{request.branch_chat.name}</span>
@@ -577,7 +577,7 @@ function RoomPreview({room,ws,isGroup,inBox}){
         <React.Fragment key={room.id}>
             <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
                 <img className="round-picture" src={room.personal?previewBranch?previewBranch.branch_image:null:room.image} 
-                style={{height:48,width:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
+                style={{height:48,width:48,minWidth:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
                 <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
                     <span style={{fontWeight:600,color:'#292929'}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
                     <span style={{fontSize:'0.7em',color:'#708698',wordBreak:'break-word'}}>{latestMessage}</span>
