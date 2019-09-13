@@ -325,7 +325,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 
     if(messageBox.author_url == branch){
         containerStyle = {alignSelf:'flex-end',WebkitAlignSelf:'flex-end',
-        justifyContent:'flex-end',WebkitjustifyContent:'flex-end'}
+        justifyContent:'flex-end',WebkitJustifyContent:'flex-end'}
         messageStyle = {...messageStyle,backgroundColor:'#219ef3',color:'white'}
     }
 
@@ -371,9 +371,9 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     return (
         <div>
             <img/>
-            <div className="flex-fill" style={{...containerStyle,flexFlow:'column'}}>
+            <div className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
                 {messageBoxHeader}
-                <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column'}}>
+                <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>
                     {messageBox.messages.map(m=>{
                         return (
                             <React.Fragment key={m.created}>

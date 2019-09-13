@@ -162,6 +162,7 @@
 
 .post-list{
     flex-basis: 56%;
+    -webkit-flex-basis: 56%;
     width: 100%;
     padding:0;
     margin:0 10px;
@@ -172,6 +173,7 @@
 @media all and (max-device-width: 1223px) {
     .post-list{
         flex-basis: 100%;
+        -webkit-flex-basis: 100%;
         border:none !important;
         margin: 0;
         padding-bottom: 60px;
@@ -398,6 +400,8 @@
 .filter-selector{
     justify-content: center;
     align-items: center;
+    -webkit-justify-content: center;
+    -webkit-align-items: center;
     width: 100%;
     height: 100%;
 }
