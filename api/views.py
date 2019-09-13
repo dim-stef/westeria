@@ -479,11 +479,8 @@ class BranchPostListViewSet(GenericPostList):
         branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
 
         self_list = branch.posts.all()
-        from_list = branch.posts_from_all.all()
 
-        posts = self_list | from_list
-
-        return filter_posts(posts,content,past)
+        return filter_posts(self_list,content,past)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -494,6 +491,47 @@ class BranchPostListViewSet(GenericPostList):
         })
         return context
 
+
+class CommunityPostListViewSet(PostListWithSpreader):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchPostSerializer
+
+    def get_queryset(self):
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+
+        community_post_list = branch.posts_from_all.exclude(poster_id=branch.id)
+
+        return filter_posts(community_post_list,content,past)
+
+class TreePostListViewSet(PostListWithSpreader):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchPostSerializer
+
+    def get_children(self, branch):
+        children = branch.children.all()
+        self.qs |= children
+
+        for child in children:
+            if child.pk not in self.searched_branches:
+                self.searched_branches.append(child.pk)
+                self.get_children(child)
+        return self.qs
+
+    def get_queryset(self):
+        self.qs = Branch.objects.none()
+        self.searched_branches = []
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+
+        self.searched_branches.append(branch.pk)
+        self.get_children(branch)
+
+        post_tree = Post.objects.filter(poster__in=self.qs.distinct())
+
+        content = self.request.query_params.get('content', None)
+        past = self.request.query_params.get('past', None)
+        return filter_posts(post_tree, content, past)
 
 class UserFollowViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticated,)
@@ -572,18 +610,6 @@ class AuthAllPostsViewSet(PostListWithSpreader):
 class FollowingTreeViewSet(PostListWithSpreader):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
     serializer_class = serializers.BranchPostSerializer
-
-    def get_tree_count(self,branch,count = 0):
-        children = branch.children.all()
-        count += 1
-        are_all_empty = all(child.children.count() == 0 for child in children.all())
-        print(are_all_empty)
-        if are_all_empty:
-            return count
-        for child in children:
-            self.get_tree_count(child,count)
-        return count
-
 
     def get_children(self,branch):
         children = branch.children.all()

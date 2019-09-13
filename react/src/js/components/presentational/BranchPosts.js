@@ -5,7 +5,7 @@ import { CSSTransition,Transition } from 'react-transition-group';
 import {isMobile} from 'react-device-detect';
 import {Link,NavLink} from 'react-router-dom';
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {RefreshContext,PostsContext,AllPostsContext,BranchPostsContext,
+import {RefreshContext,PostsContext,AllPostsContext,BranchPostsContext,BranchCommunityPostsContext,BranchTreePostsContext,
     UserContext,UserActionsContext,TreePostsContext} from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
 import {ToggleContent,Modal} from "./Temporary"
@@ -62,13 +62,36 @@ function FrontPageList(){
                 Feed
             </NavLink>:null}
             
-            <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                All
-            </NavLink>
             {userContext.isAuth?
             <NavLink to="/tree" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Tree
             </NavLink>:null}
+
+            <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                All
+            </NavLink>
+            
+        </div>
+    )
+}
+
+function BranchPageList({branch}){
+    const userContext = useContext(UserContext);
+
+    return(
+        <div className="flex-fill" style={{justifyContent:'space-around',WebkitJustifyContent:'space-around',
+        backgroundColor:'#08aeff'}}>
+            <NavLink to={`/${branch.uri}`} exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                {branch.name}
+            </NavLink>
+            
+            <NavLink to={`/${branch.uri}/tree`} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                Tree
+            </NavLink>
+
+            <NavLink to={`/${branch.uri}/community`} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                Community
+            </NavLink>
         </div>
     )
 }
@@ -82,7 +105,7 @@ function DisplayPosts({isFeed,posts,setPosts,
     
     return(
     <ul key={postsContext.branchUri} className="post-list">
-        {isFeed?<FrontPageList/>:null}
+        {isFeed?<FrontPageList/>:<BranchPageList branch={activeBranch}/>}
         <Pullable
             onRefresh={refresh}
             centerSpinner={false}
@@ -152,29 +175,18 @@ function DisplayPosts({isFeed,posts,setPosts,
     )
 }
 
-const cache = new CellMeasurerCache({
+const genericCache = {
     fixedWidth: true,
     minHeight: 25,
     defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
-})
+}
 
-const branchPostsCache = new CellMeasurerCache({
-    fixedWidth: true,
-    minHeight: 25,
-    defaultHeight: 500
-})
-
-const allPostsCache = new CellMeasurerCache({
-    fixedWidth: true,
-    minHeight: 25,
-    defaultHeight: 500
-})
-
-const treePostsCache = new CellMeasurerCache({
-    fixedWidth: true,
-    minHeight: 25,
-    defaultHeight: 500
-})
+const cache = new CellMeasurerCache(genericCache)
+const branchPostsCache = new CellMeasurerCache(genericCache)
+const branchTreePostsCache = new CellMeasurerCache(genericCache)
+const branchCommunityPostsCache = new CellMeasurerCache(genericCache)
+const allPostsCache = new CellMeasurerCache(genericCache)
+const treePostsCache = new CellMeasurerCache(genericCache)
 
 function VirtualizedPosts({isFeed,posts,setPosts,postsContext,activeBranch,showPostedTo}){
     const ref = useRef(null);
@@ -184,12 +196,16 @@ function VirtualizedPosts({isFeed,posts,setPosts,postsContext,activeBranch,showP
 
     if(postsContext.content=="feed"){
         usingCache = cache;
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
     }else if(postsContext.content=="all"){
         usingCache = allPostsCache;
     }else if(postsContext.content=="tree"){
         usingCache = treePostsCache
+    }else if(postsContext.content=="branch"){
+        usingCache = branchPostsCache;
+    }else if(postsContext.content=="branch_community"){
+        usingCache = branchCommunityPostsCache
+    }else if(postsContext.content=="branch_tree"){
+        usingCache = branchTreePostsCache
     }
 
     useEffect(()=>{
@@ -214,9 +230,12 @@ function VirtualizedPosts({isFeed,posts,setPosts,postsContext,activeBranch,showP
                     if(ref){
                         if(previousWidth!=0){
                             cache.clearAll();
-                            branchPostsCache.clearAll();
                             allPostsCache.clearAll();
                             treePostsCache.clearAll();
+                            branchPostsCache.clearAll();
+                            branchCommunityPostsCache.clearAll();
+                            branchTreePostsCache.clearAll();
+                            
                             ref.current.recomputeRowHeights();
                         }
                         setPreviousWidth(width);
@@ -285,7 +304,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
@@ -294,12 +313,16 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,reset
 
     if(postsContext.content=="feed"){
         usingCache = cache;
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
     }else if(postsContext.content=="all"){
         usingCache = allPostsCache;
     }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache;
+        usingCache = treePostsCache
+    }else if(postsContext.content=="branch"){
+        usingCache = branchPostsCache;
+    }else if(postsContext.content=="branch_community"){
+        usingCache = branchCommunityPostsCache
+    }else if(postsContext.content=="branch_tree"){
+        usingCache = branchTreePostsCache
     }
 
     function buildQuery(baseUri,params){
@@ -319,10 +342,16 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,reset
             return;
         }
 
-        let endpoint = isFeed?'feed':'posts'
+        let endpoint = 'posts';
         let uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/${endpoint}`,postsContext.params);
 
-        if(isAll){
+        if(keyword){
+            uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/${endpoint}/${keyword}/`,postsContext.params);
+        }else{
+            uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/${endpoint}/`,postsContext.params);
+        }
+
+        if(keyword=="all"){
             if(userContext.isAuth){
                 uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/posts/all/`,postsContext.params);
             }else{
@@ -330,9 +359,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,reset
             }
         }
 
-        if(isTree){
-            uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${branch}/posts/following_tree/`,postsContext.params);
-        }
 
         const response = await axios(uri,{
             cancelToken: source.token
@@ -377,7 +403,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,reset
                 resetPostsContext(branch);
                 fetchData();
                 setPosts([]);
-                branchPostsCache.clearAll()
+                //branchPostsCache.clearAll()
             };
         }
     },[branch])
@@ -419,26 +445,36 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,reset
 export default function FeedPosts(props){
     const postsContext = useContext(PostsContext);
     const branchPostsContext = useContext(BranchPostsContext);
+    const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
+    const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
         resetBranchPostsContext(branchPostsContext,props);
+        resetBranchPostsContext(branchCommunityPostsContext,props);
+        resetBranchPostsContext(branchTreePostsContext,props);
     },[])
 
     return(
-        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
+        <FinalDisplayPosts {...props} keyword="feed" postsContext={postsContext} 
+        resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
     )
 }
 
 export function AllPosts(props){
     const allPostsContext = useContext(AllPostsContext);
     const branchPostsContext = useContext(BranchPostsContext);
+    const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
+    const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
         resetBranchPostsContext(branchPostsContext,props);
+        resetBranchPostsContext(branchCommunityPostsContext,props);
+        resetBranchPostsContext(branchTreePostsContext,props);
     },[])
 
     return(
-        <FinalDisplayPosts {...props} isAll postsContext={allPostsContext} resetPostsContext={()=>resetPostListContext(allPostsContext,props)}/>
+        <FinalDisplayPosts {...props} isAll keyword="all" postsContext={allPostsContext} 
+        resetPostsContext={()=>resetPostListContext(allPostsContext,props)}/>
     )
 }
 
@@ -446,27 +482,66 @@ export function AllPosts(props){
 export function TreePosts(props){
     const treePostsContext = useContext(TreePostsContext);
     const branchPostsContext = useContext(BranchPostsContext);
+    const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
+    const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
         resetBranchPostsContext(branchPostsContext,props);
+        resetBranchPostsContext(branchCommunityPostsContext,props);
+        resetBranchPostsContext(branchTreePostsContext,props);
     },[])
 
     return(
-        <FinalDisplayPosts {...props} isTree postsContext={treePostsContext} resetPostsContext={()=>resetPostListContext(treePostsContext,props)}/>
+        <FinalDisplayPosts {...props} isTree keyword="following_tree" postsContext={treePostsContext} 
+        resetPostsContext={()=>resetPostListContext(treePostsContext,props)}/>
     )
 }
 
 export function BranchPosts(props){
     const postsContext = useContext(BranchPostsContext);
+    const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
+    const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
         if(postsContext.branchUri != props.branch){
             resetBranchPostsContext(postsContext,props);
+            resetBranchPostsContext(branchCommunityPostsContext,props);
+            resetBranchPostsContext(branchTreePostsContext,props);
         }
     },[postsContext.branchUri])
 
     return(
         <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetBranchPostsContext(postsContext,props)}/>
+    )
+}
+
+export function GenericBranchPosts(props){
+    let context = null;
+
+    if(!props.keyword){
+        context = BranchPostsContext
+    }else if(props.keyword=='community'){
+        context = BranchCommunityPostsContext
+    }else{
+        context = BranchTreePostsContext
+    }
+
+    const postsContext = useContext(context);
+    const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
+    const branchTreePostsContext = useContext(BranchTreePostsContext);
+
+    useEffect(()=>{
+        // If navigate to different branch,reset all posts tabs
+        if(postsContext.branchUri != props.branch){
+            resetPostListContext(branchPostsContext,props);
+            resetPostListContext(branchCommunityPostsContext,props);
+            resetPostListContext(branchTreePostsContext,props);
+        }
+    },[postsContext.branchUri])
+
+    return(
+        <FinalDisplayPosts {...props} keyword={props.keyword} postsContext={postsContext}
+         resetPostsContext={()=>resetBranchPostsContext(postsContext,props)}/>
     )
 }
 

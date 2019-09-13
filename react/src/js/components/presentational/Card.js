@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import {UserContext} from "../container/ContextContainer"
 import { Link } from 'react-router-dom'
+import Linkify from 'linkifyjs/react';
 import axios from 'axios'
 
 var csrftoken = getCookie('csrftoken');
@@ -62,7 +63,7 @@ function Uri({uri}){
 
 function Description({description}){
     return(
-            <p style={{overFlowWrap:'break-word',fontSize:'2em'}}>{description}</p>
+        <Linkify><p style={{overFlowWrap:'break-all',fontSize:'2em'}}>{description}</p></Linkify>
     )
 }
 

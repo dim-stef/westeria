@@ -1,7 +1,6 @@
 import React from "react";
 
 let frontPagePostList = {
-    counter:0,
     content:'feed',
     hasMore:true,
     next:null,
@@ -86,32 +85,14 @@ export const TreePostsContext = React.createContext(
 );
 
 export const BranchPostsContext = React.createContext(
-    {
-        content:'branch',
-        hasMore:true,
-        next:null,
-        scroll:0,
-        lastVisibleElement:null,
-        lastVisibleIndex:0,
-        loadedPosts:[],
-        cachedPosts:[],
-        uniqueCached:[],
-        measuredPosts:[],
-        openPosts:[],
-        previousUri:null,
-        branchUri:'',
-        params:{
-            content: {
-                value:'leaves',
-                label:'Leaves'
-            },
-            ordering:{
-                value:'-hot_score',
-                label:'Hot'
-            },
-            past:{
-                value:'all',
-                label:'All time'
-            }
-    }});
+    Object.create({...frontPagePostList,content:'branch'})
+);
+
+export const BranchCommunityPostsContext = React.createContext(
+    Object.create({...frontPagePostList,content:'branch_community'})
+);
+
+export const BranchTreePostsContext = React.createContext(
+    Object.create({...frontPagePostList,content:'branch_tree'})
+);
 

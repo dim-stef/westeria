@@ -6,6 +6,7 @@ import {Helmet} from 'react-helmet'
 import { CSSTransition,Transition } from 'react-transition-group';
 import ReactTooltip from 'react-tooltip'
 import { MoonLoader } from 'react-spinners';
+import Linkify from 'linkifyjs/react';
 import {UserContext,SingularPostContext,PostsContext,AllPostsContext,
 TreePostsContext,BranchPostsContext} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
@@ -573,7 +574,7 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
 
     return(
         <div>
-            {text?<p className="post-text">{text}</p>:null}
+            {text?<Linkify><p className="post-text">{text}</p></Linkify>:null}
             {images.length>0 || videos.length>0?<Images images={images} measure={measure} 
             videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
             {embeddedPost? <Post post={embeddedPost} parentPost={post} postsContext={postsContext} 

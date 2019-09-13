@@ -1,9 +1,7 @@
 import React, { Component, useState,useEffect,useRef,useContext,useLayoutEffect } from "react";
 import {Link, NavLink } from "react-router-dom"
 import Responsive from 'react-responsive';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import {UserContext} from "../container/ContextContainer"
-import {FrontPage,FrontPageFeed} from "./Routes"
+import Linkify from 'linkifyjs/react';
 import {FollowButton} from "./Card"
 import { RoutedTabs, NavTab } from "react-router-tabs";
 import axios from 'axios'
@@ -83,7 +81,7 @@ export function MobileBranchPageWrapper({branch,children}){
 
 function Description({description}){
     return(
-        <p style={{fontSize:'1.7rem', marginTop:8,overflowWrap:'break-word'}}>{description}</p>
+        <Linkify><p style={{fontSize:'1.7rem', marginTop:8,overflowWrap:'break-word'}}>{description}</p></Linkify>
     )
 }
 

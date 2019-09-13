@@ -45,13 +45,15 @@ branch_router.register(r'children', views.ChildrenViewSet, base_name='children')
 branch_router.register(r'parents', views.ParentViewSet, base_name='parents')
 branch_router.register(r'siblings', views.SiblingsViewSet, base_name='siblings')
 branch_router.register(r'posts/new', views.BranchNewPostViewSet, base_name='new_post')
+branch_router.register(r'posts/feed', views.FeedViewSet, base_name='feed')
 branch_router.register(r'posts/all', views.AuthAllPostsViewSet, base_name='auth_all_posts')
 branch_router.register(r'posts/following_tree', views.FollowingTreeViewSet, base_name='following_tree')
+branch_router.register(r'posts/community', views.CommunityPostListViewSet, base_name='community')
+branch_router.register(r'posts/tree', views.TreePostListViewSet, base_name='tree')
 branch_router.register(r'posts', views.BranchPostListViewSet, base_name='posts')
 branch_router.register(r'spreads/new', views.NewSpread, base_name='new_spread')
 branch_router.register(r'spreads/update', views.UpdateSpread, base_name='update_spread')
 branch_router.register(r'follows', views.BranchFollowsViewSet, base_name='follows')
-branch_router.register(r'feed', views.FeedViewSet, base_name='feed')
 
 
 

@@ -5,6 +5,7 @@ import {Images} from "../presentational/PostImageGallery"
 import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
 import history from '../../history'
 import { Link } from 'react-router-dom'
+import Linkify from 'linkifyjs/react';
 import { MoonLoader } from 'react-spinners';
 import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
@@ -377,9 +378,12 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                         return (
                             <React.Fragment key={m.created}>
                                 {m.message?
-                                <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
-                                    <span style={messageStyle}>{m.message}</span>
-                                </div>:null}
+                                        <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
+                                            <div style={messageStyle}>
+                                                <Linkify>{m.message}</Linkify>
+                                            </div>
+                                        </div>
+                                :null}
                                 
                                 {m.images.length>0 || m.videos.length>0?
                                     <div style={{...containerStyle,width:getMediaWidth(m)}}>

@@ -9,12 +9,12 @@ import Register from "./Register"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
 import EmailConfirm from "./EmailConfirm"
-import {UserContext,BranchPostsContext,PostsContext,AllPostsContext,TreePostsContext,
+import {UserContext,BranchPostsContext,BranchTreePostsContext,BranchCommunityPostsContext,
     UserActionsContext,SingularPostContext,NotificationsProvider,NotificationsConsumer} from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import {ChatRoomSettings} from "./ChatRoomSettings"
 import {CreateNewChat} from "./CreateNewChat"
-import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
+import { BranchPosts,GenericBranchPosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
 import {BranchesPageRoutes} from "./BranchesPage"
@@ -247,18 +247,32 @@ export function BranchPage(props){
             </Helmet>
             <Switch>
                 <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
-                <Route path={`/${props.match}/`} component={()=> <BranchFrontPage {...props}/>}/>
+                <Route path={`/${props.match}/:keyword(community|tree)?/`} 
+                component={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
             </Switch>
         </ResponsiveBranchPage>
     )        
 }
 
 function BranchFrontPage(props){
-    const postsContext = useContext(BranchPostsContext)
-    const userContext = useContext(UserContext);
-    var uri;
+    let _context = null;
 
+    let keyword = props.keywordMatch.params.keyword
+    if(keyword == 'community'){
+      _context = BranchCommunityPostsContext
+    }else if(keyword == 'tree'){
+      _context = BranchTreePostsContext
+    }else{
+      _context = BranchPostsContext;
+    }    
+
+    const postsContext = useContext(_context)
+    const userContext = useContext(UserContext);
+    
+    var uri;
+    
     uri = `/api/branches/${props.match}/posts/`;
+    
 
     useEffect(()=>{
         
@@ -289,7 +303,8 @@ function BranchFrontPage(props){
                         </div>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
-                        />:<BranchPosts {...props}
+                        />:<GenericBranchPosts {...props}
+                        keyword={keyword}
                         branch={props.match}
                         activeBranch={props.branch}
                         postedId={props.branch.id}
@@ -302,7 +317,8 @@ function BranchFrontPage(props){
             </div>
         </Desktop>
         <Tablet>
-            <BranchPosts {...props}
+            <GenericBranchPosts {...props}
+            keyword={keyword}
             branch={props.match}
             activeBranch={props.branch}
             postedId={props.branch.id}
@@ -310,7 +326,8 @@ function BranchFrontPage(props){
             />
         </Tablet>
         <Mobile>
-            <BranchPosts {...props}
+            <GenericBranchPosts {...props}
+            keyword={keyword}
             branch={props.match}
             activeBranch={props.branch}
             postedId={props.branch.id}
