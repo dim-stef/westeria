@@ -491,6 +491,7 @@ div.route-section {
 
 .post-image-wrapper > div:last-child{
     width: 100%;
+    overflow: hidden;
 }
 
 .post-image-gallery{
