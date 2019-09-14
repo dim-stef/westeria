@@ -177,7 +177,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         <>
         <Suspense fallback={null}>
             {!isMember?<Redirect to="/messages"/>:null}
-            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',zIndex:6,backgroundColor:'white'}}>
+            <div className="flex-fill messenger messenger-editor">
                 <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',
                 justifyContent:'stretch',borderTop:'1px solid #e2eaf1',...style}}>
                     <div>

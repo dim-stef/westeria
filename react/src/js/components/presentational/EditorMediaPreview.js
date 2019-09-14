@@ -47,7 +47,7 @@ export function MediaPreview(props){
         return videos;
     }
     return(
-        <div className="flex-fill" style={{alignItems:'center'}}>
+        <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
             {renderImages()}
             {renderVideos()}
         </div>

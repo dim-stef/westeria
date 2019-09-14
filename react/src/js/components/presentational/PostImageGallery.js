@@ -102,9 +102,10 @@ export function Images(props){
 
                     {/* <SwipeableViews> must be the last child of .post-image-wrapper in order to apply css*/}
                     <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading
-                    slideStyle={{position:'relative',overflow:'hidden',alignItems:'center'}} slideClassName="flex-fill">
+                    slideStyle={{position:'relative',overflow:'hidden',alignItems:'center',WebkitAlignItems:'center'}} 
+                    slideClassName="flex-fill">
                         {props.images.map(img=>{
-                            return <div key={img.image} onTouchStart={event => event.preventDefault()}>
+                            return <div key={img.image} onTouchStart={event => event.preventDefault()} style={{width:'100%'}}>
                             <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft}
                             /></div>
@@ -182,10 +183,9 @@ function ImageComponent({src,maxHeight,width,height}){
     }
 
     return(
-        <div>
         <ToggleContent 
             toggle={show=>(
-                <div style={{width:width}}>
+                <div style={{width:'100%'}}> {/*style={{width:width}} */}
                     <LazyLoad
                         debounce={false}
                         offsetVertical={500}
@@ -194,15 +194,16 @@ function ImageComponent({src,maxHeight,width,height}){
                             <img onClick={e=>{
                                 e.preventDefault();
                                 handleModalOpen(e,show)}} style={{width:'100%',
-                            objectFit:'cover',maxHeight:maxHeight,backgroundColor:'black',position:'absolute',
-                            top:'50%',right:'50%',transform:'translate(50%,-50%)'}} src={src}/>
+                            objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
+                            {/*,position:'absolute',
+                            top:'50%',right:'50%',transform:'translate(50%,-50%)' */}
                     </LazyLoad>
                     
                 </div>
             )}
             content={hide => (
             <Modal onClick={e=>handleModalClose(e,hide)}>
-                    <div style={{height:'100%',display:'flex',overflowY:'scroll'}}>
+                    <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
                         <div style={{maxWidth:'70%',margin:'auto'}}>
                             <PinchToZoom>
                                 <img style={{width:'100%',backgroundColor:'#2d2d2d'}} onClick={(e)=>e.stopPropagation()} src={src}/>
@@ -211,7 +212,6 @@ function ImageComponent({src,maxHeight,width,height}){
                     </div>
             </Modal>    
         )}/>
-        </div>
     )
 }
 

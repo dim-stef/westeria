@@ -1,7 +1,7 @@
 import React, { useState,useContext,useEffect } from "react";
 import { withRouter } from "react-router";
 
-function RoutedHeadline({match,location,history,headline,to,children}){
+function RoutedHeadline({match,location,className='',history,headline,to,children}){
      
     const navigate = ()=>{
         if(to){
@@ -12,7 +12,7 @@ function RoutedHeadline({match,location,history,headline,to,children}){
     }
 
     return(
-        <div className="flex-fill" style={{padding:'10px',borderBottom:'1px solid #e2eaf1'}}>
+        <div className={`flex-fill ${className}`} style={{padding:'10px',borderBottom:'1px solid #e2eaf1'}}>
             <button className="flex-fill" 
             className="back-button" onClick={navigate}>
                 <LeftArrowSvg/>
