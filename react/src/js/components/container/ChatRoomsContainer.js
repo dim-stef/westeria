@@ -1,10 +1,12 @@
 import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef,lazy,Suspense } from "react";
+import { Link } from 'react-router-dom'
 import {isMobile} from 'react-device-detect';
+import formatRelative from 'date-fns/formatRelative';
+import differenceInMinutes from 'date-fns/differenceInMinutes'
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {Images} from "../presentational/PostImageGallery"
 import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
 import history from '../../history'
-import { Link } from 'react-router-dom'
 import Linkify from 'linkifyjs/react';
 import { MoonLoader } from 'react-spinners';
 import {Helmet} from 'react-helmet'
@@ -12,11 +14,12 @@ import {FrontPageLeftBar} from "../presentational/FrontPage"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
 import {useMyBranches} from "../container/BranchContainer"
-import {UserContext,CachedBranchesContext,NotificationsContext} from "./ContextContainer"
+import {UserContext,CachedBranchesContext,ChatRoomsContext} from "./ContextContainer"
 import axios from "axios";
 
 
 export function ChatRoomsContainer({inBox,match}){
+    const roomsContext = useContext(ChatRoomsContext)
     const [rooms,setRooms] = useState([]);
     const [loaded,setLoaded] = useState(false);
 
@@ -35,16 +38,20 @@ export function ChatRoomsContainer({inBox,match}){
 
     return(
         <>
-        <Helmet>
-            <title>Messages - Subranch</title>
-            <meta name="description" content="Your messages." />
-        </Helmet>
-        <WebSocketRooms rooms={rooms} inBox={inBox} match={match} loaded={loaded} rooms={rooms} setRooms={setRooms}/>
+        <ChatRoomsContext.Provider value={{rooms:rooms,setRooms:setRooms}}>
+            <Helmet>
+                <title>Messages - Subranch</title>
+                <meta name="description" content="Your messages." />
+            </Helmet>
+            <WebSocketRooms inBox={inBox} match={match} loaded={loaded} rooms={rooms} setRooms={setRooms}/>
+        </ChatRoomsContext.Provider>
         </>
+        
     )
 }
 
 function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
+    const roomsContext = useContext(ChatRoomsContext)
     const [roomData,setRoomData] = useState([]);
 
     useEffect(()=>{
@@ -76,6 +83,7 @@ function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
 
 function RoomContainer({roomData,match}){
     let context = useContext(UserContext);
+    const roomsContext = useContext(ChatRoomsContext);
     let data = roomData.find(data=>data.room.id==match.params.roomName);
     const previewBranch = usePreviewBranch(data.room);
     let member = data.room.members.find(m=>{
@@ -173,6 +181,22 @@ function RoomContainer({roomData,match}){
         parentRef.current.scrollTop = parentRef.current.scrollHeight;
     }
 
+    const updateLatestMessage = useCallback((message,author_name) => {
+        let rooms = roomsContext.rooms.slice();
+        rooms.forEach(r=>{
+            if(r.id == data.room.id){
+                if(!message){
+                    r.latest_message = `${author_name} sent media`;
+                }else{
+                    r.latest_message = message;
+                }
+                
+            }
+        })
+
+        roomsContext.setRooms(rooms)
+    },[roomsContext.rooms])
+
     data.ws.onmessage = function (e) {
         let data = JSON.parse(e.data);
         let message = data['message'];
@@ -181,14 +205,17 @@ function RoomContainer({roomData,match}){
         let author = data['author'];
         let images = data['images'];
         let videos = data['videos'];
+        let created = data['created'];
         let bundle = {
             message: message,
             author_name: author_name,
             author_url: author_url,
             author: author,
             images: Array.isArray(images)?images:JSON.parse(images),
-            videos: Array.isArray(videos)?videos:JSON.parse(videos)
+            videos: Array.isArray(videos)?videos:JSON.parse(videos),
+            created: created
         }
+        updateLatestMessage(message,author_name);
         updateMessages([bundle]);
     };
 
@@ -264,8 +291,9 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
             created:null,
             messages: []
         };
-        var messageBoxes = messages.map((m, i) => {
-            var nextAuthor = null;
+        let messageBoxes = messages.map((m, i) => {
+            let nextAuthor = null;
+            let nextCreated = null;
             chatBox.author = m.author;
             chatBox.author_name = m.author_name;
             chatBox.author_url = m.author_url;
@@ -274,9 +302,11 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
 
             if (i < messages.length - 1) {
                 nextAuthor = messages[i + 1].author_url
+                nextCreated = messages[i + 1].created
             }
 
-            if (m.author_url !== nextAuthor) {
+            let shouldUpdate = m.author_url !== nextAuthor || differenceInMinutes(new Date(nextCreated),new Date(m.created)) > 10
+            if (shouldUpdate) {
                 var copy = Object.assign({}, chatBox);
                 chatBox.author_url = null;
                 chatBox.messages = [];
@@ -354,20 +384,27 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let messageBoxHeader = messageBox.author_url == branch?(
         
         <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
-            <span style={{margin:'0 6px',fontSize:'1.3rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
+            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-end',
+            WebkitAlignItems:'flex-end',margin:'0 8px'}}>
+                <span style={{fontSize:'1.5rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
+                <span style={{fontSize:'1.1rem',color:'#797070'}}>{formatRelative(new Date(messageBox.messages[0].created), new Date())}</span>
+            </div>
             <img className="round-picture" src={memberImage} 
-            style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}
-            alt={`${messageBox.author_name}`}></img>
+            style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
         </div>
     ):
     (
         <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
             <img className="round-picture" src={memberImage} 
-            style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}
-            alt={`${messageBox.author_name}`}></img>
-            <span style={{margin:'0 6px',fontSize:'1.3rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
+            style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
+            <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-start',
+            WebkitAlignItems:'flex-start',margin:'0 8px'}}>
+                <span style={{fontSize:'1.5rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
+                <span style={{fontSize:'1.1rem',color:'#797070'}}>{formatRelative(new Date(messageBox.messages[0].created), new Date())}</span>
+            </div>
         </div>
     )
+
     return (
         <div style={{display:'inline-table',width:'100%'}}>
             <div className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
@@ -379,6 +416,8 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                                 {m.message?
                                         <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
                                             <div style={messageStyle}>
+                                                
+                                                
                                                 <Linkify>{m.message}</Linkify>
                                             </div>
                                         </div>
@@ -401,7 +440,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 
 
 function RoomsPreviewColumn({roomData,isGroup,inBox,loaded,rooms,setRooms}){
-    
+
     return(
         <PageWrapper>
             <div className="main-column">

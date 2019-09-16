@@ -50,7 +50,6 @@ class BranchChatMessagePagination(CursorPagination):
 class BranchPostPagination(CursorPagination):
     page_size = 15
 
-
 class FeedPagination(CursorPagination):
     page_size = 12
 
@@ -59,6 +58,10 @@ class TrendingPagination(PageNumberPagination):
 
 class ReplyTreePagination(CursorPagination):
     page_size = 4
+
+class NotificationsPagination(CursorPagination):
+    page_size = 15
+    ordering = '-timestamp'
 
 
 class IsOwnerOfBranch(permissions.BasePermission):
@@ -390,7 +393,6 @@ class NewMessageViewSet(viewsets.GenericViewSet,
     queryset = Branch.objects.all()
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
         branch_chat = BranchChat.objects.get(id=self.kwargs['id__pk'])
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request,'branch_chat':branch_chat})
@@ -421,7 +423,6 @@ class BranchNewPostViewSet(viewsets.GenericViewSet,
         if self.poster not in self.request.user.owned_groups.all():
             raise PermissionDenied
         serializer.save(poster=self.poster)
-        print(serializer)
 
 from django.db.models import Q
 from django.utils import timezone
@@ -913,11 +914,18 @@ class UpdateSpread(viewsets.GenericViewSet,
         return queryset
 
 
+from django.db.models import Q
+from datetime import datetime, timedelta
+
+
 class NotificationsViewSet(viewsets.GenericViewSet,
                             mixins.ListModelMixin,
                             mixins.RetrieveModelMixin):
 
     serializer_class = serializers.NotificationSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    pagination_class = NotificationsPagination
+
     def get_queryset(self):
-        return self.request.user.notifications.filter(unread=True)
+        last_five_days = datetime.today() - timedelta(days=5)
+        return self.request.user.notifications.filter(Q(unread=True) | Q(timestamp__gte=last_five_days))

@@ -3,6 +3,7 @@ from channels.db import database_sync_to_async
 from branches.models import Branch
 from branchchat.models import BranchMessage, BranchChat
 import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
@@ -46,28 +47,31 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
 
         # Send message to room group
         if can_send:
+            message = await self.create_message(room_name, message, from_branch)
+
             await self.channel_layer.group_send(
                 self.room_branch_name,
                 {
                     'type': 'chat_message',
-                    'author_name': from_branch.name,
-                    'author_url': from_branch.uri,
-                    'author': str(from_branch.id),
-                    'message': message,
-                    'message_html': message,
-                    'images':images,
-                    'videos':videos,
+                    'author_name': message.author.name,
+                    'author_url': message.author.uri,
+                    'author': str(message.author.id),
+                    'message': message.message,
+                    'message_html': message.message,
+                    'created':str(message.created),
+                    'images':[],
+                    'videos':[],
                     'can_send':can_send
                 }
             )
 
-            await self.create_message(room_name, message, from_branch)
+
 
     @database_sync_to_async
     def create_message(self, room_name, message, from_branch):
         branch_chat = BranchChat.objects.get(id=room_name)
         if not message.isspace() and message is not None and len(message)>0:
-            BranchMessage.objects.create(branch_chat=branch_chat,
+            return BranchMessage.objects.create(branch_chat=branch_chat,
                                          author=from_branch,
                                          message=message,
                                          message_html=message
@@ -99,12 +103,14 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         author_name = event['author_name']
         author_url = event['author_url']
         author = event['author']
+        created = event['created']
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'author_name': author_name,
             'author_url': author_url,
             'author': author,
+            'created': created,
             'message': message,
             'images':images,
             'videos':videos,

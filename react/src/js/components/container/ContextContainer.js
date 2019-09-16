@@ -96,3 +96,6 @@ export const BranchTreePostsContext = React.createContext(
     Object.create({...frontPagePostList,content:'branch_tree'})
 );
 
+export const ChatRoomsContext = React.createContext({
+    rooms:[]
+})

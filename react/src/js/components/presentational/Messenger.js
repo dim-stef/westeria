@@ -1,6 +1,6 @@
 import React, {useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,lazy,Suspense} from 'react'
 import {Redirect} from 'react-router-dom';
-import {UserContext} from "../container/ContextContainer"
+import {UserContext,ChatRoomsContext} from "../container/ContextContainer"
 import {isMobile} from 'react-device-detect';
 import {ToggleContent} from './Temporary'
 import { MoonLoader } from 'react-spinners';
@@ -37,6 +37,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     const ref = useRef(null);
     const editorRef = useRef(null);
     const context = useContext(UserContext);
+    const roomsContext = useContext(ChatRoomsContext)
     const [imageError,setImageError] = useState(false);
     const [videoError,setVideoError] = useState(false);
 
@@ -73,6 +74,21 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
             }
 
             let uri = `/api/branches/${branch.uri}/chat_rooms/${roomId}/messages/new/`;
+
+            /*fetch(uri, {
+                    method: 'POST',
+                    credentials: "include",
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+              }).then(function (response) {
+                    setLoading(false);
+                    scrollToBottom();
+              }).catch(e=>{
+                console.log(e)
+              })*/
+
 
             axios.post(
                 uri,

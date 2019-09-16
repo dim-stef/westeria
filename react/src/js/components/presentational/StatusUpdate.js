@@ -39,7 +39,7 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,postedId,replyTo=null,style=null}){
+export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null}){
 
     /*const plugins = [
         SlateReactPlaceholder({
@@ -184,7 +184,7 @@ export function StatusUpdate({currentPost,postsContext,measure=null,updateFeed,p
                     null:
                     <>
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
-                    postedId={postedId} currentPost={currentPost} 
+                    postedId={postedId} currentPost={currentPost} isFeed={isFeed}
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
                         {...postToProps}
                     />
@@ -231,9 +231,10 @@ function CodeNode(props) {
 }
 
 
-function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,setValue,replyTo=null,handleImageClick,
+function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,isFeed=false,replyTo=null,handleImageClick,
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches}){
     const [isLoading,setLoading] = useState(false);
+    const userContext = useContext(UserContext);
 
     const handleClick = (e)=>{
         
@@ -253,13 +254,22 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                 
             }
         }
+
+        // if not feed get postedId from props else get from branch switcher
+        if(!isFeed){
+            formData.append('posted_to',postedId);
+        }
+
+        let postedTo = [ ...checkedBranches];
         
-        let postedTo = [postedId||currentPost.poster_id, ...checkedBranches];
         for(var id of postedTo){
             formData.append('posted_to',id);
         }
+
+        if(postedTo.length>0){
+            formData.append('posted_to',postedTo);
+        }
         
-        formData.append('posted',postedId||currentPost.poster_id);
         formData.append('type',type);
         formData.append('text',post);
         
@@ -268,10 +278,8 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             formData.append('replied_to',replyTo)
         }
 
-        if(formData.getAll('posted_to').length==0){
-            formData.append('posted_to',branch.id);
-            formData.append('posted',branch.id);
-        }
+        formData.append('posted_to',branch.id); // add self
+        formData.append('posted',branch.id);  // add self
 
         let uri = `/api/branches/${branch.uri}/posts/new/`
         setLoading(true);

@@ -160,6 +160,7 @@ def create_message(sender, instance, created, **kwargs):
             'author_name': instance.author.name,
             'author_url': instance.author.uri,
             'author': str(instance.author.id),
+            'created': str(instance.created),
             'message': instance.message,
             'images': [image.url for image in instance.images.all()],
             'videos': [video.url for video in instance.videos.all()]
@@ -274,7 +275,6 @@ def create_notification(sender, instance, created, **kwargs):
 
         # Regular notifications
         for member in non_author_members:
-            print("this fat")
             description = "sent a message"
             verb = "message"
 
@@ -292,6 +292,7 @@ def create_notification(sender, instance, created, **kwargs):
                     'author_name': instance.author.name,
                     'author_url': instance.author.uri,
                     'author': str(instance.author.id),
+                    'created': str(instance.created),
                     'branch_chat': str(instance.branch_chat.id),
                     'verb': verb,
                     'id': notification.id

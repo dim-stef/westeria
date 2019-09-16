@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Redirect, Link } from 'react-router-dom'
 import {Helmet} from 'react-helmet'
+import { MoonLoader } from 'react-spinners';
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
@@ -14,7 +15,8 @@ export default class Register extends Component{
             password1:'',
             password2:'',
             success:false,
-            errors:[]
+            errors:[],
+            submitted:false
         }
 
         this.handleNameChange = this.handleNameChange.bind(this);
@@ -43,6 +45,8 @@ export default class Register extends Component{
 
     handleSubmit(e){
         var self = this;
+        self.setState({submitted:true})
+
         axios({
             method: 'post',
             url: '/rest-auth/registration/',
@@ -73,7 +77,7 @@ export default class Register extends Component{
                 if(non_field_errors){
                     errors=[...errors, ...non_field_errors]
                 }
-                self.setState({errors:errors})
+                self.setState({errors:errors,submitted:false})
         })
         e.preventDefault();
     }
@@ -121,7 +125,17 @@ export default class Register extends Component{
                         <div className="clear"> </div>
                     </div>
                     {errorMessages}
-                    <input className="submit-btn" type="submit" value="Sign Up" />
+                    {this.state.submitted?
+                    <div className="flex-fill center-items" style={{marginTop:20}}>
+                    <MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={'#123abc'}
+                        loading={true}
+                        />
+                    </div>:
+                    <input className="submit-btn" type="submit" value="Sign Up"/>}
+                    
                     </form>
                     <p>Already have an account? <Link to="/login" style={{textDecoration: 'none', backgroundColor: 'transparent', fontWeight: 500}}>Login</Link></p>
                 </div>

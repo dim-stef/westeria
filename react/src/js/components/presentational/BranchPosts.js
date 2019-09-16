@@ -113,7 +113,7 @@ function DisplayPosts({isFeed,posts,setPosts,
             >
         <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
         resetPostsContext={resetPostsContext} fetchData={fetchData}/>
-        <StatusUpdate postsContext={postsContext} updateFeed={updateFeed} postedId={postedId} key={postedId}/>
+        <StatusUpdate postsContext={postsContext} updateFeed={updateFeed} postedId={postedId} key={postedId} isFeed={isFeed}/>
         {posts.length>0?
             
         <InfiniteScroll
@@ -304,7 +304,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-export const FinalDisplayPosts = ({postsContext,branch,isFeed,isAll,isTree,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
@@ -455,7 +455,7 @@ export default function FeedPosts(props){
     },[])
 
     return(
-        <FinalDisplayPosts {...props} keyword="feed" postsContext={postsContext} 
+        <FinalDisplayPosts {...props} keyword="feed" isFeed postsContext={postsContext} 
         resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
     )
 }
@@ -473,7 +473,7 @@ export function AllPosts(props){
     },[])
 
     return(
-        <FinalDisplayPosts {...props} isAll keyword="all" postsContext={allPostsContext} 
+        <FinalDisplayPosts {...props} isAll isFeed keyword="all" postsContext={allPostsContext} 
         resetPostsContext={()=>resetPostListContext(allPostsContext,props)}/>
     )
 }
@@ -492,7 +492,7 @@ export function TreePosts(props){
     },[])
 
     return(
-        <FinalDisplayPosts {...props} isTree keyword="following_tree" postsContext={treePostsContext} 
+        <FinalDisplayPosts {...props} isTree isFeed keyword="following_tree" postsContext={treePostsContext} 
         resetPostsContext={()=>resetPostListContext(treePostsContext,props)}/>
     )
 }

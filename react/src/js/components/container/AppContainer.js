@@ -8,6 +8,8 @@ import MediaQuery from 'react-responsive';
 import Responsive from 'react-responsive';
 import axios from 'axios'
 
+axios.defaults.withCredentials = true;
+
 class App extends Component {
     static contextType = UserContext
     constructor(props){

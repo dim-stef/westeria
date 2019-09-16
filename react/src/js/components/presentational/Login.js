@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Link , Redirect} from 'react-router-dom'
 import {Helmet} from "react-helmet"
+import { MoonLoader } from 'react-spinners';
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
@@ -14,8 +15,9 @@ export default class Login extends Component{
             email:'',
             password:'',
             success:false,
-            errorMessages:null
-
+            errorMessages:null,
+            loaded:false,
+            sumbitted:false,
         }
 
         this.handleEmailChange = this.handleEmailChange.bind(this);
@@ -33,6 +35,8 @@ export default class Login extends Component{
 
     handleSubmit(e){
         var self = this;
+        self.setState({submitted:true})
+
         axios({
             method: 'post',
             url: '/rest-auth/login/',
@@ -54,7 +58,7 @@ export default class Login extends Component{
             })
             .catch(function (error) {
                 if (error.response) {
-                    self.setState({errorMessages:error.response.data.non_field_errors})
+                    self.setState({errorMessages:error.response.data.non_field_errors,submitted:false})
                    
                 }
         })
@@ -102,7 +106,16 @@ export default class Login extends Component{
                     placeholder="Password" required value={this.state.password} onChange={this.handlePasswordChange}/>
                     
                     {errorMessages}
-                    <input className="login-btn" type="submit" value="LOGIN" />
+                    {this.state.submitted?
+                    <div className="flex-fill center-items" style={{marginTop:20}}>
+                    <MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={'#123abc'}
+                        loading={true}
+                        />
+                    </div>:<input className="login-btn" type="submit" value="Login" />}
+                    
                     </form>
                     <p><Link to="/password/reset">Forgot password?</Link></p>
 

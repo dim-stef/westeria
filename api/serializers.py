@@ -322,6 +322,7 @@ def create_message(instance):
                 'author_name': instance.author.name,
                 'author_url': instance.author.uri,
                 'author': str(instance.author.id),
+                'created': str(instance.created),
                 'message': instance.message,
                 'images': json_images,
                 'videos': json_videos
@@ -632,6 +633,7 @@ class NotificationSerializer(serializers.Serializer):
     unread = serializers.BooleanField(read_only=True)
     description = serializers.CharField()
     verb = serializers.CharField()
+    timestamp = serializers.CharField()
     target = GenericNotificationRelatedField(read_only=True)
     actor = GenericNotificationRelatedField(read_only=True)
     action_object = GenericNotificationRelatedField(read_only=True)

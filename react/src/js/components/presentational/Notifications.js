@@ -2,6 +2,8 @@ import React, { useState,useEffect,useContext } from "react";
 import {Link, NavLink } from "react-router-dom"
 import {isMobile} from 'react-device-detect';
 import { MoonLoader } from 'react-spinners';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import formatRelative from 'date-fns/formatRelative';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {Helmet} from "react-helmet"
 import {UserContext,SingularPostContext,NotificationsContext} from "../container/ContextContainer"
@@ -14,6 +16,8 @@ export function NotificationsContainer({inBox}){
     const context = useContext(UserContext);
     const notificationsContext = useContext(NotificationsContext);
     const [loaded,setLoaded] = useState(false);
+    const [next,setNext] = useState(null);
+    const [hasMore,setHasMore] = useState(true);
     const [id,setId] = useState(null);
     
     useEffect(()=>{
@@ -49,19 +53,42 @@ export function NotificationsContainer({inBox}){
     }
 
     async function getNotifications(){
-        if(notificationsContext.notifications.length == 0){
-            let response = await axios.get('/api/notifications/');
-            notificationsContext.setNotifications(response.data);
+        // TODO
+        // add notification context
+        let response = await axios.get('/api/notifications/');
+        notificationsContext.setNotifications(response.data.results);
+
+        if(!response.data.next){
+            setHasMore(false);
         }
+
+        setNext(response.data.next);
         setLoaded(true);
     }
 
+    async function getMoreNotifications(){
+        console.log("this far",notificationsContext.notifications.length,next)
+        if(notificationsContext.notifications.length > 0 && next){
+            console.log("this far 2")
+            let response = await axios.get(next);
+            notificationsContext.setNotifications([...notificationsContext.notifications,...response.data.results]);
+    
+            if(!response.data.next){
+                setHasMore(false);
+            }
+    
+            setNext(response.data.next);
+        }
+    }
+
     return(
-        <Notifications notifications={notificationsContext.notifications} inBox={inBox} loaded={loaded}/>
+        <Notifications notifications={notificationsContext.notifications} inBox={inBox} loaded={loaded}
+            hasMore={hasMore} getMoreNotifications={getMoreNotifications}
+        />
     )
 }
 
-export function Notifications({notifications,inBox,loaded}){
+export function Notifications({notifications,inBox,loaded,hasMore,getMoreNotifications}){
     const [isOpen,setOpen] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -95,12 +122,22 @@ export function Notifications({notifications,inBox,loaded}){
                 {isOpen && notifications.length>0?/*<BoxNotifications notifications={notifications}/> */null:null}
             </div>
         :<ResponsiveNotifications>
-            <PageNotifications notifications={notifications} loaded={loaded}/>
+            <PageNotifications notifications={notifications} loaded={loaded}
+                getMoreNotifications={getMoreNotifications} hasMore={hasMore}
+            />
         </ResponsiveNotifications>
     )
 }
 
-function PageNotifications({notifications,loaded}){
+function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
+    const loader = <div className="flex-fill center-items" style={{margin:20}}>
+    <MoonLoader
+        sizeUnit={"px"}
+        size={20}
+        color={'#123abc'}
+        loading={true}
+    /></div>
+    
     return(
         <>
         <Helmet>
@@ -118,11 +155,17 @@ function PageNotifications({notifications,loaded}){
                 />
             </div>:
             notifications.length>0?
-                notifications.map(n=>{
+                <InfiniteScroll
+                dataLength={notifications.length}
+                next={getMoreNotifications}
+                hasMore={hasMore}
+                loader={loader}>
+                {notifications.map(n=>{
                     return(
                         <NotificationMatcher notification={n}/>
                     )}
-                ):
+                )}
+                </InfiniteScroll>:
                 <div className="info-message flex-fill center-items">
                     <span>You don't have any new notifications</span>
                 </div>
@@ -172,6 +215,8 @@ function FollowNotification({notification}){
     
     return(
         <div style={{borderBottom:'1px solid #e2eaf1'}}>
+            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
+
             <NotificationLinkBody to={linkTo} id={notification.id}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
                 <span style={{padding:10}}> {notification.description} </span>
@@ -205,6 +250,7 @@ function ChatRequestNotification({notification}){
 
     return(
         <div style={{borderBottom:'1px solid #e2eaf1'}}>
+            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
             <NotificationLinkBody to="#" id={notification.id}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
                 <span style={{padding:10}}> {notification.description} </span>
@@ -246,7 +292,9 @@ function ReactNotification({notification}){
     if(post){
         let linkTo = `/${notification.target.uri}/leaves/${post.id}`;
         return(
-            <div style={{alignItems:'center',
+            <>
+            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
+            <div style={{alignItems:'center',WebkitAlignItems:'center',WebkitFlexFlow:'row wrap',
             flexFlow:'row wrap',borderBottom:'1px solid #e2eaf1'}}
             className="notification flex-fill">
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
@@ -256,6 +304,7 @@ function ReactNotification({notification}){
                     activeBranch={userContext.currentBranch} viewAs="embeddedPost"/>
                 </div>
             </div>
+            </>
         )
     }else{
         return null;
@@ -286,6 +335,8 @@ function ReplyNotification({notification}){
     if(post && reply){
         let linkTo = `/${notification.target.uri}/leaves/${post.id}`;
         return(
+            <>
+            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
             <div style={{alignItems:'center',
             flexFlow:'row wrap',borderBottom:'1px solid #e2eaf1'}}
             className="notification flex-fill">
@@ -298,6 +349,7 @@ function ReplyNotification({notification}){
                     activeBranch={userContext.currentBranch} viewAs="embeddedPost"/>
                 </div>
             </div>
+            </>
         )
     }else{
         return null;
@@ -331,6 +383,7 @@ function BranchNotification({notification}){
 
     return(
         <div style={{borderBottom:'1px solid #e2eaf1'}}>
+            <div className="notification-timestamp">{formatRelative(new Date(n.timestamp), new Date())}</div>
             <NotificationLinkBody to={linkTo} id={n.id}>
                 <NotificationBranch image={n.actor.branch_image} uri={n.actor.uri}/>
                 <span style={{padding:10}}>{n.description}</span>
