@@ -256,7 +256,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         }
 
         // if not feed get postedId from props else get from branch switcher
-        if(!isFeed){
+        if(!isFeed && postedId){
             formData.append('posted_to',postedId);
         }
 
