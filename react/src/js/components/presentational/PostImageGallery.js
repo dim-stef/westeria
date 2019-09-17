@@ -105,7 +105,7 @@ export function Images(props){
                     slideStyle={{position:'relative',overflow:'hidden',alignItems:'center',WebkitAlignItems:'center'}} 
                     slideClassName="flex-fill">
                         {props.images.map(img=>{
-                            return <div key={img.image} onTouchStart={event => event.preventDefault()} 
+                            return <div key={img.image} 
                             style={{width:'100%',height:'100%'}}>
                             <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft}
@@ -113,7 +113,7 @@ export function Images(props){
                         })}
                         {props.videos.map(vid=>{
                             return <div key={vid.id} style={{width:'100%',height:'100%'}}
-                             onTouchStart={event => event.preventDefault()}>
+                             >
                             <VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
                             /></div>
@@ -131,7 +131,7 @@ function VideoComponent({src,thumbnail,width}){
     let height = width / (16/9);
 
     return(
-        <div onClick={e=>{e.stopPropagation()}} style={{width:'100%',height:'100%'}}>
+        <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container">
             <ReactPlayer pip={false} 
              width="100%" height="100%" url={src} volume={0} muted controls playing light={thumbnail}
              config={{ file: { attributes: { controlsList: 'nodownload',disablepictureinpicture: 'true' } } }}>

@@ -1,6 +1,7 @@
 import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef,lazy,Suspense } from "react";
 import { Link } from 'react-router-dom'
 import {isMobile} from 'react-device-detect';
+import { useMediaQuery } from 'react-responsive'
 import formatRelative from 'date-fns/formatRelative';
 import differenceInMinutes from 'date-fns/differenceInMinutes'
 import ReconnectingWebSocket from 'reconnecting-websocket';
@@ -265,6 +266,9 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
 
     const [imageWidth,setImageWidth] = useState(0);
     const [messageBoxes,setMessageBoxes] = useState([]);
+    const isDesktopOrLaptop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
 
     useEffect(() => {
         if(parentRef.current){
@@ -274,8 +278,8 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
     },[parentRef])
 
     useEffect(()=>{
-        if(wrapperRef){
-            if(isMobile){
+        if(wrapperRef.current){
+            if(!isDesktopOrLaptop){
                 wrapperRef.current.classList.add('full-height');
             }else{
                 wrapperRef.current.style.height = `${window.innerHeight - 70}px`;
