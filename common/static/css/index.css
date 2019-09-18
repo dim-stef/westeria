@@ -286,18 +286,17 @@ div[data-placeholder]{
 }
 
 .video-container{
- min-width: 100%;
+ /*min-width: 100%;
   min-height: 100%;
 
-  /* Setting width & height to auto prevents the browser from stretching or squishing the video */
   width: auto;
   height: auto;
 
-  /* Center the video */
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%,-50%);*/
+    height:100%;
 }
 
 .video-container > div{
@@ -329,7 +328,6 @@ div[data-placeholder]{
     -webkit-flex-flow: column;
     margin-top: 50px;
 }
-
 
 
 .name-missing{
