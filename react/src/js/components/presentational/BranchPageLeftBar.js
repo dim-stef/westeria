@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import { Link } from 'react-router-dom'
+import React, {Component} from "react";
+import {Link} from 'react-router-dom'
 import {UserContext} from '../container/ContextContainer'
 
 export class BranchPageLeftBar extends Component{
@@ -8,9 +8,7 @@ export class BranchPageLeftBar extends Component{
             <div style={{float:'left',width:180,height:1}}>
                 <div className="side-bar-container">
                     <div>
-                        <div>
-                            <BranchBox branch={this.props.branch}/>
-                        </div>
+                        <BranchBox branch={this.props.branch}/>
                     </div>
                 </div>
             </div>

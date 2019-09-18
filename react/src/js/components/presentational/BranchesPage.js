@@ -1,12 +1,10 @@
-import React, { Component,useState,useContext,useEffect } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {Helmet} from 'react-helmet'
-import {ParentBranch,ChildBranch} from "./Branch"
-import { Switch, Route, Link, NavLink  } from 'react-router-dom'
-import {BranchContainer,BranchesPageContainer} from '../container/BranchContainer'
-import BranchFooter, {Modal,ToggleContent} from "./Temporary"
+import {ChildBranch} from "./Branch"
+import {NavLink, Route, Switch} from 'react-router-dom'
+import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
+import BranchFooter from "./Temporary"
 import {UserContext} from '../container/ContextContainer'
-import {usePendingRequests} from "../container/BranchContainer"
-import MediaQuery from 'react-responsive';
 import axios from 'axios';
 
 

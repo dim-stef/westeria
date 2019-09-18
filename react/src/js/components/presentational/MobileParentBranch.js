@@ -1,10 +1,7 @@
-import React, { Component, useState,useEffect,useRef,useContext,useLayoutEffect } from "react";
-import {Link, NavLink } from "react-router-dom"
-import Responsive from 'react-responsive';
+import React, {useLayoutEffect, useRef, useState} from "react";
+import {NavLink} from "react-router-dom"
 import Linkify from 'linkifyjs/react';
 import {FollowButton} from "./Card"
-import { RoutedTabs, NavTab } from "react-router-tabs";
-import axios from 'axios'
 
 
 function getRandomColor() {

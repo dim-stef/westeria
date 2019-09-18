@@ -1,15 +1,15 @@
-import React, { useState,useEffect,useContext } from "react";
-import {Link, NavLink } from "react-router-dom"
+import React, {useContext, useEffect, useState} from "react";
+import {Link} from "react-router-dom"
 import {isMobile} from 'react-device-detect';
-import { MoonLoader } from 'react-spinners';
+import {MoonLoader} from 'react-spinners';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import formatRelative from 'date-fns/formatRelative';
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {Helmet} from "react-helmet"
-import {UserContext,SingularPostContext,NotificationsContext} from "../container/ContextContainer"
+import {NotificationsContext, SingularPostContext, UserContext} from "../container/ContextContainer"
 import {FrontPageLeftBar} from "./FrontPage"
 import {Post} from "./SingularPost"
-import {Desktop,Tablet,Mobile} from "./Responsive"
+import {Desktop, Mobile, Tablet} from "./Responsive"
 import axios from 'axios'
 
 export function NotificationsContainer({inBox}){

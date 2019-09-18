@@ -1,22 +1,22 @@
-import React, { useState,useContext,useEffect,useLayoutEffect,useCallback,useRef,lazy,Suspense } from "react";
-import { Link } from 'react-router-dom'
-import {isMobile} from 'react-device-detect';
-import { useMediaQuery } from 'react-responsive'
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from "react";
+import {Link} from 'react-router-dom'
+import {useMediaQuery} from 'react-responsive'
 import formatRelative from 'date-fns/formatRelative';
 import differenceInMinutes from 'date-fns/differenceInMinutes'
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {Images} from "../presentational/PostImageGallery"
-import {Desktop,Tablet,Mobile} from "../presentational/Responsive"
+import {Desktop, Mobile, Tablet} from "../presentational/Responsive"
 import history from '../../history'
 import Linkify from 'linkifyjs/react';
-import { MoonLoader } from 'react-spinners';
+import {MoonLoader} from 'react-spinners';
 import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
 import {useMyBranches} from "../container/BranchContainer"
-import {UserContext,CachedBranchesContext,ChatRoomsContext} from "./ContextContainer"
+import {CachedBranchesContext, ChatRoomsContext, UserContext} from "./ContextContainer"
 import axios from "axios";
+import {DropdownActionList} from "../presentational/DropdownActionList"
 
 
 export function ChatRoomsContainer({inBox,match}){
@@ -56,7 +56,12 @@ function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
     const [roomData,setRoomData] = useState([]);
 
     useEffect(()=>{
-        connect();
+
+        // adding messages causes rerender
+        // only run this if another room was added
+        if(rooms.length == 0 || rooms.length != roomData.length){
+            connect();
+        }
     },[rooms])
 
     function connect(){
@@ -100,6 +105,7 @@ function RoomContainer({roomData,match}){
     const [heightWithKeyboard,setHeightWithKeyboard] = useState(0);
     const [heightWithoutKeyboard,setHeightWithoutKeyboard] = useState(window.innerHeight);
     const [height,setHeight] = useState(window.innerHeight);
+    const [prevScrollHeight,setScrollHeight] = useState(0);
     const ref = useRef(null);
     const parentRef = useRef(null);
 
@@ -136,6 +142,7 @@ function RoomContainer({roomData,match}){
 
     const chatScrollListener = async () =>{
         if(parentRef.current.scrollTop==0){
+            setScrollHeight(parentRef.current.scrollHeight);
             await getMessages(messages);
         }
         setFirstBatch(false);
@@ -250,7 +257,7 @@ function RoomContainer({roomData,match}){
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
                 flexFlow:'column',WebkitFlexFlow:'column'}}>
                     <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
-                    setFirstBatch={setFirstBatch}
+                    setFirstBatch={setFirstBatch} prevScrollHeight={prevScrollHeight}
                     parentRef={parentRef} wrapperRef={ref}/> 
                 </div>
                 <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} scrollToBottom={scrollToBottom}
@@ -262,7 +269,7 @@ function RoomContainer({roomData,match}){
     )
 }
 
-function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrapperRef}){
+function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,wrapperRef}){
 
     const [imageWidth,setImageWidth] = useState(0);
     const [messageBoxes,setMessageBoxes] = useState([]);
@@ -274,7 +281,6 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
         if(parentRef.current){
             setImageWidth(parentRef.current.clientWidth)
         }
-        
     },[parentRef])
 
     useEffect(()=>{
@@ -334,8 +340,14 @@ function Room({messages,members,branch,isFirstBatch,setFirstBatch,parentRef,wrap
     useLayoutEffect(()=>{
         if(parentRef.current){
             let diff = parentRef.current.scrollHeight - (parentRef.current.scrollTop + parentRef.current.clientHeight)
+
+            // if we want to stick scroll to bottom of chat
             if(diff < parentRef.current.clientHeight*0.5 || isFirstBatch){
                 parentRef.current.scrollTop = parentRef.current.scrollHeight;
+            }
+
+            if(parentRef.current.scrollTop < 100){
+                parentRef.current.scrollTop = parentRef.current.scrollHeight - prevScrollHeight;
             }
         }
     })
@@ -385,13 +397,22 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     let member = members.find(m=>messageBox.author_url==m.uri)
     let memberImage = member?member.branch_image:null
 
+    let timeDifference = null;
+
+    try{
+        timeDifference = formatRelative(new Date(messageBox.messages[0].created), new Date());
+    }catch(e){
+
+    }
+
     let messageBoxHeader = messageBox.author_url == branch?(
         
         <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-end',
             WebkitAlignItems:'flex-end',margin:'0 8px'}}>
                 <span style={{fontSize:'1.5rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
-                <span style={{fontSize:'1.1rem',color:'#797070'}}>{formatRelative(new Date(messageBox.messages[0].created), new Date())}</span>
+                {timeDifference?<span style={{fontSize:'1.1rem',color:'#797070'}}>{timeDifference}</span>:null}
+                
             </div>
             <img className="round-picture" src={memberImage} 
             style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
@@ -404,7 +425,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-start',
             WebkitAlignItems:'flex-start',margin:'0 8px'}}>
                 <span style={{fontSize:'1.5rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
-                <span style={{fontSize:'1.1rem',color:'#797070'}}>{formatRelative(new Date(messageBox.messages[0].created), new Date())}</span>
+                {timeDifference?<span style={{fontSize:'1.1rem',color:'#797070'}}>{timeDifference}</span>:null}
             </div>
         </div>
     )
@@ -420,8 +441,6 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
                                 {m.message?
                                         <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
                                             <div style={messageStyle}>
-                                                
-                                                
                                                 <Linkify>{m.message}</Linkify>
                                             </div>
                                         </div>
@@ -646,8 +665,6 @@ function PageWrapper({children}){
         </>
     )
 }
-
-import {DropdownActionList} from "../presentational/DropdownActionList"
 
 function DropdownOptions({room}){
     const ref = useRef(null);

@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { Link,withRouter,Redirect } from 'react-router-dom'
-import { Form, Field } from 'react-final-form'
+import React, {useEffect} from "react";
+import {withRouter} from 'react-router-dom'
+import {Form} from 'react-final-form'
 import {Helmet} from 'react-helmet'
-import {AuthFormWrapper,Error,Password,Save} from "./Forms"
+import {AuthFormWrapper, Password, Save} from "./Forms"
 import axios from 'axios'
 
 //"reset/:uid/:token"

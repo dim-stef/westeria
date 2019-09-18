@@ -1,8 +1,9 @@
-import React, {useEffect,useRef,useState,useLayoutEffect} from 'react'
-import { useMediaQuery } from 'react-responsive'
-import { CSSTransition,Transition } from 'react-transition-group';
+import React, {useEffect, useRef, useState} from 'react'
+import {useMediaQuery} from 'react-responsive'
+import {CSSTransition} from 'react-transition-group';
 import {MobileModal} from "./MobileModal"
-import {ToggleContent,Modal} from "./Temporary"
+import {Modal, ToggleContent} from "./Temporary"
+import {AreYouSure} from "./AreYouSure"
 
 
 export function DropdownActionList({actions,wrapper,style=null,children}){
@@ -81,8 +82,6 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
             )}/>
     )
 }
-
-import {AreYouSure} from "./AreYouSure"
 
 function Action({action}){
 

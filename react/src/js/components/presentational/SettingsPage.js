@@ -1,16 +1,17 @@
-import React, {useContext,useState,useRef,useEffect,useLayoutEffect} from "react"
-import {Route,Link,Switch,Redirect,withRouter} from "react-router-dom"
-import { Form, Field } from 'react-final-form'
-import { OnChange } from 'react-final-form-listeners'
+import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from "react"
+import {Link, Redirect, Route, Switch, withRouter} from "react-router-dom"
+import {Field, Form} from 'react-final-form'
+import {OnChange} from 'react-final-form-listeners'
 import {Helmet} from 'react-helmet'
 import {useMyBranches} from "../container/BranchContainer"
-import { UserContext,CachedBranchesContext } from "../container/ContextContainer";
-import {SmallBranch} from "./Branch"
+import {CachedBranchesContext, UserContext} from "../container/ContextContainer";
 import {BranchSwitcher} from "./BranchSwitcher"
 import RoutedHeadline from "./RoutedHeadline"
 import axios from 'axios'
 
 import axiosRetry from 'axios-retry';
+import Toggle from 'react-toggle'
+import "react-toggle/style.css" // for ES6 modules
 
 axiosRetry(axios, 
     {
@@ -208,9 +209,6 @@ function Setting({children}){
         </div>
     )
 }
-
-import Toggle from 'react-toggle'
-import "react-toggle/style.css" // for ES6 modules
 
 
 function UpdateBranch({branch}){

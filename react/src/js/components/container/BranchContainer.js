@@ -1,10 +1,9 @@
-import React, { useState,useEffect,useContext } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import axios from 'axios'
 import {Helmet} from "react-helmet";
-import {BranchList} from "../presentational/BranchesPage"
+import {AddBranch, BranchList} from "../presentational/BranchesPage"
 import {BranchPage} from "../presentational/Routes"
-import {AddBranch} from "../presentational/BranchesPage"
-import {UserActionsContext,CachedBranchesContext,UserContext} from "./ContextContainer"
+import {CachedBranchesContext, UserActionsContext, UserContext} from "./ContextContainer"
 
 export function BranchesPageContainer(props){
     const [branches,setBranches] = useState([]);

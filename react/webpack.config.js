@@ -48,14 +48,3 @@ module.exports = {
     new BundleTracker({path: __dirname, filename: './webpack-stats.json'}),
   ]
 };
-
-//new GenerateSW({
-//  swDest: './serviceworker.js', //This is the view we wrote above that serves it.
-//  skipWaiting:true,
-//  clientsClaim:true,
-//  globDirectory: '../static/',
-//  "globPatterns": [
-//    "**/*.{css,html,js}"
-//  ],
-//  globIgnores: ['admin/**/*', ],
-//})

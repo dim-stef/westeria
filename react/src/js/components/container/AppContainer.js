@@ -1,11 +1,7 @@
-import React, { Component,useState,useEffect,useContext } from "react";
-import { withRouter , Redirect } from 'react-router'
-import { Switch, Route, Link  } from 'react-router-dom'
-import {DesktopPage} from '../presentational/Routes'
-import Routes from "../presentational/Routes"
-import {UserContext,CachedBranchesContext} from "./ContextContainer"
-import MediaQuery from 'react-responsive';
-import Responsive from 'react-responsive';
+import React, {Component} from "react";
+import {withRouter} from 'react-router'
+import Routes from '../presentational/Routes'
+import {UserContext} from "./ContextContainer"
 import axios from 'axios'
 
 axios.defaults.withCredentials = true;

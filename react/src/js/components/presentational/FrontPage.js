@@ -1,13 +1,18 @@
-import React, { useState, useContext, useEffect,useRef,lazy,Suspense } from "react"
+import React, {useContext, useEffect, useState} from "react"
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import MyBranchesColumnContainer from "./MyBranchesColumn";
-import {UserContext,PostsContext,AllPostsContext,TreePostsContext,
-    UserActionsContext} from "../container/ContextContainer";
-import {TrendingWithWrapper as Trending}  from "../container/TrendingContainer";
-import FeedPosts,{ BranchPosts,AllPosts,TreePosts} from "./BranchPosts"
+import {
+    AllPostsContext,
+    PostsContext,
+    TreePostsContext,
+    UserActionsContext,
+    UserContext
+} from "../container/ContextContainer";
+import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
+import FeedPosts, {AllPosts, TreePosts} from "./BranchPosts"
 import {Helmet} from "react-helmet";
-import { Switch, Route, Link,Redirect, withRouter  } from 'react-router-dom'
-import {Desktop,Tablet,Mobile} from "./Responsive"
+import {Link, Redirect, Route, Switch} from 'react-router-dom'
+import {Desktop, Mobile, Tablet} from "./Responsive"
 
 function NonAuthenticationColumn(){
     return(

@@ -1,10 +1,9 @@
-import React , {useEffect,useState,useContext} from "react"
-import {UserContext,CachedBranchesContext} from "../container/ContextContainer"
+import React, {useContext} from "react"
+import {UserContext} from "../container/ContextContainer"
 import {useMyBranches} from "../container/BranchContainer"
 import {SmallBranch} from "./Branch"
 import {CreateNewBranch} from "./CreateNewBranch"
 import {SkeletonBranchList} from "./SkeletonBranchList";
-import axios from 'axios';
 
 export default function MyBranchesColumnContainer({show=true,children}){
     const context = useContext(UserContext);

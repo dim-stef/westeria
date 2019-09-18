@@ -1,13 +1,10 @@
-import React, {useContext,useState,useRef,useEffect,useLayoutEffect} from "react"
-import {Route,Link,Switch,Redirect,withRouter} from "react-router-dom"
-import { Form, Field } from 'react-final-form'
-import { OnChange } from 'react-final-form-listeners'
+import React, {useContext, useEffect, useRef, useState} from "react"
+import {Redirect, Route, Switch} from "react-router-dom"
+import {Field, Form} from 'react-final-form'
 import {Helmet} from 'react-helmet'
-import {useMyBranches} from "../container/BranchContainer"
-import { UserContext,CachedBranchesContext } from "../container/ContextContainer";
+import {UserContext} from "../container/ContextContainer";
 import {useMutualFollows} from "../container/MutualFollows"
 import {SmallBranch} from "./Branch"
-import {BranchSwitcher} from "./BranchSwitcher"
 import {Profile} from './SettingsPage'
 import {Save} from './Forms'
 import RoutedHeadline from "./RoutedHeadline"

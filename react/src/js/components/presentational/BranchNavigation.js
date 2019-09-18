@@ -1,6 +1,5 @@
-import React, { Component, useState, useEffect } from "react";
-import { Link,NavLink } from 'react-router-dom'
-import {ActionArrow} from "./Temporary"
+import React, {Component, useEffect, useState} from "react";
+import {NavLink} from 'react-router-dom'
 
 export class BranchNavigation extends Component{
     constructor(props){

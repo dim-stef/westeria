@@ -1,38 +1,45 @@
-import React, { Component,PureComponent, useState, useContext, useEffect,useRef,Suspense, lazy } from "react"
-import { Switch, Route, Link, Redirect, withRouter  } from 'react-router-dom'
+import React, {Component, useContext, useEffect, useState} from "react"
+import {Link, Redirect, Route, Switch, withRouter} from 'react-router-dom'
 import {Helmet} from "react-helmet";
-import history from "../../history"
-import { Page } from '../Page'
+import {Page} from '../Page'
 import Login from "./Login"
 import Logout from "./Logout"
 import Register from "./Register"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
 import EmailConfirm from "./EmailConfirm"
-import {UserContext,BranchPostsContext,BranchTreePostsContext,BranchCommunityPostsContext,
-    UserActionsContext,SingularPostContext,NotificationsProvider,NotificationsConsumer} from "../container/ContextContainer"
+import {
+    BranchCommunityPostsContext,
+    BranchPostsContext,
+    BranchTreePostsContext,
+    NotificationsProvider,
+    SingularPostContext,
+    UserContext
+} from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import {ChatRoomSettings} from "./ChatRoomSettings"
 import {CreateNewChat} from "./CreateNewChat"
-import { BranchPosts,GenericBranchPosts} from "./BranchPosts"
+import {GenericBranchPosts} from "./BranchPosts"
 import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
 import {BranchesPageRoutes} from "./BranchesPage"
 import {BranchNavigation} from "./BranchNavigation"
-import {TrendingContainer,TrendingWithWrapper as Trending} from "../container/TrendingContainer"
+import {TrendingContainer, TrendingWithWrapper as Trending} from "../container/TrendingContainer"
 import Card from "./Card"
 import Responsive from 'react-responsive';
-import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import {ResponsiveNavigationBar} from "./Navigation"
 import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
-import { TransitionGroup, CSSTransition } from "react-transition-group";
+import {CSSTransition} from "react-transition-group";
 import MyBranchesColumnContainer from "./MyBranchesColumn"
 //const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
 //const FeedPosts = lazy(() => import('./BranchPosts'));
-import {FrontPage,FrontPageLeftBar} from "./FrontPage"
+import {FrontPage, FrontPageLeftBar} from "./FrontPage"
+import {MobileBranchPageWrapper} from "./MobileParentBranch"
+import {matchPath} from "react-router";
+import pathToRegexp from 'path-to-regexp'
 
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
@@ -192,8 +199,6 @@ function FrontPageRightBar(){
 }
 
 
-import {MobileBranchPageWrapper} from "./MobileParentBranch"
-
 function ResponsiveBranchPage({branch,children}){
     return(
         <>
@@ -338,11 +343,6 @@ function BranchFrontPage(props){
     )
 }
 
-
-
-
-
-import { matchPath } from "react-router";
 
 class NavigatorWrapper extends Component {
   state = {
@@ -506,8 +506,6 @@ class NavigatorWrapper extends Component {
     );
   }
 }
-
-import pathToRegexp from 'path-to-regexp'
 
 const patternCache = {}
 const cacheLimit = 10000

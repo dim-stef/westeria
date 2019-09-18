@@ -1,11 +1,9 @@
-import React, { Component, useContext,useState } from "react";
-import { Link } from 'react-router-dom'
+import React, {Component, useState} from "react";
+import {Link} from 'react-router-dom'
 import {isMobile} from 'react-device-detect';
 import {BranchBanner} from "./BranchBanner"
 import {UserContext} from '../container/ContextContainer'
-import {BigBranchPicture} from "./BranchPageLeftBar"
 import {SmallCard} from "./Card"
-import axios from 'axios'
 
 
 export class ChildBranch extends Component{
@@ -65,7 +63,7 @@ export function SmallBranch({branch,isLink=true,
                     alt="" src={branch.branch_image}/>
                     <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
                     justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10,
-                    wordBreak:'break-all'}}>
+                    wordBreak:'break-word',alignItems:'flex-start',WebkitAlignItems:'flex-start'}}>
                         <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
                         <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
                     </div>

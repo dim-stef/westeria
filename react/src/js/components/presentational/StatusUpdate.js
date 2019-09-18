@@ -1,18 +1,15 @@
-import React, {useState,useContext,useEffect,useRef,lazy,Suspense} from 'react'
+import React, {useContext, useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom';
-import history from "../../history"
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
 import {SkeletonBranchList} from "./SkeletonBranchList";
 import {CustomEditor} from './Editor'
 import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
-import ReactPlayer from 'react-player'
 //import EmojiPicker from 'emoji-picker-react';
-import { css } from '@emotion/core';
 import {MediaPreview} from './EditorMediaPreview'
-import { MoonLoader } from 'react-spinners';
+import {MoonLoader} from 'react-spinners';
 import axios from 'axios'
 
 const schema  = {

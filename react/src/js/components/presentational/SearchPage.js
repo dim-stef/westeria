@@ -1,9 +1,8 @@
-import React, { useState,useContext,useEffect,useRef } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Helmet} from 'react-helmet'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
 import axios from 'axios';
-import LazyLoad from 'react-lazy-load';
 import axiosRetry from 'axios-retry';
 
 axiosRetry(axios, 

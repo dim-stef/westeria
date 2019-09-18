@@ -1,7 +1,6 @@
-import React, { useEffect } from "react";
-import { Link,withRouter,Redirect } from 'react-router-dom'
+import React, {useEffect} from "react";
+import {withRouter} from 'react-router-dom'
 import {Helmet} from "react-helmet";
-import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
 

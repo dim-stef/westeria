@@ -1,5 +1,5 @@
-import React, { useState,useContext,useEffect } from "react";
-import { withRouter } from "react-router";
+import React from "react";
+import {withRouter} from "react-router";
 
 function RoutedHeadline({match,location,className='',history,headline,to,children}){
      

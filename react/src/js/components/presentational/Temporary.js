@@ -1,4 +1,4 @@
-import React, { Component, useState,useContext,useEffect,useRef } from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import ReactDOM from 'react-dom';
 import {FollowButton} from "./Card"
 import {RefreshContext} from "../container/ContextContainer"
@@ -41,8 +41,8 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
         <div className="branch-footer flex-fill" style={{position:'relative'}}>
             <TopBar branch={branch}/>
             <DescriptionBox description={branch.description}/>
-            <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around',WebkitJustifyContent:'space-around'
-            ,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
+            <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around',WebkitJustifyContent:'space-around',
+            height:140}}>
                 <FollowButton uri={branch.uri} id={branch.id}/>
                 {pendingStatus?
                     pendingStatus=='accepted'?<div>
@@ -50,10 +50,12 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
                             </div>
                     :pendingStatus=='declined'?<p className="form-succeed-message" >Request declined</p>
                     :<div>
-                        <button className="accept-btn" onClick={handleAccept}>accept</button>
-                        <button className="decline-btn" onClick={handleDecline}>decline</button>
+                        <button className="accept-btn" style={{margin:'0 10px'}} onClick={handleAccept}>Accept</button>
+                        <button className="decline-btn" style={{margin:'0 10px'}} onClick={handleDecline}>Decline</button>
                     </div>
-                :null}
+                :null/*<div>
+                    <button className="decline-btn" style={{margin:'0 10px'}} onClick={()=>{}}>Remove branch</button>
+                </div>*/}
             </div>
         </div>
     )
@@ -88,8 +90,6 @@ function DescriptionBox({description}){
         </div>
     )
 }
-
-import { CSSTransition,Transition } from 'react-transition-group';
 
 export const ToggleContent = ({ toggle, content }) => {
     const [isShown, setIsShown] = useState(false);

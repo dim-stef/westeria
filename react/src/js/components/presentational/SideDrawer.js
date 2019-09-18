@@ -1,11 +1,11 @@
-import React, {useState,useEffect,useRef,useLayoutEffect,useContext} from "react"
+import React, {useContext, useEffect, useRef, useState} from "react"
 import {Link} from "react-router-dom"
 import {ToggleContent} from './Temporary'
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
 import {useMyBranches} from "../container/BranchContainer"
 import {CreateNewBranch} from "./CreateNewBranch"
-import { CSSTransition,Transition } from 'react-transition-group';
+import {CSSTransition} from 'react-transition-group';
 import ReactDOM from 'react-dom';
 
 const Modal = ({ children ,onClick}) => {

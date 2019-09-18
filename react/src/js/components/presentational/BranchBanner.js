@@ -1,5 +1,5 @@
-import React, { Component } from "react";
-import {BranchImage,BranchImage2,BranchImageEditMenu} from "./BranchImage"
+import React, {Component} from "react";
+import {BranchImage, BranchImage2} from "./BranchImage"
 
 
 function getRandomColor() {

@@ -1,7 +1,5 @@
-import React, { useEffect } from "react";
-import { Link,withRouter,Redirect } from 'react-router-dom'
-import { Form, Field } from 'react-final-form'
-import axios from 'axios'
+import React from "react";
+import {Field} from 'react-final-form'
 
 export function AuthFormWrapper({children}){
     return(

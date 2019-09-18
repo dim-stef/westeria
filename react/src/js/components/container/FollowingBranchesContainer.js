@@ -1,7 +1,6 @@
-import React , {useEffect,useState,useContext} from "react"
-import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import React, {useContext, useEffect, useState} from "react"
 import {SmallBranch} from '../presentational/Branch'
-import {UserContext,CachedBranchesContext} from "./ContextContainer"
+import {CachedBranchesContext, UserContext} from "./ContextContainer"
 import {SkeletonBranchList} from "../presentational/SkeletonBranchList";
 import axios from 'axios';
 

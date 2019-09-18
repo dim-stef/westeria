@@ -1,15 +1,13 @@
-import React, { Component, useState,useEffect,useRef,useContext } from "react";
-import {Link, NavLink } from "react-router-dom"
-import Responsive from 'react-responsive';
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
-import {UserContext,NotificationsContext} from "../container/ContextContainer"
-import {FrontPage,FrontPageFeed} from "./Routes"
+import React, {useContext, useEffect, useRef, useState} from "react";
+import {Link, NavLink} from "react-router-dom"
+import {NotificationsContext, UserContext} from "../container/ContextContainer"
+import {FrontPage} from "./Routes"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
-import { RoutedTabs, NavTab } from "react-router-tabs";
+import {NavTab, RoutedTabs} from "react-router-tabs";
 import {isMobile} from 'react-device-detect';
-import {Desktop,Tablet,Mobile} from './Responsive'
-import { askForPermissionToReceiveNotifications } from '../../push-notification';
+import {Desktop, Mobile, Tablet} from './Responsive'
+import {askForPermissionToReceiveNotifications} from '../../push-notification';
 import axios from 'axios'
 
 export function ResponsiveNavigationBar(){

@@ -1,13 +1,9 @@
-import React, {useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,lazy,Suspense} from 'react'
+import React, {Suspense, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import {Redirect} from 'react-router-dom';
-import {UserContext,ChatRoomsContext} from "../container/ContextContainer"
-import {isMobile} from 'react-device-detect';
-import {ToggleContent} from './Temporary'
-import { MoonLoader } from 'react-spinners';
+import {ChatRoomsContext, UserContext} from "../container/ContextContainer"
+import {MoonLoader} from 'react-spinners';
 import {CustomEditor} from "./Editor"
 import {MediaPreview} from './EditorMediaPreview'
-
-import ReactPlayer from 'react-player'
 import axios from 'axios'
 //const Editor = lazy(() => import('slate-react'));
 

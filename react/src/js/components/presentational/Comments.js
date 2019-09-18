@@ -1,8 +1,5 @@
-import React, { useState,useContext,useEffect,useRef,useCallback } from 'react';
-import ReactDOM from 'react-dom';
-import {Link} from 'react-router-dom'
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Post} from './SingularPost'
-import {PostsContext} from "../container/ContextContainer"
 import StatusUpdate from './StatusUpdate'
 import axios from 'axios';
 

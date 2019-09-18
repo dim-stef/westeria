@@ -1,12 +1,7 @@
-import React, { useState,useEffect,useContext,useRef,useCallback } from 'react';
-import { CSSTransition,Transition } from 'react-transition-group';
-import {isMobile} from 'react-device-detect';
-import {MobileModal} from "./MobileModal"
+import React from 'react';
 import {SmallBranch} from "./Branch"
-import {ToggleContent,Modal} from "./Temporary"
 import {DropdownList} from "./BranchPosts"
 import {useMyBranches} from "../container/BranchContainer"
-import {UserContext} from "../container/ContextContainer";
 
 
 export function BranchSwitcher({defaultBranch,setBranch,changeCurrentBranch=false,

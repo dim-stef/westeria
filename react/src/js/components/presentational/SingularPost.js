@@ -1,27 +1,34 @@
-import React, { useState,useContext,useEffect,useLayoutEffect,useRef,useCallback,Suspense, lazy } from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
-import {Link,Redirect,withRouter} from 'react-router-dom'
+import {Link, withRouter} from 'react-router-dom'
 import history from "../../history"
 import {Helmet} from 'react-helmet'
-import { CSSTransition,Transition } from 'react-transition-group';
-import ReactTooltip from 'react-tooltip'
-import { MoonLoader } from 'react-spinners';
+import {MoonLoader} from 'react-spinners';
 import Linkify from 'linkifyjs/react';
-import {UserContext,SingularPostContext,PostsContext,AllPostsContext,
-TreePostsContext,BranchPostsContext} from '../container/ContextContainer'
+import {
+    AllPostsContext,
+    BranchPostsContext,
+    PostsContext,
+    TreePostsContext,
+    UserContext
+} from '../container/ContextContainer'
 //const StatusUpdate = lazy(() => import('./StatusUpdate'));
 import StatusUpdate from "./StatusUpdate";
-import {FollowButton} from "./Card"
+import {FollowButton, SmallCard} from "./Card"
 import {ToggleContent} from './Temporary'
 import {ReplyTree} from './Comments'
 import RoutedHeadline from './RoutedHeadline'
 import {SmallBranch} from "./Branch"
-import {SmallCard} from "./Card"
-import { useInView } from 'react-intersection-observer'
+import {useInView} from 'react-intersection-observer'
 import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
-import LazyLoad from 'react-lazy-load';
+import '@material/react-ripple/dist/ripple.css';
+
+import {withRipple} from '@material/react-ripple';
+import {DropdownActionList} from "./DropdownActionList"
+import {InfoMessage} from "./InfoMessage"
+
 const copy = require('clipboard-copy')
 
 
@@ -347,10 +354,6 @@ function ShownBranch({branch,date,dimensions=48}){
     )
 }
 
-
-import '@material/react-ripple/dist/ripple.css';
-
-import {withRipple} from '@material/react-ripple';
 
 function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
@@ -1284,9 +1287,6 @@ function TopSpreadList({spreaders,selfSpread}){
         </div>
     )
 }
-
-import {DropdownActionList} from "./DropdownActionList"
-import {InfoMessage} from "./InfoMessage"
 
 function More({post,posts,setPosts}){
     const ref = useRef(null);

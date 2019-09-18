@@ -1,8 +1,5 @@
-import React, {useEffect,useRef,useState,useLayoutEffect} from 'react'
-import { useMediaQuery } from 'react-responsive'
-import { CSSTransition,Transition } from 'react-transition-group';
-import {MobileModal} from "./MobileModal"
-import {ToggleContent,AreYouSureModal} from "./Temporary"
+import React from 'react'
+import {AreYouSureModal, ToggleContent} from "./Temporary"
 
 
 export function AreYouSure({handleYes,handleNo,message,children}){
@@ -39,8 +36,8 @@ export function AreYouSure({handleYes,handleNo,message,children}){
                 <div className="modal-confirmation-box">
                     <span style={{fontSize:'1.4rem',fontWeight:500}}>{message}</span>
                     <div className="flex-fill" style={{marginTop:10}}>
-                        <button onClick={handleYes} className="accept-btn">yes</button>
-                        <button onClick={handleNo} className="decline-btn">no</button>
+                        <button onClick={handleYes} className="accept-btn">Yes, I am sure</button>
+                        <button onClick={handleNo} className="decline-btn">No, cancel</button>
                     </div>
                 </div>
             </AreYouSureModal>    

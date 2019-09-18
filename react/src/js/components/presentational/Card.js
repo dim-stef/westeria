@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {UserContext} from "../container/ContextContainer"
-import { Link } from 'react-router-dom'
+import {Link} from 'react-router-dom'
 import Linkify from 'linkifyjs/react';
 import axios from 'axios'
 
@@ -35,7 +35,7 @@ function Identifiers({branch}){
      
     return(
         <div style={{position:'absolute',left:270,width:672}}>
-            <div style={{display:'flex',paddingTop:10,alignItems:'flex-end'}}>
+            <div className="flex-fill" style={{paddingTop:10,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
                 <Name name={branch.name}/>
                 <FollowButton id={branch.id} uri={branch.uri}/>
             </div>
@@ -63,7 +63,7 @@ function Uri({uri}){
 
 function Description({description}){
     return(
-        <Linkify><p style={{overFlowWrap:'break-all',fontSize:'2em'}}>{description}</p></Linkify>
+        <Linkify><p style={{wordBreak:'break-word',overFlowWrap:'break-word',fontSize:'2em'}}>{description}</p></Linkify>
     )
 }
 
@@ -162,7 +162,7 @@ export function FollowButton({id,uri,style=null}){
             disabled={isDisabled}
             name="followAction"
             style={{
-            borderRadius: 24,
+            borderRadius: 50,
             display:'block',
             margin:'0 15px',
             padding: "8px",
@@ -177,23 +177,31 @@ export function FollowButton({id,uri,style=null}){
 
 export function SmallCard({branch}){
      
+    function onClick(e){
+        e.stopPropagation();
+        e.preventDefault();
+    }
+
     return(
         <div style={{width:300,height:'auto',position:'absolute',
         boxShadow:'0px 1px 6px -3px',top:50,backgroundColor:'white',
-        borderRadius:30,zIndex:50,padding:10}}>
+        borderRadius:30,zIndex:50,padding:10,cursor:'auto'}} onClick={onClick}>
             <div
                 style={{position:'relative'}} className="noselect small-branch-container flex-fill">
                 <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
                     <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
-                    <div style={{display:'flex',flexDirection:'column',justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
+                    <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
+                    justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10, flex:'1 1 auto',msFlex:'1 1 auto',
+                    WebkitFlex:'1 1 auto'}}>
                         <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
                         <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
                     </div>
                 </Link>
                 <FollowButton id={branch.id} uri={branch.uri}/>
             </div>
-            <p style={{fontSize:'2em',wordBreak:'break-all'}}>{branch.description}</p>
-            <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between'}}>
+            <p style={{fontSize:'2em',wordBreak:'break-word'}}>{branch.description}</p>
+            <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between',
+            WebkitJustifyContent:'space-between'}}>
                 <div>
                     <span style={{fontWeight:'bold'}}>Followers </span>
                     <span style={{color:'#455869',fontWeight:600}}>{branch.followers_count}</span>

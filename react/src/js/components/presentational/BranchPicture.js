@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 
 export const BranchPicture = ({uri,picture,dimensions,type="img",onClick=null}) =>{
     if(type==="img"){

@@ -1,6 +1,4 @@
-import React, { Component,PureComponent,useState,useContext } from "react";
-import { Helmet } from "react-helmet";
-import Responsive from 'react-responsive';
+import React from "react";
 
 
 if (process.env.NODE_ENV !== 'production') {

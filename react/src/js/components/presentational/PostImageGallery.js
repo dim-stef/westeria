@@ -1,9 +1,10 @@
-import React, {useState,useEffect,useRef,useLayoutEffect,useContext} from "react"
-import { useSwipeable, Swipeable } from 'react-swipeable'
+import React, {useRef, useState} from "react"
 import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
 import ReactPlayer from 'react-player'
 import ReactDOM from 'react-dom';
+import SwipeableViews from 'react-swipeable-views';
+import PinchToZoom from 'react-pinch-and-zoom';
 
 const Modal = ({ children ,onClick}) => (
     ReactDOM.createPortal(
@@ -23,8 +24,6 @@ Number.prototype.roundTo = function(num) {
         return this+num-resto;
     }
 }
-
-import SwipeableViews from 'react-swipeable-views';
 
 export function Images(props){
 
@@ -164,8 +163,6 @@ function getScrollbarWidth() {
 
 }
 
-import PinchToZoom from 'react-pinch-and-zoom';
-
 
 function ImageComponent({src,maxHeight,width,height}){
 
@@ -206,16 +203,23 @@ function ImageComponent({src,maxHeight,width,height}){
             content={hide => (
             <Modal onClick={e=>handleModalClose(e,hide)}>
                     <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
-                        <div style={{maxWidth:'70%',margin:'auto'}}>
-                            <PinchToZoom>
-                                <img style={{width:'100%',backgroundColor:'#2d2d2d'}} onClick={(e)=>e.stopPropagation()} src={src}/>
-                            </PinchToZoom>
+                        <div style={{margin:'auto',minWidth:'80%',minHeight:'30%'}}>
+                            <div className="close-button" onClick={e=>handleModalClose(e,hide)}>
+                                <CloseSvg/>
+                            </div>
+                            <div className="zoom-container">
+                                <PinchToZoom>
+                                    <img style={{width:'100%',backgroundColor:'#2d2d2d'}} onClick={(e)=>e.stopPropagation()} src={src}/>
+                                </PinchToZoom>
+                            </div>
                         </div>
                     </div>
             </Modal>    
         )}/>
     )
 }
+
+
 
 
 function MediaButtons({index,changeIndex,count,imageWidth,setIndex,incrementIndex,decrementIndex}){
@@ -291,3 +295,19 @@ function ImageArrow(){
         </svg>
     )
 }
+
+const CloseSvg = props => (
+    <svg x="0px" y="0px" viewBox="0 0 260 260" xmlSpace="preserve"
+    width="50px"
+    width="50px"
+    style={{
+        transform: 'rotate(45deg)',
+        msTransform: 'rotate(45deg)',
+        WebkitTransform: 'rotate(45deg)'
+    }} {...props}>
+      <path
+        d="M186.9 124.5H138V75.6c0-3.8-3-6.8-6.8-6.8s-6.8 3.1-6.8 6.8v48.8H75.6c-3.8 0-6.8 3.1-6.8 6.8 0 3.8 3.1 6.8 6.8 6.8h48.8v48.8c0 3.8 3.1 6.8 6.8 6.8 3.8 0 6.8-3 6.8-6.8V138h48.8c3.8 0 6.8-3 6.8-6.8.1-3.7-3-6.7-6.7-6.7z"
+        fill="#4497d2"
+      />
+    </svg>
+  );
