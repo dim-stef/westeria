@@ -1,9 +1,92 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.6.2 reply to bug fix">
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.6.2 css fix">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/templates/index_anon.html" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/index_anon.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/react/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/common/templates/serviceworker.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/common/templates/serviceworker.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/Router.bundle.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/js/Router.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/precache-manifest.4e15071d2912b26f2d8af34888f31cb5.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/precache-manifest.e44df9591d7400c484a3b9fab1369ddc.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/dist/serviceworker.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/GroupChatMessage.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/Page.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/Page.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/AppContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/AppContainer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/BranchContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/BranchContainer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/BranchParentsContainer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/BranchSettingsContainer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/FollowingBranchesContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/FollowingBranchesContainer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/GroupChatContainer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/GroupHomeContainer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/MutualFollows.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/MutualFollows.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ProfileContainer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/SettingsContainer.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/TrendingContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/TrendingContainer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/AreYouSure.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/AreYouSure.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchDetails.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchDetails.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchImage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchImage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchNavigation.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPageLeftBar.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPageLeftBar.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPicture.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPicture.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchPosts.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchSwitcher.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchSwitcher.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/ChatRoomSettings.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/ChatRoomSettings.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Comments.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Comments.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/CreateNewChat.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/CreateNewChat.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/DropdownActionList.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/DropdownActionList.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Editor.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Editor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/EditorMediaPreview.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/EditorMediaPreview.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/EmailConfirm.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/EmailConfirm.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/ExtendButton.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FormatToolbar.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Forms.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Forms.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Group.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/GroupHome.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/InfoMessage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/InfoMessage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Legacy.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Login.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Login.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Logout.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Logout.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileModal.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MobileModal.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranches.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranchesColumn.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MyBranchesColumn.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordReset.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordReset.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordResetConfirm.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PasswordResetConfirm.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Post.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/PostImageGallery.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/PureGroup.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Register.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Register.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/RoutedHeadline.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/RoutedHeadline.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Settings.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SettingsPage.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SideBar.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SkeletonBranchList.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SkeletonBranchList.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Temporary.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Tree.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/WideScreenNavigation.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/useless.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/serviceworker.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack.config.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -41,89 +124,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/branchposts/models.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1372">
-              <caret line="64" column="26" selection-start-line="64" selection-start-column="26" selection-end-line="64" selection-end-column="26" />
-              <folding>
-                <element signature="e#0#28#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="492">
-              <caret line="298" column="16" selection-start-line="298" selection-start-column="16" selection-end-line="298" selection-end-column="16" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/accounts/static/accounts/auth.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="868">
-              <caret line="31" column="23" selection-start-line="31" selection-start-column="23" selection-end-line="31" selection-end-column="23" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="24864">
-              <caret line="888" column="18" selection-start-line="888" selection-start-column="18" selection-end-line="888" selection-end-column="18" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/branchchat/consumers.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="980">
-              <caret line="40" column="47" selection-start-line="40" selection-start-column="47" selection-end-line="40" selection-end-column="47" />
-              <folding>
-                <element signature="e#0#61#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/utils.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="924">
-              <caret line="36" column="21" selection-start-line="36" selection-start-column="21" selection-end-line="36" selection-end-column="21" />
-              <folding>
-                <element signature="e#0#22#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/api/views.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1316">
-              <caret line="62" column="18" selection-start-line="62" selection-start-column="18" selection-end-line="62" selection-end-column="18" />
-              <folding>
-                <element signature="e#0#46#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/api/serializers.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17360">
-              <caret line="638" column="67" selection-start-line="638" selection-start-column="67" selection-end-line="638" selection-end-column="67" />
-              <folding>
-                <element signature="e#0#46#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="380">
+              <caret line="17" column="42" selection-start-line="17" selection-start-column="42" selection-end-line="17" selection-end-column="42" />
             </state>
           </provider>
         </entry>
@@ -152,6 +157,15 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="352">
+              <caret line="887" selection-start-line="887" selection-end-line="887" />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -166,10 +180,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>invite</find>
-      <find>STATUS_ON_HOLD</find>
-      <find>BranchRequ</find>
-      <find>ChatRe</find>
       <find>Invite</find>
       <find>modal-confirmation-box</find>
       <find>top-info-message</find>
@@ -196,6 +206,10 @@
       <find>auth-inp</find>
       <find>branch_chat.members.filter(uri=validated_data['author']).exists():</find>
       <find>chat-</find>
+      <find>index</find>
+      <find>video</find>
+      <find>follow</find>
+      <find>modal</find>
     </findStrings>
     <dirStrings>
       <dir>C:\Users\Dimitris\Desktop\env\subranch</dir>
@@ -208,12 +222,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/settings/forms.py" />
-        <option value="$PROJECT_DIR$/settings/views.py" />
-        <option value="$PROJECT_DIR$/common/static/css/tree.css" />
-        <option value="$PROJECT_DIR$/branchposts/migrations/0001_initial.py" />
-        <option value="$PROJECT_DIR$/core/urls.py" />
-        <option value="$PROJECT_DIR$/branches/urls.py" />
         <option value="$PROJECT_DIR$/branches/admin.py" />
         <option value="$PROJECT_DIR$/branchposts/admin.py" />
         <option value="$PROJECT_DIR$/notifications/admin.py" />
@@ -258,6 +266,12 @@
         <option value="$PROJECT_DIR$/api/serializers.py" />
         <option value="$PROJECT_DIR$/branches/static/groups/css/index.css" />
         <option value="$PROJECT_DIR$/api/views.py" />
+        <option value="$PROJECT_DIR$/react/common/templates/serviceworker.js" />
+        <option value="$PROJECT_DIR$/react/dist/serviceworker.js" />
+        <option value="$PROJECT_DIR$/react/webpack.config.js" />
+        <option value="$PROJECT_DIR$/common/templates/index_anon.html" />
+        <option value="$PROJECT_DIR$/react/src/js/components/presentational/BranchPageLeftBar.js" />
+        <option value="$PROJECT_DIR$/react/src/js/components/presentational/BranchPicture.js" />
         <option value="$PROJECT_DIR$/common/static/css/index.css" />
       </list>
     </option>
@@ -274,7 +288,7 @@
     <option name="width" value="1348" />
     <option name="height" value="693" />
   </component>
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="1" id="Add" />
   </component>
   <component name="ProjectView">
@@ -423,6 +437,71 @@
               <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
               <item name="subranch" type="462c0819:PsiDirectoryNode" />
               <item name="react" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="common" type="462c0819:PsiDirectoryNode" />
+              <item name="templates" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="dist" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="dist" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+              <item name="components" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+              <item name="components" type="462c0819:PsiDirectoryNode" />
+              <item name="container" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
+              <item name="subranch" type="462c0819:PsiDirectoryNode" />
+              <item name="react" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="js" type="462c0819:PsiDirectoryNode" />
+              <item name="components" type="462c0819:PsiDirectoryNode" />
+              <item name="presentational" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="subranch" type="b2602c69:ProjectViewProjectNode" />
@@ -600,14 +679,7 @@
       <workItem from="1567084608917" duration="73069000" />
       <workItem from="1567680357266" duration="83063000" />
       <workItem from="1568327456848" duration="34083000" />
-      <workItem from="1568732218735" duration="2767000" />
-    </task>
-    <task id="LOCAL-00190" summary="Reformatted names">
-      <created>1544481904834</created>
-      <option name="number" value="00190" />
-      <option name="presentableId" value="LOCAL-00190" />
-      <option name="project" value="LOCAL" />
-      <updated>1544481904834</updated>
+      <workItem from="1568732218735" duration="7443000" />
     </task>
     <task id="LOCAL-00191" summary="Reformatted names">
       <created>1544481925129</created>
@@ -945,11 +1017,18 @@
       <option name="project" value="LOCAL" />
       <updated>1568750269142</updated>
     </task>
-    <option name="localTasksCounter" value="239" />
+    <task id="LOCAL-00239" summary="1.6.2 css fix">
+      <created>1568808518579</created>
+      <option name="number" value="00239" />
+      <option name="presentableId" value="LOCAL-00239" />
+      <option name="project" value="LOCAL" />
+      <updated>1568808518579</updated>
+    </task>
+    <option name="localTasksCounter" value="240" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1268583000" />
+    <option name="totallyTimeSpent" value="1273259000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -964,7 +1043,7 @@
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.08426667" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19786666" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -1043,7 +1122,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="0.0.5 production update" />
     <MESSAGE value="0.0.6 production update" />
     <MESSAGE value="0.0.7 production update" />
     <MESSAGE value="0.0.8 production update" />
@@ -1068,7 +1146,8 @@
     <MESSAGE value="1.6.0 added z index on a .chat-headline" />
     <MESSAGE value="1.6.1 ui bugs" />
     <MESSAGE value="1.6.2 reply to bug fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.6.2 reply to bug fix" />
+    <MESSAGE value="1.6.2 css fix" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.6.2 css fix" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1081,180 +1160,6 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/branchposts/admin.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret selection-end-line="3" />
-          <folding>
-            <element signature="e#0#32#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/accounts/migrations/0002_auto_20180707_0113.py" />
-    <entry file="file://$PROJECT_DIR$/branches/migrations/0001_initial.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-398" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branches/migrations/0002_auto_20190828_0221.py" />
-    <entry file="file://$PROJECT_DIR$/branches/migrations/0003_auto_20190828_0230.py" />
-    <entry file="file://$PROJECT_DIR$/accounts/migrations/0002_auto_20190828_1806.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/accounts/migrations/0001_initial.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="19" column="20" lean-forward="true" selection-start-line="19" selection-start-column="20" selection-end-line="19" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/accounts/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="20" column="77" selection-start-line="20" selection-start-column="77" selection-end-line="20" selection-end-column="77" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branches/utils.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="140">
-          <caret line="5" column="60" selection-start-line="5" selection-start-column="60" selection-end-line="5" selection-end-column="60" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branchchat/migrations/0002_chatrequest.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/js/sw.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="12" lean-forward="true" selection-start-line="12" selection-end-line="12" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="168">
-          <caret line="6" column="16" lean-forward="true" selection-start-line="6" selection-start-column="16" selection-end-line="6" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/js/manifest.webmanifest">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="588">
-          <caret line="21" column="1" selection-start-line="21" selection-start-column="1" selection-end-line="21" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/src/index.html">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/common/templates/serviceworker.js">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/templates/firebase-messaging-sw.js">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/react/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="252">
-          <caret line="9" column="1" selection-start-line="9" selection-start-column="1" selection-end-line="9" selection-end-column="1" />
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/subranch/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="12" column="29" selection-start-line="12" selection-start-column="29" selection-end-line="12" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#32#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branches/apps.py">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branches/admin.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1092">
-          <caret line="43" column="26" selection-start-line="43" selection-start-column="20" selection-end-line="43" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#32#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/../Lib/site-packages/PIL/Image.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="594">
-          <caret line="1058" column="19" lean-forward="true" selection-start-line="1058" selection-start-column="19" selection-end-line="1058" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/subranch/settings_secret.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="668">
-          <caret line="24" column="1" selection-start-line="24" selection-start-column="1" selection-end-line="24" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/accounts/serializers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="28">
-          <caret line="15" column="36" selection-start-line="15" selection-start-column="36" selection-end-line="15" selection-end-column="36" />
-          <folding>
-            <element signature="e#0#38#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/notifications/consumers.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="84" column="39" selection-start-line="84" selection-start-column="39" selection-end-line="84" selection-end-column="39" />
-          <folding>
-            <element signature="e#0#61#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/branches/models.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="448">
-          <caret line="110" selection-start-line="110" selection-end-line="110" />
-          <folding>
-            <element signature="e#0#28#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/accounts/urls.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <folding>
-            <element signature="e#0#37#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/common/templates/sw.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="17" column="38" selection-start-line="17" selection-start-column="38" selection-end-line="17" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/api/v1/serializers.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="635">
@@ -1383,13 +1288,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="24864">
-          <caret line="888" column="18" selection-start-line="888" selection-start-column="18" selection-end-line="888" selection-end-column="18" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/branchchat/consumers.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="980">
@@ -1450,10 +1348,197 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/react/dist/serviceworker.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/dist/index.html">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/webpack.config.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="299">
+          <caret line="24" column="14" selection-start-line="24" selection-start-column="14" selection-end-line="24" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/index.html">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/serviceworker.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/templates/index_anon.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="500">
+          <caret line="103" selection-start-line="103" selection-end-line="103" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/GroupHome.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="28">
+          <caret line="1" column="55" selection-start-line="1" selection-start-column="55" selection-end-line="1" selection-end-column="55" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/GroupHomeContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-171">
+          <caret line="1" column="17" selection-start-line="1" selection-start-column="17" selection-end-line="1" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/GroupChatContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="28">
+          <caret line="1" column="49" selection-start-line="1" selection-start-column="49" selection-end-line="1" selection-end-column="49" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/Legacy.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-4960" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/Tree.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/SideBar.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/Settings.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#79#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/PureGroup.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1371">
+          <caret line="192" column="14" selection-start-line="192" selection-start-column="14" selection-end-line="192" selection-end-column="14" />
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/MyBranches.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1997">
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/SettingsContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2482" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/BranchSettingsContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-760">
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/BranchParentsContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-368">
+          <folding>
+            <element signature="e#0#81#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/ExtendButton.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/GroupChatMessage.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/ProfileContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/container/AppContainer.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3140">
+          <folding>
+            <element signature="e#0#71#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/WideScreenNavigation.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3444">
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/FormatToolbar.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/BranchPicture.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="528">
+          <caret line="25" column="22" selection-start-line="25" selection-start-column="22" selection-end-line="25" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/src/js/components/presentational/BranchPageLeftBar.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="9" column="24" selection-start-line="9" selection-start-column="24" selection-end-line="9" selection-end-column="24" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/react/common/templates/serviceworker.js">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="887" selection-start-line="887" selection-end-line="887" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="492">
-          <caret line="298" column="16" selection-start-line="298" selection-start-column="16" selection-end-line="298" selection-end-column="16" />
+        <state relative-caret-position="380">
+          <caret line="17" column="42" selection-start-line="17" selection-start-column="42" selection-end-line="17" selection-end-column="42" />
         </state>
       </provider>
     </entry>

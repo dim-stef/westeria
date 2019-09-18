@@ -15,7 +15,7 @@ body {
     z-index: 100000;
     position: fixed;
     top: 0;
-    background-color: rgba(0, 0, 0, 0.44);
+    background-color: rgba(0, 0, 0, 0.62);
     width: 100%;
     height: 100%;
 }
@@ -319,6 +319,24 @@ div[data-placeholder]{
     top: 0;
     border-radius: 50%;
     border: 2px solid white;
+}
+
+.close-button{
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background-color: #00000082;
+    border-radius: 50%;
+    margin: 10px;
+}
+
+.zoom-container{
+    width:100%;
+}
+
+.zoom-container > div{
+    width: 100%;
 }
 
 .load-spinner-wrapper{
