@@ -11,6 +11,7 @@ from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser,F
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchChat, BranchMessage, ChatRequest
 from branchposts.models import Post,React,Spread
+from notifications.models import Notification
 from . import permissions as api_permissions
 from . import serializers
 from itertools import chain
@@ -916,6 +917,7 @@ class UpdateSpread(viewsets.GenericViewSet,
 
 from django.db.models import Q
 from datetime import datetime, timedelta
+from django.http import Http404
 
 
 class NotificationsViewSet(viewsets.GenericViewSet,
@@ -926,6 +928,31 @@ class NotificationsViewSet(viewsets.GenericViewSet,
     permission_classes = (permissions.IsAuthenticated,)
     pagination_class = NotificationsPagination
 
+    last_five_days = datetime.today() - timedelta(days=5)
+
     def get_queryset(self):
-        last_five_days = datetime.today() - timedelta(days=5)
-        return self.request.user.notifications.filter(Q(unread=True) | Q(timestamp__gte=last_five_days))
+        return self.request.user.notifications.filter(Q(unread=True) | Q(timestamp__gte=self.last_five_days))\
+            .exclude(verb='message')
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = Notification.objects.get(pk=kwargs['pk'])
+        except Exception:
+            raise Http404
+
+        serializer = self.serializer_class(instance)
+        return Response(serializer.data)
+
+
+class MessageNotificationsViewSet(viewsets.GenericViewSet,
+                            mixins.ListModelMixin,
+                            mixins.RetrieveModelMixin):
+
+    serializer_class = serializers.NotificationSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    last_five_days = datetime.today() - timedelta(days=5)
+
+    def get_queryset(self):
+        return self.request.user.notifications.filter(verb='message', unread=True)\
+            .filter(Q(unread=True) | Q(timestamp__gte=self.last_five_days))

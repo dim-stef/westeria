@@ -258,6 +258,65 @@ from asgiref.sync import async_to_sync
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 
+@receiver(post_save, sender=Post)
+def create_post_notification(sender, instance, created, **kwargs):
+    if created and not instance.replied_to:
+
+        description = "added a new leaf"
+        verb = "add_leaf"
+
+        for follower in instance.poster.followed_by.distinct('owner'):
+            if not follower.owner.owned_groups \
+                    .filter(pk=instance.poster.pk).exists():
+                notification = Notification.objects.create(recipient=follower.owner,
+                                                           actor=instance.poster
+                                                           ,verb=verb, target=follower,
+                                                           action_object=instance, description=description)
+
+                branch_name = 'branch_%s' % follower
+
+                poster = {
+                    'uri': instance.poster.uri,
+                    'name': instance.poster.name,
+                    'profile': instance.poster.branch_image.url
+                }
+
+                channel_layer = channels.layers.get_channel_layer()
+
+                async_to_sync(channel_layer.group_send)(
+                    branch_name,
+                    {
+                        'type': 'send.post.notification',
+                        'poster': poster,
+                        'post': instance.id,
+                        'created': str(instance.created),
+                        'verb': verb,
+                        'id': notification.id
+                    }
+                )
+
+                max_body_length = 200
+                fcm_device = GCMDevice.objects.filter(user=follower.owner)
+
+                if len(instance.description) > max_body_length:
+                    body = "%s..." % instance.description[0:200]
+                else:
+                    body = instance.description
+
+                title = '%s (@%s) Added a leaf' % (
+                instance.poster.name, instance.poster.uri)
+
+                icon = ''
+                if instance.poster.icon:
+                    icon = instance.poster.icon.url
+
+                fcm_device.send_message(body,
+                                        extra={"title": title,
+                                               "sound": 'default',
+                                               "icon": icon,
+                                               "badge": '/static/favicon-72x72.jpg',
+                                               "click_action": '/%s/leaves/%s' % (
+                                               instance.poster.uri, instance.id)}),
 
 @receiver(post_save, sender=Post)
 def create_reply_notification(sender, instance, created, **kwargs):

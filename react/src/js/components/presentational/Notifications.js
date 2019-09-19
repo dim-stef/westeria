@@ -67,9 +67,7 @@ export function NotificationsContainer({inBox}){
     }
 
     async function getMoreNotifications(){
-        console.log("this far",notificationsContext.notifications.length,next)
         if(notificationsContext.notifications.length > 0 && next){
-            console.log("this far 2")
             let response = await axios.get(next);
             notificationsContext.setNotifications([...notificationsContext.notifications,...response.data.results]);
     
@@ -196,7 +194,7 @@ function NotificationMatcher({notification}){
 
     if(notification.verb=="become_child" || notification.verb=="become_parent"){
         return <BranchNotification notification={notification}/>
-    }else if(notification.verb=='react'){
+    }else if(notification.verb=='react' || notification.verb=="add_leaf"){
         return <ReactNotification notification={notification}/>;
     }else if(notification.verb=='follow'){
         return <FollowNotification notification={notification}/>;

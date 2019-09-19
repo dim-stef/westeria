@@ -8,12 +8,10 @@ from . import views
 
 router = routers.DefaultRouter()
 drf_router = drf_routers.DefaultRouter()
-
-drf_router.register(r'^branches/(?P<branch__uri>.+)/posts/new2', views.BranchNewPostViewSet, base_name='new_post2')
-
 router.register(r'user', views.UserViewSet, base_name='user')
 router.register(r'user/following', views.UserFollowViewSet, base_name='user_following')
 router.register(r'notifications', views.NotificationsViewSet, base_name='notifications')
+router.register(r'message_notifications', views.MessageNotificationsViewSet, base_name='message_notifications')
 router.register(r'reacts',views.ReactsViewSet,base_name="reacts")
 router.register(r'post/add_reply', views.AddPostReply, base_name='add_reply')
 router.register(r'post/remove_reply', views.RemovePostReply, base_name='remove_reply')

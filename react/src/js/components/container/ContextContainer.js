@@ -31,7 +31,10 @@ let frontPagePostList = {
 }
 
 export const UserContext = React.createContext();
-export const NotificationsContext = React.createContext();
+export const NotificationsContext = React.createContext({
+    notifications:[],
+    messages:[]
+});
 export const NotificationsProvider= NotificationsContext.Provider
 export const NotificationsConsumer= NotificationsContext.Consumer
 

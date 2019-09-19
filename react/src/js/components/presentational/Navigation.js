@@ -1,9 +1,9 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {Link, NavLink} from "react-router-dom"
 import {NotificationsContext, UserContext} from "../container/ContextContainer"
-import {FrontPage} from "./Routes"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
+import {Messages} from "./Messages";
 import {NavTab, RoutedTabs} from "react-router-tabs";
 import {isMobile} from 'react-device-detect';
 import {Desktop, Mobile, Tablet} from './Responsive'
@@ -136,7 +136,7 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
                     <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
                     style={style} activeStyle={activeStyle} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
-                    <MessageSvg/>
+                    <Messages/>
                     {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
                         <span className="new-circle">
 
@@ -196,7 +196,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     activeStyle={activeStyle}
                     style={style} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
-                        <MessageSvg/>
+                        <Messages/>
                         {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
                         <span className="new-circle">
 

@@ -103,3 +103,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             'verb': verb,
             'id': id
         }))
+
+    async def send_post_notification(self,event):
+        poster = event['poster']
+        post = event['post']
+        verb = event['verb']
+        created = event['created']
+        id = event['id']
+
+        await self.send(text_data=json.dumps({
+            'poster': poster,
+            'post': post,
+            'verb': verb,
+            'id': id
+        }))
