@@ -93,6 +93,8 @@ class Post(models.Model):
             return self.text
         elif image_count > 0 or video_count > 0:
             return "%s Media" % str(image_count + video_count)
+        else:
+            return 'Media'
 
     class Meta:
         unique_together = (("posted","id"),)
