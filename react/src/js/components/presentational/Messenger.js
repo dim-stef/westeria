@@ -236,16 +236,32 @@ function CodeNode(props) {
 
 function Toolbar({handleSendMessage,onInput,isLoading}){
 
+    const inputRef = useRef(null);
+
     function preventBlur(e){
         e.preventDefault();
         e.stopPropagation();
     }
 
+    useEffect(()=>{
+        if(inputRef.current){
+            inputRef.current.addEventListener('input',onInput)
+            inputRef.current.addEventListener('change',onInput)
+        }
+
+        return ()=>{
+            if(inputRef.current){
+                inputRef.current.removeEventListener('input',onInput)
+                inputRef.current.removeEventListener('change',onInput)
+            }
+        }
+    },[inputRef])
+
     return(
         <div className="flex-fill" style={{marginTop:5}}>
             <div className="flex-fill" style={{flex:'1 1 auto',margin:'0 10px'}}>
                 <input type="file" accept="image/*|video/*" multiple 
-                className="inputfile" id="media" style={{display:'block'}} onInput={onInput}></input>
+                className="inputfile" id="media" style={{display:'block'}} ref={inputRef}></input>
                 <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
             </div>
             {isLoading?

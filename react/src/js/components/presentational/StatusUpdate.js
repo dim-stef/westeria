@@ -233,6 +233,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
 
+    const inputRef = useRef(null)
     const handleClick = (e)=>{
         
         let post = value;
@@ -354,6 +355,20 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         onSelect(0);
     }
 
+    useEffect(()=>{
+        if(inputRef.current){
+            inputRef.current.addEventListener('input',handleImageClick)
+            inputRef.current.addEventListener('change',handleImageClick)
+        }
+
+        return ()=>{
+            if(inputRef.current){
+                inputRef.current.removeEventListener('input',handleImageClick)
+                inputRef.current.removeEventListener('change',handleImageClick)
+            }
+        }
+    },[inputRef])
+
     return(
         <ToggleContent 
                 toggle={show=>(
@@ -361,7 +376,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
              
                     <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
                         <input type="file" multiple className="inputfile" id="media"
-                        accept="image/*|video/*" style={{display:'block'}} onInput={e=>handleImageClick(e)}></input>
+                        accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                         <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
                     </div>
                     <button style={{marginRight:10}} className="editor-btn"

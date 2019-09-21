@@ -1,21 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.7.0 added new post notifications, google analytics, fixed various bugs">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branches/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/static/groups/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/branches/static/groups/css/index.css" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.7.2 removed capture from input fields">
       <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/.babelrc" beforeDir="false" afterPath="$PROJECT_DIR$/react/.babelrc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/react/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/AppContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/AppContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messages.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messages.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SideDrawer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/webpack.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/react/yarn.lock" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -65,11 +52,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="268">
-              <caret line="110" column="38" selection-start-line="110" selection-start-column="38" selection-end-line="110" selection-end-column="38" />
+            <state relative-caret-position="748">
+              <caret line="670" column="18" selection-start-line="670" selection-start-column="18" selection-end-line="670" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -83,11 +70,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/branches/models.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="237">
-              <caret line="81" column="25" selection-start-line="81" selection-start-column="25" selection-end-line="81" selection-end-column="25" />
+            <state relative-caret-position="153">
+              <caret line="78" column="24" selection-start-line="78" selection-start-column="24" selection-end-line="78" selection-end-column="24" />
               <folding>
                 <element signature="e#0#28#0" expanded="true" />
               </folding>
@@ -270,10 +257,10 @@
         <option value="$PROJECT_DIR$/accounts/templates/base.html" />
         <option value="$PROJECT_DIR$/api/urls.py" />
         <option value="$PROJECT_DIR$/api/views.py" />
-        <option value="$PROJECT_DIR$/common/static/css/index.css" />
         <option value="$PROJECT_DIR$/branches/static/groups/css/index.css" />
         <option value="$PROJECT_DIR$/branchposts/models.py" />
         <option value="$PROJECT_DIR$/branches/models.py" />
+        <option value="$PROJECT_DIR$/common/static/css/index.css" />
       </list>
     </option>
   </component>
@@ -599,14 +586,7 @@
       <workItem from="1567084608917" duration="73069000" />
       <workItem from="1567680357266" duration="83063000" />
       <workItem from="1568327456848" duration="34083000" />
-      <workItem from="1568732218735" duration="23941000" />
-    </task>
-    <task id="LOCAL-00195" summary="committed index.html">
-      <created>1544482068491</created>
-      <option name="number" value="00195" />
-      <option name="presentableId" value="LOCAL-00195" />
-      <option name="project" value="LOCAL" />
-      <updated>1544482068491</updated>
+      <workItem from="1568732218735" duration="25577000" />
     </task>
     <task id="LOCAL-00196" summary="First commit">
       <created>1544482082656</created>
@@ -944,11 +924,18 @@
       <option name="project" value="LOCAL" />
       <updated>1569017840881</updated>
     </task>
-    <option name="localTasksCounter" value="244" />
+    <task id="LOCAL-00244" summary="1.7.2 removed capture from input fields">
+      <created>1569076767197</created>
+      <option name="number" value="00244" />
+      <option name="presentableId" value="LOCAL-00244" />
+      <option name="project" value="LOCAL" />
+      <updated>1569076767198</updated>
+    </task>
+    <option name="localTasksCounter" value="245" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1289757000" />
+    <option name="totallyTimeSpent" value="1291393000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -960,10 +947,10 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="7" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.19786666" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.19786666" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -977,7 +964,7 @@
       <window_info anchor="bottom" id="Database Changes" order="8" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="9" weight="0.32998884" />
       <window_info anchor="bottom" id="Terminal" order="10" weight="0.32937366" />
-      <window_info anchor="bottom" id="Version Control" order="11" weight="0.5562988" />
+      <window_info anchor="bottom" id="Version Control" order="11" weight="0.18952063" />
       <window_info anchor="bottom" id="Docker" order="12" show_stripe_button="false" />
       <window_info anchor="bottom" id="Inspection Results" order="13" weight="0.32998884" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -1042,7 +1029,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="0.0.9 production update" />
     <MESSAGE value="1.0.0 production update" />
     <MESSAGE value="updated requirements" />
     <MESSAGE value="last minute fixes" />
@@ -1067,7 +1053,8 @@
     <MESSAGE value="1.6.3 fixed chat bugs" />
     <MESSAGE value="1.7.0 added new post notifications, google analytics, fixed various bugs" />
     <MESSAGE value="1.7.1 fixed breaking bug where post.instance was not defined" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.7.1 fixed breaking bug where post.instance was not defined" />
+    <MESSAGE value="1.7.2 removed capture from input fields" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.7.2 removed capture from input fields" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1411,13 +1398,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="268">
-          <caret line="110" column="38" selection-start-line="110" selection-start-column="38" selection-end-line="110" selection-end-column="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/branches/static/groups/css/index.css">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-363">
@@ -1457,11 +1437,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/branches/models.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="237">
-          <caret line="81" column="25" selection-start-line="81" selection-start-column="25" selection-end-line="81" selection-end-column="25" />
+        <state relative-caret-position="153">
+          <caret line="78" column="24" selection-start-line="78" selection-start-column="24" selection-end-line="78" selection-end-column="24" />
           <folding>
             <element signature="e#0#28#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="748">
+          <caret line="670" column="18" selection-start-line="670" selection-start-column="18" selection-end-line="670" selection-end-column="18" />
         </state>
       </provider>
     </entry>
