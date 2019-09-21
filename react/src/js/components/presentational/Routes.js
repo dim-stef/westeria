@@ -1,5 +1,8 @@
 import React, {Component, useContext, useEffect, useState} from "react"
 import {Link, Redirect, Route, Switch, withRouter} from 'react-router-dom'
+import { Global, css } from "@emotion/core";
+import styled from '@emotion/styled'
+import { withTheme } from 'emotion-theming'
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
 import Login from "./Login"
@@ -38,6 +41,7 @@ import MyBranchesColumnContainer from "./MyBranchesColumn"
 //const FeedPosts = lazy(() => import('./BranchPosts'));
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
 import {MobileBranchPageWrapper} from "./MobileParentBranch"
+import {useTheme} from "../container/ThemeContainer"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
 
@@ -86,7 +90,25 @@ const Routes = ()=>{
 
 
 
-const RoutesWrapper = () =>{
+/*const GlobalStyle = createGlobalStyle`
+  body {
+    color: ${props => props.theme.textColor};
+    backgroundColor: ${props => props.theme.backgroundColor};
+  }
+`*/
+
+const makeGlobalStyles = theme => css`
+  body {
+    background: ${theme.backgroundColor};
+    color: ${theme.textColor};
+  }
+`
+
+const GlobalStyles = withTheme(({ theme }) => (
+  <Global styles={makeGlobalStyles(theme)} />
+))
+
+const RoutesWrapper = (props) =>{
   const setNotifications = (newnotifications) => {
     setState({...state, notifications: newnotifications})
   }
@@ -100,6 +122,8 @@ const RoutesWrapper = () =>{
 
   return(
     <NotificationsProvider value={state}>
+      {/*<GlobalStyle/>*/}
+      <GlobalStyles/>
       <Routes/>
     </NotificationsProvider>
   )
@@ -178,20 +202,30 @@ function SingularPostWrapper({externalPostId}){
     )
 }
 
+const rightBar = theme => css({
+  backgroundColor:theme.backgroundColor,
+  color:theme.textColor,
+  flexBasis:'22%',
+  height:'max-content'
+})
+
+const rightBarP = theme => css({
+  fontSize: "1.6em",
+  fontWeight: 600,
+  paddingBottom: 5,
+  margin: "-10px -20px",
+  backgroundColor: "#219ef3",
+  color: theme.textColor,
+  padding: "10px 20px",
+  marginBottom:10
+})
+
+
 function FrontPageRightBar(){
     return(
-        <div style={{ flexBasis:'22%',WebkitFlexBasis:'22%',height:'max-content', backgroundColor:'white'}}>
+        <div css={theme => rightBar(theme)}>
             <div className="box-border" style={{padding:'10px 20px'}}>
-            <p style={{
-                    fontSize: "1.6em",
-                    fontWeight: 600,
-                    paddingBottom: 5,
-                    margin: "-10px -20px",
-                    backgroundColor: "#219ef3",
-                    color: "white",
-                    padding: "10px 20px",
-                    marginBottom:10
-                }}>Popular now</p>
+            <p css={theme => rightBarP(theme)}>Popular now</p>
                 <TrendingContainer/>
             </div>
         </div>

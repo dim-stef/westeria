@@ -359,15 +359,15 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                 toggle={show=>(
                 <div className="flex-fill" style={{marginTop:5}}>
              
-                    <div className="flex-fill" style={{flex:'1 1 auto'}}>
+                    <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
                         <input type="file" multiple className="inputfile" id="media"
-                        accept="image/*|video/*" style={{display:'block'}} capture onInput={e=>handleImageClick(e)}></input>
+                        accept="image/*|video/*" style={{display:'block'}} onInput={e=>handleImageClick(e)}></input>
                         <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
                     </div>
                     <button style={{marginRight:10}} className="editor-btn"
                     onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
                     {isLoading?
-                    <div style={{alignSelf:'center'}}>
+                    <div style={{alignSelf:'center',WebkitAlignItems:'center'}}>
                         <MoonLoader
                             sizeUnit={"px"}
                             size={20}

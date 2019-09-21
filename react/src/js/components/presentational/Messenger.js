@@ -244,7 +244,7 @@ function Toolbar({handleSendMessage,onInput,isLoading}){
     return(
         <div className="flex-fill" style={{marginTop:5}}>
             <div className="flex-fill" style={{flex:'1 1 auto',margin:'0 10px'}}>
-                <input type="file" accept="image/*|video/*" capture multiple 
+                <input type="file" accept="image/*|video/*" multiple 
                 className="inputfile" id="media" style={{display:'block'}} onInput={onInput}></input>
                 <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
             </div>

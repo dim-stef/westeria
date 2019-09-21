@@ -63,11 +63,11 @@ body {
 }
 
 .nav-icon-container:hover svg{
-    background-color: #219ef31c;
+    background-color: #219ef31c !important;
 }
 
 .nav-icon-container:hover svg path{
-    fill: #2397f3;
+    fill: #2397f3 !important;
 }
 
 .side-drawer-branch{

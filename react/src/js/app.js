@@ -8,12 +8,15 @@ import ReactDOM from "react-dom";
 import { Router , Link } from 'react-router-dom'
 import { initializeFirebase } from "./push-notification"
 import AppContainer from "./components/container/AppContainer.js"
+import {ThemeProvider} from "./components/container/ThemeContainer";
 import history from './history';
 
 
 ReactDOM.render((
     <Router history={history}>
-        <AppContainer />
+        <ThemeProvider>
+            <AppContainer/>
+        </ThemeProvider>
     </Router>
 ), document.getElementById('react-root'))
 initializeFirebase();

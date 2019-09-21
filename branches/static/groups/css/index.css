@@ -746,18 +746,18 @@ div.route-section {
 
 .star-clicked{
     stroke-width: 0 !important;
-    fill:#fb4c4c;
+    fill:#fb4c4c !important;
 }
 
 .dislike-clicked{
     stroke-width: 0 !important;
-    fill:#3c3fff;
+    fill:#3c3fff !important;
 }
 
 
 .comments-clicked{
     stroke-width: 0 !important;
-    fill:#03A9F4;
+    fill:#03A9F4 !important;
 }
 
 

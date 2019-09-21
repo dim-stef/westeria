@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {Link, NavLink} from "react-router-dom"
+import { css } from "@emotion/core";
+import styled from '@emotion/styled'
 import {NotificationsContext, UserContext} from "../container/ContextContainer"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
@@ -7,6 +9,7 @@ import {Messages} from "./Messages";
 import {NavTab, RoutedTabs} from "react-router-tabs";
 import {isMobile} from 'react-device-detect';
 import {Desktop, Mobile, Tablet} from './Responsive'
+import {useTheme} from "../container/ThemeContainer";
 import {askForPermissionToReceiveNotifications} from '../../push-notification';
 import axios from 'axios'
 
@@ -88,6 +91,23 @@ export function ResponsiveNavigationBar(){
     )
 }
 
+const navBarContainer = theme => css({
+    borderBottom:`2px solid ${theme.borderColor}`,
+    justifyContent:'center',
+    height:'100%'
+})
+
+const navBarPositioner = theme => css({
+    height: 50,
+    position: "fixed",
+    width: "100%",
+    backgroundColor: theme.backgroundColor,
+    maxWidth:1200,
+    zIndex: 5,
+    top:0
+})
+
+
 export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
 
     const context = useContext(UserContext);
@@ -100,22 +120,9 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
         justifyContent:'center',alignItems:'center',height:'100%',width:'100%'
     }
     return(
-        <div style={{
-            height: 50,
-            position: "fixed",
-            width: "100%",
-            backgroundColor: "white",
-            maxWidth:1200,
-            zIndex: 5,
-            top:0
-        }}
+        <div css={theme=>navBarPositioner(theme)}
         >
-            <div className="flex-fill" style={{
-                justifyContent:'space-between',
-                WebkitJustifyContent:'space-between',
-                borderBottom:'2px solid rgb(226, 234, 241)',
-                height:'100%',
-                }}>
+            <div className="flex-fill" css={theme=>navBarContainer(theme)}>
                 <NavLink exact to="/" className="flex-fill nav-icon-container center-items"
                 activeStyle={activeStyle} activeClassName="active-tab-route"
                 style={style}>
@@ -157,6 +164,24 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
     )
 }
 
+
+const mobileNavBarPositioner = theme => css({
+    height: 60,
+    position: 'fixed',
+    width: '100%',
+    backgroundColor: theme.backgroundColor,
+    zIndex: 5,
+    alignItems: 'center',
+    bottom: 0
+})
+
+const mobileNavBarContainer = theme => css({
+    borderTop:`2px solid ${theme.borderColor}`,
+    height:'100%',
+    width:'100%',
+    textDecoration:'none',
+})
+
 export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const context = useContext(UserContext);
     const notificationsContext = useContext(NotificationsContext);
@@ -167,16 +192,16 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
 
 
     return(
-        <div className="flex-fill mobile-navigation" >
+        <div className="flex-fill" css={theme=>mobileNavBarPositioner(theme)}>
                 <NavLink exact to="/" className="flex-fill center-items"
                 activeClassName="active-tab-route"
                 activeStyle={activeStyle}
-                style={style}>
+                css={theme=>mobileNavBarContainer(theme)}>
                     <Home/>
                 </NavLink>
                 <NavLink to="/search" className="flex-fill center-items"
                 activeClassName="active-tab-route" activeStyle={activeStyle}
-                style={style}>
+                css={theme=>mobileNavBarContainer(theme)}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
@@ -184,7 +209,8 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     className="flex-fill center-items"
                     activeClassName="active-tab-route"
                     activeStyle={activeStyle}
-                    style={style} onClick={readAllNotifications}>
+                    css={theme=>mobileNavBarContainer(theme)} 
+                    onClick={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
@@ -194,7 +220,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     activeClassName="active-tab-route"
                     className="flex-fill center-items"
                     activeStyle={activeStyle}
-                    style={style} onClick={readAllMessages}>
+                    css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                         <Messages/>
                         {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
@@ -213,7 +239,8 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
 
 function ProfileDropDown({setFocused}){
     const context = useContext(UserContext);
-
+    const theme = useTheme();
+    
     function unFocus(){
         setFocused(false);
     }
@@ -235,10 +262,12 @@ function ProfileDropDown({setFocused}){
                         <NavTab to="/settings" onClick={unFocus} className="profile-dropdown-option">Settings</NavTab>
                         <div style={{height:1,margin:'10px 0',backgroundColor:'gainsboro'}}></div>
                         <NavTab to="/logout/instant" onClick={unFocus} className="profile-dropdown-option">Logout</NavTab>
+                        {/*<button onClick={theme.toggle}>toggle theme</button>*/}
                     </>:
                     <>
                         <NavTab to="/login" onClick={unFocus} className="profile-dropdown-option">Login</NavTab>
                         <NavTab to="/register" onClick={unFocus} className="profile-dropdown-option">Register</NavTab>
+                        {/*<button onClick={theme.toggle}>toggle theme</button>*/}
                     </>
                 }
                 </RoutedTabs>
@@ -249,9 +278,7 @@ function ProfileDropDown({setFocused}){
 
 function Home(props){
     return(
-        <div style={{display:'flex',alignItems:'center'}}>
-            {/*<span className="material-icons user-color">home</span>
-            <span style={{color: "#156bb7",fontWeight:500,fontSize:17}}>Home</span>*/}
+        <div css={{display:'flex',alignItems:'center'}}>
             <HomeSvg/>
         </div>
     )
@@ -386,7 +413,9 @@ function ResultBranch({branch,onclic}){
     )
 }
 
-
+const icon = theme =>css({
+    fill:theme.textColor
+})
 
 const HomeSvg = props => (
     <div className="flex-fill" style={{borderRadius:'50%',overflow:'hidden',
@@ -394,7 +423,7 @@ const HomeSvg = props => (
         <svg className="nav-icon" x="0px" y="0px" viewBox="0 0 260 260" xmlSpace="preserve" {...props}>
         <path
             d="M228.9 100.7l-92.4-68.5c-4-3-9.4-3-13.4 0l-92.4 68.5c-1.3.9-2 2.4-2 4v21.7c0 2.8 2.2 5 5 5h7.5v88c0 6.2 5 11.2 11.2 11.2h154.9c6.2 0 11.2-5 11.2-11.2v-88h7.4c2.8 0 5-2.2 5-5v-21.7c0-1.6-.7-3.1-2-4zM110.1 220.5v-52h39.6v52h-39.6zm103.4-99.1h-12.4c-2.8 0-5 2.2-5 5s2.2 5 5 5h7.4v88c0 .7-.5 1.2-1.2 1.2h-47.7v-57c0-2.8-2.2-5-5-5H105c-2.8 0-5 2.2-5 5v57H52.4c-.7 0-1.2-.5-1.2-1.2v-88h7.4c2.8 0 5-2.2 5-5s-2.2-5-5-5H38.8v-14.2l90.4-67c.4-.3 1-.3 1.4 0l90.4 67v14.2h-7.5z"
-            fill="#212121"
+            css={theme=>icon(theme)}
         />
         </svg>
     </div>
@@ -413,48 +442,18 @@ const SearchSvg = props => (
         className="nav-icon"
         {...props}
         >
-        <style>{".st0{fill:#212121}"}</style>
         <path
-            className="st0"
+            css={theme=>icon(theme)}
             d="M104.3 166.2c-34.1 0-61.9-27.8-61.9-61.9 0-34.1 27.8-61.9 61.9-61.9s61.9 27.8 61.9 61.9c0 34.2-27.7 61.9-61.9 61.9zm0-113.8c-28.6 0-51.9 23.3-51.9 51.9 0 28.6 23.3 51.9 51.9 51.9 28.6 0 51.9-23.3 51.9-51.9 0-28.6-23.3-51.9-51.9-51.9z"
         />
         <path
-            className="st0"
+            css={theme=>icon(theme)}
             d="M69.1 123.6c-2 0-3.9-1.2-4.6-3.1-2.1-5.1-3.1-10.5-3.1-16.1 0-2.8 2.2-5 5-5s5 2.2 5 5c0 4.3.8 8.4 2.4 12.3 1 2.6-.2 5.5-2.8 6.5-.6.2-1.2.4-1.9.4zM69.1 95.1c-.6 0-1.3-.1-1.9-.4-2.6-1-3.8-4-2.8-6.5 6.6-16.3 22.2-26.8 39.8-26.8 2.8 0 5 2.2 5 5s-2.2 5-5 5c-13.5 0-25.5 8.1-30.5 20.6-.7 1.9-2.6 3.1-4.6 3.1z"
         />
         <path
-            className="st0"
+            css={theme=>icon(theme)}
             d="M218.2 236.6c-4.7 0-9.4-1.8-13-5.4L147 173c-16.2 10.1-35.3 14.1-54.5 11.3-35.7-5.1-63.8-33.6-68.4-69.4-3.2-25.3 5.1-50 23-67.9C65 29.3 89.7 20.9 115 24.1c35.8 4.6 64.3 32.7 69.4 68.4 2.7 19.1-1.3 38.3-11.3 54.5l58.2 58.2c7.2 7.2 7.2 18.9 0 26.1-3.7 3.5-8.4 5.3-13.1 5.3zm-70.6-75c1.3 0 2.6.5 3.5 1.5l61 61c3.3 3.3 8.6 3.3 11.9 0 3.3-3.3 3.3-8.6 0-11.9l-61-61c-1.7-1.7-2-4.4-.6-6.4 10.3-14.8 14.5-32.8 12-50.9C170 62.7 145 38.1 113.7 34c-22.2-2.8-43.9 4.5-59.5 20.2-15.7 15.7-23 37.4-20.1 59.5 4 31.3 28.6 56.3 59.9 60.7 18 2.6 36.1-1.7 50.8-12 .8-.5 1.8-.8 2.8-.8z"
         />
         </svg>
     </div>
 );
-
-const MessageSvg = props => (
-    <div className="flex-fill" style={{borderRadius:'50%',overflow:'hidden',
-    WebkitMaskImage:'-webkit-radial-gradient(white, black)'}}>
-        <svg
-        id="Layer_1"
-        x="0px"
-        y="0px"
-        viewBox="0 0 260 260"
-        xmlSpace="preserve"
-        className="nav-icon"
-        {...props}
-        >
-        <style>{".st0{fill:#212121}"}</style>
-        <path
-            className="st0"
-            d="M219.8 204.6H40.2c-7.7 0-14-6.3-14-14V69.4c0-7.7 6.3-14 14-14h179.5c7.7 0 14 6.3 14 14v121.2c0 7.7-6.2 14-13.9 14zM40.2 65.4c-2.2 0-4 1.8-4 4v121.2c0 2.2 1.8 4 4 4h179.5c2.2 0 4-1.8 4-4V69.4c0-2.2-1.8-4-4-4H40.2z"
-        />
-        <path
-            className="st0"
-            d="M130 151.2c-9.7 0-18.9-3.8-25.8-10.7l-63-63.1c-2-2-2-5.1 0-7.1s5.1-2 7.1 0l63.1 63.1c5 5 11.6 7.7 18.7 7.7s13.7-2.7 18.7-7.7l63.1-63.1c2-2 5.1-2 7.1 0s2 5.1 0 7.1l-63.1 63.1c-7 6.9-16.2 10.7-25.9 10.7z"
-        />
-        <path
-            className="st0"
-            d="M44.7 191.1c-1.3 0-2.6-.5-3.5-1.5-2-2-2-5.1 0-7.1l49.4-49.4c2-2 5.1-2 7.1 0s2 5.1 0 7.1l-49.4 49.4c-1 1-2.3 1.5-3.6 1.5zM215.3 191.1c-1.3 0-2.6-.5-3.5-1.5l-49.4-49.4c-2-2-2-5.1 0-7.1s5.1-2 7.1 0l49.4 49.4c2 2 2 5.1 0 7.1-1.1 1-2.4 1.5-3.6 1.5z"
-        />
-        </svg>
-    </div>
-  );

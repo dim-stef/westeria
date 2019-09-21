@@ -1,6 +1,7 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Link, withRouter} from 'react-router-dom'
+import { css } from "@emotion/core";
 import history from "../../history"
 import {Helmet} from 'react-helmet'
 import {MoonLoader} from 'react-spinners';
@@ -31,6 +32,14 @@ import {InfoMessage} from "./InfoMessage"
 
 const copy = require('clipboard-copy')
 
+const pathFill = (fillColor, strokeColor,fillHover,strokeHover,clickedColor)=> css({
+    fill:clickedColor||fillColor,
+    stroke:strokeColor,
+    '&:hover': {
+        fill:fillHover,
+        stroke:strokeHover
+    }
+})
 
 function getPostedTo(post,activeBranch,context){
     if(!context.isAuth){
@@ -626,7 +635,7 @@ function PostActions({post,handleCommentClick,handleSpread,selfSpread}){
     const [isDisabled,setDisabled] = useState(false);
     let ratio = starCount/(starCount + dislikeCount) * 100;
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(context.isAuth){
             let reactType = context.currentBranch.reacts.find(x=>x.post===post.id)
             if(reactType){
@@ -813,15 +822,15 @@ function Star({postId,react,changeReact,createOrDeleteReact,isDisabled}){
     }
 
     // hard-coded clicked class
-    let className = reacted ? 'star-clicked' : ''
-
+    let className = reacted ? 'star-clicked' : '';
+    let clickedColor = reacted ? '#fb4c4c' : null;
     return(
         <div className="post-action-container flex-fill star" style={{minWidth:0,width:'100%',
         justifyContent:'flex-start',WebkitJustifyContent:'flex-start'}}>
             <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}}
             disabled={isDisabled} onClick={e=>onClick(e)}>
                 <div className="flex-fill" style={{alignItems:'center'}}>
-                    <StarSvg className={className}/>
+                    <StarSvg className={className} clickedColor={clickedColor}/>
                 </div>
             </button>
         </div>
@@ -860,20 +869,21 @@ function Dislike({postId,react,changeReact,createOrDeleteReact,count,isDisabled}
 
     // hard-coded clicked class
     let className = reacted ? 'dislike-clicked' : ''
+    let clickedColor = reacted ? '#3c3fff' : null;
     return(
         <div className="post-action-container dislike flex-fill" style={{minWidth:0,width:'100%',justifyContent:'flex-end',
         WebkitJustifyContent:'flex-end'}}>
             <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}} 
             disabled={isDisabled} onClick={e=>onClick(e)}>
                 <div className="flex-fill" style={{alignItems:'center'}}>
-                    <DislikeSvg className={`${className} dislike-icon`}/>
+                    <DislikeSvg clickedColor={clickedColor} className={`${className} dislike-icon`}/>
                 </div>
             </button>
         </div>
     )
 }
 
-function StarSvg({className}){
+function StarSvg({className,clickedColor=null}){
     return(
         <svg
             xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -883,7 +893,7 @@ function StarSvg({className}){
             viewBox="0 0 49.94 49.94"
             className={`post-action-svg star-icon ${className}`}
             xmlSpace="preserve">
-            <path d="M48.856 22.73a3.56 3.56 0 0 0 .906-3.671 3.56 3.56 0 0 0-2.892-2.438l-12.092-1.757a1.58 1.58 0 0 1-1.19-.865L28.182 3.043a3.56 3.56 0 0 0-3.212-1.996 3.56 3.56 0 0 0-3.211 1.996L16.352 14c-.23.467-.676.79-1.191.865L3.069 16.622A3.56 3.56 0 0 0 .177 19.06a3.56 3.56 0 0 0 .906 3.671l8.749 8.528c.373.364.544.888.456 1.4L8.224 44.701a3.506 3.506 0 0 0 .781 2.904c1.066 1.267 2.927 1.653 4.415.871l10.814-5.686a1.619 1.619 0 0 1 1.472 0l10.815 5.686a3.544 3.544 0 0 0 1.666.417c1.057 0 2.059-.47 2.748-1.288a3.505 3.505 0 0 0 .781-2.904l-2.065-12.042a1.582 1.582 0 0 1 .456-1.4l8.749-8.529z" />
+            <path css={theme=>pathFill('transparent',theme.textColor,null,'#fb4c4c',clickedColor)} d="M48.856 22.73a3.56 3.56 0 0 0 .906-3.671 3.56 3.56 0 0 0-2.892-2.438l-12.092-1.757a1.58 1.58 0 0 1-1.19-.865L28.182 3.043a3.56 3.56 0 0 0-3.212-1.996 3.56 3.56 0 0 0-3.211 1.996L16.352 14c-.23.467-.676.79-1.191.865L3.069 16.622A3.56 3.56 0 0 0 .177 19.06a3.56 3.56 0 0 0 .906 3.671l8.749 8.528c.373.364.544.888.456 1.4L8.224 44.701a3.506 3.506 0 0 0 .781 2.904c1.066 1.267 2.927 1.653 4.415.871l10.814-5.686a1.619 1.619 0 0 1 1.472 0l10.815 5.686a3.544 3.544 0 0 0 1.666.417c1.057 0 2.059-.47 2.748-1.288a3.505 3.505 0 0 0 .781-2.904l-2.065-12.042a1.582 1.582 0 0 1 .456-1.4l8.749-8.529z" />
         </svg>
     )
 }
@@ -997,7 +1007,7 @@ const CommentsSvg = ({className}) => (
         strokeWidth:0
       }}
       xmlSpace="preserve"
-      fill="transparent"
+      css={theme=>pathFill(theme.textColor,null,null,null,null)}
       className={`post-action-svg ${className}`}>
     
       <style>{".st0{fill:#rgb(67, 78, 88)}"}</style>
@@ -1190,24 +1200,11 @@ const DislikeSvg = props => (
       viewBox="0 0 512 512"
       xmlSpace="preserve"
       className={`post-action-svg ${props.className}`}
-      style={{strokeWidth:34}}
+      css={{strokeWidth:34}}
     >
-      <path d="M400.268 175.599a8.53 8.53 0 00-7.731-4.932h-101.12l99.797-157.568a8.529 8.529 0 00.265-8.678A8.533 8.533 0 00384.003 0H247.47a8.541 8.541 0 00-7.637 4.719l-128 256a8.522 8.522 0 00.375 8.294 8.546 8.546 0 007.262 4.053h87.748l-95.616 227.089a8.55 8.55 0 003.413 10.59 8.55 8.55 0 0010.983-1.775l273.067-324.267a8.541 8.541 0 001.203-9.104z" />
+      <path css={theme=>pathFill('transparent',theme.textColor,null,'#3c3fff',props.clickedColor)} d="M400.268 175.599a8.53 8.53 0 00-7.731-4.932h-101.12l99.797-157.568a8.529 8.529 0 00.265-8.678A8.533 8.533 0 00384.003 0H247.47a8.541 8.541 0 00-7.637 4.719l-128 256a8.522 8.522 0 00.375 8.294 8.546 8.546 0 007.262 4.053h87.748l-95.616 227.089a8.55 8.55 0 003.413 10.59 8.55 8.55 0 0010.983-1.775l273.067-324.267a8.541 8.541 0 001.203-9.104z" />
     </svg>
   );
-
-/*function ShareSvg({className}){
-    return(
-        <svg viewBox="0 -22 512 511" 
-        style={{strokeWidth:35}} 
-        className={`post-action-svg ${className}`}>
-            <path
-                d="M512 233.82L299.223.5v139.203h-45.239C113.711 139.703 0 253.414 0 393.687v73.77l20.094-22.02a360.573 360.573 0 0 1 266.324-117.5h12.805v139.204zm0 0"
-            />
-        </svg>
-
-    )
-}*/
 
 const ShareSvg = ({className}) => (
     <svg
@@ -1220,11 +1217,11 @@ const ShareSvg = ({className}) => (
         strokeWidth:0
       }}
       xmlSpace="preserve"
+      css={theme=>pathFill(theme.textColor,null,null,null,null)}
       className={`post-action-svg ${className}`}>
     
       <path
         d="M205.4 122.3c0-7-2.8-13.6-7.8-18.7-3.9-3.9-8.7-6.5-13.9-7.5V48.4c0-4.2-2.4-7.9-6.3-9.6-3.8-1.7-8.1-.9-11.2 1.9-26.4 24.6-49.5 38.6-63.3 38.6H38C17.3 79.3.5 96.1.5 116.8v5.4c0 18.2 13.1 33.4 30.3 36.8v.3c0 5.2.9 10.2 2.7 15.1 0 .1.1.2.1.3.1.3 11.8 26.1 13.7 31.2l.4 1c2.2 6 6.9 18.5 20.5 18.5h5.4c2.4 0 10.4-.5 14.7-6.8 2-3 3.8-8.2.8-16.2-3-7.9-12.8-29.3-13.9-31.6-1.3-3.5-2-7.2-2-11H103c13.8 0 36.9 14.1 63.3 38.6 2 1.8 4.5 2.8 7 2.8 1.4 0 2.8-.3 4.2-.9 3.9-1.7 6.3-5.4 6.3-9.6v-42.3c12.1-2.3 21.6-13.3 21.6-26.1zm-194.9 0v-5.4c0-15.1 12.3-27.5 27.5-27.5h60v60.4H38c-15.1 0-27.5-12.3-27.5-27.5zM66 174.5c0 .1.1.2.1.3.1.2 10.7 23.3 13.7 31.1.8 2.2 1.6 5.2.3 7-1.2 1.7-4.1 2.5-6.5 2.5h-5.4c-5.6 0-8.3-4.2-11.2-11.9l-.4-1.1c-2-5.2-12.8-29.2-13.9-31.6-1.3-3.5-2-7.2-2-11h22.5c.2 5.1 1.1 10 2.8 14.7zm107.5 16.7c-.2.1-.3 0-.4-.1-15.4-14.3-43.3-37.6-65.1-40.9V89.1c21.8-3.3 49.7-26.6 65.1-40.9.1-.1.2-.2.4-.1.3.1.3.3.3.4v142.3c-.1.1-.1.3-.3.4zm10.2-53v-31.7c2.5.8 4.8 2.2 6.7 4.2 3.1 3.1 4.9 7.4 4.9 11.7.1 7.2-4.9 13.6-11.6 15.8z"
-        fill="#212121"
       />
     </svg>
   );

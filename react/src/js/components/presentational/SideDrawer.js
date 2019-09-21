@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react"
 import {Link} from "react-router-dom"
+import { css } from "@emotion/core";
 import {ToggleContent} from './Temporary'
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
@@ -48,11 +49,19 @@ export function SideDrawer({children}){
         show();
     }
     
+    const mobileNavBarContainer = theme => css({
+        borderTop:`2px solid ${theme.borderColor}`,
+        height:'100%',
+        width:'100%',
+        textDecoration:'none',
+        justifyContent:'center',
+        alignItems:'center'
+    })
+
     return(
         <ToggleContent 
             toggle={show=>(
-                <div className="flex-fill" style={{height:'100%',width:'100%',justifyContent:'center',WebkitJustifyContent:'center',
-                alignItems:'center',WebkitAlignItems:'center',position:'relative',borderTop:'2px solid rgb(226, 234, 241)'}}
+                <div className="flex-fill" css={theme=>mobileNavBarContainer(theme)}
                 onClick={(e)=>handleShow(e,show)}>
                     {children}
                 </div>

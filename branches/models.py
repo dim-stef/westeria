@@ -33,6 +33,9 @@ def calculate_trending_score(posts):
         avg = spread_count/posts.count()'''
     return spread_count
 
+def deEmojify(inputString):
+    return inputString.encode('ascii', 'ignore').decode('ascii')
+
 class Branch(models.Model):
     class Meta:
         unique_together = ('owner', 'name')
@@ -71,6 +74,7 @@ class Branch(models.Model):
 
 
     def clean(self, *args, **kwargs):
+        self.uri = deEmojify(self.uri)
         owned_branches = self.owner.owned_groups.exclude(pk=self.pk)
         if self.default:
             for branch in owned_branches:

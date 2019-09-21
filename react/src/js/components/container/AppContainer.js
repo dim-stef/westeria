@@ -10,7 +10,6 @@ class App extends Component {
     static contextType = UserContext
     constructor(props){
         super(props)
-
         this.state = {
             isAuth:null,
             branches:null,
