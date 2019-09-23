@@ -59,6 +59,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
                     'message': message.message,
                     'message_html': message.message,
                     'created':str(message.created),
+                    'message_id':str(message.pk),
                     'images':[],
                     'videos':[],
                     'can_send':can_send
@@ -104,6 +105,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         author_url = event['author_url']
         author = event['author']
         created = event['created']
+        message_id = event['message_id']
 
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
@@ -111,6 +113,7 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
             'author_url': author_url,
             'author': author,
             'created': created,
+            'id':message_id,
             'message': message,
             'images':images,
             'videos':videos,

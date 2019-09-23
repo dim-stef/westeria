@@ -208,10 +208,10 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         onKeyDown={(e)=>handlerRef.current(e)}
                         onBlur={setHeightOnBlur}
                         schema={schema}
-                        className="flex-fill"
+                        className="flex-fill text-wrap"
                         placeholder="Type message"
                         style={{padding:'10px 10px',minWidth:0,borderRadius:25,
-                        wordBreak:'break-word',border:`1px solid ${theme.borderColor}`,flex:'1 1 auto',msFlex:'1 1 auto',
+                        border:`1px solid ${theme.borderColor}`,flex:'1 1 auto',msFlex:'1 1 auto',
                         minHeight:'2rem',maxHeight:100,overflow:'auto'}}/>
                         
                         <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick} isLoading={isLoading}/>

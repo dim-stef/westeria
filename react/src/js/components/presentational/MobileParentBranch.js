@@ -81,7 +81,7 @@ export function MobileBranchPageWrapper({branch,children}){
 
 function Description({description}){
     return(
-        <Linkify><p style={{fontSize:'1.7rem', marginTop:8,wordBreak:'break-word',overflowWrap:'break-word'}}>{description}</p></Linkify>
+        <Linkify><p className="text-wrap" style={{fontSize:'1.7rem', marginTop:8}}>{description}</p></Linkify>
     )
 }
 
@@ -121,7 +121,7 @@ function Identifiers({branch}){
 
 function Name({name}){
     return(
-        <p style={{margin:0,fontSize:'2rem',fontWeight:'bold',wordBreak:'break-word'}}>{name}</p>
+        <p className="text-wrap" style={{margin:0,fontSize:'2rem',fontWeight:'bold'}}>{name}</p>
     )
 }
 

@@ -293,6 +293,7 @@ def create_notification(sender, instance, created, **kwargs):
                     'author_url': instance.author.uri,
                     'author': str(instance.author.id),
                     'created': str(instance.created),
+                    'message_id':instance.pk,
                     'branch_chat': str(instance.branch_chat.id),
                     'verb': verb,
                     'id': notification.id

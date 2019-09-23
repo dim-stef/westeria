@@ -69,9 +69,9 @@ export function SmallBranch({branch,isLink=true,
                 >
                     <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover',backgroundColor:'#4d5058',minWidth:48}} 
                     alt="" src={branch.branch_image}/>
-                    <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
+                    <div className="flex-fill text-wrap" style={{flexDirection:'column',WebkitFlexDirection:'column',
                     justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10,
-                    wordBreak:'break-word',alignItems:'flex-start',WebkitAlignItems:'flex-start'}}>
+                    alignItems:'flex-start',WebkitAlignItems:'flex-start'}}>
                         <p css={theme=>name(theme)}>{branch.name}</p>
                         <span css={theme=>uri(theme)}>@{branch.uri}</span>
                     </div>

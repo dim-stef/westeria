@@ -265,7 +265,7 @@ class BranchMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = BranchMessage
         fields = ['author', 'author_name', 'author_url',
-                  'message', 'created', 'updated', 'branch_chat','images','videos']
+                  'message', 'created', 'updated', 'branch_chat','images','videos','id']
 
     def author_name_field(self, branchmessage):
         try:

@@ -72,8 +72,7 @@ function Description({description}){
     const theme = useTheme();
 
     return(
-        <Linkify><p style={{wordBreak:'break-word',overFlowWrap:'break-word',
-        fontSize:'2em',color:theme.textColor}}>{description}</p></Linkify>
+        <Linkify><p clasName="text-wrap" style={{fontSize:'2em',color:theme.textColor}}>{description}</p></Linkify>
     )
 }
 
@@ -192,7 +191,7 @@ const name = theme => css({
 })
 
 const description = theme => css({
-    fontSize:'2em',wordBreak:'break-word',color:theme.textColor
+    fontSize:'2em',color:theme.textColor
 })
 
 const cardNumber = theme => css({
@@ -221,7 +220,7 @@ export function SmallCard({branch}){
                 </Link>
                 <FollowButton id={branch.id} uri={branch.uri}/>
             </div>
-            <p css={theme=>description(theme)}>{branch.description}</p>
+            <p className="text-wrap" css={theme=>description(theme)}>{branch.description}</p>
             <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between',
             WebkitJustifyContent:'space-between'}}>
                 <div>

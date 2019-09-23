@@ -4,14 +4,15 @@ import { css } from "@emotion/core";
 
 
 const headlineContainer = theme =>css({
-    padding:'10px',borderBottom:`1px solid ${theme.borderColor}`
+    padding:'10px',borderBottom:`1px solid ${theme.borderColor}`,
+    backgroundColor:theme.backgroundColor
 })
 
 const leftButtonSvg = theme =>css({
     height:24,padding:'0 20px 0 10px',fill:theme.textColor
 })
 
-function RoutedHeadline({match,location,className='',history,headline,to,children}){
+function RoutedHeadline({match,location,className='',history,headline,to,containerStyle={},children}){
      
     const navigate = ()=>{
         if(to){

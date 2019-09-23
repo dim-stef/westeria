@@ -28,15 +28,12 @@ export function ResponsiveNavigationBar(){
     function readContextNotifications(){
         askForPermissionToReceiveNotifications();
         let shouldUpdate = false;
-        if(notificationsContext.notifications.filter(n=>n.verb!='message' && n.unread==true).length!=0){
+        if(notificationsContext.notifications.filter(n=>n.unread==true).length!=0){
             shouldUpdate = true;
         }
 
         let newNotifications = notificationsContext.notifications.map(n=>{
-            if(n.verb!='message'){
-                n.unread = false;
-            }
-
+            n.unread = false;
             return n;
         })
 
@@ -52,17 +49,14 @@ export function ResponsiveNavigationBar(){
             shouldUpdate = true;
         }
         
-        let newNotifications = notificationsContext.messages.map(n=>{
-            if(n.verb=='message'){
-                n.unread = false;
-            }
-
+        let newMessages = notificationsContext.messages.map(n=>{
+            n.unread = false;
             return n;
         })
 
         // prevent infinite update loop
         if(shouldUpdate){
-            notificationsContext.setNotifications(newNotifications);
+            notificationsContext.setMessages(newMessages);
         }
     }
 

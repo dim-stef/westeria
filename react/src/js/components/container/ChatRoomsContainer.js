@@ -1,7 +1,7 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Link} from 'react-router-dom'
 import { useTheme } from 'emotion-theming'
-import { css } from "@emotion/core";
+import { css, keyframes } from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import formatRelative from 'date-fns/formatRelative';
 import differenceInMinutes from 'date-fns/differenceInMinutes'
@@ -70,7 +70,7 @@ function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
         var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
         let webSockets = rooms.map(r=>{
             let ws = new ReconnectingWebSocket(`${ws_scheme}://${window.location.host}/ws/chat/${r.id}/`);
-            
+
             return {
                 room: r,
                 ws: ws
@@ -123,7 +123,6 @@ function RoomContainer({roomData,match}){
         setMembers(memberList);
     }
 
-
     const getMessages = useCallback(async (messages)=>{
 
         if(!hasMore){
@@ -141,6 +140,45 @@ function RoomContainer({roomData,match}){
         let newMessages = response.data.results.reverse()
         setNext(response.data.next)
         setMessages([...newMessages,...messages]);
+    },[messages])
+
+    // get missing messages on reconnect
+    async function getMessagesOnOpen(){
+        if(messages.length==0){
+            return;
+        }
+        // r for reconnecting
+        let rhasMore = true;
+        let rnext=null;
+        let rmessages = [];
+        let lastMessage = messages[messages.length - 1];
+        let uri;
+        let index = -1;
+
+        do{
+            uri = rnext?rnext:`/api/branches/${member}/chat_rooms/${data.room.id}/messages/`;
+            let response = await axios.get(uri);
+            if(!response.data.next){
+                rhasMore = false;
+                break;
+            }
+            let newrMessages = response.data.results.reverse();
+            rnext = response.data.next;
+            rmessages = [...newrMessages,...rmessages];
+
+        // try to find last known message before disconnect
+        }while(rhasMore && rmessages.length>0 && messages.length>0 && !(index=rmessages.findIndex(m=>m.id==lastMessage.id)));
+
+        // if message found slice the new messages
+        rmessages = rmessages.slice(index + 1,rmessages.length);
+        setMessages([...messages,...rmessages]);
+    }
+
+    useEffect(()=>{
+        data.ws.addEventListener('open',getMessagesOnOpen)
+        return()=>{
+            data.ws.removeEventListener('open',getMessagesOnOpen)
+        }
     },[messages])
 
     const chatScrollListener = async () =>{
@@ -211,6 +249,7 @@ function RoomContainer({roomData,match}){
     data.ws.onmessage = function (e) {
         let data = JSON.parse(e.data);
         let message = data['message'];
+        let id = data['id'];
         let author_name = data['author_name'];
         let author_url = data['author_url'];
         let author = data['author'];
@@ -224,7 +263,8 @@ function RoomContainer({roomData,match}){
             author: author,
             images: Array.isArray(images)?images:JSON.parse(images),
             videos: Array.isArray(videos)?videos:JSON.parse(videos),
-            created: created
+            created: created,
+            id:parseInt(id,10),
         }
         updateLatestMessage(message,author_name);
         updateMessages([bundle]);
@@ -254,7 +294,7 @@ function RoomContainer({roomData,match}){
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1,border:`1px solid ${theme.borderColor}`}}>
-                <RoutedHeadline to="/messages" className="chat-headline">
+                <RoutedHeadline to="/messages" className="chat-headline" containerStyle={{backgroundColor:theme.backgroundColor}}>
                     {headline}
                 </RoutedHeadline>
                 <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
@@ -356,20 +396,41 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
     })
 
     return(
-        <>
-        {messageBoxes.map(box=>{
-            return <MessageBox key={box.created} parentRef={parentRef} members={members} 
+        messageBoxes.map(box=>{
+            return <React.Fragment><MessageBox parentRef={parentRef} members={members} 
             messageBox={box} branch={branch} imageWidth={imageWidth}/>
-        })}
-        </>
+            </React.Fragment>
+        })
     )
 }
+
+const scale_up_bl = keyframes`
+  0% {
+        transform: scale(0.5);
+        transform-origin: 100% 100%;
+  }
+  100% {
+        transform: scale(1);
+        transform-origin: 100% 100%;
+  }
+`
+
+const scale_up_left = keyframes`
+  0% {
+        transform: scale(0.5);
+        transform-origin: 0% 50%;
+  }
+  100% {
+        transform: scale(1);
+        transform-origin: 0% 50%;
+  }
+`
 
 function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     const theme = useTheme();
     let containerStyle={};
     let messageStyle={
-        fontSize:'1.6em',wordBreak:'break-word',backgroundColor:theme.hoverColor,
+        fontSize:'1.6em',backgroundColor:theme.hoverColor,
         padding:'8px 15px',borderRadius:25,margin:'1px 0',maxWidth:'70%'
     };
 
@@ -377,25 +438,6 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
         containerStyle = {alignSelf:'flex-end',WebkitAlignSelf:'flex-end',
         justifyContent:'flex-end',WebkitJustifyContent:'flex-end'}
         messageStyle = {...messageStyle,backgroundColor:'#219ef3',color:'white'}
-    }
-
-    function getMediaWidth(m){
-        let mediaWidth = 0;
-
-        if(m.videos.length>0 || m.images.length>1){
-            mediaWidth = '100%';
-        }else{
-            let minWidth = 0.2 * imageWidth;
-            let maxWidth = 0.7 * imageWidth;
-            if(m.images[0].width > maxWidth){
-                mediaWidth = maxWidth;
-            }else if(m.images[0].width < minWidth){
-                mediaWidth = minWidth;
-            }else{
-                mediaWidth = m.images[0].width;
-            }
-        }
-        return mediaWidth;
     }
 
     let member = members.find(m=>messageBox.author_url==m.uri)
@@ -409,6 +451,14 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 
     }
 
+    let animation = messageBox.author_url == branch?
+    css`
+        animation: ${scale_up_bl} 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    `
+    :
+    css`
+        animation: ${scale_up_left} 0.4s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    `
     let messageBoxHeader = messageBox.author_url == branch?(
         
         <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
@@ -439,30 +489,63 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
             <div className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
                 {messageBoxHeader}
                 <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>
-                    {messageBox.messages.map(m=>{
-                        return (
-                            <React.Fragment key={m.created}>
-                                {m.message?
-                                        <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
-                                            <div style={messageStyle}>
-                                                <Linkify>{m.message}</Linkify>
-                                            </div>
-                                        </div>
-                                :null}
-                                
-                                {m.images.length>0 || m.videos.length>0?
-                                    <div style={{...containerStyle,width:getMediaWidth(m)}}>
-                                        <Images images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
-                                    </div>
-                                :null}
-                            </React.Fragment>
-                        )
-                    })}
+                    <MessageBoxMessageList messages={messageBox.messages} containerStyle={containerStyle}
+                        messageStyle={messageStyle} imageWidth={imageWidth} animation={animation}
+                    />
                 </div>
             </div>
         </div>
     )
-    
+}
+
+function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,animation}){
+    function getMediaWidth(m){
+        let mediaWidth = 0;
+
+        if(m.videos.length>0 || m.images.length>1){
+            mediaWidth = '100%';
+        }else{
+            let minWidth = 0.2 * imageWidth;
+            let maxWidth = 0.7 * imageWidth;
+            if(m.images[0].width > maxWidth){
+                mediaWidth = maxWidth;
+            }else if(m.images[0].width < minWidth){
+                mediaWidth = minWidth;
+            }else{
+                mediaWidth = m.images[0].width;
+            }
+        }
+        return mediaWidth;
+    }
+
+    return ( 
+        messages.map(m=>{
+            return(
+                <React.Fragment key={m.created}>
+                    {m.message?
+                    <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
+                            <Message m={m} messageStyle={messageStyle} animation={animation}/>
+                        </div>
+                    :null}
+                    
+                    {m.images.length>0 || m.videos.length>0?
+                        <div style={{...containerStyle,width:getMediaWidth(m)}} animation={animation}>
+                            <Images images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
+                        </div>
+                    :null}
+                </React.Fragment>
+        )})   
+    )
+}
+
+function Message({m,messageStyle, animation}){
+    const didMount = useRef(null);
+
+    return(
+        <div className="text-wrap" style={messageStyle} css={didMount.current?null:animation}>
+            <Linkify>{m.message}</Linkify>
+        </div>
+    )
 }
 
 
@@ -652,9 +735,9 @@ function RoomPreview({room,ws,isGroup,inBox}){
             <Link to={`/messages/${room.id}`} className="flex-fill room-preview" css={theme=>roompreview(theme)}>
                 <img className="round-picture" src={room.personal?previewBranch?previewBranch.branch_image:null:room.image} 
                 style={{height:48,width:48,minWidth:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
-                <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
+                <div className="flex-fill text-wrap" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
                     <span style={{fontWeight:600,color:theme.textColor}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
-                    <span style={{fontSize:'0.7em',color:theme.textLightColor,wordBreak:'break-word'}}>{latestMessage}</span>
+                    <span style={{fontSize:'0.7em',color:theme.textLightColor}}>{latestMessage}</span>
                 </div>
             </Link>
         </React.Fragment>

@@ -179,9 +179,15 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
                 hasMore={hasMore}
                 loader={loader}>
                 {notifications.map(n=>{
-                    return(
-                        <NotificationMatcher notification={n}/>
-                    )}
+                    // can be null
+                        if(n.action_object){
+                            return(
+                            <NotificationMatcher notification={n}/>
+                        )}else{
+                            return null
+                        }
+                    }
+                    
                 )}
                 </InfiniteScroll>:
                 <div className="info-message flex-fill center-items">
@@ -336,7 +342,7 @@ function ReplyNotification({notification}){
     const userContext = useContext(UserContext);
     const postsContext = useContext(SingularPostContext);
     const theme = useTheme();
-    
+
     async function getPost(){
         let response = await axios.get(`/api/post/${notification.action_object.id}/`);
         setPost(response.data);

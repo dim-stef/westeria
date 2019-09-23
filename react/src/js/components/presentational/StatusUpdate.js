@@ -176,10 +176,10 @@ export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,p
                     editorRef={editorRef}
                     onInput={handleChange}
                     placeholder="Add a leaf"
-                    className="editor flex-fill"
+                    className="editor flex-fill text-wrap"
                     value={value}
                     style={{padding:5,backgroundColor:'transparent',minWidth:0,borderRadius:10,color:theme.textColor,
-                    wordBreak:'break-word',border:'2px solid #219ef3',minHeight:'2rem',
+                    border:'2px solid #219ef3',minHeight:'2rem',
                     alignItems:'center',backgroundColor:theme.backgroundColor,
                     WebkitAlignItems:'center',display:'block'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
