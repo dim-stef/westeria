@@ -265,7 +265,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
     },[])
 
 
-    var date = new Date(post.created);
+    var date = new Date(post.created.replace(' ', 'T'));
     return(
         <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>

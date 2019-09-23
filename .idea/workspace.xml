@@ -1,21 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.8.1 hardcoded full logo">
-      <change beforePath="$PROJECT_DIR$/api/serializers.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/serializers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/consumers.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/consumers.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branchchat/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/branchchat/models.py" afterDir="false" />
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.8.2 get chat messages on reconnect, bug fixes">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/common/static/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/common/static/css/index.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/container/ChatRoomsContainer.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Branch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Messenger.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Notifications.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/RoutedHeadline.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/RoutedHeadline.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/StatusUpdate.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -68,8 +59,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="268">
-              <caret line="1015" column="10" selection-start-line="1015" selection-start-column="1" selection-end-line="1015" selection-end-column="10" />
+            <state relative-caret-position="324">
+              <caret line="1017" column="30" selection-start-line="1017" selection-start-column="30" selection-end-line="1017" selection-end-column="30" />
             </state>
           </provider>
         </entry>
@@ -266,11 +257,11 @@
         <option value="$PROJECT_DIR$/branchposts/models.py" />
         <option value="$PROJECT_DIR$/branchchat/static/groupchat/css/groupchat.css" />
         <option value="$PROJECT_DIR$/branches/static/groups/css/index.css" />
-        <option value="$PROJECT_DIR$/common/static/css/index.css" />
         <option value="$PROJECT_DIR$/api/views.py" />
         <option value="$PROJECT_DIR$/branchchat/models.py" />
         <option value="$PROJECT_DIR$/api/serializers.py" />
         <option value="$PROJECT_DIR$/branchchat/consumers.py" />
+        <option value="$PROJECT_DIR$/common/static/css/index.css" />
       </list>
     </option>
   </component>
@@ -619,14 +610,7 @@
       <workItem from="1568327456848" duration="34083000" />
       <workItem from="1568732218735" duration="29319000" />
       <workItem from="1569157687006" duration="128000" />
-      <workItem from="1569158993103" duration="16023000" />
-    </task>
-    <task id="LOCAL-00200" summary="First commit">
-      <created>1544482643013</created>
-      <option name="number" value="00200" />
-      <option name="presentableId" value="LOCAL-00200" />
-      <option name="project" value="LOCAL" />
-      <updated>1544482643013</updated>
+      <workItem from="1569158993103" duration="17341000" />
     </task>
     <task id="LOCAL-00201" summary="0.0.2 production update">
       <created>1546703002339</created>
@@ -964,11 +948,18 @@
       <option name="project" value="LOCAL" />
       <updated>1569201698988</updated>
     </task>
-    <option name="localTasksCounter" value="249" />
+    <task id="LOCAL-00249" summary="1.8.2 get chat messages on reconnect, bug fixes">
+      <created>1569278433697</created>
+      <option name="number" value="00249" />
+      <option name="presentableId" value="LOCAL-00249" />
+      <option name="project" value="LOCAL" />
+      <updated>1569278433697</updated>
+    </task>
+    <option name="localTasksCounter" value="250" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1311286000" />
+    <option name="totallyTimeSpent" value="1312604000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -981,9 +972,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.20213333" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.20213333" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -1065,7 +1055,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/react" />
     </ignored-roots>
-    <MESSAGE value="squashed migrations to initial" />
     <MESSAGE value="removed slashes from image default values" />
     <MESSAGE value="css fix" />
     <MESSAGE value="1.2.1 update" />
@@ -1090,7 +1079,8 @@
     <MESSAGE value="1.8.0 dark mode" />
     <MESSAGE value="1.8.1 dark mode fixes" />
     <MESSAGE value="1.8.1 hardcoded full logo" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.8.1 hardcoded full logo" />
+    <MESSAGE value="1.8.2 get chat messages on reconnect, bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.8.2 get chat messages on reconnect, bug fixes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1366,8 +1356,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/common/static/css/index.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="268">
-          <caret line="1015" column="10" selection-start-line="1015" selection-start-column="1" selection-end-line="1015" selection-end-column="10" />
+        <state relative-caret-position="324">
+          <caret line="1017" column="30" selection-start-line="1017" selection-start-column="30" selection-end-line="1017" selection-end-column="30" />
         </state>
       </provider>
     </entry>

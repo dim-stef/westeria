@@ -239,7 +239,8 @@ function FollowNotification({notification}){
     
     return(
         <div css={theme=>borderBottom(theme)}>
-            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
+            <div className="notification-timestamp">
+            {formatRelative(new Date(notification.timestamp.replace(' ', 'T')), new Date())}</div>
 
             <NotificationLinkBody to={linkTo} id={notification.id}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
@@ -274,7 +275,8 @@ function ChatRequestNotification({notification}){
 
     return(
         <div css={theme=>borderBottom(theme)}>
-            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
+            <div className="notification-timestamp">
+            {formatRelative(new Date(notification.timestamp.replace(' ', 'T')), new Date())}</div>
             <NotificationLinkBody to="#" id={notification.id}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
                 <span style={{padding:10}}> {notification.description} </span>
@@ -318,7 +320,8 @@ function ReactNotification({notification}){
         let linkTo = `/${notification.target.uri}/leaves/${post.id}`;
         return(
             <>
-            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
+            <div className="notification-timestamp">
+            {formatRelative(new Date(notification.timestamp.replace(' ', 'T')), new Date())}</div>
             <div style={{alignItems:'center',WebkitAlignItems:'center',WebkitFlexFlow:'row wrap',
             flexFlow:'row wrap',borderBottom:`1px solid ${theme.borderColor}`}}
             className="notification flex-fill" css={theme=>notificationCss(theme)}>
@@ -362,7 +365,8 @@ function ReplyNotification({notification}){
         let linkTo = `/${notification.target.uri}/leaves/${post.id}`;
         return(
             <>
-            <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
+            <div className="notification-timestamp">
+            {formatRelative(new Date(notification.timestamp.replace(' ', 'T')), new Date())}</div>
             <div style={{alignItems:'center',WebkitAlignItems:'center',WebkitFlexFlow:'row wrap',
             flexFlow:'row wrap',borderBottom:`1px solid ${theme.borderColor}`}}
             className="notification flex-fill" css={theme=>notificationCss(theme)}>
@@ -409,7 +413,8 @@ function BranchNotification({notification}){
 
     return(
         <div css={theme=>borderBottom(theme)}>
-            <div className="notification-timestamp">{formatRelative(new Date(n.timestamp), new Date())}</div>
+            <div className="notification-timestamp">
+            {formatRelative(new Date(n.timestamp.replace(' ', 'T')), new Date())}</div>
             <NotificationLinkBody to={linkTo} id={n.id}>
                 <NotificationBranch image={n.actor.branch_image} uri={n.actor.uri}/>
                 <span style={{padding:10}}>{n.description}</span>
