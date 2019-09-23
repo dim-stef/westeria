@@ -368,7 +368,6 @@ div[data-placeholder]{
 }
 
 .profile-dropdown-container{
-    background-color:white;
     box-shadow:0 0 1px 1px #0000001a;
     flex-flow:column;
 }
@@ -377,13 +376,12 @@ div[data-placeholder]{
     margin: 0;
     padding: 10px 15px;
     font-size: 1.5rem;
-    color: #2b2b2b;
     text-decoration: none;
 }
 
 .profile-dropdown-option:hover{
     background-color: #2196f3 !important;
-    color: white;
+    color: white !important;
     cursor: pointer;
     text-decoration: underline;
 }

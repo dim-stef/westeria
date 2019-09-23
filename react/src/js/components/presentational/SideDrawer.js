@@ -99,7 +99,7 @@ export function SideDrawer({children}){
                                 <button className="flex-fill auth-drawer-item" style={{textAlign:'inherit',backgroundColor:'inherit',border:0,
                                 borderBottom:`1px solid ${emotionTheme.borderColor}`,color:emotionTheme.textColor}}
                                 onClick={theme.toggle}>
-                                {theme.darkMode?'Light mode':'Dark mode'}</button>
+                                {theme.dark?'Light mode':'Dark mode'}</button>
                             </>:<AuthenticatedDrawer handleHide={handleHide}/>}
                         </div>
                     </CSSTransition>     
@@ -139,7 +139,7 @@ function AuthenticatedDrawer({handleHide}){
             onClick={handleHide}>Settings</Link>
             <button className="flex-fill auth-drawer-item" style={{textAlign:'inherit',backgroundColor:'inherit',border:0,
             borderBottom:`1px solid ${emotionTheme.borderColor}`,color:emotionTheme.textColor}} onClick={theme.toggle}>
-            {theme.darkMode?'Light mode':'Dark mode'}</button>
+            {theme.dark?'Light mode':'Dark mode'}</button>
 
             <Link to="/logout/instant" className="flex-fill auth-drawer-item" css={emotionTheme=>linkTextColor(emotionTheme)}>Log out</Link>
             {showBranches?<>

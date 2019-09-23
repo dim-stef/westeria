@@ -258,21 +258,28 @@ function ProfileDropDown({setFocused}){
                 >
                 {context.isAuth?
                     <>
-                        <NavTab to={`/${context.currentBranch.uri}`} onClick={unFocus} className="profile-dropdown-option">Profile</NavTab>
-                        <NavTab to="/settings" onClick={unFocus} className="profile-dropdown-option">Settings</NavTab>
+                        <NavTab to={`/${context.currentBranch.uri}`} onClick={unFocus} className="profile-dropdown-option"
+                        style={{color:emotionTheme.textColor}}>Profile</NavTab>
+                        <NavTab to="/settings" onClick={unFocus} className="profile-dropdown-option"
+                        style={{color:emotionTheme.textColor}}>Settings</NavTab>
                         <button className="profile-dropdown-option" 
-                        style={{textAlign:'inherit',backgroundColor:'inherit',border:0}} onClick={theme.toggle}>
-                        {theme.darkMode?'Light mode':'Dark mode'}</button>
+                        style={{textAlign:'inherit',backgroundColor:'inherit',border:0,color:emotionTheme.textColor}} 
+                        onClick={theme.toggle}>
+                        {theme.dark?'Light mode':'Dark mode'}</button>
 
                         <div style={{height:1,margin:'10px 0',backgroundColor:'gainsboro'}}></div>
-                        <NavTab to="/logout/instant" onClick={unFocus} className="profile-dropdown-option">Logout</NavTab>
+                        <NavTab to="/logout/instant" onClick={unFocus} className="profile-dropdown-option"
+                        style={{color:emotionTheme.textColor}}>Logout</NavTab>
                     </>:
                     <>
-                        <NavTab to="/login" onClick={unFocus} className="profile-dropdown-option">Login</NavTab>
-                        <NavTab to="/register" onClick={unFocus} className="profile-dropdown-option">Register</NavTab>
+                        <NavTab to="/login" onClick={unFocus} className="profile-dropdown-option"
+                        style={{color:emotionTheme.textColor}}>Login</NavTab>
+                        <NavTab to="/register" onClick={unFocus} className="profile-dropdown-option"
+                        style={{color:emotionTheme.textColor}}>Register</NavTab>
                         <button className="profile-dropdown-option" 
-                        style={{textAlign:'inherit',backgroundColor:'inherit',border:0}} onClick={theme.toggle}>
-                        {theme.darkMode?'Light mode':'Dark mode'}</button>
+                        style={{textAlign:'inherit',backgroundColor:'inherit',border:0,color:emotionTheme.textColor}} 
+                        onClick={theme.toggle}>
+                        {theme.dark?'Light mode':'Dark mode'}</button>
                     </>
                 }
                 </RoutedTabs>
