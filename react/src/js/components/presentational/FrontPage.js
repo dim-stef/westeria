@@ -44,7 +44,7 @@ export function FrontPageLeftBar(){
                     <div className="flex-fill" style={{alignItems:'baseline',WebkitAlignItems:'baseline'}}>
 
                         {/*<h1>My branches</h1>*/}
-                        <img src="/static/logo_full.png"/>
+                        <img src="https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png"/>
                         <button role="button" onClick={()=>setShow(!show)} style={{
                             border:0,
                             color:'#1DA1F2',

@@ -330,7 +330,7 @@ function BranchFrontPage(props){
                             <div style={{backgroundColor:theme.backgroundColor,
                             padding:'10px 20px',border:`1px solid ${theme.borderColor}`}}>
                                 <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
-                                    <img src="/static/logo_full.png"/>
+                                    <img src="https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png"/>
                                 </div>
                                     <MyBranchesColumnContainer/>
                             </div>
