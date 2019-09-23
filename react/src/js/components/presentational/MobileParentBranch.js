@@ -1,4 +1,6 @@
 import React, {useLayoutEffect, useRef, useState} from "react";
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {NavLink} from "react-router-dom"
 import Linkify from 'linkifyjs/react';
 import {FollowButton} from "./Card"
@@ -14,6 +16,7 @@ function getRandomColor() {
   }
 
 export function MobileBranchPageWrapper({branch,children}){
+    const theme = useTheme();
     const ref = useRef(null);
     const [left,setLeft] = useState(0);
     const [imageHeight,setImageHeight] = useState(0);
@@ -62,7 +65,7 @@ export function MobileBranchPageWrapper({branch,children}){
                     position: 'absolute',
                     bottom: '-40%',
                     left: '3%',
-                    border: '4px solid white'
+                    border: `4px solid ${theme.backgroundColor}`
             }} src={branch.branch_image}></img>
             
         </div>
@@ -78,7 +81,7 @@ export function MobileBranchPageWrapper({branch,children}){
 
 function Description({description}){
     return(
-        <Linkify><p style={{fontSize:'1.7rem', marginTop:8,overflowWrap:'break-word'}}>{description}</p></Linkify>
+        <Linkify><p style={{fontSize:'1.7rem', marginTop:8,wordBreak:'break-word',overflowWrap:'break-word'}}>{description}</p></Linkify>
     )
 }
 
@@ -105,7 +108,7 @@ function ImageNeighbour({el,branch}){
 function Identifiers({branch}){
     return(
 
-        <div className="flex-fill" style={{alignItems:'center',flexFlow:'row wrap',WebkitFlexFlow:'row wrap'}}>
+        <div className="flex-fill" style={{alignItems:'center',WebkitAlignItesm:'center',flexFlow:'row wrap',WebkitFlexFlow:'row wrap'}}>
             <div>
                 <Name name={branch.name}/>
                 <Uri uri={branch.uri}/>
@@ -123,20 +126,23 @@ function Name({name}){
 }
 
 function Uri({uri}){
+    const theme = useTheme();
+
     return(
-        <span style={{fontSize:'2em',color:'rgb(86, 86, 86)'}}>@{uri}</span>
+        <span style={{fontSize:'2em',color:theme.textLightColor}}>@{uri}</span>
     )
 }
 
 function NavigationTabs({branch}){
+    const theme = useTheme();
     return(
         <div className="flex-fill" style={{justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',
         WebkitAlignItems:'center',padding:10}}>
             <NavLink exact to={`/${branch.uri}`}
-            style={{textDecoration:'none',color:'black',textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
+            style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Posts</NavLink>
             <NavLink to={`/${branch.uri}/branches`}
-            style={{textDecoration:'none',color:'black',textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
+            style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Branches</NavLink>
         </div>
     )

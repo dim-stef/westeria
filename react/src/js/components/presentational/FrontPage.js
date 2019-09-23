@@ -1,4 +1,5 @@
 import React, {useContext, useEffect, useState} from "react"
+import { css } from "@emotion/core";
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import MyBranchesColumnContainer from "./MyBranchesColumn";
 import {
@@ -25,6 +26,11 @@ function NonAuthenticationColumn(){
     )
 }
 
+const box = theme => css({
+    border:`1px solid ${theme.borderColor}`,
+    padding:'10px 20px',
+})
+
 export function FrontPageLeftBar(){
     const [show,setShow] = useState(true);
     const userContext = useContext(UserContext);
@@ -34,10 +40,11 @@ export function FrontPageLeftBar(){
             <div>
             {userContext.isAuth?
                 <>
-                <div className="box-border" style={{padding:'10px 20px'}}>
-                    <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
+                <div css={theme=>box(theme)}>
+                    <div className="flex-fill" style={{alignItems:'baseline',WebkitAlignItems:'baseline'}}>
 
-                        <h1>My branches</h1>
+                        {/*<h1>My branches</h1>*/}
+                        <img src="/static/logo_full.png"/>
                         <button role="button" onClick={()=>setShow(!show)} style={{
                             border:0,
                             color:'#1DA1F2',
@@ -63,13 +70,13 @@ export function FrontPageLeftBar(){
 export function FollowingBranches(){
     return(
         <div style={{height:'max-content'}}>
-            <div className="box-border" style={{padding:'10px 20px'}}>
+            <div css={theme=>box(theme)}>
             <p style={{
                     fontSize: "1.6em",
                     fontWeight: 600,
                     paddingBottom: 5,
                     margin: "-10px -20px",
-                    backgroundColor: "#219ef3",
+                    backgroundColor: "#2196F3",
                     color: "white",
                     padding: "10px 20px",
                     marginBottom:10

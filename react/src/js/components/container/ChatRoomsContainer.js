@@ -1,5 +1,7 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from "react";
 import {Link} from 'react-router-dom'
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import formatRelative from 'date-fns/formatRelative';
 import differenceInMinutes from 'date-fns/differenceInMinutes'
@@ -88,6 +90,7 @@ function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
 }
 
 function RoomContainer({roomData,match}){
+    const theme = useTheme();
     let context = useContext(UserContext);
     const roomsContext = useContext(ChatRoomsContext);
     let data = roomData.find(data=>data.room.id==match.params.roomName);
@@ -250,7 +253,7 @@ function RoomContainer({roomData,match}){
         </Helmet>
         <PageWrapper>
             <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
-            flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1}}>
+            flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1,border:`1px solid ${theme.borderColor}`}}>
                 <RoutedHeadline to="/messages" className="chat-headline">
                     {headline}
                 </RoutedHeadline>
@@ -363,9 +366,10 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
 }
 
 function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
+    const theme = useTheme();
     let containerStyle={};
     let messageStyle={
-        fontSize:'1.6em',wordBreak:'break-word',backgroundColor:'rgba(225, 231, 236, 0.58)',
+        fontSize:'1.6em',wordBreak:'break-word',backgroundColor:theme.hoverColor,
         padding:'8px 15px',borderRadius:25,margin:'1px 0',maxWidth:'70%'
     };
 
@@ -410,8 +414,8 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
         <div className="flex-fill" style={{...containerStyle,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-end',
             WebkitAlignItems:'flex-end',margin:'0 8px'}}>
-                <span style={{fontSize:'1.5rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
-                {timeDifference?<span style={{fontSize:'1.1rem',color:'#797070'}}>{timeDifference}</span>:null}
+                <span style={{fontSize:'1.5rem',fontWeight:500,color:theme.textColor}}>{messageBox.author_name}</span>
+                {timeDifference?<span style={{fontSize:'1.1rem',color:theme.textLightColor}}>{timeDifference}</span>:null}
                 
             </div>
             <img className="round-picture" src={memberImage} 
@@ -424,8 +428,8 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
             style={{height:36,width:36,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
             <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',alignItems:'flex-start',
             WebkitAlignItems:'flex-start',margin:'0 8px'}}>
-                <span style={{fontSize:'1.5rem',fontWeight:500,color:'#4c4545'}}>{messageBox.author_name}</span>
-                {timeDifference?<span style={{fontSize:'1.1rem',color:'#797070'}}>{timeDifference}</span>:null}
+                <span style={{fontSize:'1.5rem',fontWeight:500,color:theme.textColor}}>{messageBox.author_name}</span>
+                {timeDifference?<span style={{fontSize:'1.1rem',color:theme.textLightColor}}>{timeDifference}</span>:null}
             </div>
         </div>
     )
@@ -463,10 +467,11 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 
 
 function RoomsPreviewColumn({roomData,isGroup,inBox,loaded,rooms,setRooms}){
+    const theme = useTheme();
 
     return(
         <PageWrapper>
-            <div className="main-column">
+            <div className="main-column" style={{border:`1px solid ${theme.borderColor}`}}>
                 {!loaded?
                 <div className="flex-fill load-spinner-wrapper">
                     <MoonLoader
@@ -486,7 +491,8 @@ function RoomsPreviewColumn({roomData,isGroup,inBox,loaded,rooms,setRooms}){
                 {loaded?
                     <>
                     <ConversationRequests rooms={rooms} setRooms={setRooms}/>
-                    <Link to="/messages/create_conversation" style={{textDecoration:'none',borderBottom:'1px solid rgb(226, 234, 241)'}}
+                    <Link to="/messages/create_conversation" style={{textDecoration:'none',borderBottom:`1px solid ${theme.borderColor}`,
+                    borderTop:`1px solid ${theme.borderColor}`}}
                     className="info-message flex-fill center-items">
                         <span>Create conversation</span>
                     </Link>
@@ -623,9 +629,15 @@ function usePreviewBranch(room){
     return previewBranch
 }
 
+const roompreview = theme =>css({
+    '&:hover':{
+        backgroundColor:theme.hoverColor
+    }
+})
 function RoomPreview({room,ws,isGroup,inBox}){
     const previewBranch = usePreviewBranch(room);
     const [latestMessage,setLatestMessage] = useState(room.latest_message)
+    const theme = useTheme();
 
     ws.onmessage = function (e) {
         let data = JSON.parse(e.data);
@@ -637,12 +649,12 @@ function RoomPreview({room,ws,isGroup,inBox}){
 
     return(
         <React.Fragment key={room.id}>
-            <Link to={`/messages/${room.id}`} className="flex-fill room-preview">
+            <Link to={`/messages/${room.id}`} className="flex-fill room-preview" css={theme=>roompreview(theme)}>
                 <img className="round-picture" src={room.personal?previewBranch?previewBranch.branch_image:null:room.image} 
                 style={{height:48,width:48,minWidth:48,objectFit:'cover',backgroundColor:'rgb(77, 80, 88)'}}></img>
                 <div className="flex-fill" style={{flexFlow:'column',WebkitFlexFlow:'column',padding:'0 10px',fontSize:'2em'}}>
-                    <span style={{fontWeight:600,color:'#292929'}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
-                    <span style={{fontSize:'0.7em',color:'#708698',wordBreak:'break-word'}}>{latestMessage}</span>
+                    <span style={{fontWeight:600,color:theme.textColor}}>{room.personal?previewBranch?previewBranch.name:'':room.name}</span>
+                    <span style={{fontSize:'0.7em',color:theme.textLightColor,wordBreak:'break-word'}}>{latestMessage}</span>
                 </div>
             </Link>
         </React.Fragment>
@@ -709,6 +721,14 @@ function DropdownOptions({room}){
     )
 }
 
+const moreSvg = theme =>css({
+    fill:theme.textColor,
+    padding: '5px 1px',
+    '&:hover':{
+        backgroundColor:theme.embeddedHoverColor
+    }
+})
+
 function MoreSvg({className}){
     return(
         <svg
@@ -721,7 +741,7 @@ function MoreSvg({className}){
         viewBox="0 0 408 408"
         style={{ enableBackground: "new 0 0 408 408" }}
         xmlSpace="preserve"
-        fill="rgba(0,0,0,0.75)"
+        css={theme=>moreSvg(theme)}
         className={className}>
             <path d="M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" />
         </svg>

@@ -1,5 +1,6 @@
 import React, {Component, useEffect, useState} from "react";
 import {NavLink} from 'react-router-dom'
+import { useTheme } from 'emotion-theming'
 
 export class BranchNavigation extends Component{
     constructor(props){
@@ -12,7 +13,7 @@ export class BranchNavigation extends Component{
                 {/*<div style={{height:'100%',position:'absolute',left:100,width:210,display:'flex',alignItems:'center'}}>
                     <DropProfile branch={this.props.branch}/>
                 </div>*/}
-                <div style={{backgroundColor:'white',boxShadow:'0 4px 4px -4px rgba(0,0,0,0.25)'}}>
+                <div style={{boxShadow:'0 4px 4px -4px rgba(0,0,0,0.25)'}}>
                     <div id="branch-navigation" className="branch-navigation-container flex-fill">
                         <FeedButton branch={this.props.branch}/>
                         <BranchesButton branch={this.props.branch}/>
@@ -63,8 +64,10 @@ function DropProfile({branch}){
 
 
 const FeedButton = ({branch}) => {
+    const theme = useTheme();
+
     return(
-        <NavLink exact to={`/${branch.uri}`} className="user-color branch-navigation-button flex-fill" 
+        <NavLink exact to={`/${branch.uri}`} style={{color:theme.textColor}} className="user-color branch-navigation-button flex-fill" 
         activeClassName="clicked-navigation-button">
             
             <div className="navigation-button-text flex-fill center-items">
@@ -76,9 +79,10 @@ const FeedButton = ({branch}) => {
 }
 
 const BranchesButton = ({branch}) => {
+    const theme = useTheme();
 
     return(
-        <NavLink to={`/${branch.uri}/branches`} className="user-color branch-navigation-button flex-fill" 
+        <NavLink to={`/${branch.uri}/branches`} style={{color:theme.textColor}} className="user-color branch-navigation-button flex-fill" 
         activeClassName="clicked-navigation-button">
             <div className="navigation-button-text flex-fill center-items">
                 {/*<i className="material-icons navigation-icon">more</i>*/}

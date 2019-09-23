@@ -1,4 +1,5 @@
 import React, {useRef, useState} from "react"
+import {useTheme} from "emotion-theming";
 import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
 import ReactPlayer from 'react-player'
@@ -26,7 +27,8 @@ Number.prototype.roundTo = function(num) {
 }
 
 export function Images(props){
-
+    const theme = useTheme();
+    
     function getTallerElement(){
         let heights = props.images.map(im=>{
             return im.height;
@@ -52,7 +54,7 @@ export function Images(props){
     let initStyle;
     if(props.viewAs=="reply"){
         initStyle = {
-            border: '1px solid #e2eaf1',
+            border: `1px solid ${theme.borderColor}`,
             borderRadius: 10,
         }
     }else{

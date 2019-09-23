@@ -30,7 +30,7 @@ def score(ups, downs):
 
 def hot(ups, downs, spreads, date):
     s = score(ups, downs)
-    spread_s = sigmoid(spreads) * 30 - 15
+    spread_s = sigmoid(spreads) * 5 - 15
     order = log(max(abs(s), 1), 10) + spread_s
     sign = 1 if s > 0 else -1 if s < 0 else 0
     seconds = epoch_seconds(date) - 1134028003
@@ -262,8 +262,10 @@ from django.contrib.contenttypes.models import ContentType
 
 @receiver(post_save, sender=Post)
 def create_post_notification(sender, instance, created, **kwargs):
-    if created and not instance.replied_to:
+    if created:
+        instance.posted_to.add(instance.poster)
 
+    if created and not instance.replied_to:
         description = "added a new leaf"
         verb = "add_leaf"
 

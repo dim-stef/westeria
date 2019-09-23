@@ -1,4 +1,5 @@
 import React, {Component, useState} from "react";
+import { css } from "@emotion/core";
 import {Link} from 'react-router-dom'
 import {isMobile} from 'react-device-detect';
 import {BranchBanner} from "./BranchBanner"
@@ -6,26 +7,33 @@ import {UserContext} from '../container/ContextContainer'
 import {SmallCard} from "./Card"
 
 
-export class ChildBranch extends Component{
-    static contextType = UserContext
+export function ChildBranch({styleName='', style=null, branch, editMode, children}){
 
-    render(){
-        let {styleName='', style=null, branch, editMode, children} = this.props
-
-        return(
-            <>
-            <div className="flex-fill" style={{marginTop:style.marginTop,
-            marginBottom:style.marginBottom,
-            flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis}}>
-                <Link to={"/" + branch.uri} className={`${ styleName }`} style={{width:style.width}}>
-                    <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
-                </Link>
-                {children}
-            </div>
-            </>  
-        )
-    }
+    return(
+        <>
+        <div className="flex-fill" style={{marginTop:style.marginTop,
+        marginBottom:style.marginBottom,
+        flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis}}>
+            <Link to={"/" + branch.uri} className={`${ styleName }`} style={{width:style.width}}>
+                <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
+            </Link>
+            {children}
+        </div>
+        </>  
+    )
+    
 }
+
+const name = theme => css({
+    color:`${theme.textColor}`,
+    fontSize:'1.5rem',margin:0,fontWeight:700
+})
+
+const uri = theme => css({
+    color:`${theme.textLightColor}`,
+    fontSize:'1.4rem'
+})
+
 
 export function SmallBranch({branch,isLink=true,
     onClick=()=>{},hoverable=true,style=null,children}){
@@ -64,8 +72,8 @@ export function SmallBranch({branch,isLink=true,
                     <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
                     justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10,
                     wordBreak:'break-word',alignItems:'flex-start',WebkitAlignItems:'flex-start'}}>
-                        <p style={{fontSize:'1.5rem',margin:0,fontWeight:700,color:'#232323'}}>{branch.name}</p>
-                        <span style={{fontSize:'1.4rem',color:'#404040'}}>@{branch.uri}</span>
+                        <p css={theme=>name(theme)}>{branch.name}</p>
+                        <span css={theme=>uri(theme)}>@{branch.uri}</span>
                     </div>
                 </div>
                 

@@ -1,10 +1,20 @@
 import React from "react"
 import {Link} from "react-router-dom"
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
+
+const newBranch = theme => css({
+  border:`1px solid ${theme.borderColor}`,
+  '&:hover':{
+    backgroundColor:theme.hoverColor
+  }
+})
 
 export function CreateNewBranch({onClick = ()=>{}}){
-
+    const theme = useTheme();
     return(
-        <Link to="/settings/branches/new" onClick={onClick} className="create-new-branch flex-fill">
+        <Link to="/settings/branches/new" css={theme=>newBranch(theme)}
+        onClick={onClick} className="create-new-branch flex-fill">
             <PlusSvg/>
             <span style={{padding:10}}>Create new branch</span>
         </Link>

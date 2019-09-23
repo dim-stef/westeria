@@ -1,5 +1,7 @@
 import React, {Suspense, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react'
 import {Redirect} from 'react-router-dom';
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {ChatRoomsContext, UserContext} from "../container/ContextContainer"
 import {MoonLoader} from 'react-spinners';
 import {CustomEditor} from "./Editor"
@@ -27,7 +29,7 @@ function isFileVideo(file) {
 }
 
 export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null,setHeightOnBlur,setHeightOnInput}){
-
+    const theme = useTheme();
     const [value,setValue] = useState(null);
     const [files,setFiles] = useState([])
     const ref = useRef(null);
@@ -189,9 +191,9 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         <>
         <Suspense fallback={null}>
             {!isMember?<Redirect to="/messages"/>:null}
-            <div className="flex-fill messenger messenger-editor">
+            <div className="flex-fill messenger messenger-editor" style={{backgroundColor:theme.backgroundColor}}>
                 <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',
-                justifyContent:'stretch',borderTop:'1px solid #e2eaf1',...style}}>
+                justifyContent:'stretch',WebkitJustifyContent:'strech',borderTop:`1px solid ${theme.borderColor}`,...style}}>
                     <div>
                         <img src={context.currentBranch.branch_image} className="profile-picture" 
                         style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
@@ -209,7 +211,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         className="flex-fill"
                         placeholder="Type message"
                         style={{padding:'10px 10px',minWidth:0,borderRadius:25,
-                        wordBreak:'break-all',border:'1px solid rgb(199, 208, 214)',flex:'1 1 auto',
+                        wordBreak:'break-word',border:`1px solid ${theme.borderColor}`,flex:'1 1 auto',msFlex:'1 1 auto',
                         minHeight:'2rem',maxHeight:100,overflow:'auto'}}/>
                         
                         <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick} isLoading={isLoading}/>
@@ -281,28 +283,26 @@ function Toolbar({handleSendMessage,onInput,isLoading}){
     )
 }
 
-const MediaSvg = props => (
-    <svg
+const MediaSvg = props => {
+    const theme = useTheme();
+    return <svg
       id="Layer_1"
       x="0px"
       y="0px"
       viewBox="0 0 260 260"
       xmlSpace="preserve"
       className="messenger-icon"
+      style={{fill:theme.textColor}}
       {...props}
     >
-      <style>{".st0{fill:#212121}"}</style>
       <path
-        className="st0"
         d="M93.3 136c0-13.7 11.1-24.8 24.8-24.8 2.8 0 5-2.2 5-5s-2.2-5-5-5c-19.2 0-34.8 15.6-34.8 34.8 0 2.8 2.2 5 5 5s5-2.3 5-5z"
       />
       <path
-        className="st0"
         d="M225.3 81.9h-50.5l-21.7-29.3c-.9-1.3-2.4-2-4-2h-62c-1.6 0-3.1.8-4 2L61.3 81.9H34.7c-2.8 0-5 2.2-5 5v117.6c0 2.8 2.2 5 5 5h190.7c2.8 0 5-2.2 5-5V86.9c-.1-2.8-2.3-5-5.1-5zm-22.4 30.2h17.4v65.5h-17.4v-65.5zm-139-20.2c1.6 0 3.1-.8 4-2l21.7-29.3h57l21.7 29.3c.9 1.3 2.4 2 4 2h48v10.2h-22.4c-2.8 0-5 2.2-5 5v3h-29c-9.1-16-26.2-26.8-45.9-26.8-19.6 0-36.8 10.8-45.9 26.8H39.7V91.9h24.2zm54.2 1.4c23.5 0 42.7 19.1 42.7 42.7 0 23.5-19.1 42.7-42.7 42.7-23.5 0-42.7-19.1-42.7-42.7s19.2-42.7 42.7-42.7zM39.7 199.5v-79.4h28.2c-1.6 5-2.4 10.3-2.4 15.8 0 29 23.6 52.7 52.7 52.7 29 0 52.7-23.6 52.7-52.7 0-5.5-.9-10.8-2.4-15.8h24.6v62.6c0 2.8 2.2 5 5 5h22.4v11.8H39.7z"
       />
       <path
-        className="st0"
         d="M189.6 74h17.3c2.8 0 5-2.2 5-5s-2.2-5-5-5h-17.3c-2.8 0-5 2.2-5 5s2.2 5 5 5z"
       />
     </svg>
-  );
+};

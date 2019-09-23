@@ -2,7 +2,7 @@ import React, {Component, useContext, useEffect, useState} from "react"
 import {Link, Redirect, Route, Switch, withRouter} from 'react-router-dom'
 import { Global, css } from "@emotion/core";
 import styled from '@emotion/styled'
-import { withTheme } from 'emotion-theming'
+import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming'
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
 import Login from "./Login"
@@ -109,19 +109,12 @@ const GlobalStyles = withTheme(({ theme }) => (
 ))
 
 const RoutesWrapper = (props) =>{
-  const setNotifications = (newnotifications) => {
-    setState({...state, notifications: newnotifications})
-  }
-
-  const initState = {
-    notifications: [],
-    setNotifications: setNotifications
-  } 
-
-  const [state, setState] = useState(initState)
-
+  const [messages,setMessages] = useState([]);
+  const [notifications,setNotifications] = useState([]);
+  
   return(
-    <NotificationsProvider value={state}>
+    <NotificationsProvider value={{messages:messages,setMessages:setMessages,
+    notifications:notifications,setNotifications:setNotifications}}>
       {/*<GlobalStyle/>*/}
       <GlobalStyles/>
       <Routes/>
@@ -166,32 +159,34 @@ if (process.env.NODE_ENV !== 'production') {
     whyDidYouRender(React);
 }
 
+const postWrapper = theme=>css({
+  border:`1px solid ${theme.borderColor}`
+})
 
 function SingularPostWrapper({externalPostId}){
     const singularPostContext = useContext(SingularPostContext)
     const userContext = useContext(UserContext);
 
-
     return(
         <>
             <Desktop>
                 <FrontPageLeftBar/>
-                <ul className="post-list">
+                <ul className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
                 /></ul>
-                <FrontPageRightBar/>
+                <Trending/>
             </Desktop>
 
             <Tablet>
-                <ul className="post-list">
+                <ul className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
                 /></ul>
             </Tablet>
 
             <Mobile>
-                <ul className="post-list">
+                <ul className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
                 /></ul>
@@ -296,6 +291,7 @@ export function BranchPage(props){
 function BranchFrontPage(props){
     let _context = null;
 
+    const theme = useEmotionTheme();
     let keyword = props.keywordMatch.params.keyword
     if(keyword == 'community'){
       _context = BranchCommunityPostsContext
@@ -331,9 +327,10 @@ function BranchFrontPage(props){
                     <div className="flex-fill" style={{width:'100%'}}>
                         <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
                         {userContext.isAuth?
-                            <div className="box-border" style={{backgroundColor:'white',padding:'10px 20px'}}>
-                                <div className="flex-fill" style={{alignItems:'center'}}>
-                                    <h1>My branches</h1>
+                            <div style={{backgroundColor:theme.backgroundColor,
+                            padding:'10px 20px',border:`1px solid ${theme.borderColor}`}}>
+                                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
+                                    <img src="/static/logo_full.png"/>
                                 </div>
                                     <MyBranchesColumnContainer/>
                             </div>

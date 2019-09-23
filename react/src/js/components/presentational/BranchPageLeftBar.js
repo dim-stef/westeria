@@ -48,10 +48,10 @@ class BranchName extends Component{
     render(){
         return(
             <>
-            <div style={{alignSelf:'flex-start',fontSize:'2em'}}>
+            <div style={{alignSelf:'flex-start',WebkitAlignSelf:'flex-start',fontSize:'2em'}}>
                 {this.props.branch.name}
             </div>
-            <div style={{alignSelf:'flex-start', fontSize:'1.5em',color:'#565656'}}>
+            <div style={{alignSelf:'flex-start', WebkitAlignSelf:'flex-start', fontSize:'1.5em',color:'#565656'}}>
                 @{this.props.branch.uri}
             </div>
             </>

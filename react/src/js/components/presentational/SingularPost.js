@@ -1,6 +1,7 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import ReactDOM from 'react-dom';
 import {Link, withRouter} from 'react-router-dom'
+import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import history from "../../history"
 import {Helmet} from 'react-helmet'
@@ -39,6 +40,10 @@ const pathFill = (fillColor, strokeColor,fillHover,strokeHover,clickedColor)=> c
         fill:fillHover,
         stroke:strokeHover
     }
+})
+
+const number = (themeColor,hightlighted)=> css({
+   color:hightlighted||themeColor
 })
 
 function getPostedTo(post,activeBranch,context){
@@ -145,6 +150,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     }
 
     let title = 'Subranch';
+    let description = '';
     let maxLength=100;
     let trancuation = ''
     if(post){
@@ -152,6 +158,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         trancuation =  post.text.length > maxLength ? '...':'';
         if(post.text){
             title = post.poster_name + ' ' + post.text.substring(0,endOfText)+ trancuation + ' - Subranch';
+            description = `${post.poster_name} @(${post.poster_uri}) on Subranch: ${post.description}`;
         }
     }
     
@@ -160,7 +167,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         <>
             <Helmet>
                 <title>{title}</title>
-                <meta name="description" content={post.poster_description}></meta>
+                <meta name="description" content={description}></meta>
             </Helmet>
             <RoutedHeadline/>
             <Post post={post} parentPost={parentPost} postsContext={postsContext}
@@ -314,6 +321,7 @@ if (process.env.NODE_ENV !== 'production') {
 //Post.whyDidYouRender = true;
 
 function ShownBranch({branch,date,dimensions=48}){
+    const theme = useTheme();
     const [showCard,setShowCard] = useState(false);
     let setTimeoutConst;
     let setTimeoutConst2;
@@ -350,10 +358,11 @@ function ShownBranch({branch,date,dimensions=48}){
             style={{width:dimensions,height:dimensions}}
             uri={branch.uri}/>
             <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
-                <Link to={`/${branch.uri}`} onClick={handleAnchorClick} style={{textDecoration:'none', color:'black',marginRight:10}}>
+                <Link to={`/${branch.uri}`} onClick={handleAnchorClick} 
+                style={{textDecoration:'none', color:theme.textHarshColor,marginRight:10}}>
                         <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
                 </Link>
-                {date?<div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600}}>
+                {date?<div style={{padding:'3px 0px',color:theme.textLightColor,fontWeight:600}}>
                     {dateElement}
                 </div> :null}
                 
@@ -363,11 +372,21 @@ function ShownBranch({branch,date,dimensions=48}){
     )
 }
 
+const postCss = (theme,isEmbedded) => css({
+    padding:10,
+    transition:'opacity 0.1s ease-in-out',
+    position:'relative',
+    '&:hover': {
+        backgroundColor:isEmbedded?theme.embeddedHoverColor:theme.hoverColor
+    }
+})
 
 function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
 
     const context = useContext(UserContext);
+    const theme = useTheme();
+
     let initSelfSpread = post.spreaders.find(s=>{
         if(context.isAuth && s.branch){
             return s.branch.uri===context.currentBranch.uri
@@ -385,9 +404,9 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     const ref = useRef(null);
 
     let isEmbedded = viewAs=="embeddedPost" ? true : false;
-    let borderBottom = viewAs=="post" || isEmbedded ? '1px solid #e2eaf1' : borderBottom;
+    let borderBottom = viewAs=="post" || isEmbedded ? `1px solid ${theme.borderColor}` : borderBottom;
     borderBottom = viewAs=="reply" ? 'none' : borderBottom
-    let border = isEmbedded ? '1px solid rgb(226, 234, 241)' : 'none';
+    let border = isEmbedded ? `1px solid ${theme.borderColor}` : 'none';
     let borderRadius = isEmbedded ? '10px' : '0';
     let marginTop = isEmbedded ? '10px' : '0';
 
@@ -428,7 +447,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     return(
         <>
         <div ref={initRipple} className={className} unbounded={unbounded} className="no-highlight">
-            <div ref={ref} className={`post ${cls}`}
+            <div ref={ref} css={theme=>postCss(theme,isEmbedded)} className={`post`}
             style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
             poststate={open?"open":"closed"}>
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
@@ -522,7 +541,6 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
 
 
 function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dimensions=48}){
-
 
     return(
         mainPostedBranch && post.type!=="reply"?
@@ -763,7 +781,7 @@ function PostActions({post,handleCommentClick,handleSpread,selfSpread}){
         updatePostsContext(branchPostsContext);
     },[starCount,dislikeCount])
 
-    let color = 'rgb(67, 78, 88)';
+    let color = null//'rgb(67, 78, 88)';
 
     if(react=='star'){
         color = '#fb4c4c';
@@ -782,7 +800,8 @@ function PostActions({post,handleCommentClick,handleSpread,selfSpread}){
                     <Dislike postId={post.id} count={post.stars} react={react} setReact={setReact} 
                     createOrDeleteReact={createOrDeleteReact} changeReact={changeReact} isDisabled={isDisabled}/>
                 </div>
-                <StarDislikeRatio style={{color:color}} reacted={react} starCount={starCount} dislikeCount={dislikeCount}/>
+                <StarDislikeRatio css={theme=>number(theme.textLightColor,color)} reacted={react} 
+                starCount={starCount} dislikeCount={dislikeCount}/>
             </div>
 
             <Comments post={post} handleCommentClick={handleCommentClick}/>
@@ -1024,13 +1043,20 @@ const CommentsSvg = ({className}) => (
         d="M155.9 158.2c-32.9 0-59.6-21.4-59.6-47.8 0-2.8 2.2-5 5-5s5 2.2 5 5c0 20.8 22.3 37.7 49.6 37.7 27.4 0 49.6-16.9 49.6-37.7 0-2.8 2.2-5 5-5s5 2.2 5 5c0 26.4-26.8 47.8-59.6 47.8z"
       />
     </svg>
-  );
+);
+
+const commentsCount = theme =>css({
+    fontSize:'1.1em',marginLeft:5,color:theme.textLightColor,fontWeight:600,paddingTop:3,
+    '&:hover':{
+        color:'#1fab89'
+    }
+})
 
 function CommentsCount({count}){
     let color = 'rgb(67, 78, 88)';
 
     return(
-        <span className="comments-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
+        <span className="comments-count" css={theme=>commentsCount(theme)}>
             {count!==0?count:null}
         </span>
     )
@@ -1226,11 +1252,17 @@ const ShareSvg = ({className}) => (
     </svg>
   );
 
+const shareCount = theme =>css({
+    fontSize:'1.1em',marginLeft:5,color:theme.textLightColor,fontWeight:600,paddingTop:3,
+    '&:hover':{
+        color:'#2196f3'
+    }
+})
+
 function ShareCount({spreads}){
-    let color = 'rgb(67, 78, 88)';
 
     return(
-        <span className="spread-count" style={{fontSize:'1.1em',marginLeft:5,color:color,fontWeight:600,paddingTop:3}}>
+        <span className="spread-count" css={theme=>shareCount(theme)}>
             {spreads!==0?spreads:null}
         </span>
     )
@@ -1238,6 +1270,7 @@ function ShareCount({spreads}){
 
 function TopSpreadList({spreaders,selfSpread}){
     const context = useContext(UserContext);
+    const theme = useTheme();
 
     var topSpreadList = null;
     let postPicture = null;
@@ -1255,7 +1288,8 @@ function TopSpreadList({spreaders,selfSpread}){
         }else if(spreaders.length>1){
             topSpreadList = <>
                 {postPicture}
-                <p className="top-spread-list">You and {spreaders.length - 1} other branches you follow spread this leaf</p>
+                <p className="top-spread-list">
+                You and {spreaders.length - 1} other branches you follow spread this leaf</p>
             </>
         }
     }
@@ -1268,18 +1302,20 @@ function TopSpreadList({spreaders,selfSpread}){
             topSpreadList = 
             <>
                 {postPicture}
-                <p className="top-spread-list">{spreaders[0].branch.uri} spread this leaf</p>
+                <p className="top-spread-list">
+                {spreaders[0].branch.uri} spread this leaf</p>
             </>
             
         }else{
             topSpreadList = <>
                 {postPicture}
-                <p className="top-spread-list">{spreaders[0].branch.uri} and {spreaders.length - 1} other branches you follow have spread this leaf</p>
+                <p className="top-spread-list">
+                {spreaders[0].branch.uri} and {spreaders.length - 1} other branches you follow have spread this leaf</p>
             </>
         }
     }
     return(
-        <div className="top-spread-list flex-fill">
+        <div className="top-spread-list flex-fill" style={{color:theme.textLightColor}}>
             {topSpreadList}
         </div>
     )
@@ -1361,6 +1397,14 @@ function MoreOption({value,onClick,children}){
     )
 }
 
+const moreSvg = theme =>css({
+    fill:theme.textColor,
+    padding: '5px 1px',
+    '&:hover':{
+        backgroundColor:theme.embeddedHoverColor
+    }
+})
+
 function MoreSvg({className}){
     return(
         <svg
@@ -1373,7 +1417,7 @@ function MoreSvg({className}){
         viewBox="0 0 408 408"
         style={{ enableBackground: "new 0 0 408 408" }}
         xmlSpace="preserve"
-        fill="rgba(0,0,0,0.75)"
+        css={theme=>moreSvg(theme)}
         className={className}>
             <path d="M51 153c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm306 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51zm-153 0c-28.05 0-51 22.95-51 51s22.95 51 51 51 51-22.95 51-51-22.95-51-51-51z" />
         </svg>

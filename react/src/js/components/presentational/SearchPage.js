@@ -1,4 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
+import { css } from "@emotion/core";
+import {useTheme} from "emotion-theming";
 import {Helmet} from 'react-helmet'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
@@ -15,8 +17,11 @@ let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
 
 export function SearchPage(props){
+    const theme = useTheme();
+
     return(
-        <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>
+        <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',
+        margin:0,border:`1px solid ${theme.borderColor}`}}>
             <h1 style={{padding:10}}>Search</h1>
             <Search/>
             <h1 style={{padding:10}}>Trending</h1>
@@ -25,7 +30,23 @@ export function SearchPage(props){
     )
 }
 
+const searchContainer = () => css({
+    display:'flex',
+    flexFlow:'row wrap', 
+    justifyContent:'space-between'
+})
+
+const searchList = theme => css({
+    minWidth:250, 
+    width:'30%',
+    flexGrow:1,
+    margin:10,
+    flexFlow:'column',
+    border:`1px solid ${theme.borderColor}`
+})
+
 function Search(){
+    const theme = useTheme();
     const [results,setResults] = useState([])
     const [focused,setFocused] = useState(false);
     const [text,setText] = useState('');
@@ -66,14 +87,15 @@ function Search(){
                     className="search-button"
                     value={text}
                     onChange={e=> setText(e.target.value)}
-                    onFocus={e=> setFocused(true)}                
+                    onFocus={e=> setFocused(true)}
+                    style={{border:`1px solid ${theme.borderColor}`,color:theme.textColor}}            
                 />
             </div>
-            <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
+            <div className="flex-fill" css={searchContainer} >
                 {results.length>0?
                 results.map(r=>{
-                    return  <div className="branch-container" 
-                            style={{display:'flex',minWidth:250, width:'30%',flexGrow:1,margin:10,flexFlow:'column',border:'1px solid #e2eaf1'}}>
+                    return  <div className="branch-container flex-fill" 
+                            css={theme=>searchList(theme)}>
                                 <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
                                 branch={r}/>
                                 <BranchFooter branch={r}/>
@@ -118,7 +140,7 @@ function Trending(){
             {branches.length>0?
             branches.map(b=>{
                 return  <div key={`${b.id}-trending`} className="branch-container" 
-                        style={{display:'flex',minWidth:250, width:'30%',flexGrow:1,margin:10,flexFlow:'column',border:'1px solid #e2eaf1'}}>
+                        css={theme=>searchList(theme)}>
                             <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
                             branch={b}/>
                             <BranchFooter branch={b}/>

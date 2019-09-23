@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from "react"
 import {Link, Redirect, Route, Switch, withRouter} from "react-router-dom"
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {Field, Form} from 'react-final-form'
 import {OnChange} from 'react-final-form-listeners'
 import {Helmet} from 'react-helmet'
@@ -25,6 +27,22 @@ let border={
     borderBottom:'1px solid #e2eaf1'
 }
 
+const settingLabel = theme =>css({
+    fontWeight:600,
+    fontSize:'1.5em',
+    padding:'20px 0 5px',
+    color:theme.textLightColor
+})
+
+const settingInput = theme =>css({
+    borderRadius:15,
+    fontSize:'1.7em',
+    padding:'5px 10px',
+    color:theme.textColor,
+    border:`1px solid ${theme.borderColor}`
+})
+
+
 function validateImageSize(target,maxSize){
     var files = target.files;
     if(files[0].size>maxSize){
@@ -35,6 +53,8 @@ function validateImageSize(target,maxSize){
 
 export function SettingsPage(){
     const userContext = useContext(UserContext);
+    const theme = useTheme();
+
     return (
         userContext.isAuth?
             <>
@@ -42,7 +62,8 @@ export function SettingsPage(){
                 <title>Settings - Subranch</title>
                 <meta name="description" content="Manage your account settings and details here." />
             </Helmet>
-            <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>
+            <div className="main-column" 
+            style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0,border:`1px solid ${theme.borderColor}`}}>
                 <div>
                     <SettingsRoutes/>
                 </div>
@@ -69,12 +90,12 @@ function SettingsRoutes(){
 
 function TopLevelSettings(){
     const branches = useMyBranches();
-
+    const theme = useTheme()
     return(
         <>
             <RoutedHeadline to="/" headline="Settings"/>
             
-            <SettingsTab to="/settings/branches" style={border}>
+            <SettingsTab to="/settings/branches" style={{borderBottom:`1px solid ${theme.borderColor}`}}>
                 <p style={{fontWeight:'bold',fontSize:'2em'}}>Profiles</p>
             </SettingsTab>
             <SettingsTab to="/settings/privacy">
@@ -85,10 +106,12 @@ function TopLevelSettings(){
 }
 
 function SettingsTab({to,style,children}){
+    const theme = useTheme()
+
     return(
         <div style={style}>
             <Link to={to} className="flex-fill"
-                style={{textDecoration:'none',color:'black'}}>
+                style={{textDecoration:'none',color:theme.textHarshColor}}>
                 <div className="settings-option flex-fill" style={{alignItems:'center',WebkitAlignItems:'center',padding:10}}>
                     {children}
                 </div>
@@ -100,6 +123,7 @@ function SettingsTab({to,style,children}){
 
 function BranchSettingsLayer(){
     const userContext = useContext(UserContext);
+    const theme = useTheme()
 
     return(
         <>
@@ -108,7 +132,7 @@ function BranchSettingsLayer(){
             <meta name="description" content="Manage your branch settings here." />
         </Helmet>
         <RoutedHeadline to="/settings" headline="Branch settings"/>
-        <SettingsTab to={`/settings/branches/${userContext.currentBranch.uri}`} style={border}>
+        <SettingsTab to={`/settings/branches/${userContext.currentBranch.uri}`} style={{borderBottom:`1px solid ${theme.borderColor}`}}>
             <p style={{fontWeight:'bold',fontSize:'2em'}}>Update branch</p>
         </SettingsTab>
         <SettingsTab to="/settings/branches/new">
@@ -337,6 +361,7 @@ function CreateNewBranch(){
 }
 
 function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
+    const theme = useTheme();
     const profileRef = useRef(null);
     const bannerRef = useRef(null);
     const wrapperRef = useRef(null);
@@ -408,8 +433,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                 return (
                     <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
                         <div>
-                            <label className="setting-label">Name</label>
-                            <Field name="name" component="input" placeholder="Name" required={createNew} className="setting-input"/>
+                            <label css={theme=>settingLabel(theme)}>Name</label>
+                            <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
                         </div>
 
                         <div style={{margin:'5px 0'}}>
@@ -417,8 +442,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                             validate={usernameAvailable}>
                                 {({ input, meta }) => (
                                 <div>
-                                    <label className="setting-label">Username</label>
-                                    <input {...input} className="setting-input" type="text" placeholder="Username" maxLength="60" />
+                                    <label css={theme=>settingLabel(theme)}>Username</label>
+                                    <input {...input} css={theme=>settingInput(theme)} type="text" placeholder="Username" maxLength="60" />
                                     {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
                                     {/*{meta.validating && <p>loading</p>}*/}
                                     <span className="setting-info">Maximum of 60 characters</span>
@@ -438,8 +463,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                             validate={validateRemainingCharacters}>
                                 {({ input, meta }) => (
                                 <div>
-                                    <label className="setting-label">Description</label>
-                                    <textarea {...input} className="setting-input"
+                                    <label css={theme=>settingLabel(theme)}>Description</label>
+                                    <textarea {...input} css={theme=>settingInput(theme)}
                                     style={{resize:'none',maxHeight:400,minHeight:100,width:'90%'}} 
                                     placeholder="Type something that describes your branch" id="description" maxLength="140" />
                                     <span className="setting-info">{remainingCharacters} characters left.</span>
@@ -450,7 +475,7 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                         </div>
 
                         <div style={{margin:'5px 0'}}>
-                            <label style={{height:'100%'}} className="setting-label">Profile Image And Banner</label>
+                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image And Banner</label>
                             <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
                                 <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
                                 <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
@@ -462,7 +487,7 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                             <Field name="default" type="checkbox">
                                 {({ input, meta }) => (
                                     <div>
-                                        <label className="setting-label">Default</label>
+                                        <label css={theme=>settingLabel(theme)}>Default</label>
                                         <Toggle checked={input.value} {...input} disabled={isDefaultSwitchDisabled} 
                                         icons={false} className="toggle-switch"/>
                                     </div>
@@ -548,8 +573,8 @@ function Password({name,placeholder,label}){
             placeholder={placeholder}>
                 {({ input, meta }) => (
                     <div>
-                        <label className="setting-label">{label}</label>
-                        <input {...input} className="setting-input"
+                        <label css={theme=>settingLabel(theme)}>{label}</label>
+                        <input {...input} css={theme=>settingInput(theme)}
                         placeholder={placeholder} required/>
                         {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
                     </div>
@@ -581,6 +606,7 @@ const Error = ({ name }) => (
   );
 
 export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_image",showError=false}){
+    const theme = useTheme();
     function onInput(){
 
         // 2mb
@@ -599,9 +625,11 @@ export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_i
         validate={onInput}>
             {({ input, meta }) => (
             <div>
-                <label style={{height:'100%',padding:0}} className="setting-label" htmlFor="branch-image">
+                <label style={{height:'100%',padding:0}} css={theme=>settingLabel(theme)} htmlFor="branch-image">
                     <ImageInput key="profile" src={src?src:null} wrapperRef={wrapperRef} nodeRef={profileRef} 
-                    getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"/>
+                    getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"
+                    extraStyle={{border:`1px solid ${theme.borderColor}`}}
+                    />
                 </label>
                 <input {...input} ref={profileRef} accept="image/*" id="branch-image" className="inputfile" type="file" />
                 {showError?
@@ -614,6 +642,7 @@ export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_i
 }
 
 function Banner({branch,wrapperRef,bannerRef,createNew}){
+    const theme = useTheme();
     function onInput(){
 
         // 5mb
@@ -636,9 +665,10 @@ function Banner({branch,wrapperRef,bannerRef,createNew}){
         validate={onInput}>
             {({ input, meta }) => (
             <div>
-                <label style={{height:'100%',padding:0}} className="setting-label" htmlFor="branch_banner">
+                <label style={{height:'100%',padding:0}} css={theme=>settingLabel(theme)} htmlFor="branch_banner">
                     <ImageInput key="banner" src={createNew || isDefault?null:branch.branch_banner} wrapperRef={wrapperRef} nodeRef={bannerRef} 
-                    getWidth={width=>width * 3} className="branch-banner-setting" alt="Banner"/>
+                    getWidth={width=>width * 3} className="branch-banner-setting" 
+                    extraStyle={{border:`1px solid ${theme.borderColor}`,borderRadius:15}} alt="Banner"/>
                 </label>
                 <input {...input} ref={bannerRef} accept="image/*" id="branch_banner" className="inputfile" type="file" />
                 {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
@@ -649,7 +679,7 @@ function Banner({branch,wrapperRef,bannerRef,createNew}){
     )
 }
 
-function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt}){
+function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt,extraStyle}){
     const [source,setSource] = useState(src);
     const [width,setWidth] = useState(0);
     const [lineHeight,setLineHeight] = useState(0);
@@ -681,9 +711,9 @@ function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt}){
     return(
         source?
         <img alt={alt} src={source || null} className={`${className}`}
-        style={{width:width,lineHeight:`${lineHeight}px`,textAlign:'center',display:'block'}}/>:
+        style={{width:width,lineHeight:`${lineHeight}px`,textAlign:'center',display:'block',...extraStyle}}/>:
         <div className={`${className}`}
         style={{width:width,lineHeight:`${lineHeight}px`,textAlign:'center',display:'block',
-        border:'1px solid #d8d5d5'}}>{alt}</div>
+        border:'1px solid #d8d5d5',...extraStyle}}>{alt}</div>
     )
 }

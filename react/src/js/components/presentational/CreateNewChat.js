@@ -1,13 +1,30 @@
 import React, {useContext, useEffect, useRef, useState} from "react"
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {Field, Form} from 'react-final-form'
 import {UserContext} from '../container/ContextContainer';
-
 import {SmallBranch} from './Branch';
 import {Profile} from './SettingsPage'
 import {Save} from './Forms'
 import RoutedHeadline from './RoutedHeadline'
 import axios from 'axios';
 
+
+
+const settingLabel = theme =>css({
+    fontWeight:600,
+    fontSize:'1.5em',
+    padding:'20px 0 5px',
+    color:theme.textLightColor
+})
+
+const settingInput = theme =>css({
+    borderRadius:15,
+    fontSize:'1.7em',
+    padding:'5px 10px',
+    color:theme.textColor,
+    border:`1px solid ${theme.borderColor}`
+})
 
 function useMutualFollows(){
     const userContext = useContext(UserContext);
@@ -85,15 +102,15 @@ export function CreateNewChat(){
                     placeholder="name">
                         {({ input, meta }) => (
                             <div style={{margin:'10px 0'}}>
-                                <label className="setting-label">Name</label>
-                                <input {...input} className="setting-input"
+                                <label css={theme=>settingLabel(theme)}>Name</label>
+                                <input {...input} css={theme=>settingInput(theme)}
                                 required/>
                                 {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
                             </div>
                         )}
                     </Field>
                     <div style={{margin:'10px 0'}}>
-                        <label style={{height:'100%'}} className="setting-label">Profile Image</label>
+                        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
                         <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
                             <Profile showError wrapperRef={wrapperRef} profileRef={profileRef} name="image" createNew/>
                         </div>

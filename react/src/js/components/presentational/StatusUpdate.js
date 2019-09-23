@@ -1,5 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom';
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
 import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
@@ -58,6 +60,7 @@ export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,p
         }
     }
 
+    const theme = useTheme();
     const [value,setValue] = useState('');
     const [files,setFiles] = useState([]);
     const [imageError,setImageError] = useState(false);
@@ -158,10 +161,11 @@ export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,p
     }
 
     return(
-            <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:'#C2E4FB',
-            justifyContent:'stretch',position:'relative',zIndex:4,...style}}>
+            <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
+            justifyContent:'stretch',WebkitJustifyContent:'strech',position:'relative',zIndex:4,...style}}>
                 <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
-                setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview">
+                setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview" 
+                style={{backgroundColor:'transparent !important'}}>
                     <img src={branch.branch_image} className="profile-picture"
                     style={{width:34,height:34,marginRight:10,display:'block',objectFit:'cover'}}/>
                 </BranchSwitcher>
@@ -174,8 +178,10 @@ export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,p
                     placeholder="Add a leaf"
                     className="editor flex-fill"
                     value={value}
-                    style={{padding:5,backgroundColor:'white',minWidth:0,borderRadius:10,
-                    wordBreak:'break-all',border:'2px solid #219ef3',minHeight:'2rem',alignItems:'center',display:'block'}}/>
+                    style={{padding:5,backgroundColor:'transparent',minWidth:0,borderRadius:10,color:theme.textColor,
+                    wordBreak:'break-word',border:'2px solid #219ef3',minHeight:'2rem',
+                    alignItems:'center',backgroundColor:theme.backgroundColor,
+                    WebkitAlignItems:'center',display:'block'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
                     {minimized?
                     null:
@@ -371,26 +377,25 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
 
     return(
         <ToggleContent 
-                toggle={show=>(
-                <div className="flex-fill" style={{marginTop:5}}>
-             
-                    <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
-                        <input type="file" multiple className="inputfile" id="media"
-                        accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
-                        <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
-                    </div>
-                    <button style={{marginRight:10}} className="editor-btn"
-                    onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
-                    {isLoading?
-                    <div style={{alignSelf:'center',WebkitAlignItems:'center'}}>
-                        <MoonLoader
-                            sizeUnit={"px"}
-                            size={20}
-                            color={'#123abc'}
-                            loading={isLoading}
-                        />
-                    </div>:<button onClick={handleClick} className="editor-btn">Add</button>}
-        </div>
+            toggle={show=>(
+            <div className="flex-fill" style={{marginTop:5}}>
+                <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
+                    <input type="file" multiple className="inputfile" id="media"
+                    accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
+                    <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
+                </div>
+                <button style={{marginRight:10}} className="editor-btn"
+                onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
+                {isLoading?
+                <div style={{alignSelf:'center',WebkitAlignItems:'center'}}>
+                    <MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={'#123abc'}
+                        loading={isLoading}
+                    />
+                </div>:<button onClick={handleClick} className="editor-btn">Add</button>}
+            </div>
         )}
         content={hide => (
         <Modal>
@@ -403,9 +408,9 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
 }
 
 function PostToBranches({parents,siblings,children,onSelect}){
+    const theme = useTheme();
     return(
-        <div id="modal-post-to" className="post-to-branch-container"
-        >
+        <div id="modal-post-to" className="post-to-branch-container" style={{backgroundColor:theme.hoverColor}}>
             <div>
                 <Tabs onSelect={onSelect} defaultFocus={true}>
                     <TabList className="post-to-branch-tab-list" >
@@ -515,31 +520,29 @@ function EmojiSvg(){
 }
 
 
-const MediaSvg = props => (
-    <svg
+const MediaSvg = props => {
+    const theme = useTheme();
+    return <svg
       id="Layer_1"
       x="0px"
       y="0px"
       viewBox="0 0 260 260"
       xmlSpace="preserve"
       className="messenger-icon"
+      style={{fill:theme.textHarshColor}}
       {...props}
     >
-      <style>{".st0{fill:#212121}"}</style>
       <path
-        className="st0"
         d="M93.3 136c0-13.7 11.1-24.8 24.8-24.8 2.8 0 5-2.2 5-5s-2.2-5-5-5c-19.2 0-34.8 15.6-34.8 34.8 0 2.8 2.2 5 5 5s5-2.3 5-5z"
       />
       <path
-        className="st0"
         d="M225.3 81.9h-50.5l-21.7-29.3c-.9-1.3-2.4-2-4-2h-62c-1.6 0-3.1.8-4 2L61.3 81.9H34.7c-2.8 0-5 2.2-5 5v117.6c0 2.8 2.2 5 5 5h190.7c2.8 0 5-2.2 5-5V86.9c-.1-2.8-2.3-5-5.1-5zm-22.4 30.2h17.4v65.5h-17.4v-65.5zm-139-20.2c1.6 0 3.1-.8 4-2l21.7-29.3h57l21.7 29.3c.9 1.3 2.4 2 4 2h48v10.2h-22.4c-2.8 0-5 2.2-5 5v3h-29c-9.1-16-26.2-26.8-45.9-26.8-19.6 0-36.8 10.8-45.9 26.8H39.7V91.9h24.2zm54.2 1.4c23.5 0 42.7 19.1 42.7 42.7 0 23.5-19.1 42.7-42.7 42.7-23.5 0-42.7-19.1-42.7-42.7s19.2-42.7 42.7-42.7zM39.7 199.5v-79.4h28.2c-1.6 5-2.4 10.3-2.4 15.8 0 29 23.6 52.7 52.7 52.7 29 0 52.7-23.6 52.7-52.7 0-5.5-.9-10.8-2.4-15.8h24.6v62.6c0 2.8 2.2 5 5 5h22.4v11.8H39.7z"
       />
       <path
-        className="st0"
         d="M189.6 74h17.3c2.8 0 5-2.2 5-5s-2.2-5-5-5h-17.3c-2.8 0-5 2.2-5 5s2.2 5 5 5z"
       />
     </svg>
-  );
+};
 
 const Modal = ({ children ,onClick}) => (
     ReactDOM.createPortal(

@@ -543,7 +543,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
         fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
                   'poster_description','posted_to','text','type',
                   'created','updated','poster_picture','poster_banner',
-                  'posted_picture','posted_banner',
+                  'posted_picture','posted_banner','description',
                   'replied_to','replies','replies_count','spreads_count',
                   'level','stars','dislikes','hot_score','images','videos','thumbnails')
         read_only_fields = ('level',)

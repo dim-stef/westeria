@@ -10,7 +10,7 @@ export function Messages(){
 
     useEffect(()=>{
         if(messages){
-            notificationsContext.setNotifications([...messages,...notificationsContext.notifications])
+            notificationsContext.setMessages([...messages,...notificationsContext.messages])
         }
         
     },[messages])

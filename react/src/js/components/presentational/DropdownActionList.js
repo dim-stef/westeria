@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {useMediaQuery} from 'react-responsive'
+import {useTheme} from 'emotion-theming'
 import {CSSTransition} from 'react-transition-group';
 import {MobileModal} from "./MobileModal"
 import {Modal, ToggleContent} from "./Temporary"
@@ -14,6 +15,7 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
     const mobileRef = useRef(null);
+    const theme = useTheme();
 
     function handleClick(e,show){
         e.stopPropagation();
@@ -29,7 +31,6 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
         e.stopPropagation();
         setOpen(false);
     }
-
 
     function handleOutsideClick(e){
         e.stopPropagation();
@@ -54,6 +55,16 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
         }
     },[])
 
+    let finalStyle = {}
+    if(style){
+        finalStyle = {...style}
+    }
+
+    finalStyle = {
+        ...finalStyle,
+        backgroundColor:theme.backgroundColor
+    }
+
     return (
         <ToggleContent 
             toggle={show=>{
@@ -61,7 +72,7 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
                     <div ref={ref} style={{position:'relative'}} onClick={e=>handleClick(e,show)}>
                         {children}
                         {isOpen && isDesktopOrLaptop?
-                        <div className="flex-fill filter-dropdown" style={style}>
+                        <div className="flex-fill filter-dropdown" style={finalStyle}>
                             {actions.map(a=>{
                                 return <Action action={a}/>
                             })}

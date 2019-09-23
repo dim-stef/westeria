@@ -1,5 +1,7 @@
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
 import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import Pullable from 'react-pullable';
 import {CSSTransition} from 'react-transition-group';
 import {isMobile} from 'react-device-detect';
@@ -105,15 +107,23 @@ function BranchPageList({branch}){
     )
 }
 
+const postList = theme => css({
+    flexBasis:'56%',
+    width:'100%',
+    padding:0,
+    listStyle:'none',
+    border:`1px solid ${theme.borderColor}`
+})
 
 function DisplayPosts({isFeed,posts,setPosts,
     postsContext,resetPostsContext,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh}){
     
+    const theme = useTheme();
     
     return(
-    <ul key={postsContext.branchUri} className="post-list">
+    <ul key={postsContext.branchUri} className="post-list" css={theme=>postList(theme)}>
         {isFeed?<FrontPageList/>:<BranchPageList branch={activeBranch}/>}
         <Pullable
             onRefresh={refresh}
@@ -138,16 +148,16 @@ function DisplayPosts({isFeed,posts,setPosts,
 
             loader={[...Array(3)].map((e, i) => 
             <div key={i} style={{width:'100%',marginTop:10}}>
-                <div style={{backgroundColor:'white',padding:'10px'}}>
-                    <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                <div style={{padding:'10px'}}>
+                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                         <Skeleton circle={true} width={48} height={48}/>
                     </SkeletonTheme>
                     <div style={{marginTop:10,lineHeight:'2em'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                             <Skeleton count={2} width="100%" height={10}/>
                         </SkeletonTheme>
 
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                             <Skeleton count={1} width="30%" height={10}/>
                         </SkeletonTheme>
                     </div>
@@ -161,16 +171,16 @@ function DisplayPosts({isFeed,posts,setPosts,
         :
             hasMore?[...Array(8)].map((e, i) => 
             <div key={i} style={{width:'100%',marginTop:10}}>
-                <div style={{backgroundColor:'white',padding:'10px'}}>
-                    <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                <div style={{padding:'10px'}}>
+                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                         <Skeleton circle={true} width={48} height={48}/>
                     </SkeletonTheme>
                     <div style={{marginTop:10,lineHeight:'2em'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                             <Skeleton count={2} width="100%" height={10}/>
                         </SkeletonTheme>
 
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
+                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                             <Skeleton count={1} width="30%" height={10}/>
                         </SkeletonTheme>
                     </div>
@@ -782,6 +792,12 @@ var cumulativeOffset = function(element) {
     };
 };
 
+const filterActionArrow = theme => css({
+    '&:hover':{
+        backgroundColor:theme.hoverColor
+    }
+})
+
 function ActionArrow({refresh}){
     const context = useContext(RefreshContext);
     const ref = useRef(null);
@@ -810,7 +826,7 @@ function ActionArrow({refresh}){
     }
 
     return(
-        <div ref={ref} className="filter-action-arrow flex-fill">
+        <div ref={ref} className="filter-action-arrow flex-fill" css={theme=>filterActionArrow(theme)}>
             <button className="filter-action-arrow-button" style={{border:0,backgroundColor:'transparent'}} onClick={onClick}>
                 <RefreshArrowSvg/>
             </button>
@@ -865,6 +881,11 @@ function TimeFilter({setParams,params,defaultOption}){
     )
 }
 
+const previewCss = theme => css({
+    '&:hover':{
+        backgroundColor:theme.hoverColor
+    }
+})
 
 export function DropdownList({type="text",component=null,options,defaultOption,name,
 setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',children}){
@@ -876,6 +897,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     const ref = useRef(null);
     const Component = component;
     const userContext = useContext(UserContext);
+    const theme = useTheme();
 
     function handleClick(e,show){
         
@@ -934,18 +956,20 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     return (
         <ToggleContent 
             toggle={show=>(
-                <div ref={ref} onClick={e=>handleClick(e,show)} className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}>
+                <div ref={ref} onClick={e=>handleClick(e,show)} className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}
+                css={theme=>previewCss(theme)}>
                     {preview?
                     <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 
                     >
-                        {type=="text"?<span style={{color:'#585858'}}>{selected.label}</span>:
+                        {type=="text"?<span style={{color:theme.textLightColor}}>{selected.label}</span>:
                         <SmallBranch branch={selected} isLink={false}/>}
                         <DownArrowSvg/>
                     </div>:
                     <div>{children}</div>}
                     
-                    {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown">
+                    {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown" 
+                    style={{backgroundColor:theme.backgroundColor}}>
                         {options.map(op=>{
                             let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>
@@ -969,7 +993,8 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
 }
 
 function DropdownItem({setSelected,handleSelect,selected,option}){
-    let style = option.value==selected.value?{backgroundColor:'#e2eaf1'}:null
+    const theme = useTheme();
+    let style = option.value==selected.value?{backgroundColor:theme.borderColor}:null
 
     return(
         <span style={{...style}} 
@@ -979,6 +1004,8 @@ function DropdownItem({setSelected,handleSelect,selected,option}){
 }
 
 function DownArrowSvg(){
+    const theme = useTheme();
+
     return(
         <svg
         xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -987,7 +1014,7 @@ function DownArrowSvg(){
         y="0px"
         viewBox="0 0 41.999 41.999"
         style={{ enableBackground: "new 0 0 41.999 41.999",
-        height:7,width:7,transform: 'rotate(90deg)',fill:'#585858',paddingLeft:6}}
+        height:7,width:7,transform: 'rotate(90deg)',fill:theme.textColor,paddingLeft:6}}
         xmlSpace="preserve"
         >
         <path
@@ -998,32 +1025,9 @@ function DownArrowSvg(){
     )
 }
 
-function TopArrowSvg(){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            width="493.348px"
-            height="493.349px"
-            viewBox="0 0 493.348 493.349"
-            style={{
-                enableBackground: "new 0 0 493.348 493.349",
-                width: 21,
-                height: 21,
-                fill:'#585858'
-            }}
-            xmlSpace="preserve"
-            >
-            <path
-                d="M354.034 112.488L252.676 2.853C250.771.95 248.487 0 245.82 0c-2.478 0-4.665.95-6.567 2.853l-99.927 109.636c-2.475 3.049-2.952 6.377-1.431 9.994 1.524 3.616 4.283 5.424 8.28 5.424h63.954v356.315c0 2.663.855 4.853 2.57 6.564 1.713 1.707 3.899 2.562 6.567 2.562h54.816c2.669 0 4.859-.855 6.563-2.562 1.711-1.712 2.573-3.901 2.573-6.564V127.907h63.954c3.806 0 6.563-1.809 8.274-5.424 1.53-3.621 1.052-6.949-1.412-9.995z"
-            />
-        </svg>
-    )
-}
-
 function RefreshArrowSvg(){
+    const theme = useTheme();
+
     return(
         <svg
             xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -1033,7 +1037,7 @@ function RefreshArrowSvg(){
             width="305.836px"
             height="305.836px"
             viewBox="0 0 305.836 305.836"
-            style={{ width: 21, height: 21, fill: "#585858" }}
+            style={{ width: 21, height: 21, fill: theme.textColor }}
             xmlSpace="preserve"
             >
             <path d="M152.924 300.748c84.319 0 152.912-68.6 152.912-152.918 0-39.476-15.312-77.231-42.346-105.564 0 0 3.938-8.857 8.814-19.783 4.864-10.926-2.138-18.636-15.648-17.228l-79.125 8.289c-13.511 1.411-17.999 11.467-10.021 22.461l46.741 64.393c7.986 10.992 17.834 12.31 22.008 2.937l7.56-16.964c12.172 18.012 18.976 39.329 18.976 61.459 0 60.594-49.288 109.875-109.87 109.875-60.591 0-109.882-49.287-109.882-109.875 0-19.086 4.96-37.878 14.357-54.337 5.891-10.325 2.3-23.467-8.025-29.357-10.328-5.896-23.464-2.3-29.36 8.031C6.923 95.107 0 121.27 0 147.829c0 84.319 68.602 152.919 152.924 152.919z" />

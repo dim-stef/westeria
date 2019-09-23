@@ -7,7 +7,6 @@
 }
 
 .branch-container{
-    background-color: #ffffff;
     margin-top: 10px;
     display: flex;
     min-width: 250px;
@@ -17,7 +16,6 @@
     margin: 10px;
     flex-flow: column;
     -webkit-flex-flow: column;
-    border: 1px solid rgb(226, 234, 241);
 }
 
 .under-banner-info{
@@ -77,7 +75,7 @@
 .clicked-navigation-button{
     font-weight: bold;
     border-bottom: 3px solid #2196F3;
-    color:#2196F3;
+    color:#2196F3 !important;
 }
 
 .navigation-button-text{
@@ -165,7 +163,7 @@
     padding:0;
     margin:0 10px;
     list-style:none;
-    border: 1px solid rgb(226, 234, 241)!important;
+    border: 1px solid rgb(226, 234, 241);
 }
 
 @media all and (max-device-width: 1223px) {
@@ -668,12 +666,10 @@ div.route-section {
 }
 
 [postState="closed"]:hover{
-    background-color:#f4f6f9;
     cursor: pointer;
 }
 
 .preview-post .post:hover{
-    background-color:#f4f6f9;
     cursor: pointer;
 }
 
@@ -815,8 +811,7 @@ p.top-spread-list{
     font-size: 1.3rem;
     margin: 0;
     font-weight: 600;
-    color: #455d6f;
-    word-break: break-all;
+    word-break: break-word;
 }
 
 div.top-spread-list{
@@ -860,7 +855,7 @@ div.top-spread-list{
 .following-main{
     color:#2196F3;
     border: 2px solid #2196F3;
-    background: white;
+    background: transparent;
 }
 
 .following-main:disabled{

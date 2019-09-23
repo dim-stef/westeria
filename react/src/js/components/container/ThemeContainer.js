@@ -9,20 +9,34 @@ const COLORS = {
     lightWhite:'#e0e0e0',
     darkBlue:'#202f3c',
     lightBlue:'#e2eaf1',
+    darkGray:'#404040',
+    lightGray:'#9e9e9e',
 }
 
 const darkMode = {
     backgroundColor:COLORS.black,
     textColor:COLORS.semiWhite,
+    textLightColor:COLORS.lightGray,
     textHarshColor:COLORS.lightWhite,
-    borderColor:COLORS.darkBlue
+    borderColor:COLORS.darkBlue,
+    hoverColor:'#202f3c',
+    embeddedHoverColor:'#121b23',
+    notificationBranchColor:'#121b23',
+    skeletonColor:'#555f69',
+    skeletonHighlightColor:'#46525f'
 }
 
 const lightMode = {
     backgroundColor:COLORS.white,
     textColor:COLORS.lightBlack,
+    textLightColor:COLORS.darkGray,
     textHarshColor:COLORS.black,
-    borderColor:COLORS.lightBlue
+    borderColor:COLORS.lightBlue,
+    hoverColor:'#f4f6f9',
+    embeddedHoverColor:'#e1e7ef',
+    notificationBranchColor:'#e1e7ef',
+    skeletonColor:'#ceddea',
+    skeletonHighlightColor:'#e1eaf3'
 }
 
 const theme = mode => (mode=='dark'?darkMode:lightMode)

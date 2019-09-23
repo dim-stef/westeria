@@ -1,20 +1,29 @@
 import React, {useContext, useEffect, useState} from "react"
+import { useTheme } from 'emotion-theming'
+import { css } from "@emotion/core";
 import {CachedBranchesContext} from "./ContextContainer"
 import {SmallBranch} from '../presentational/Branch'
 import {SkeletonBranchList} from "../presentational/SkeletonBranchList";
 import axios from 'axios';
 
 
+const trending = theme => css({
+    flexBasis:'22%',
+    height:'22%',
+    backgroundColor:theme.backgroundColor
+})
+
 export function TrendingWithWrapper(){
+    const theme = useTheme();
     return(
-        <div style={{ flexBasis:'22%',height:'max-content', backgroundColor:'white'}}>
-            <div className="box-border" style={{padding:'10px 20px'}}>
+        <div css={theme=>trending(theme)}>
+            <div style={{padding:'10px 20px',border:`1px solid ${theme.borderColor}`}}>
             <p style={{
                     fontSize: "1.6em",
                     fontWeight: 600,
                     paddingBottom: 5,
                     margin: "-10px -20px",
-                    backgroundColor: "#219ef3",
+                    backgroundColor: "#2196F3",
                     color: "white",
                     padding: "10px 20px",
                     marginBottom:10

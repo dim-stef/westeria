@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import { css } from "@emotion/core";
+import {useTheme} from "emotion-theming";
 import {Link} from "react-router-dom"
 import {isMobile} from 'react-device-detect';
 import {MoonLoader} from 'react-spinners';
@@ -12,6 +13,17 @@ import {FrontPageLeftBar} from "./FrontPage"
 import {Post} from "./SingularPost"
 import {Desktop, Mobile, Tablet} from "./Responsive"
 import axios from 'axios'
+
+const notificationCss = theme =>css({
+    '&:hover':{
+        backgroundColor:theme.hoverColor
+    }
+})
+
+const borderBottom = theme =>css({
+    borderBottom: `1px solid ${theme.borderColor}`
+})
+
 
 export function NotificationsContainer({inBox}){
     const context = useContext(UserContext);
@@ -48,8 +60,13 @@ export function NotificationsContainer({inBox}){
         if(id){
             let response = await axios.get(`/api/notifications/${id}/`);
             let data = await response.data
-            let newNotifications = [data,...notificationsContext.notifications];
-            notificationsContext.setNotifications(newNotifications);
+            if(data.verb=='message'){
+                let newMessages = [data,...notificationsContext.messages];
+                notificationsContext.setMessages(newMessages);
+            }else{
+                let newNotifications = [data,...notificationsContext.notifications];
+                notificationsContext.setNotifications(newNotifications);
+            }
         }
     }
 
@@ -57,7 +74,8 @@ export function NotificationsContainer({inBox}){
         // TODO
         // add notification context
         let response = await axios.get('/api/notifications/');
-        notificationsContext.setNotifications(response.data.results);
+
+        notificationsContext.setNotifications([...notificationsContext.notifications,...response.data.results]);
 
         if(!response.data.next){
             setHasMore(false);
@@ -129,6 +147,7 @@ export function Notifications({notifications,inBox,loaded,hasMore,getMoreNotific
 }
 
 function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
+    const theme = useTheme();
     const loader = <div className="flex-fill center-items" style={{margin:20}}>
     <MoonLoader
         sizeUnit={"px"}
@@ -143,7 +162,7 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
             <title>Notifications - Subranch</title>
             <meta name="description" content="Your notifications." />
         </Helmet>
-        <div className="main-column">
+        <div className="main-column" style={{border:`1px solid ${theme.borderColor}`}}>
             {!loaded?
             <div className="flex-fill load-spinner-wrapper">
                 <MoonLoader
@@ -213,7 +232,7 @@ function FollowNotification({notification}){
     let linkTo = `/${notification.actor.uri}`;
     
     return(
-        <div style={{borderBottom:'1px solid #e2eaf1'}}>
+        <div css={theme=>borderBottom(theme)}>
             <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
 
             <NotificationLinkBody to={linkTo} id={notification.id}>
@@ -248,7 +267,7 @@ function ChatRequestNotification({notification}){
     }
 
     return(
-        <div style={{borderBottom:'1px solid #e2eaf1'}}>
+        <div css={theme=>borderBottom(theme)}>
             <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
             <NotificationLinkBody to="#" id={notification.id}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
@@ -278,6 +297,7 @@ function ReactNotification({notification}){
     const [post,setPost] = useState(null);
     const userContext = useContext(UserContext);
     const postsContext = useContext(SingularPostContext);
+    const theme = useTheme();
 
     async function getPost(){
         let response = await axios.get(`/api/post/${notification.action_object.id}/`);
@@ -294,8 +314,8 @@ function ReactNotification({notification}){
             <>
             <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
             <div style={{alignItems:'center',WebkitAlignItems:'center',WebkitFlexFlow:'row wrap',
-            flexFlow:'row wrap',borderBottom:'1px solid #e2eaf1'}}
-            className="notification flex-fill">
+            flexFlow:'row wrap',borderBottom:`1px solid ${theme.borderColor}`}}
+            className="notification flex-fill" css={theme=>notificationCss(theme)}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
                 <span style={{padding:10}}> {notification.description} </span>
                 <div style={{margin:10,fontSize:'0.5em',width:'100%'}}>
@@ -315,7 +335,8 @@ function ReplyNotification({notification}){
     const [reply,setReply] = useState(null)
     const userContext = useContext(UserContext);
     const postsContext = useContext(SingularPostContext);
-
+    const theme = useTheme();
+    
     async function getPost(){
         let response = await axios.get(`/api/post/${notification.action_object.id}/`);
         setPost(response.data);
@@ -336,9 +357,9 @@ function ReplyNotification({notification}){
         return(
             <>
             <div className="notification-timestamp">{formatRelative(new Date(notification.timestamp), new Date())}</div>
-            <div style={{alignItems:'center',
-            flexFlow:'row wrap',borderBottom:'1px solid #e2eaf1'}}
-            className="notification flex-fill">
+            <div style={{alignItems:'center',WebkitAlignItems:'center',WebkitFlexFlow:'row wrap',
+            flexFlow:'row wrap',borderBottom:`1px solid ${theme.borderColor}`}}
+            className="notification flex-fill" css={theme=>notificationCss(theme)}>
                 <NotificationBranch image={notification.actor.branch_image} uri={notification.actor.uri}/>
                 <span style={{padding:10}}> {notification.description} </span>
                 <div style={{margin:10,fontSize:'0.5em',width:'100%'}}>
@@ -381,7 +402,7 @@ function BranchNotification({notification}){
     }
 
     return(
-        <div style={{borderBottom:'1px solid #e2eaf1'}}>
+        <div css={theme=>borderBottom(theme)}>
             <div className="notification-timestamp">{formatRelative(new Date(n.timestamp), new Date())}</div>
             <NotificationLinkBody to={linkTo} id={n.id}>
                 <NotificationBranch image={n.actor.branch_image} uri={n.actor.uri}/>
@@ -408,9 +429,10 @@ function BranchNotification({notification}){
 }
 
 function NotificationBranch({image,uri}){
+    const theme = useTheme();
     return(
-        <div style={{display:'inline-block',backgroundColor:'#e2eaf1',padding:10,borderRadius:50,margin:'3px 0'}}>
-            <div className="flex-fill" style={{alignItems:'center'}}>
+        <div style={{display:'inline-block',backgroundColor:theme.notificationBranchColor,padding:10,borderRadius:50,margin:'3px 0'}}>
+            <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
                 <div className="round-picture" style={{width:48,height:48,backgroundImage:`url('${image}')`,
                 display:'inline-block'}}></div>
                 <span style={{padding:10}}>{uri}</span>
@@ -420,11 +442,12 @@ function NotificationBranch({image,uri}){
 }
 
 function NotificationLinkBody({to,id,children}){
+    const theme = useTheme();
     return(
         <Link to={to} key={id} 
-            style={{alignItems:'center',
-            flexFlow:'row wrap',color:'#252525',textDecoration:'none'}}
-            className="notification flex-fill">
+            style={{alignItems:'center',WebkitAlignItems:'center',color:theme.textColor,
+            flexFlow:'row wrap',WebkitFlexFlow:'row wrap',textDecoration:'none'}}
+            className="notification flex-fill" css={theme=>notificationCss(theme)}>
             {children}
         </Link>
     )
@@ -439,7 +462,7 @@ function BoxNotifications({notifications}){
                 {notifications.length>0?
                 notifications.filter(n=>n.verb!='message').map(n=>{
                     return(
-                    <div key={n.id} className="notification">
+                    <div key={n.id} className="notification" css={theme=>notificationCss(theme)}>
                         <div style={{display:'inline-block'}}>
                             <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${n.actor.branch_image}')`,
                             display:'inline-block'}}></div>

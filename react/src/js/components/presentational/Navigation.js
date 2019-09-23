@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {Link, NavLink} from "react-router-dom"
 import { css } from "@emotion/core";
-import styled from '@emotion/styled'
+import {useTheme as useEmotionTheme} from "emotion-theming";
 import {NotificationsContext, UserContext} from "../container/ContextContainer"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
@@ -48,11 +48,11 @@ export function ResponsiveNavigationBar(){
 
     function readContextMessages(){
         let shouldUpdate = false;
-        if(notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length!=0){
+        if(notificationsContext.messages.filter(n=>n.unread==true).length!=0){
             shouldUpdate = true;
         }
         
-        let newNotifications = notificationsContext.notifications.map(n=>{
+        let newNotifications = notificationsContext.messages.map(n=>{
             if(n.verb=='message'){
                 n.unread = false;
             }
@@ -71,7 +71,7 @@ export function ResponsiveNavigationBar(){
 
     let props = {
         readAllMessages:(match, location)=>readNotifications(messageUri,readContextMessages,match, location),
-        readAllNotifications:(match, location)=>readNotifications(notificationUri,readContextNotifications,match, location)
+        readAllNotifications:(match, location)=>readNotifications(notificationUri,readContextNotifications, match, location)
     }
 
     return(
@@ -117,7 +117,7 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
         borderBottom:'2px solid #2397f3'
     };
     let style={
-        justifyContent:'center',alignItems:'center',height:'100%',width:'100%'
+        justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',WebkitAlignItems:'center',height:'100%',width:'100%'
     }
     return(
         <div css={theme=>navBarPositioner(theme)}
@@ -144,7 +144,7 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
                     style={style} activeStyle={activeStyle} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                     <Messages/>
-                    {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
+                    {notificationsContext.messages.filter(n=>n.unread==true).length>0?
                         <span className="new-circle">
 
                         </span>:null}
@@ -185,9 +185,7 @@ const mobileNavBarContainer = theme => css({
 export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const context = useContext(UserContext);
     const notificationsContext = useContext(NotificationsContext);
-
-    let style={height:'100%',width:'100%',textDecoration:'none',
-    borderTop:'2px solid rgb(226, 234, 241)'}
+    
     let activeStyle={borderTop:'2px solid #2397f3'};
 
 
@@ -223,7 +221,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                         <Messages/>
-                        {notificationsContext.notifications.filter(n=>n.verb=='message' && n.unread==true).length>0?
+                        {notificationsContext.messages.filter(n=>n.unread==true).length>0?
                         <span className="new-circle">
 
                         </span>:null}
@@ -240,6 +238,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
 function ProfileDropDown({setFocused}){
     const context = useContext(UserContext);
     const theme = useTheme();
+    const emotionTheme = useEmotionTheme();
     
     function unFocus(){
         setFocused(false);
@@ -248,7 +247,8 @@ function ProfileDropDown({setFocused}){
     return(
         <div className="hoverable-box" style={{width:150,borderRadius:15}}>
             <div className="flex-fill" 
-            style={{backgroundColor:'white',boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',WebkitFlexFlow:'column',borderRadius:5,
+            style={{backgroundColor:emotionTheme.backgroundColor,
+            boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',WebkitFlexFlow:'column',borderRadius:5,
             overflow:'hidden'}}>
 
                 <RoutedTabs
@@ -260,14 +260,19 @@ function ProfileDropDown({setFocused}){
                     <>
                         <NavTab to={`/${context.currentBranch.uri}`} onClick={unFocus} className="profile-dropdown-option">Profile</NavTab>
                         <NavTab to="/settings" onClick={unFocus} className="profile-dropdown-option">Settings</NavTab>
+                        <button className="profile-dropdown-option" 
+                        style={{textAlign:'inherit',backgroundColor:'inherit',border:0}} onClick={theme.toggle}>
+                        {theme.darkMode?'Light mode':'Dark mode'}</button>
+
                         <div style={{height:1,margin:'10px 0',backgroundColor:'gainsboro'}}></div>
                         <NavTab to="/logout/instant" onClick={unFocus} className="profile-dropdown-option">Logout</NavTab>
-                        {/*<button onClick={theme.toggle}>toggle theme</button>*/}
                     </>:
                     <>
                         <NavTab to="/login" onClick={unFocus} className="profile-dropdown-option">Login</NavTab>
                         <NavTab to="/register" onClick={unFocus} className="profile-dropdown-option">Register</NavTab>
-                        {/*<button onClick={theme.toggle}>toggle theme</button>*/}
+                        <button className="profile-dropdown-option" 
+                        style={{textAlign:'inherit',backgroundColor:'inherit',border:0}} onClick={theme.toggle}>
+                        {theme.darkMode?'Light mode':'Dark mode'}</button>
                     </>
                 }
                 </RoutedTabs>

@@ -382,7 +382,7 @@ div[data-placeholder]{
 }
 
 .profile-dropdown-option:hover{
-    background-color: #2196f3;
+    background-color: #2196f3 !important;
     color: white;
     cursor: pointer;
     text-decoration: underline;
@@ -430,7 +430,7 @@ div[data-placeholder]{
     border: 1px solid #d0d0d0;
     -webkit-border-radius: 24px;
     -moz-border-radius: 24px;
-    border-radius: 24px;
+    border-radius: 50px;
     padding: 0 15px;
     font-size: 1.8em;
     width: -moz-available;          /* WebKit-based browsers will ignore this. */
@@ -841,7 +841,7 @@ button[disabled=disabled], button:disabled {
 @media all and (max-device-width: 1223px){
     .main-column{
         margin: 0;
-        border: 0;
+        border: 0 !important;
         padding-bottom: 60px;
         flex: 1 1 auto;
         -ms-flex: 1 1 auto;
@@ -854,7 +854,7 @@ button[disabled=disabled], button:disabled {
 
     .big-main-column{
         padding-bottom: 0;
-        border: 0;
+        border: 0 !important;
         margin: 0;
     }
 
@@ -1047,4 +1047,8 @@ input,button {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+}
+
+input,textarea{
+    background-color:transparent;
 }

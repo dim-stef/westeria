@@ -1,4 +1,5 @@
 import React, {useContext} from "react"
+import { useTheme } from 'emotion-theming'
 import {UserContext} from "../container/ContextContainer"
 import {useMyBranches} from "../container/BranchContainer"
 import {SmallBranch} from "./Branch"
@@ -8,6 +9,7 @@ import {SkeletonBranchList} from "./SkeletonBranchList";
 export default function MyBranchesColumnContainer({show=true,children}){
     const context = useContext(UserContext);
     const branches = useMyBranches();
+    const theme = useTheme();
     function handleClick(branch){
          
         context.changeCurrentBranch(branch);
@@ -20,7 +22,7 @@ export default function MyBranchesColumnContainer({show=true,children}){
                 let isCurrentBranch = context.currentBranch.uri==b.uri?true:false;
                 let style = isCurrentBranch?
                 {
-                    backgroundColor:'#f5f5f5',
+                    backgroundColor:theme.hoverColor,
                     borderRadius:25
                 }:null
                 return (
@@ -38,7 +40,7 @@ export default function MyBranchesColumnContainer({show=true,children}){
     }else{
         if(!show){
             return <div style={{
-                backgroundColor:'#f5f5f5',
+                backgroundColor:theme.hoverColor,
                 borderRadius:25
             }}><SmallBranch branch={context.currentBranch} hoverable={false}/></div>;
         }
