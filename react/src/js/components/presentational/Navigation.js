@@ -184,7 +184,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
 
 
     return(
-        <div className="flex-fill" css={theme=>mobileNavBarPositioner(theme)}>
+        <div className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
                 <NavLink exact to="/" className="flex-fill center-items"
                 activeClassName="active-tab-route"
                 activeStyle={activeStyle}

@@ -649,8 +649,8 @@ class TrendingScoreViewSet2(viewsets.GenericViewSet,mixins.ListModelMixin):
 
     def get_queryset(self):
         last_day = datetime.today() - timedelta(days=1)
-        branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day) \
-        .aggregate(Sum('posts_from_all__spreads__times'))
+        #branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day) \
+        #.aggregate(Sum('posts_from_all__spreads__times'))
         branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day).distinct()
         return branches
 

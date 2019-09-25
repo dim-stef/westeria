@@ -2,7 +2,7 @@ import React from 'react'
 
 
 export function CustomEditor({onInput,onKeyDown,placeholder,className,style,editorRef=null,onBlur,
-    files,setFiles=()=>{}}){
+    files,setFiles=()=>{},onFocus}){
 
     function handleInput(e){
 
@@ -31,7 +31,7 @@ export function CustomEditor({onInput,onKeyDown,placeholder,className,style,edit
     }
 
     function onDrop(){
-        //console.log("droppp")
+        //
     }
 
     return(
@@ -44,6 +44,7 @@ export function CustomEditor({onInput,onKeyDown,placeholder,className,style,edit
         onInput={handleInput}
         onKeyDown={onKeyDown}
         onBlur={onBlur}
+        onFocus={onFocus}
         data-placeholder={placeholder}
         style={style}/>
     )

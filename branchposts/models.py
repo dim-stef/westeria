@@ -1,5 +1,6 @@
 from django.db import models
 from django.apps import apps
+from django.db.models import Sum,Count,F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -19,7 +20,7 @@ import shutil
 epoch = datetime(1970, 1, 1)
 
 def sigmoid(x):
-  return 1 / (1 + exp(-log(max(x + 1,1),10)))
+  return 1 / (1 + exp(-log(max(x*0.1,1),20)))
 
 def epoch_seconds(date):
     td = date - epoch
@@ -30,9 +31,14 @@ def score(ups, downs):
 
 def hot(ups, downs, spreads, date):
     s = score(ups, downs)
-    spread_s = sigmoid(spreads) * 5 - 15
-    order = log(max(abs(s), 1), 10) + spread_s
+    spread_s = sigmoid(spreads) + 0.5
+    print(spread_s,spreads)
     sign = 1 if s > 0 else -1 if s < 0 else 0
+    if sign>1:
+        order = log(max(abs(s), 1), 10) * spread_s
+    else:
+        order = log(max(abs(s), 1), 10)
+
     seconds = epoch_seconds(date) - 1134028003
     return round(sign * order + seconds / 45000, 7)
 
@@ -178,6 +184,10 @@ class Spread(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    @property
+    def times_score(self):
+        return log(self.times + 1.3,1.3)
+
     def __str__(self):
         return str(self.branch)  + " spread " + str(self.post)
 
@@ -217,9 +227,15 @@ class Dislikes(models.Model):
 
 
 def get_spreads(instance):
+    '''branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day) \
+    .aggregate(Sum('posts_from_all__spreads__times'))'''
     # get and then exclude posters branches
     posters_branches = instance.poster.owner.owned_groups.all()
-    return instance.spreads.exclude(branch__in=posters_branches).count()
+    sps = instance.spreads.exclude(branch__in=posters_branches)
+    sps_sum = 0
+    for sp in sps:
+        sps_sum += log(sp.times + 1.3,1.3)
+    return sps_sum
 
 def update_score(instance):
     naive = instance.created.replace(tzinfo=None)

@@ -28,7 +28,7 @@ Number.prototype.roundTo = function(num) {
 
 export function Images(props){
     const theme = useTheme();
-    
+
     function getTallerElement(){
         let heights = props.images.map(im=>{
             return im.height;
@@ -205,15 +205,16 @@ function ImageComponent({src,maxHeight,width,height}){
             content={hide => (
             <Modal onClick={e=>handleModalClose(e,hide)}>
                     <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
-                        <div style={{margin:'auto',minWidth:'80%',minHeight:'30%'}}>
+                        <div style={{margin:'auto',width:'100%'}}>
                             <div className="close-button" onClick={e=>handleModalClose(e,hide)}>
                                 <CloseSvg/>
                             </div>
-                            <div className="zoom-container">
-                                <PinchToZoom>
-                                    <img style={{width:'100%',backgroundColor:'#2d2d2d'}} onClick={(e)=>e.stopPropagation()} src={src}/>
-                                </PinchToZoom>
-                            </div>
+                            <PinchToZoom>
+                                <div className="zoom-container">
+                                    <img style={{height:'100vh',width:'100%',objectFit:'contain'}} 
+                                    onClick={(e)=>e.stopPropagation()} src={src}/>
+                                </div>
+                            </PinchToZoom>
                         </div>
                     </div>
             </Modal>    

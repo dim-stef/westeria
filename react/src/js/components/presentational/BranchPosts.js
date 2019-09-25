@@ -132,7 +132,8 @@ function DisplayPosts({isFeed,posts,setPosts,
             >
         <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
         resetPostsContext={resetPostsContext} fetchData={fetchData}/>
-        <StatusUpdate postsContext={postsContext} updateFeed={updateFeed} postedId={postedId} key={postedId} isFeed={isFeed}/>
+        <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
+        postedId={postedId} key={postedId} isFeed={isFeed}/>
         {posts.length>0?
             
         <InfiniteScroll

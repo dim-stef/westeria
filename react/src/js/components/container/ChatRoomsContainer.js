@@ -15,7 +15,7 @@ import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
-import {useMyBranches} from "../container/BranchContainer"
+import {useMyBranches} from "./BranchContainer"
 import {CachedBranchesContext, ChatRoomsContext, UserContext} from "./ContextContainer"
 import axios from "axios";
 import {DropdownActionList} from "../presentational/DropdownActionList"
@@ -226,8 +226,10 @@ function RoomContainer({roomData,match}){
         setMessages([...messages,...newMessage]);
     }
 
-    function scrollToBottom(){
-        parentRef.current.scrollTop = parentRef.current.scrollHeight;
+    const scrollToBottom = ()=>{
+        //console.log("scroll Bottom")
+        //parentRef.current.scrollTop = parentRef.current.scrollHeight;
+        parentRef.current.scroll({top: parentRef.current.scrollHeight, left: 0, behavior: 'smooth' })
     }
 
     const updateLatestMessage = useCallback((message,author_name) => {
@@ -304,7 +306,7 @@ function RoomContainer({roomData,match}){
                     parentRef={parentRef} wrapperRef={ref}/> 
                 </div>
                 <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} scrollToBottom={scrollToBottom}
-                    setHeightOnBlur={setHeightOnBlur} setHeightOnInput={setHeightOnInput}
+                    setHeightOnBlur={setHeightOnBlur} setHeightOnInput={setHeightOnInput} parentRef={parentRef}
                 />
             </div>
         </PageWrapper>

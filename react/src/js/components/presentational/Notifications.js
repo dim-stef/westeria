@@ -75,7 +75,8 @@ export function NotificationsContainer({inBox}){
         // add notification context
         let response = await axios.get('/api/notifications/');
 
-        notificationsContext.setNotifications([...notificationsContext.notifications,...response.data.results]);
+        // init notifications
+        notificationsContext.setNotifications(response.data.results);
 
         if(!response.data.next){
             setHasMore(false);
@@ -182,7 +183,9 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
                     // can be null
                         if(n.action_object){
                             return(
-                            <NotificationMatcher notification={n}/>
+                            <React.Fragment key={n.id}>
+                                <NotificationMatcher notification={n}/>
+                            </React.Fragment>
                         )}else{
                             return null
                         }

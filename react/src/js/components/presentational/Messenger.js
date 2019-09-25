@@ -123,6 +123,9 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         }
     },[value])
 
+    useEffect(()=>{
+        scrollToBottom();
+    },[files])
     const handlerRef = useRef(onKeyDown);
 
     function onKeyDown(event){
@@ -179,6 +182,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         // could either be object or just uri, need to check for both
         setIsMember(room.members.some(m=>m==branch ||m==branch.uri))
     },[branch])
+    
 
     let warningStyle ={
         color:'#bf1b08',
@@ -187,17 +191,22 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         padding:'0 10px'
     }
 
+
     return(
         <>
         <Suspense fallback={null}>
             {!isMember?<Redirect to="/messages"/>:null}
-            <div className="flex-fill messenger messenger-editor" style={{backgroundColor:theme.backgroundColor}}>
+            {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
+            {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
+            {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
+            <div className="flex-fill messenger messenger-editor" id="messenger-editor" style={{backgroundColor:theme.backgroundColor}}>
                 <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',
                 justifyContent:'stretch',WebkitJustifyContent:'strech',borderTop:`1px solid ${theme.borderColor}`,...style}}>
                     <div>
                         <img src={context.currentBranch.branch_image} className="profile-picture" 
                         style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>
                     </div>
+                    
                     <div className="flex-fill" style={{width:'100%',alignItems:'center',WebkitAlignItems:'center'}} ref={ref}>
                         <CustomEditor
                         files={files}
@@ -207,6 +216,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         onInput={handleChange}
                         onKeyDown={(e)=>handlerRef.current(e)}
                         onBlur={setHeightOnBlur}
+                        onFocus={()=>setTimeout(scrollToBottom,500)} //wait for MIME editor to  open
                         schema={schema}
                         className="flex-fill text-wrap"
                         placeholder="Type message"
@@ -217,10 +227,7 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         <Toolbar handleSendMessage={handleSendMessage} onInput={handleImageClick} isLoading={isLoading}/>
                     </div>
                 </div>
-                {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
-                {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
-
-                {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
+                
             </div>
         </Suspense>
         </>

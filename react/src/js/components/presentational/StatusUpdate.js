@@ -38,8 +38,7 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null}){
-
+export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null}){
     /*const plugins = [
         SlateReactPlaceholder({
             placeholder: "placeholder text",
@@ -187,7 +186,7 @@ export function StatusUpdate({currentPost,isFeed=false,measure=null,updateFeed,p
                     null:
                     <>
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
-                    postedId={postedId} currentPost={currentPost} isFeed={isFeed}
+                    postedId={postedId} currentPost={currentPost} isFeed={isFeed} activeBranch={activeBranch}
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
                         {...postToProps}
                     />
@@ -235,7 +234,7 @@ function CodeNode(props) {
 
 
 function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,isFeed=false,replyTo=null,handleImageClick,
-    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches}){
+    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch}){
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
 
@@ -317,7 +316,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             endpoint = "children";
         }
 
-        let target = currentPost?currentPost.poster:branch.uri
+        let target = currentPost?currentPost.poster:activeBranch.uri
         let response = await axios.get(`/api/branches/${target}/${endpoint}/`)
         let branches = await response.data.results;
         if(index===0){

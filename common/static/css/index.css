@@ -45,6 +45,12 @@ body {
     height: 100vh;
 }
 
+@supports (-webkit-appearance:none) {
+    .full-height {
+        /*height: calc(100vh - 56px);*/
+    }
+}
+
 .center-items{
     justify-content: center;
     -webkit-justify-content: center;
@@ -272,6 +278,7 @@ div[data-placeholder]{
     flex-flow:column;
     -webkit-flex-flow: column;
     z-index: 6;
+    display: block !important;
     position: sticky;
     position: -webkit-sticky;
     bottom: 0;
@@ -1027,6 +1034,10 @@ button[disabled=disabled], button:disabled {
 
 .react-tooltip-absolute{
     position:absolute !important;
+}
+
+.pinch-to-zoom-container{
+    width:100%;
 }
 
 a,button::-moz-focus-inner { /* removes dotted outline firefox */

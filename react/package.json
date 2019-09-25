@@ -112,6 +112,7 @@
     "react-select": "^3.0.4",
     "react-sizeme": "^2.5.2",
     "react-spinners": "^0.5.4",
+    "react-sticky": "^6.0.3",
     "react-swipe": "^6.0.4",
     "react-swipeable": "^5.2.3",
     "react-swipeable-routes": "^0.6.0",
