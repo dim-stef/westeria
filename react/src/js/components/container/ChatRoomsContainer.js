@@ -229,7 +229,12 @@ function RoomContainer({roomData,match}){
     const scrollToBottom = ()=>{
         //console.log("scroll Bottom")
         //parentRef.current.scrollTop = parentRef.current.scrollHeight;
-        parentRef.current.scroll({top: parentRef.current.scrollHeight, left: 0, behavior: 'smooth' })
+        try{
+            parentRef.current.scroll({top: parentRef.current.scrollHeight, left: 0, behavior: 'smooth' })
+        }catch(e){
+            parentRef.current.scrollTop = parentRef.current.scrollHeight;
+        }
+        
     }
 
     const updateLatestMessage = useCallback((message,author_name) => {

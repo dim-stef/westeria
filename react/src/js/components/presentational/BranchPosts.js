@@ -1,4 +1,4 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
@@ -18,6 +18,7 @@ import {
     UserContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
+import {Tooltip, TooltipChain} from "./Tooltip";
 import {Modal, ToggleContent} from "./Temporary"
 import {SmallBranch} from "./Branch"
 import Skeleton, {SkeletonTheme} from 'react-loading-skeleton';
@@ -64,10 +65,22 @@ function resetBranchPostsContext(postsContext,props){
 
 function FrontPageList(){
     const userContext = useContext(UserContext);
+    const ref = useRef(null);
+    const [top,setTop] = useState(0);
+    const [listWidth,setListWidth] = useState(0);
 
+    useLayoutEffect(()=>{
+        if(ref.current){
+            setTop(ref.current.clientHeight)
+            setListWidth(ref.current.clientWidth);
+        }
+    },[ref.current])
+
+    // 20 pixels from excess padding
+    let width = userContext.isAuth?listWidth/3 - 20:listWidth/1.5; 
     return(
         <div className="flex-fill" style={{justifyContent:'space-around',WebkitJustifyContent:'space-around',
-        backgroundColor:'#08aeff'}}>
+        backgroundColor:'#08aeff',position:'relative'}} ref={ref}>
             {userContext.isAuth?
             <NavLink to="/" exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Feed
@@ -81,7 +94,17 @@ function FrontPageList(){
             <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 All
             </NavLink>
-            
+            {/*<TooltipChain delay={100000}>
+                <Tooltip position={{left:0,top:top + 20}}>
+                    <p css={{fontWeight:500,width:width}}>Slide 1</p>
+                </Tooltip>
+                <Tooltip position={{left:listWidth/3,top:top + 20}}>
+                    <p css={{fontWeight:500,width:width}}>Slide 2</p>
+                </Tooltip>
+                <Tooltip position={{left:listWidth/3 * 2,top:top + 20}}>
+                    <p css={{fontWeight:500,width:width}}>Slide 3</p>
+                </Tooltip>
+            </TooltipChain>*/}
         </div>
     )
 }

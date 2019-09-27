@@ -269,9 +269,9 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             formData.append('posted_to',id);
         }
 
-        if(postedTo.length>0){
-            formData.append('posted_to',postedTo);
-        }
+        //if(postedTo.length>0){
+        //    formData.append('posted_to',postedTo);
+        //}
         
         formData.append('type',type);
         formData.append('text',post);

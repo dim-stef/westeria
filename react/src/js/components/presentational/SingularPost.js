@@ -266,6 +266,13 @@ export const Post = React.memo(function Post({post,parentPost=null,
 
 
     var date = new Date(post.created.replace(' ', 'T'));
+
+    if(!post.posted_to.find(b=>post.poster==b.uri)){
+        // if component lands here then a critical error occured on server
+        // return null to prevent page crash
+        return null
+    }
+
     return(
         <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>

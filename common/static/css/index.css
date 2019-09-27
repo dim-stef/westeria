@@ -333,9 +333,12 @@ div[data-placeholder]{
     top: 0;
     left: 0;
     z-index: 1;
+    margin: 10px;
+}
+
+.close-button svg{
     background-color: #00000082;
     border-radius: 50%;
-    margin: 10px;
 }
 
 .zoom-container{

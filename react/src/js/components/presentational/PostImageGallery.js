@@ -109,7 +109,7 @@ export function Images(props){
                             return <div key={img.image} 
                             style={{width:'100%',height:'100%'}}>
                             <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
-                                maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft}
+                                maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft} imgWidth={img.width}
                             /></div>
                         })}
                         {props.videos.map(vid=>{
@@ -166,7 +166,7 @@ function getScrollbarWidth() {
 }
 
 
-function ImageComponent({src,maxHeight,width,height}){
+function ImageComponent({src,maxHeight,width,imgWidth,height}){
 
     function handleModalOpen(e,show){
         e.stopPropagation();
@@ -176,10 +176,19 @@ function ImageComponent({src,maxHeight,width,height}){
     }
 
     function handleModalClose(e,hide){
+        console.log("clck")
         e.stopPropagation();
         hide();
         document.body.style.overflowY = 'scroll';
         document.body.style.paddingRight = 0;
+    }
+
+    let borders = imgWidth>height?{
+        height:'auto',
+        width:'100%'
+    }:{
+        height:'100vh',
+        width:'unset'
     }
 
     return(
@@ -210,8 +219,8 @@ function ImageComponent({src,maxHeight,width,height}){
                                 <CloseSvg/>
                             </div>
                             <PinchToZoom>
-                                <div className="zoom-container">
-                                    <img style={{height:'100vh',width:'100%',objectFit:'contain'}} 
+                                <div className="zoom-container flex-fill center-items" onClick={e=>handleModalClose(e,hide)}>
+                                    <img style={{objectFit:'contain',maxHeight:'100vh',...borders}} 
                                     onClick={(e)=>e.stopPropagation()} src={src}/>
                                 </div>
                             </PinchToZoom>

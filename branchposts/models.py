@@ -1,7 +1,7 @@
 from django.db import models
 from django.apps import apps
 from django.db.models import Sum,Count,F
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save,m2m_changed
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -32,10 +32,9 @@ def score(ups, downs):
 def hot(ups, downs, spreads, date):
     s = score(ups, downs)
     spread_s = sigmoid(spreads) + 0.5
-    print(spread_s,spreads)
     sign = 1 if s > 0 else -1 if s < 0 else 0
-    if sign>1:
-        order = log(max(abs(s), 1), 10) * spread_s
+    if sign>0:
+        order = log(max(abs(s), 1), 10) * max(spread_s,1)
     else:
         order = log(max(abs(s), 1), 10)
 
@@ -276,12 +275,26 @@ from asgiref.sync import async_to_sync
 from django.core import serializers
 from django.contrib.contenttypes.models import ContentType
 
+'''@receiver(m2m_changed,sender=Post.posted_to.through)
+def posted_to_fallback(sender, instance, **kwargs):
+    action = kwargs.pop('action', None)
+    pk_set = kwargs.pop('pk_set', None)
+    # On follow create direct chat
+    print("m2mchanges",instance.posted_to.filter(pk=instance.poster.pk),instance.poster)
+    if not instance.posted_to.filter(pk=instance.poster.pk) and action == "post_add":
+        print("add")
+        instance.posted_to.add(instance.poster)'''
+
 @receiver(post_save, sender=Post)
-def create_post_notification(sender, instance, created, **kwargs):
-    if created:
+def posted_to_fallback(sender, instance, created, **kwargs):
+    # always post on posters branch
+    if not instance.posted_to.filter(pk=instance.poster.pk):
         instance.posted_to.add(instance.poster)
 
+@receiver(post_save, sender=Post)
+def create_post_notification(sender, instance, created, **kwargs):
     if created and not instance.replied_to:
+
         description = "added a new leaf"
         verb = "add_leaf"
 
@@ -341,8 +354,6 @@ def create_post_notification(sender, instance, created, **kwargs):
 @receiver(post_save, sender=Post)
 def create_reply_notification(sender, instance, created, **kwargs):
     if created:
-        # in case an error occurs fallback to this line so the post doesn't break
-        instance.posted_to.add(instance.poster)
         if instance.replied_to and not instance.replied_to.poster.owner.owned_groups\
             .filter(pk=instance.poster.pk).exists():
 
