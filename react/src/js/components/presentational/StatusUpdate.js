@@ -177,7 +177,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     placeholder="Add a leaf"
                     className="editor flex-fill text-wrap"
                     value={value}
-                    style={{padding:5,backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,
+                    style={{padding:'5px 10px',backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,
                     border:'2px solid #219ef3',minHeight:'2rem',
                     alignItems:'center',backgroundColor:theme.backgroundColor,
                     WebkitAlignItems:'center',display:'block'}}/>

@@ -89,14 +89,14 @@ class BranchSerializer(serializers.ModelSerializer):
         model = Branch
         fields = ['id', 'owner', 'parents',
                   'parent_uri_field','followers_count','following_count','branch_count',
-                  'children', 'name', 'uri',
+                  'children', 'name', 'uri','sibling_count','children_count','parent_count',
                   'children_uri_field','follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner','default',
                   'post_context','spread_count','last_day_spread_count']
         read_only_fields = ['id', 'owner', 'parents',
                   'parent_uri_field','followers_count','following_count',
-                  'children', 'name', 'uri',
+                  'children', 'name', 'uri','sibling_count','children_count','parent_count',
                   'children_uri_field', 'follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner', 'default','spread_count'
@@ -107,12 +107,14 @@ class BranchSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField('get_followed_by_count')
     following_count = serializers.SerializerMethodField()
     branch_count = serializers.SerializerMethodField()
+    sibling_count = serializers.SerializerMethodField()
+    parent_count = serializers.SerializerMethodField()
+    children_count = serializers.SerializerMethodField()
     last_day_spread_count = serializers.SerializerMethodField()
     children_uri_field = serializers.SerializerMethodField('children_uri')
     parent_uri_field = serializers.SerializerMethodField('parents_uri')
     post_context = serializers.SerializerMethodField()
     spread_count = serializers.SerializerMethodField()
-
 
     def get_post_context(self,branch):
         if 'post' in self.context:
@@ -142,6 +144,19 @@ class BranchSerializer(serializers.ModelSerializer):
 
     def get_branch_count(self,branch):
         return branch.children.count() + branch.parents.count()
+
+    def get_sibling_count(self,branch):
+        parents = Branch.objects.get(uri__iexact=branch.uri).parents.all()
+        siblings = Branch.objects.filter(parents__in=parents) \
+            .exclude(uri__iexact=branch.uri) \
+            .distinct().count()
+        return siblings
+
+    def get_parent_count(self,branch):
+        return branch.parents.count()
+
+    def get_children_count(self,branch):
+        return branch.children.count()
 
     def children_uri(self, branch):
         children = []

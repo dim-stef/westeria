@@ -86,7 +86,7 @@ const BranchesButton = ({branch}) => {
         activeClassName="clicked-navigation-button">
             <div className="navigation-button-text flex-fill center-items">
                 {/*<i className="material-icons navigation-icon">more</i>*/}
-                <div style={{padding:10}}>{branch.children.length} Branches</div>
+                <div style={{padding:10}}>{branch.branch_count>0?branch.branch_count:''} Branches</div>
             </div>
         </NavLink>
     )
