@@ -1,10 +1,12 @@
-import React, {useContext, useEffect, useState} from "react";
+import React, {useContext, useEffect, useState, useRef,useLayoutEffect} from "react";
 import {Helmet} from 'react-helmet'
+import {useMediaQuery} from "react-responsive";
 import {ChildBranch} from "./Branch"
 import {NavLink, Route, Switch} from 'react-router-dom'
 import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
 import BranchFooter from "./Temporary"
-import {UserContext} from '../container/ContextContainer'
+import {TooltipChain,Tooltip} from "./Tooltip"
+import {UserContext,TourContext} from '../container/ContextContainer'
 import axios from 'axios';
 
 
@@ -49,7 +51,7 @@ export function BranchesPage(props){
             <meta name="description" content="Your messages." />
         </Helmet>
         <div>
-            <BranchTypeSelectionBar activeTab={externalTab} currentBranch={props.match}/>
+            <BranchTypeSelectionBar activeTab={externalTab} branch={props.branch} currentBranch={props.match}/>
             <div className="branch-details-container">
                 <div className="branch-details-children">
                     <BranchesPageContainer type={externalTab} branch={props.branch} ownsBranch={owns}/>
@@ -71,15 +73,54 @@ export function BranchesPage(props){
 }
 
 
-function BranchTypeSelectionBar({activeTab,currentBranch}){
+function BranchTypeSelectionBar({activeTab,currentBranch,branch}){
+    const ref = useRef(null);
+    const tourContext = useContext(TourContext)
+    const [top,setTop] = useState(0);
+    const [listWidth,setListWidth] = useState(0);
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    useLayoutEffect(()=>{
+        if(ref.current){
+            setTop(ref.current.clientHeight)
+            setListWidth(ref.current.clientWidth);
+        }
+    },[ref.current])
+
+    function onLeave(){
+        tourContext.seenBranchTabs = true;
+    }
+
+    // 20 pixels from excess padding
+    let width = isMobile?listWidth - 20:listWidth/3 - 20;
     let props = {currentBranch:currentBranch};
     return(
-        <div className="branch-type-selection-bar">
-            <div className="branch-type-selection-wrapper">
+        <div className="branch-type-selection-bar" style={{position:'relative'}} ref={ref}>
+            <div className="branch-type-selection-wrapper flex-fill">
                 <BranchParents {...props}/>
                 <BranchSiblings {...props}/>
                 <BranchChildren {...props} activeTab={activeTab}/>
             </div>
+            {localStorage.getItem('has_seen_tour')==='false' && !tourContext.seenBranchTabs?
+            <TooltipChain delay={12000} onLeave={onLeave}>
+                <Tooltip position={{left:0,top:top}}>
+                    <p css={{fontWeight:400,width:width}}>
+                    <b>Parents</b> are branches that contain more <b>general</b> content than {branch.name}</p>
+                </Tooltip>
+                <Tooltip position={{left:isMobile?0:listWidth/3,top:top}}>
+                    <p css={{fontWeight:400,width:width}}>
+                    <b>Siblings</b> occur naturally between parents and children. 
+                    They usually contain <b>similar</b> content to {branch.name}
+                    </p>
+                </Tooltip>
+                <Tooltip position={{left:isMobile?0:listWidth/3 * 2,top:top}}>
+                    <p css={{fontWeight:400,width:width}}>
+                    <b>Children</b> are branches that contain more <b>specific</b> content than {branch.name}</p>
+                </Tooltip>
+            </TooltipChain>:null}
+            
         </div>
     )
 }
@@ -87,7 +128,7 @@ function BranchTypeSelectionBar({activeTab,currentBranch}){
 function BranchParents({currentBranch}){
     return(
         <NavLink exact to={`/${currentBranch}/branches/parents`} activeStyle={{backgroundColor:'#1c87dc'}}
-        style={{height:'100%',flexBasis:'33%',color:'white',textDecoration:'none'}}>
+        style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
             <div className="branch-selection">
                 <h1>Parents</h1>
             </div>
@@ -98,7 +139,7 @@ function BranchParents({currentBranch}){
 function BranchSiblings({currentBranch}){
     return(
         <NavLink exact to={`/${currentBranch}/branches/siblings`} activeStyle={{backgroundColor:'#1c87dc'}}
-        style={{height:'100%',flexBasis:'33%',color:'white',textDecoration:'none'}}>
+        style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
             <div className="branch-selection">
                 <h1>Siblings</h1>
             </div>
@@ -112,7 +153,7 @@ function BranchChildren({currentBranch,activeTab}){
 
     return(
         <NavLink exact to={`/${currentBranch}/branches/children`} activeStyle={{backgroundColor:'#1c87dc'}}
-        style={{height:'100%',flexBasis:'33%',color:'white',textDecoration:'none',backgroundColor:activeTab?null:'#1c87dc'}}>
+        style={{height:'100%',width:'100%',color:'white',textDecoration:'none',backgroundColor:activeTab?null:'#1c87dc'}}>
             <div className="branch-selection">
                 <h1>Children</h1>
             </div>
@@ -121,7 +162,7 @@ function BranchChildren({currentBranch,activeTab}){
 }
 
 export function BranchList(props){
-    //style={{display:'flex', width:'100%',flexBasis:'33%',flexFlow:'column'}}
+    //style={{display:'flex', width:'100%',width:'100%',flexFlow:'column'}}
     return(
         props.branches.map((c,i)=>{
             let requestId = null;
@@ -199,7 +240,9 @@ export function AddBranch({branch,type='children'}){
     }
 
     useEffect(()=>{
-        getSentRequests();
+        if(context.isAuth){
+            getSentRequests();
+        }
     },[])
 
     return(

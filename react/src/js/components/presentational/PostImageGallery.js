@@ -1,4 +1,6 @@
 import React, {useRef, useState} from "react"
+import { Prompt } from "react-router"
+import history from "../../history"
 import {useTheme} from "emotion-theming";
 import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
@@ -173,11 +175,19 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
         show();
         document.body.style.overflowY = 'hidden';
         document.body.style.paddingRight = `${getScrollbarWidth()}px`
+        if (window.location.href.indexOf('#') == -1)
+        {
+            window.history.pushState({urlPath:"#"},"",'#')
+        }
+        //history.push(history.location.pathname)
     }
 
     function handleModalClose(e,hide){
-        console.log("clck")
-        e.stopPropagation();
+
+        if(e){
+            e.stopPropagation();
+        }
+        
         hide();
         document.body.style.overflowY = 'scroll';
         document.body.style.paddingRight = 0;
@@ -191,6 +201,14 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
         width:'unset'
     }
 
+    function listenHistory(hide){
+        history.listen((location, action) => {
+            if(action==='POP'){
+                hide();
+            }
+        });
+    }
+
     return(
         <ToggleContent 
             toggle={show=>(
@@ -202,8 +220,8 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
                         >
                         
                             <img onClick={e=>{
-                                e.preventDefault();
-                                handleModalOpen(e,show)}} style={{width:'100%',
+                                handleModalOpen(e,show)
+                                }} style={{width:'100%',
                             objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
                             {/*,position:'absolute',
                             top:'50%',right:'50%',transform:'translate(50%,-50%)' */}
@@ -211,23 +229,27 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
                     
                 </div>
             )}
-            content={hide => (
-            <Modal onClick={e=>handleModalClose(e,hide)}>
-                    <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
-                        <div style={{margin:'auto',width:'100%'}}>
-                            <div className="close-button" onClick={e=>handleModalClose(e,hide)}>
-                                <CloseSvg/>
-                            </div>
-                            <PinchToZoom>
-                                <div className="zoom-container flex-fill center-items" onClick={e=>handleModalClose(e,hide)}>
-                                    <img style={{objectFit:'contain',maxHeight:'100vh',...borders}} 
-                                    onClick={(e)=>e.stopPropagation()} src={src}/>
+            content={hide => {
+                
+                listenHistory(()=>handleModalClose(null,hide));
+                return <>
+                 <Modal onClick={e=>handleModalClose(e,hide)}>
+                        <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
+                            <div style={{margin:'auto',width:'100%'}}>
+                                <div className="close-button" onClick={e=>handleModalClose(e,hide)}>
+                                    <CloseSvg/>
                                 </div>
-                            </PinchToZoom>
+                                <PinchToZoom>
+                                    <div className="zoom-container flex-fill center-items" onClick={e=>handleModalClose(e,hide)}>
+                                        <img style={{objectFit:'contain',height:'100vh',width:'100%',backgroundColor:'#59686f'}} 
+                                        onClick={(e)=>e.stopPropagation()} src={src}/>
+                                    </div>
+                                </PinchToZoom>
+                            </div>
                         </div>
-                    </div>
-            </Modal>    
-        )}/>
+                </Modal>
+                </>
+            }}/>
     )
 }
 
@@ -262,28 +284,6 @@ function MediaButtons({index,changeIndex,count,imageWidth,setIndex,incrementInde
     )
 }
 
-function ImageArrow(){
-    return(
-        <svg
-            xmlnsXlink="http://www.w3.org/1999/xlink"
-            version="1.1"
-            x="0px"
-            y="0px"
-            width="451.846px"
-            height="451.847px"
-            viewBox="0 0 451.846 451.847"
-            style={{
-                enableBackground: "new 0 0 451.846 451.847",
-                height: 15,
-                fill: "white",
-                width: 15,
-            }}
-            xmlSpace="preserve"
-            >
-            <path d="M345.441 248.292L151.154 442.573c-12.359 12.365-32.397 12.365-44.75 0-12.354-12.354-12.354-32.391 0-44.744L278.318 225.92 106.409 54.017c-12.354-12.359-12.354-32.394 0-44.748 12.354-12.359 32.391-12.359 44.75 0l194.287 194.284c6.177 6.18 9.262 14.271 9.262 22.366 0 8.099-3.091 16.196-9.267 22.373z" />
-        </svg>
-    )
-}
 
 function ImageArrow(){
     return(

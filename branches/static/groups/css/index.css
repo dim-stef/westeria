@@ -522,17 +522,16 @@ div.route-section {
 }
 
 .branch-type-selection-bar{
-    height: 100px;
     background-color: #2196f3;
 }
 
 .branch-type-selection-wrapper{
     margin: 0 auto;
     height: 100%;
-    width: 50%;
-    display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    -webkit-justify-content: space-between;
     align-items: center;
+    -webkit-align-items: center;
     color: white;
     font-size: 1.4em;
 }

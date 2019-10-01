@@ -175,6 +175,7 @@ function RoomContainer({roomData,match}){
     }
 
     useEffect(()=>{
+        //console.log(data.ws)
         data.ws.addEventListener('open',getMessagesOnOpen)
         return()=>{
             data.ws.removeEventListener('open',getMessagesOnOpen)
@@ -196,10 +197,14 @@ function RoomContainer({roomData,match}){
     },[])
 
     useEffect(()=>{
-        parentRef.current.addEventListener('scroll',chatScrollListener)
+        if(parentRef.current){
+            parentRef.current.addEventListener('scroll',chatScrollListener)
+        }
 
         return ()=>{
-            parentRef.current.removeEventListener('scroll',chatScrollListener)
+            if(parentRef.current){
+                parentRef.current.removeEventListener('scroll',chatScrollListener)
+            }
         }
     },[messages])
 

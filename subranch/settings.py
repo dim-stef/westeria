@@ -126,6 +126,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'widget_tweaks',
     'django_extensions',
+    'annoying',
     'channels',
     'api',
     'react',

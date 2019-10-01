@@ -5,7 +5,7 @@ from django.core import serializers as ser
 import channels.layers
 from asgiref.sync import async_to_sync
 from rest_framework import serializers
-from accounts.models import User
+from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
@@ -50,10 +50,15 @@ class TokenSerializer(serializers.Serializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile = serializers.SerializerMethodField()
+
+    def get_profile(self,user):
+        return UserProfileSerializer(user.profile).data
+
     class Meta:
         model = get_user_model()
-        fields = ['id', 'last_login', 'email', 'is_active', 'is_staff']
-        read_only_fields = ['id', 'last_login', 'email', 'is_active', 'is_staff']
+        fields = ['id', 'last_login', 'email', 'is_active', 'is_staff','profile']
+        read_only_fields = ['id', 'last_login', 'email', 'is_active', 'is_staff','profile']
 
 
 class UserAdminSerializer(serializers.ModelSerializer):
@@ -61,6 +66,10 @@ class UserAdminSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = '__all__'
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = '__all__'
 
 class BranchPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:

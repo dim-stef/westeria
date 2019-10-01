@@ -102,3 +102,9 @@ export const BranchTreePostsContext = React.createContext(
 export const ChatRoomsContext = React.createContext({
     rooms:[]
 })
+
+export const TourContext = React.createContext({
+    seenFrontPageTip:false,
+    seenBranchPostListTip:false,
+    seenBranchTabs:false,
+})

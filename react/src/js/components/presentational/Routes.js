@@ -3,6 +3,7 @@ import {Link, Redirect, Route, Switch, withRouter} from 'react-router-dom'
 import { Global, css } from "@emotion/core";
 import styled from '@emotion/styled'
 import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming'
+import { useBeforeunload } from 'react-beforeunload';
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
 import Login from "./Login"
@@ -17,6 +18,7 @@ import {
     BranchTreePostsContext,
     NotificationsProvider,
     SingularPostContext,
+    TourContext,
     UserContext
 } from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
@@ -44,7 +46,7 @@ import {MobileBranchPageWrapper} from "./MobileParentBranch"
 import {useTheme} from "../container/ThemeContainer"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
-
+import axios from 'axios';
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
 const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
@@ -70,22 +72,27 @@ function RouteTransition({location,children}){
                             </TransitionGroup>*/
 const Routes = ()=>{
 
-  
-    return(
-        <Switch>
-            <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
-            <Route exact path='/login' component={(props) => <Login {...props} />} />
-            <Route exact path='/register' component={(props) => <Register {...props} />} />
-            <Route exact path='/password/reset' component={PasswordReset} />
-            <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
-            <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
-            <Page>
-                <ResponsiveNavigationBar/>
-                <NonAuthenticationRoutes/>
-            </Page>
-            
-        </Switch>
-    )
+  function beforeUnload(e){
+    localStorage.setItem('has_seen_tour',true)
+  }
+
+  useBeforeunload(beforeUnload)
+
+  return(
+      <Switch>
+          <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
+          <Route exact path='/login' component={(props) => <Login {...props} />} />
+          <Route exact path='/register' component={(props) => <Register {...props} />} />
+          <Route exact path='/password/reset' component={PasswordReset} />
+          <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
+          <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
+          <Page>
+              <ResponsiveNavigationBar/>
+              <NonAuthenticationRoutes/>
+          </Page>
+          
+      </Switch>
+  )
 }
 
 
@@ -126,10 +133,34 @@ export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
     const userContext = useContext(UserContext);
+    const tourContext = useContext(TourContext);
+
+    useEffect(()=>{
+      if(userContext.isAuth && !userContext.user.profile.has_seen_tour){
+        const data = new FormData();
+        data.append('has_seen_tour',true);
+        const url = `/api/user_profile/${userContext.user.profile.id}/`
+        const request = axios.patch(
+          url,
+          data, 
+          {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            withCredentials: true,
+        }).then(response => { 
+            //console.log(response);
+        })
+        .catch(error => {
+        });
+      }
+    },[])
+
     return(
         <Switch>
             <Route path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
-            <Route exact path='/:page(popular|all|tree)?/' render={()=><FrontPage/>}/>
+            <Route exact path='/:page(all|tree)?/' render={()=><FrontPage/>}/>
             <Route path='/search' component={SearchPage} />
             <Route path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
             <Route exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
@@ -339,7 +370,7 @@ function BranchFrontPage(props){
                         </div>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
-                        />:<GenericBranchPosts {...props}
+                        />:<BranchPosts {...props}
                         keyword={keyword}
                         branch={props.match}
                         activeBranch={props.branch}
@@ -353,7 +384,7 @@ function BranchFrontPage(props){
             </div>
         </Desktop>
         <Tablet>
-            <GenericBranchPosts {...props}
+            <BranchPosts {...props}
             keyword={keyword}
             branch={props.match}
             activeBranch={props.branch}
@@ -362,7 +393,7 @@ function BranchFrontPage(props){
             />
         </Tablet>
         <Mobile>
-            <GenericBranchPosts {...props}
+            <BranchPosts {...props}
             keyword={keyword}
             branch={props.match}
             activeBranch={props.branch}
@@ -372,6 +403,26 @@ function BranchFrontPage(props){
         </Mobile>
         </>
     )
+}
+
+import {BranchPagePostList} from "./BranchPagePostList"
+import axiosRetry from "axios-retry";
+
+const postList = theme => css({
+  flexBasis:'56%',
+  width:'100%',
+  padding:0,
+  listStyle:'none',
+  border:`1px solid ${theme.borderColor}`
+})
+
+function BranchPosts(props){
+  return(
+    <div className="post-list" id="post-list" css={theme=>postList(theme)}>
+      <BranchPagePostList branch={props.activeBranch}/>
+      <GenericBranchPosts {...props}/>
+    </div>
+  )
 }
 
 

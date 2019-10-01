@@ -1,5 +1,8 @@
-import React, {useContext, useEffect, useState} from "react"
+import React, {useContext, useEffect, useState, useRef, useLayoutEffect} from "react"
+import ReactDOM from 'react-dom';
 import { css } from "@emotion/core";
+import {useTheme} from "emotion-theming";
+import {useMediaQuery} from "react-responsive";
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import MyBranchesColumnContainer from "./MyBranchesColumn";
 import {
@@ -7,12 +10,14 @@ import {
     PostsContext,
     TreePostsContext,
     UserActionsContext,
-    UserContext
+    UserContext,
+    TourContext
 } from "../container/ContextContainer";
 import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
+import {TooltipChain,Tooltip} from "./Tooltip"
 import FeedPosts, {AllPosts, TreePosts} from "./BranchPosts"
 import {Helmet} from "react-helmet";
-import {Link, Redirect, Route, Switch} from 'react-router-dom'
+import {Link, NavLink, Redirect, Route, Switch} from 'react-router-dom'
 import {Desktop, Mobile, Tablet} from "./Responsive"
 
 function NonAuthenticationColumn(){
@@ -30,6 +35,81 @@ const box = theme => css({
     border:`1px solid ${theme.borderColor}`,
     padding:'10px 20px',
 })
+
+function FrontPageList(){
+    const userContext = useContext(UserContext);
+    const tourContext = useContext(TourContext);
+    const ref = useRef(null);
+    const [top,setTop] = useState(0);
+    const [listWidth,setListWidth] = useState(0);
+    const isDesktopOrLaptop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    useLayoutEffect(()=>{
+        if(ref.current){
+            setTop(ref.current.clientHeight)
+            setListWidth(ref.current.clientWidth);
+        }
+    },[ref.current])
+
+    function onLeave(){
+        tourContext.seenFrontPageTip = true;
+    }
+    // 20 pixels from excess padding
+    let width = userContext.isAuth?listWidth/3 - 20:listWidth - 20;
+
+    return(
+        <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
+        top:isDesktopOrLaptop?52:0,zIndex:4}} ref={ref}>
+            {userContext.isAuth?
+            <NavLink to="/" exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                Feed
+            </NavLink>:null}
+            
+            {userContext.isAuth?
+            <NavLink to="/tree" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                Tree
+            </NavLink>:null}
+
+            <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+                All
+            </NavLink>
+            {localStorage.getItem('has_seen_tour')==='false' && !tourContext.seenFrontPageTip?
+                userContext.isAuth?
+                <TooltipChain delay={12000} onLeave={onLeave}>
+                    <Tooltip position={{left:0,top:top}}>
+                        <p css={{fontWeight:400,width:isMobile?listWidth-20:width}}>
+                        <b>Feed.</b> Your <b>personalized feed</b> based on the branches you follow</p>
+                    </Tooltip>
+                    <Tooltip position={{left:isMobile?0:listWidth/3,top:top}}>
+                        <p css={{fontWeight:400,width:isMobile?listWidth-20:width}}>
+                        <b>Tree</b>. A feed made from branches <b>similar</b> to the branches you follow
+                        </p>
+                    </Tooltip>
+                    <Tooltip position={{left:isMobile?0:listWidth/3 * 2,top:top}}>
+                        <p css={{fontWeight:400,width:isMobile?listWidth-20:width}}>
+                        <b>All</b>. You can see the content from all the branches of Subranch here</p>
+                    </Tooltip>
+                </TooltipChain>
+                :<TooltipChain delay={12000} onLeave={onLeave}>
+                <Tooltip position={{left:0,top:top}}>
+                        <p css={{fontWeight:400,width:width}}>
+                        You can see the content from <b>all</b> the branches of Subranch here</p>
+                </Tooltip>
+                <Tooltip position={{left:0,top:top}}>
+                        <p css={{fontWeight:400,width:width}}>
+                        <Link to="/login" style={{color:'white'}}>Login</Link>{' '}
+                        or <Link to="/register" style={{color:'white'}}>register</Link>{' '}
+                        to access your personal <b>Feed</b> and <b>Tree!</b></p>
+                </Tooltip>
+            </TooltipChain>:null}
+        </div>
+    )
+}
 
 export function FrontPageLeftBar(){
     const [show,setShow] = useState(true);
@@ -87,6 +167,15 @@ export function FollowingBranches(){
     )
 }
 
+const postList = theme => css({
+    flexBasis:'56%',
+    width:'100%',
+    padding:0,
+    listStyle:'none',
+    border:`1px solid ${theme.borderColor}`
+})
+
+
 export const FrontPage = React.memo(function FrontPage({externalPostId}){
 
     const actionContext = useContext(UserActionsContext);
@@ -100,45 +189,38 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
         <>
             <Desktop>
                 <FrontPageLeftBar/>
-                <Switch>
-                    <Route exact path="/" component={
-                        (props) => userContext.isAuth?<FrontPageFeed device="desktop" {...props}/>:
-                        <FrontPageAllPosts device="desktop" {...props}/>
-                    }/>
-                    <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
-                    <Route exact path="/tree" component={(props)=> userContext.isAuth?
-                    <FrontPageTreePosts device="desktop" {...props}/>:<Redirect to="/login"/>}/>
-                </Switch>
+                <FrontPagePostList/> 
                 <Trending/>
             </Desktop>
 
             <Tablet>
-            <Switch>
-                <Route exact path="/" component={
-                        (props) => userContext.isAuth?<FrontPageFeed device="tablet" {...props}/>:
-                        <FrontPageAllPosts device="tablet" {...props}/>
-                    }/>
-                    <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="tablet" {...props}/>}/>
-                    <Route exact path="/tree" component={(props)=> userContext.isAuth?
-                    <FrontPageTreePosts device="tablet" {...props}/>:<Redirect to="/login"/>}/>
-                </Switch>
+                <FrontPagePostList/> 
             </Tablet>
 
             <Mobile>
-            <Switch>
-                    <Route exact path="/" component={
-                        (props) => userContext.isAuth?<FrontPageFeed device="mobile" {...props}/>:
-                        <FrontPageAllPosts device="mobile" {...props}/>
-                    }/>
-                    <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="mobile" {...props}/>}/>
-                    <Route exact path="/tree" component={(props)=> userContext.isAuth?
-                    <FrontPageTreePosts device="mobile" {...props}/>:<Redirect to="/login"/>}/>
-                </Switch>
+                <FrontPagePostList/>       
             </Mobile>
-            
         </>
     )
 })
+
+function FrontPagePostList(){
+    const userContext = useContext(UserContext);
+    return(
+        <div className="post-list" id="post-list" css={theme=>postList(theme)}>
+            <FrontPageList/>
+            <Switch>
+                <Route exact path="/" component={
+                    (props) => userContext.isAuth?<FrontPageFeed device="desktop" {...props}/>:
+                    <FrontPageAllPosts device="desktop" {...props}/>
+                }/>
+                <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
+                <Route exact path="/tree" component={(props)=> userContext.isAuth?
+                <FrontPageTreePosts device="desktop" {...props}/>:<Redirect to="/login"/>}/>
+            </Switch>
+        </div>
+    )
+}
 
 export const FrontPageFeed = React.memo(function FrontPageFeed(props){
     const context = useContext(UserContext);

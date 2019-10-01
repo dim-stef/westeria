@@ -182,49 +182,60 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     
     let activeStyle={borderTop:'2px solid #2397f3'};
 
+    function handleSendToTop(){
+        console.log("Active")
+        if(window.scrollY > 0){
+            try{
+                // safari browsers crash here
+                window.scrollTo({top:0,behavior:'smooth'})
+            }catch(e){
+                window.scroll(0,0)
+            }
+        }
+    }
 
     return(
         <div className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
-                <NavLink exact to="/" className="flex-fill center-items"
+            <NavLink exact to="/" className="flex-fill center-items"
+            activeClassName="active-tab-route"
+            activeStyle={activeStyle}
+            css={theme=>mobileNavBarContainer(theme)}>
+                <Home/>
+            </NavLink>
+            <NavLink to="/search" className="flex-fill center-items"
+            activeClassName="active-tab-route" activeStyle={activeStyle}
+            css={theme=>mobileNavBarContainer(theme)}>
+                <SearchSvg/>
+            </NavLink>
+            {context.isAuth?
+                <NavLink to="/notifications"
+                className="flex-fill center-items"
                 activeClassName="active-tab-route"
                 activeStyle={activeStyle}
-                css={theme=>mobileNavBarContainer(theme)}>
-                    <Home/>
-                </NavLink>
-                <NavLink to="/search" className="flex-fill center-items"
-                activeClassName="active-tab-route" activeStyle={activeStyle}
-                css={theme=>mobileNavBarContainer(theme)}>
-                    <SearchSvg/>
-                </NavLink>
-                {context.isAuth?
-                    <NavLink to="/notifications"
-                    className="flex-fill center-items"
-                    activeClassName="active-tab-route"
-                    activeStyle={activeStyle}
-                    css={theme=>mobileNavBarContainer(theme)} 
-                    onClick={readAllNotifications}>
-                        <NotificationsContainer inBox/>
-                    </NavLink>:null
-                }
+                css={theme=>mobileNavBarContainer(theme)} 
+                onClick={readAllNotifications}>
+                    <NotificationsContainer inBox/>
+                </NavLink>:null
+            }
 
-                {context.isAuth?
-                    <NavLink to="/messages"
-                    activeClassName="active-tab-route"
-                    className="flex-fill center-items"
-                    activeStyle={activeStyle}
-                    css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
-                    <div style={{position:'relative'}}>
-                        <Messages/>
-                        {notificationsContext.messages.filter(n=>n.unread==true).length>0?
-                        <span className="new-circle">
+            {context.isAuth?
+                <NavLink to="/messages"
+                activeClassName="active-tab-route"
+                className="flex-fill center-items"
+                activeStyle={activeStyle}
+                css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
+                <div style={{position:'relative'}}>
+                    <Messages/>
+                    {notificationsContext.messages.filter(n=>n.unread==true).length>0?
+                    <span className="new-circle">
 
-                        </span>:null}
-                        </div>
-                    </NavLink>:null
-                }
-                <SideDrawer>
-                    <Profile/>
-                </SideDrawer>
+                    </span>:null}
+                    </div>
+                </NavLink>:null
+            }
+            <SideDrawer>
+                <Profile/>
+            </SideDrawer>
         </div>
     )  
 }

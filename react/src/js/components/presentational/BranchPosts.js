@@ -15,7 +15,8 @@ import {
     PostsContext,
     RefreshContext,
     TreePostsContext,
-    UserContext
+    UserContext,
+    TourContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
 import {Tooltip, TooltipChain} from "./Tooltip";
@@ -65,9 +66,13 @@ function resetBranchPostsContext(postsContext,props){
 
 function FrontPageList(){
     const userContext = useContext(UserContext);
+    const tourContext = useContext(TourContext);
     const ref = useRef(null);
     const [top,setTop] = useState(0);
     const [listWidth,setListWidth] = useState(0);
+    const isDesktopOrLaptop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
 
     useLayoutEffect(()=>{
         if(ref.current){
@@ -76,11 +81,19 @@ function FrontPageList(){
         }
     },[ref.current])
 
+    useEffect(()=>{
+        tourContext.frontPagePostList = true;
+    })
+
+    useEffect(()=>{
+        console.log("mount")
+    },[])
     // 20 pixels from excess padding
-    let width = userContext.isAuth?listWidth/3 - 20:listWidth/1.5; 
+    let width = userContext.isAuth?listWidth/3 - 20:listWidth - 20;
+
     return(
-        <div className="flex-fill" style={{justifyContent:'space-around',WebkitJustifyContent:'space-around',
-        backgroundColor:'#08aeff',position:'relative'}} ref={ref}>
+        <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
+        top:isDesktopOrLaptop?52:0,zIndex:5}} ref={ref}>
             {userContext.isAuth?
             <NavLink to="/" exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Feed
@@ -94,27 +107,53 @@ function FrontPageList(){
             <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 All
             </NavLink>
-            {/*<TooltipChain delay={100000}>
-                <Tooltip position={{left:0,top:top + 20}}>
-                    <p css={{fontWeight:500,width:width}}>Slide 1</p>
+            {!tourContext.frontPagePostList?
+                userContext.isAuth?
+                <TooltipChain delay={800000}>
+                    <Tooltip position={{left:0,top:top}}>
+                        <p css={{fontWeight:500,width:width}}>Your personalized feed based on the content of the branches you follow</p>
+                    </Tooltip>
+                    <Tooltip position={{left:listWidth/3,top:top}}>
+                        <p css={{fontWeight:500,width:width}}>
+                        Tree is a feed made from all the subsequent branches based on the branches you follow
+                        </p>
+                    </Tooltip>
+                    <Tooltip position={{left:listWidth/3 * 2,top:top}}>
+                        <p css={{fontWeight:500,width:width}}>You can see the content from all the branches of Subranch here</p>
+                    </Tooltip>
+                </TooltipChain>
+                :<TooltipChain delay={800000}>
+                <Tooltip position={{left:0,top:top}}>
+                        <p css={{fontWeight:500,width:width}}>You can see the content from all the branches of Subranch here</p>
                 </Tooltip>
-                <Tooltip position={{left:listWidth/3,top:top + 20}}>
-                    <p css={{fontWeight:500,width:width}}>Slide 2</p>
-                </Tooltip>
-                <Tooltip position={{left:listWidth/3 * 2,top:top + 20}}>
-                    <p css={{fontWeight:500,width:width}}>Slide 3</p>
-                </Tooltip>
-            </TooltipChain>*/}
+            </TooltipChain>:null}
+            
         </div>
     )
 }
 
 function BranchPageList({branch}){
     const userContext = useContext(UserContext);
+    const ref = useRef(null);
+    const [top,setTop] = useState(0);
+    const [listWidth,setListWidth] = useState(0);
+    const isDesktopOrLaptop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
+
+    useLayoutEffect(()=>{
+        if(ref.current){
+            setTop(ref.current.clientHeight)
+            setListWidth(ref.current.clientWidth);
+        }
+    },[ref.current])
+
+    // 20 pixels from excess padding
+    let width = listWidth/3 - 20;
 
     return(
         <div className="flex-fill" style={{justifyContent:'space-around',WebkitJustifyContent:'space-around',
-        backgroundColor:'#08aeff'}}>
+        backgroundColor:'#08aeff',position:'relative'}} ref={ref}>
             <NavLink to={`/${branch.uri}`} exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 {branch.name}
             </NavLink>
@@ -126,6 +165,19 @@ function BranchPageList({branch}){
             <NavLink to={`/${branch.uri}/community`} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Community
             </NavLink>
+            <TooltipChain delay={800000}>
+                <Tooltip position={{left:0,top:top}}>
+                    <p css={{fontWeight:500,width:width}}>{branch.name}'s leaves</p>
+                </Tooltip>
+                <Tooltip position={{left:listWidth/3,top:top}}>
+                    <p css={{fontWeight:500,width:width}}>
+                    {branch.name}'s tree. Based on all the communities similar to {branch.name}
+                    </p>
+                </Tooltip>
+                <Tooltip position={{left:listWidth/3 * 2,top:top}}>
+                    <p css={{fontWeight:500,width:width}}>The leaves from {branch.name}'s community</p>
+                </Tooltip>
+            </TooltipChain>
         </div>
     )
 }
@@ -146,8 +198,7 @@ function DisplayPosts({isFeed,posts,setPosts,
     const theme = useTheme();
     
     return(
-    <ul key={postsContext.branchUri} className="post-list" css={theme=>postList(theme)}>
-        {isFeed?<FrontPageList/>:<BranchPageList branch={activeBranch}/>}
+        <>
         <Pullable
             onRefresh={refresh}
             centerSpinner={false}
@@ -214,7 +265,7 @@ function DisplayPosts({isFeed,posts,setPosts,
                 <b style={{fontSize:'2rem'}}>Nothing more to see</b>
             </p>}
             </Pullable>
-    </ul>
+    </>
     )
 }
 

@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {withRouter} from 'react-router'
+import {withRouter} from 'react-router-dom'
 import Routes from '../presentational/Routes'
 import {UserContext} from "./ContextContainer"
 import axios from 'axios'
@@ -35,12 +35,14 @@ class App extends Component {
                 })
             }*/
         });
+
     }
 
     resetState(){
         localStorage.removeItem("token");
         this.setState({
             isAuth:null,
+            user:null,
             branches:null,
             currentBranch:null,
             startedLoading:false,
@@ -49,15 +51,20 @@ class App extends Component {
 
     async getUserBranches(){
         var r = await axios.get("/api/owned_branches/").catch(er=>this.resetState());
+        var user = await axios.get("/api/user/").catch(er=>this.resetState());
         var currBranch = await axios.get("/api/user/default_branch/").catch(er=>this.resetState());
         var reacts = await axios.get(`/api/branches/${currBranch.data.uri}/reactions/`).catch(er=>this.resetState());
         currBranch.data.reacts = reacts.data;
-        
+        let userData = user.data[0] || user.data
+        //localStorage.setItem('has_seen_tour',userData.profile.has_seen_tour)
+
         this.setState({
             isAuth:localStorage.getItem("token"),
+            user:userData,
             branches:r.data,
             currentBranch:currBranch.data,
             startedLoading:true,
+            seenTour:userData.profile.has_seen_tour
         })
     }
     
@@ -97,6 +104,10 @@ class App extends Component {
     componentDidMount(){
         if(localStorage.getItem("token")){
             this.getUserData();
+        }else{
+            if(!localStorage.getItem('has_seen_tour')){
+                localStorage.setItem('has_seen_tour',false)
+            }
         }
     }
 

@@ -96,8 +96,10 @@ export function SideDrawer({children}){
                                 justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',WebkitAlignItems:'center',
                                 fontSize:'3em',height:'100%'}}
                                 css={emotionTheme=>linkTextColor(emotionTheme)}>Register</Link>
-                                <button className="flex-fill auth-drawer-item" style={{textAlign:'inherit',backgroundColor:'inherit',border:0,
-                                borderBottom:`1px solid ${emotionTheme.borderColor}`,color:emotionTheme.textColor}}
+                                <button className="flex-fill auth-drawer-item" style={{textDecoration:'none',
+                                justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',WebkitAlignItems:'center',
+                                fontSize:'3em',height:'50%',backgroundColor:'inherit',border:0}}
+                                css={emotionTheme=>linkTextColor(emotionTheme)}
                                 onClick={theme.toggle}>
                                 {theme.dark?'Light mode':'Dark mode'}</button>
                             </>:<AuthenticatedDrawer handleHide={handleHide}/>}

@@ -161,7 +161,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
 
     return(
             <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
-            justifyContent:'stretch',WebkitJustifyContent:'strech',position:'relative',zIndex:4,...style}}>
+            justifyContent:'stretch',WebkitJustifyContent:'strech',position:'relative',zIndex:3,...style}}>
                 <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
                 setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview" 
                 style={{backgroundColor:'transparent !important'}}>
@@ -177,7 +177,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     placeholder="Add a leaf"
                     className="editor flex-fill text-wrap"
                     value={value}
-                    style={{padding:5,backgroundColor:'transparent',minWidth:0,borderRadius:10,color:theme.textColor,
+                    style={{padding:5,backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,
                     border:'2px solid #219ef3',minHeight:'2rem',
                     alignItems:'center',backgroundColor:theme.backgroundColor,
                     WebkitAlignItems:'center',display:'block'}}/>

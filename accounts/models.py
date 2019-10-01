@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from annoying.fields import AutoOneToOneField
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
@@ -11,7 +12,6 @@ def uid_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 class User(AbstractUser):
-
     class Meta:
         swappable = 'AUTH_USER_MODEL'
         db_table = 'auth_user'
@@ -26,15 +26,10 @@ class User(AbstractUser):
     def __str__(self):
         return '%s' % self.email
 
-
-'''@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        UserProfile.objects.create(user=instance)
-        instance.profile.url = instance.id
-        instance.profile.save()'''
+class UserProfile(models.Model):
+    user = AutoOneToOneField(User, on_delete=models.CASCADE,related_name='profile')
+    has_seen_tour = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
 
 
-'''@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    instance.profile.save()'''

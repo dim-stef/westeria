@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view,permission_classes
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
 from rest_framework_jwt.settings import api_settings
 from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser,FormParser
+from accounts.models import UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchChat, BranchMessage, ChatRequest
 from branchposts.models import Post,React,Spread
@@ -97,15 +98,23 @@ class UserViewSet(# mixins.DestroyModelMixin,
     permission_classes = (permissions.IsAuthenticated,)
     def get_serializer_class(self):
         user = self.request.user
-        if user.is_superuser:
+        return serializers.UserSerializer
+        '''if user.is_superuser:
             return serializers.UserAdminSerializer
         else:
-            return serializers.UserSerializer
+            return serializers.UserSerializer'''
 
     def get_queryset(self):
         user = self.request.user
         queryset = get_user_model().objects.filter(id=user.id)
         return queryset
+
+class UserProfileViewSet(mixins.RetrieveModelMixin,
+                    viewsets.GenericViewSet,
+                    mixins.UpdateModelMixin):
+    permission_classes = (permissions.IsAuthenticated,)
+    serializer_class = serializers.UserProfileSerializer
+    queryset = UserProfile.objects.all()
 
 
 class SearchResults(viewsets.GenericViewSet,

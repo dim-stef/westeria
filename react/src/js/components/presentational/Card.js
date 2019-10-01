@@ -72,7 +72,7 @@ function Description({description}){
     const theme = useTheme();
 
     return(
-        <Linkify><p clasName="text-wrap" style={{fontSize:'2em',color:theme.textColor}}>{description}</p></Linkify>
+        <Linkify><p className="text-wrap" style={{fontSize:'2em',color:theme.textColor}}>{description}</p></Linkify>
     )
 }
 

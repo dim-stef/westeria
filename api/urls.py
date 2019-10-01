@@ -9,6 +9,7 @@ from . import views
 router = routers.DefaultRouter()
 drf_router = drf_routers.DefaultRouter()
 router.register(r'user', views.UserViewSet, base_name='user')
+router.register(r'user_profile', views.UserProfileViewSet, base_name='user_profile')
 router.register(r'user/following', views.UserFollowViewSet, base_name='user_following')
 router.register(r'notifications', views.NotificationsViewSet, base_name='notifications')
 router.register(r'message_notifications', views.MessageNotificationsViewSet, base_name='message_notifications')
