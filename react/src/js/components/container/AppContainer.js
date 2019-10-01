@@ -56,7 +56,7 @@ class App extends Component {
         var reacts = await axios.get(`/api/branches/${currBranch.data.uri}/reactions/`).catch(er=>this.resetState());
         currBranch.data.reacts = reacts.data;
         let userData = user.data[0] || user.data
-        //localStorage.setItem('has_seen_tour',userData.profile.has_seen_tour)
+        localStorage.setItem('has_seen_tour',userData.profile.has_seen_tour)
 
         this.setState({
             isAuth:localStorage.getItem("token"),
