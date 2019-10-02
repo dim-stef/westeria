@@ -12,23 +12,41 @@ export default function Card({branch}){
     return(
         <div style={{width:'100%',height:height,position:'relative'}}>
             <Identifiers branch={branch}/>
-            <FollowInfo followersCount={branch.followers_count} followingCount={branch.following_count}/>
+            <FollowInfo followersCount={branch.followers_count} followingCount={branch.following_count} branch={branch}/>
         </div>
     )
 }
 
-function FollowInfo({followersCount,followingCount}){
+const followCss = theme =>css({
+    display: 'inline',
+    padding: '3px 10px',
+    borderRadius: 5,
+    cursor:'pointer',
+    '&:hover':{
+        backgroundColor:theme.hoverColor
+    }
+})
+
+function FollowInfo({followersCount,followingCount,branch}){
     const theme = useTheme();
 
     return(
         <div style={{height:'100%',width:270,position:'absolute',right:0}}>
             <h1>
-                <span style={{color: '#156bb7'}}>{followersCount}{' '}</span>
-                <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Followers</span>
+                <Link to={`/${branch.uri}/followers`} style={{textDecoration:'none'}}>
+                    <div css={followCss}>
+                        <span style={{color: '#2196f3'}}>{followersCount}{' '}</span>
+                        <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Followers</span>
+                    </div>
+                </Link>
             </h1>
             <h1>
-                <span style={{color: '#156bb7'}}>{followingCount}{' '}</span>
-                <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Following</span>
+                <Link to={`/${branch.uri}/following`} style={{textDecoration:'none'}}>
+                    <div css={theme=>followCss(theme)}>
+                        <span style={{color: '#2196f3'}}>{followingCount}{' '}</span>
+                        <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Following</span>
+                    </div>
+                </Link>
             </h1>
         </div>
     )

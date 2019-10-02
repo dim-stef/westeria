@@ -43,6 +43,7 @@ import MyBranchesColumnContainer from "./MyBranchesColumn"
 //const FeedPosts = lazy(() => import('./BranchPosts'));
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
 import {MobileBranchPageWrapper} from "./MobileParentBranch"
+import {BranchLinks,PostLinks} from "./GoogleLinks"
 import {useTheme} from "../container/ThemeContainer"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
@@ -159,6 +160,8 @@ function NonAuthenticationRoutes(){
 
     return(
         <Switch>
+            <Route exact path='/google/links/branches/:pageNumber?' component={(props)=><BranchLinks {...props}/>}/>
+            <Route exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
             <Route path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
             <Route exact path='/:page(all|tree)?/' render={()=><FrontPage/>}/>
             <Route path='/search' component={SearchPage} />
@@ -168,6 +171,8 @@ function NonAuthenticationRoutes(){
             <Route path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
             <Route path='/:uri/leaves/:externalId' render={({match}) => 
                 <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
+            <Route path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
+            <Route path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
             <Route path='/:uri?' render={(props)=><BranchContainer {...props}/>}/>
         </Switch>
     )
@@ -303,12 +308,15 @@ function DesktopParentBranchWrapper(props){
     )
 }
 
+import {FollowPage} from "./FollowPage"
+
 export function BranchPage(props){
     return(
         <ResponsiveBranchPage branch={props.branch}>
             <Helmet>
                 <title>{props.branch.name} (@{props.branch.uri}) - Subranch</title>
                 <meta name="description" content={props.branch.description} />
+                <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
             </Helmet>
             <Switch>
                 <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>

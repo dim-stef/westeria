@@ -89,12 +89,16 @@ export function BranchBanner(props){
     let defaultBannerUrl = '/images/group_images/banner/default';
     let r = new RegExp(defaultBannerUrl);
     let isDefault = r.test(props.branch.branch_banner)
+    let style={paddingTop: '33.33333%', position: 'relative',width:"100%",
+    backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center',
+    backgroundColor:getRandomColor()}
+
+    if(!isDefault){
+        style = {...style,backgroundImage:`url(${props.branch.branch_banner})`}
+    }
     return(
         <div id={props.branch.id} style={{position:'relative'}}>
-            <div style={{paddingTop: '33.33333%', position: 'relative',width:"100%",
-            backgroundImage:`url(${isDefault?null:props.branch.branch_banner})`, 
-            backgroundRepeat:'no-repeat',backgroundSize:'cover',backgroundPosition:'center',
-            backgroundColor:getRandomColor()}}>
+            <div style={style}>
                 <div>
                     <BranchImage branch={props.branch} className={props.className} />
                 </div>

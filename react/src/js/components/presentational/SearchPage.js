@@ -48,13 +48,16 @@ const searchList = theme => css({
 function Search(){
     const theme = useTheme();
     const [results,setResults] = useState([])
+    const [branches,setBranches] = useState(null);
     const [focused,setFocused] = useState(false);
     const [text,setText] = useState('');
+    const [next,setNext] = useState(null);
+    const [hasMore,setHasMore] = useState(true);
     const wrapperRef = useRef(null);
 
     async function getResults(){
         let safeText = text.trim()
-        const response = safeText ? await axios.get(`/api/search/?branch=${safeText}`,{
+        const response = safeText ? await axios.get(`/api/search/?search=${safeText}`,{
             cancelToken: source.token
           }): null
          
@@ -63,16 +66,36 @@ function Search(){
         }
     }
 
+    async function getBranches(){
+
+        let safeText = text.trim()
+        const response = safeText ? await axios.get(next?next:`/api/search/?search=${safeText}`,{
+            cancelToken: source.token
+        }): null
+        
+        setNext(response.data.next);
+
+        if(!response.data.next){
+            setHasMore(false);
+        }
+
+        setBranches(branches?[...branches,...response.data.results]:response.data.results);
+    }
+
     useEffect(()=>{
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
         source = CancelToken.source();
 
+        setNext(null);
+        setHasMore(true);
+        setBranches(null);
+
         if(focused){
-            getResults();
+            getBranches();
         }
     },[text])
-     
+    
 
     return(
         <>
@@ -91,9 +114,10 @@ function Search(){
                     style={{border:`1px solid ${theme.borderColor}`,color:theme.textColor}}            
                 />
             </div>
-            <div className="flex-fill" css={searchContainer} >
-                {results.length>0?
-                results.map(r=>{
+            <div className="flex-fill" css={searchContainer}>
+            {branches?
+                branches.length>0?
+                branches.map(r=>{
                     return  <div className="branch-container flex-fill" 
                             css={theme=>searchList(theme)}>
                                 <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
@@ -101,9 +125,12 @@ function Search(){
                                 <BranchFooter branch={r}/>
                             </div>
                            
-                }):null}
+                }):null
+                :null}
             </div>
-            
+            <div className="flex-fill center-items">
+                {next?<button className="load-more" onClick={getBranches}>Load more</button>:null}
+        </div>
         </div>
         </>
     )

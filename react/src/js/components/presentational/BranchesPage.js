@@ -99,9 +99,9 @@ function BranchTypeSelectionBar({activeTab,currentBranch,branch}){
     return(
         <div className="branch-type-selection-bar" style={{position:'relative'}} ref={ref}>
             <div className="branch-type-selection-wrapper flex-fill">
-                <BranchParents {...props}/>
-                <BranchSiblings {...props}/>
-                <BranchChildren {...props} activeTab={activeTab}/>
+                <BranchParents {...props} count={branch.parent_count}/>
+                <BranchSiblings {...props} count={branch.sibling_count}/>
+                <BranchChildren {...props} count={branch.children_count} activeTab={activeTab}/>
             </div>
             {localStorage.getItem('has_seen_tour')==='false' && !tourContext.seenBranchTabs?
             <TooltipChain delay={12000} onLeave={onLeave}>
@@ -125,37 +125,34 @@ function BranchTypeSelectionBar({activeTab,currentBranch,branch}){
     )
 }
 
-function BranchParents({currentBranch}){
+function BranchParents({currentBranch,count}){
     return(
         <NavLink exact to={`/${currentBranch}/branches/parents`} activeStyle={{backgroundColor:'#1c87dc'}}
         style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
-            <div className="branch-selection">
-                <h1>Parents</h1>
+            <div className="branch-selection flex-fill center-items">
+                <h1>{count>0?`${count} `:''}Parents</h1>
             </div>
         </NavLink>
     )
 }
 
-function BranchSiblings({currentBranch}){
+function BranchSiblings({currentBranch,count}){
     return(
         <NavLink exact to={`/${currentBranch}/branches/siblings`} activeStyle={{backgroundColor:'#1c87dc'}}
         style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
-            <div className="branch-selection">
-                <h1>Siblings</h1>
+            <div className="branch-selection flex-fill center-items">
+                <h1>{count>0?`${count} `:''}Siblings</h1>
             </div>
         </NavLink>
     )
 }
 
-function BranchChildren({currentBranch,activeTab}){
-
-    // if activeTab is undefined render default BranchChildren
-
+function BranchChildren({currentBranch,count,activeTab}){
     return(
         <NavLink exact to={`/${currentBranch}/branches/children`} activeStyle={{backgroundColor:'#1c87dc'}}
         style={{height:'100%',width:'100%',color:'white',textDecoration:'none',backgroundColor:activeTab?null:'#1c87dc'}}>
-            <div className="branch-selection">
-                <h1>Children</h1>
+            <div className="branch-selection flex-fill center-items">
+                <h1>{count>0?`${count} `:''}Children</h1>
             </div>
         </NavLink>
     )

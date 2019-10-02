@@ -168,6 +168,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
             <Helmet>
                 <title>{title}</title>
                 <meta name="description" content={description}></meta>
+                <link rel="canonical" href={`${window.location.origin}/${post.poster || post.poster.uri}/leaves/${post.id}`}></link>
             </Helmet>
             <RoutedHeadline/>
             <Post post={post} parentPost={parentPost} postsContext={postsContext}

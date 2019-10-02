@@ -56,12 +56,18 @@ class FeedPagination(CursorPagination):
 class TrendingPagination(PageNumberPagination):
     page_size = 5
 
+class FollowedByPagination(PageNumberPagination):
+    page_size = 15
+
 class ReplyTreePagination(CursorPagination):
     page_size = 4
 
 class NotificationsPagination(CursorPagination):
     page_size = 15
     ordering = '-timestamp'
+
+class LargeLinkPagination(PageNumberPagination):
+    page_size = 5
 
 
 class IsOwnerOfBranch(permissions.BasePermission):
@@ -91,6 +97,18 @@ class IsOwnerOfChat(permissions.BasePermission):
             return True
         return False
 
+
+class LargeBranchViewSet(mixins.ListModelMixin,viewsets.GenericViewSet):
+    permission_classes = (permissions.AllowAny,)
+    queryset = Branch.objects.all()
+    serializer_class = serializers.BranchSerializer
+    pagination_class = LargeLinkPagination
+
+class LargePostViewSet(mixins.ListModelMixin,viewsets.GenericViewSet):
+    permission_classes = (permissions.AllowAny,)
+    queryset = Post.objects.all()
+    serializer_class = serializers.BranchPostSerializer
+    pagination_class = LargeLinkPagination
 
 class UserViewSet(# mixins.DestroyModelMixin,
                   mixins.ListModelMixin,
@@ -141,6 +159,14 @@ def search(request):
     serializer = serializers.BranchSerializer(queryset,many=True)
     return Response(serializer.data)
 
+from rest_framework import filters
+
+class SearchViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    pagination_class = TrendingPagination
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['$uri', '$name']
+    queryset = Branch.objects.all()
+    serializer_class = serializers.BranchSerializer
 
 @api_view(['GET'])
 @permission_classes([permissions.IsAuthenticated])
@@ -220,7 +246,6 @@ class BranchViewSet(mixins.RetrieveModelMixin,
             queryset = Branch.objects.filter(uri__iexact=self.kwargs['uri'])
         return queryset
 
-
 class BranchRootViewSet(viewsets.GenericViewSet,
                         mixins.ListModelMixin):
     serializer_class = serializers.BranchSerializer
@@ -228,7 +253,6 @@ class BranchRootViewSet(viewsets.GenericViewSet,
     def get_queryset(self):
         queryset = Branch.objects.filter(name="ROOT", tag=None)
         return queryset
-
 
 class BranchRelationsMixin(viewsets.GenericViewSet,
                       mixins.RetrieveModelMixin,
@@ -559,6 +583,23 @@ class BranchFollowsViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
         branch = Branch.objects.filter(uri__iexact=self.kwargs['branch__uri'])
         return branch
 
+class BranchFollowedByViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchSerializer
+    pagination_class = FollowedByPagination
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+        return branch.followed_by.all().exclude(pk=branch.pk)
+
+class BranchFollowingViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchSerializer
+    pagination_class = FollowedByPagination
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+        return branch.follows.all().exclude(pk=branch.pk)
 
 class BranchNewFollowViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.NewFollowSerializer

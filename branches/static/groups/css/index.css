@@ -538,10 +538,8 @@ div.route-section {
 
 .branch-selection{
     height: 100%;
-    display: flex;
-    align-items: center;
     flex-basis: 33%;
-    justify-content: center;
+    -webkit-flex-basis: 33%;
 }
 
 .branch-selection:hover {
@@ -914,6 +912,9 @@ div.top-spread-list{
 
 @media all and (max-device-width: 767px){
 
+    .branch-selection{
+        font-size:0.8em;
+    }
     .post-to-branch-container{
         width: 100%;
     }

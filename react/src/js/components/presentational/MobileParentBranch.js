@@ -1,4 +1,5 @@
 import React, {useLayoutEffect, useRef, useState} from "react";
+import {Link} from 'react-router-dom'
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {NavLink} from "react-router-dom"
@@ -14,6 +15,20 @@ function getRandomColor() {
     }
     return color;
   }
+
+const followContainerCss = theme =>css({
+    display: 'inline-flex',
+    margin:14,
+    borderRadius: 5,
+    fontSize:'1.4em'
+})
+
+const followCss = theme =>css({
+    display: 'inline',
+    marginRight: 10,
+    borderRadius: 5,
+    cursor:'pointer',
+})
 
 export function MobileBranchPageWrapper({branch,children}){
     const theme = useTheme();
@@ -73,6 +88,10 @@ export function MobileBranchPageWrapper({branch,children}){
         <div style={{margin:left}}>
             <Description description={branch.description}/>
         </div>
+        <div css={followContainerCss} className="center-items">
+            <FollowInfo branch={branch} followersCount={branch.followers_count} 
+            followingCount={branch.following_count}/>
+        </div>
         <NavigationTabs branch={branch}/>
         {children}
         </>
@@ -85,6 +104,27 @@ function Description({description}){
     )
 }
 
+
+function FollowInfo({branch,followersCount,followingCount}){
+    const theme = useTheme();
+
+    return(
+        <>
+        <Link to={`/${branch.uri}/followers`} style={{textDecoration:'none'}}>
+            <div css={followCss}>
+                <span style={{color: '#2196f3'}}>{followersCount}{' '}</span>
+                <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Followers</span>
+            </div>
+        </Link>
+        <Link to={`/${branch.uri}/following`} style={{textDecoration:'none'}}>
+            <div css={followCss}>
+                <span style={{color: '#2196f3'}}>{followingCount}{' '}</span>
+                <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Following</span>
+            </div>
+        </Link>
+        </>
+    )
+}
 function ImageNeighbour({el,branch}){
     const [left,setLeft] = useState(0);
 
@@ -143,7 +183,8 @@ function NavigationTabs({branch}){
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Posts</NavLink>
             <NavLink to={`/${branch.uri}/branches`}
             style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
-            activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Branches</NavLink>
+            activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>
+            {branch.branch_count>0?branch.branch_count:0} Branches</NavLink>
         </div>
     )
 }

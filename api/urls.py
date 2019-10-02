@@ -8,9 +8,12 @@ from . import views
 
 router = routers.DefaultRouter()
 drf_router = drf_routers.DefaultRouter()
+router.register(r'large/branches', views.LargeBranchViewSet, base_name='large_branches')
+router.register(r'large/posts', views.LargePostViewSet, base_name='large_posts')
 router.register(r'user', views.UserViewSet, base_name='user')
 router.register(r'user_profile', views.UserProfileViewSet, base_name='user_profile')
 router.register(r'user/following', views.UserFollowViewSet, base_name='user_following')
+router.register(r'search', views.SearchViewSet, base_name='search')
 router.register(r'notifications', views.NotificationsViewSet, base_name='notifications')
 router.register(r'message_notifications', views.MessageNotificationsViewSet, base_name='message_notifications')
 router.register(r'reacts',views.ReactsViewSet,base_name="reacts")
@@ -53,7 +56,8 @@ branch_router.register(r'posts', views.BranchPostListViewSet, base_name='posts')
 branch_router.register(r'spreads/new', views.NewSpread, base_name='new_spread')
 branch_router.register(r'spreads/update', views.UpdateSpread, base_name='update_spread')
 branch_router.register(r'follows', views.BranchFollowsViewSet, base_name='follows')
-
+branch_router.register(r'followed_by', views.BranchFollowedByViewSet, base_name='followed_by')
+branch_router.register(r'following', views.BranchFollowingViewSet, base_name='following')
 
 
 branchupdate_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
@@ -76,7 +80,7 @@ chat_room_invite_router.register(r'invite', views.ChatRoomInviteViewSet,base_nam
 
 urlpatterns = [
     url(r'^$', schema_view),
-    path('search/',views.search),
+    #path('search/',views.search),
     path('notifications/mark_all_as_read/',views.mark_all_notifications_as_read),
     path('notifications/mark_all_notifications_as_read/',views.mark_all_notifications_as_read),
     path('notifications/mark_all_messages_as_read/',views.mark_all_messages_as_read),

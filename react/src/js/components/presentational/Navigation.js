@@ -183,7 +183,6 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     let activeStyle={borderTop:'2px solid #2397f3'};
 
     function handleSendToTop(){
-        console.log("Active")
         if(window.scrollY > 0){
             try{
                 // safari browsers crash here

@@ -6,6 +6,8 @@
     font-family: Roboto, Arial, sans-serif;">
 
 <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-94BXTRQK99"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -16,11 +18,15 @@
     </script>
 
     <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1, minimum-scale=1, maximum-scale=1">
     <title>Subranch</title>
     <meta name="description" content="Discover communities and people you did't know existed. Join the conversation. Become part of the Subranch tree." data-react-helmet="true">
     <link rel="manifest" href="/static/js/manifest.webmanifest" crossorigin="use-credentials">
+    <link rel="search" href="https://subranch.com/google/links/branches">
+    <link rel="search" href="https://subranch.com/google/links/posts">
+    <link rel="index" href="https://subranch.com/login">
+    <link rel="index" href="https://subranch.com/register">
+    <link rel="index" href="https://subranch.com/password/reset">
+
     <script>
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', {scope: '/'})
@@ -55,6 +61,8 @@
     <link rel="stylesheet" type="text/css" href="{% static 'groupchat/css/groupchat.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/tree.css' %}"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+    <meta name="apple-mobile-web-app-title" content="Subranch">
+
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
     <link rel="mask-icon" href="{% static 'safari-pinned-tab.svg' %}" color="#5bbad5">
