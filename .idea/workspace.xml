@@ -1,24 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.9.0 wrong import crash fix">
+    <list default="true" id="0c2164c8-a0d1-4b1e-99a4-170fb4b169f8" name="Default" comment="1.10.0 added features, improved seo">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/accounts/templates/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/templates/base.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/urls.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/api/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/views.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/branches/static/groups/css/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/branches/static/groups/css/index.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/common/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/common/templates/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/dist/js/app.bundle.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/dist/js/app.bundle.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchBanner.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchDetails.js" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchList.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchList.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/BranchesPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Card.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/MobileParentBranch.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Navigation.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/Routes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/FrontPage.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SearchPage.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" beforeDir="false" afterPath="$PROJECT_DIR$/react/src/js/components/presentational/SingularPost.js" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -74,20 +63,20 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/common/templates/index.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="238">
-              <caret line="16" column="37" selection-start-line="16" selection-start-column="37" selection-end-line="16" selection-end-column="37" />
+            <state relative-caret-position="580">
+              <caret line="22" column="40" selection-end-line="92" selection-end-column="7" />
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/accounts/templates/base.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="728">
-              <caret line="27" column="51" selection-end-line="90" selection-end-column="7" />
+            <state relative-caret-position="356">
+              <caret line="25" column="36" lean-forward="true" selection-start-line="25" selection-start-column="36" selection-end-line="25" selection-end-column="36" />
             </state>
           </provider>
         </entry>
@@ -263,8 +252,8 @@
         <option value="$PROJECT_DIR$/branches/static/groups/css/index.css" />
         <option value="$PROJECT_DIR$/api/views.py" />
         <option value="$PROJECT_DIR$/api/urls.py" />
-        <option value="$PROJECT_DIR$/accounts/templates/base.html" />
         <option value="$PROJECT_DIR$/common/templates/index.html" />
+        <option value="$PROJECT_DIR$/accounts/templates/base.html" />
       </list>
     </option>
   </component>
@@ -614,14 +603,7 @@
       <workItem from="1569158993103" duration="35026000" />
       <workItem from="1569509343666" duration="10086000" />
       <workItem from="1569698951618" duration="9376000" />
-      <workItem from="1569939913254" duration="17338000" />
-    </task>
-    <task id="LOCAL-00207" summary="0.0.7 production update">
-      <created>1565541055847</created>
-      <option name="number" value="00207" />
-      <option name="presentableId" value="LOCAL-00207" />
-      <option name="project" value="LOCAL" />
-      <updated>1565541055848</updated>
+      <workItem from="1569939913254" duration="18124000" />
     </task>
     <task id="LOCAL-00208" summary="0.0.8 production update">
       <created>1565812089533</created>
@@ -959,11 +941,18 @@
       <option name="project" value="LOCAL" />
       <updated>1569947573599</updated>
     </task>
-    <option name="localTasksCounter" value="256" />
+    <task id="LOCAL-00256" summary="1.10.0 added features, improved seo">
+      <created>1570049716154</created>
+      <option name="number" value="00256" />
+      <option name="presentableId" value="LOCAL-00256" />
+      <option name="project" value="LOCAL" />
+      <updated>1570049716155</updated>
+    </task>
+    <option name="localTasksCounter" value="257" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="1367089000" />
+    <option name="totallyTimeSpent" value="1367875000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -976,9 +965,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.144" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.144" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -1060,7 +1048,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/react" />
     </ignored-roots>
-    <MESSAGE value="1.3.1 messaging ui changes" />
     <MESSAGE value="1.4.0 new features, spread rework" />
     <MESSAGE value="1.4.1 paste editor fix" />
     <MESSAGE value="1.5.0 new post lists" />
@@ -1085,7 +1072,8 @@
     <MESSAGE value="1.8.5 fixed ios crash" />
     <MESSAGE value="1.9.0 added user profile, user tour" />
     <MESSAGE value="1.9.0 wrong import crash fix" />
-    <option name="LAST_COMMIT_MESSAGE" value="1.9.0 wrong import crash fix" />
+    <MESSAGE value="1.10.0 added features, improved seo" />
+    <option name="LAST_COMMIT_MESSAGE" value="1.10.0 added features, improved seo" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1348,17 +1336,17 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/accounts/templates/base.html">
+    <entry file="file://$PROJECT_DIR$/common/templates/index.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="728">
-          <caret line="27" column="51" selection-end-line="90" selection-end-column="7" />
+        <state relative-caret-position="580">
+          <caret line="22" column="40" selection-end-line="92" selection-end-column="7" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/common/templates/index.html">
+    <entry file="file://$PROJECT_DIR$/accounts/templates/base.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="16" column="37" selection-start-line="16" selection-start-column="37" selection-end-line="16" selection-end-column="37" />
+        <state relative-caret-position="356">
+          <caret line="25" column="36" lean-forward="true" selection-start-line="25" selection-start-column="36" selection-end-line="25" selection-end-column="36" />
         </state>
       </provider>
     </entry>

@@ -281,7 +281,7 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
         <Helmet>
             <title>Subranch</title>
             <meta name="description" content="Browse all the leaves created 
-            by the subranch community." />
+            by the subranch community."/>
         </Helmet>
         <AllPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
         postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 

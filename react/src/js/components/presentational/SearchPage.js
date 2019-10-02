@@ -101,7 +101,8 @@ function Search(){
         <>
         <Helmet>
             <title>Search - Subranch</title>
-            <meta name="description" content="Branch not found." />
+            <meta name="description" content="Search the branches of Subranch." />
+
         </Helmet>
         <div ref={wrapperRef}>
             <div style={{padding:10}}>
