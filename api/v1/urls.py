@@ -10,6 +10,7 @@ from . import views
 router = routers.DefaultRouter()
 router.register(r'device/apns', APNSDeviceAuthorizedViewSet)
 router.register(r'device/gcm', GCMDeviceAuthorizedViewSet)
+router.register(r'feedback/new',views.FeedbackViewSet,base_name="new_feedback")
 
 router.register(r'owned_branches',views.OwnedBranchesViewSet,base_name="owned_branches")
 router.register(r'branches', views_v0.BranchViewSet, base_name='branch')
@@ -21,8 +22,6 @@ branch_router.register(r'mutual_follows', views.MutualFollowsViewSet,base_name='
 branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
 branchchat_router.register(r'create_conversation', views.CreateConversationViewSet,base_name='create_conversation')
 branchchat_router.register(r'conversation_invitations', views.ConversationInvitationsViewSet,base_name='conversation_invitations')
-
-
 
 urlpatterns = [
     url(r'^$', schema_view),

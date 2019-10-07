@@ -119,6 +119,7 @@
     "react-swipeable": "^5.2.3",
     "react-swipeable-routes": "^0.6.0",
     "react-tabs": "^2.3.0",
+    "react-tappable": "^1.0.4",
     "react-toggle": "^4.0.2",
     "react-tooltip": "^3.11.1",
     "react-transition-group": "^4.2.1",

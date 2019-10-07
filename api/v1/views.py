@@ -1,12 +1,13 @@
 from rest_framework import viewsets, views, mixins,generics,filters,permissions
 from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
-from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser,FormParser
+from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser
 from api import serializers as serializers_v0
 from api import permissions as api_permissions
 from . import serializers
 from branches.models import Branch
 from branchchat.models import ChatRequest
+from feedback.models import Feedback
 
 class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
@@ -78,3 +79,27 @@ class ConversationInvitationsViewSet(viewsets.GenericViewSet,
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
+class FeedbackViewSet(viewsets.GenericViewSet,
+                      mixins.CreateModelMixin):
+    permission_classes = (permissions.AllowAny,)
+
+    def get_serializer_class(self):
+        if self.request.user.is_authenticated:
+            return serializers.FeedbackWithUserSerializer
+        return serializers.FeedbackSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer_class = self.get_serializer_class()
+        serializer = serializer_class(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+    def perform_create(self, serializer):
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()

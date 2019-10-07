@@ -32,7 +32,8 @@ export function SearchPage(props){
 
 const searchContainer = () => css({
     display:'flex',
-    flexFlow:'row wrap', 
+    flexFlow:'row wrap',
+    WebkitFlexFlow:'row wrap',
     justifyContent:'space-between'
 })
 

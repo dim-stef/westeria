@@ -44,7 +44,7 @@ import MyBranchesColumnContainer from "./MyBranchesColumn"
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
 import {MobileBranchPageWrapper} from "./MobileParentBranch"
 import {BranchLinks,PostLinks} from "./GoogleLinks"
-import {useTheme} from "../container/ThemeContainer"
+import {FeedbackPage} from "./FeedbackPage";
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
 import axios from 'axios';
@@ -88,8 +88,8 @@ const Routes = ()=>{
           <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
           <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
           <Page>
-              <ResponsiveNavigationBar/>
               <NonAuthenticationRoutes/>
+              <ResponsiveNavigationBar/>
           </Page>
           
       </Switch>
@@ -165,6 +165,7 @@ function NonAuthenticationRoutes(){
             <Route path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
             <Route exact path='/:page(all|tree)?/' render={()=><FrontPage/>}/>
             <Route path='/search' component={SearchPage} />
+            <Route path='/about' component={FeedbackPage} />
             <Route path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
             <Route exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
             <Route exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>

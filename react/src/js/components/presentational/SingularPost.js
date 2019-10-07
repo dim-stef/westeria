@@ -277,7 +277,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
     return(
         <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
-                <RippledStyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
+                <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
                 showPostedTo activeBranch={activeBranch}
                 open={open} measure={measure} postsContext={postsContext}
@@ -306,9 +306,7 @@ function StyledPostWrapper({post,viewAs,index,isSingular,children}){
 
 function LinkedPost({history,dataIndex,id,to,children}){
 
-    function handleClick(e){
-        e.stopPropagation();
-         
+    function handleClick(e){         
         history.push(to);
     }
 
@@ -380,14 +378,26 @@ function ShownBranch({branch,date,dimensions=48}){
     )
 }
 
-const postCss = (theme,isEmbedded) => css({
+const postCss = (theme,isEmbedded,extraStyles) => css({
     padding:10,
     transition:'opacity 0.1s ease-in-out',
     position:'relative',
-    '&:hover': {
-        backgroundColor:isEmbedded?theme.embeddedHoverColor:theme.hoverColor
-    }
+    ...extraStyles
 })
+
+function is_touch_device() {
+    var prefixes = ' -webkit- -moz- -o- -ms- '.split(' ');
+    var mq = function(query) {
+      return window.matchMedia(query).matches;
+    }
+  
+    if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
+      return true;
+    }
+  
+    var query = ['(', prefixes.join('touch-enabled),('), 'heartz', ')'].join('');
+    return mq(query);
+}
 
 function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
@@ -451,13 +461,20 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
         }
     },[selfSpread]);
 
-    
+
+    let desktopStyles = {
+        '&:hover': {
+            backgroundColor:isEmbedded?theme.embeddedHoverColor:theme.hoverColor
+        }
+    }
+
+    let extraStyles = is_touch_device()?{}:desktopStyles
+
     return(
         <>
-        <div ref={initRipple} className={className} unbounded={unbounded} className="no-highlight">
-            <div ref={ref} css={theme=>postCss(theme,isEmbedded)} className={`post`}
-            style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} 
-            poststate={open?"open":"closed"}>
+        <div className={className}>
+            <div ref={ref} css={theme=>postCss(theme,isEmbedded,extraStyles)} className={`post`}
+            style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} >
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
                 <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
@@ -485,9 +502,6 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
         </>
     )
 }
-
-const RippledStyledPost = withRipple(StyledPost)
-
 
 function PostedToExtension({post,activeBranch,mainPostedBranch}){
     
@@ -811,7 +825,7 @@ function PostActions({post,handleCommentClick,handleSpread,selfSpread}){
                 <StarDislikeRatio css={theme=>number(theme.textLightColor,color)} reacted={react} 
                 starCount={starCount} dislikeCount={dislikeCount}/>
             </div>
-
+            
             <Comments post={post} handleCommentClick={handleCommentClick}/>
             <Share post={post} handleSpread={handleSpread} selfSpread={selfSpread} />
         </div>
@@ -1024,7 +1038,6 @@ function Comments({post,handleCommentClick}){
 
 const CommentsSvg = ({className}) => (
     <svg
-      id="Layer_1"
       x="0px"
       y="0px"
       viewBox="0 0 260 260"
@@ -1037,17 +1050,13 @@ const CommentsSvg = ({className}) => (
       css={theme=>pathFill(theme.textColor,null,null,null,null)}
       className={`post-action-svg ${className}`}>
     
-      <style>{".st0{fill:#rgb(67, 78, 88)}"}</style>
       <path
-        className="st0"
         d="M34.4 224.7c-2.3 0-4.6-1-6.2-2.8-2-2.3-2.6-5.6-1.4-8.5 2.8-7.1 4.8-15.4 5.4-23.1-10.8-10.9-16.7-24.6-16.7-38.7 0-25.1 18.1-47.4 46.2-56.8 2.6-.9 5.5.5 6.3 3.1.9 2.6-.5 5.5-3.1 6.3-23.9 8.1-39.3 26.6-39.3 47.3 0 12.1 5.4 23.8 15.2 33.1 1.1 1 1.6 2.4 1.6 3.9-.4 8.4-2.1 17.3-5 25.3 13.2-3.7 20.9-9.1 25.2-13.1 1.3-1.2 3.1-1.7 4.9-1.1 7.3 2.2 14.8 3.3 22.3 3.3 15.4 0 30.3-4.4 42-12.5 2.3-1.6 5.4-1 7 1.3 1.6 2.3 1 5.4-1.3 7-13.5 9.2-30.4 14.3-47.8 14.3-7.6 0-15.1-1-22.5-2.9-5.8 4.9-15.6 10.8-30.9 14.5-.6.1-1.3.1-1.9.1zM134.5 103.1c-2.8 0-5-2.2-5-5V94c0-2.8 2.2-5 5-5s5 2.2 5 5v4.1c0 2.7-2.2 5-5 5zM177.2 103.1c-2.8 0-5-2.2-5-5V94c0-2.8 2.2-5 5-5s5 2.2 5 5v4.1c0 2.7-2.2 5-5 5z"
       />
       <path
-        className="st0"
         d="M220.5 204.2c-.7 0-1.5-.1-2.2-.3-16.8-4.1-31-10.8-41.4-19.4-7 1.4-14 2.2-21 2.2-48.6 0-88.1-33.1-88.1-73.9 0-40.7 39.5-73.9 88.1-73.9s88.1 33.2 88.1 74c0 18-7.8 35.2-22 48.7 1 10.2 3.6 20.7 7.2 29.7 1.3 3.3.7 7.1-1.6 9.8-1.9 2-4.4 3.1-7.1 3.1zm-.6-9.2zm-41.7-20.9c1.2 0 2.4.4 3.3 1.3 6.4 5.7 18.1 13.5 37.9 18.5-4.1-10.5-6.7-22.2-7.7-34-.1-1.6.5-3.1 1.7-4.1 13.2-11.8 20.5-27.1 20.5-43 0-35.2-35-63.9-78.1-63.9-43.1 0-78.1 28.7-78.1 63.9s35 63.9 78.1 63.9c7 0 14.2-.8 21.2-2.5.5 0 .9-.1 1.2-.1z"
       />
       <path
-        className="st0"
         d="M155.9 158.2c-32.9 0-59.6-21.4-59.6-47.8 0-2.8 2.2-5 5-5s5 2.2 5 5c0 20.8 22.3 37.7 49.6 37.7 27.4 0 49.6-16.9 49.6-37.7 0-2.8 2.2-5 5-5s5 2.2 5 5c0 26.4-26.8 47.8-59.6 47.8z"
       />
     </svg>

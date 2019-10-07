@@ -870,6 +870,7 @@ button[disabled=disabled], button:disabled {
     
     .wide-content-container{
         display: block;
+        padding-bottom: 60px;
     }
 
     .big-main-column{

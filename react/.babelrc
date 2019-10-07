@@ -5,8 +5,8 @@
     "@emotion/babel-preset-css-prop"
   ],
   "plugins": [
-    "react-hot-loader/babel",
     "emotion",
+    "react-hot-loader/babel",
     "@babel/plugin-proposal-class-properties",
     "@babel/plugin-transform-runtime",
     [

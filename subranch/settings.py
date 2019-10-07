@@ -135,6 +135,7 @@ INSTALLED_APPS = [
     'branchchat',
     'branchsettings',
     'branchposts',
+    'feedback',
     'settings',
     'notifications',
     'rest_framework',

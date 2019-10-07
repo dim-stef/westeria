@@ -293,7 +293,6 @@ function Toolbar({handleSendMessage,onInput,isLoading}){
 const MediaSvg = props => {
     const theme = useTheme();
     return <svg
-      id="Layer_1"
       x="0px"
       y="0px"
       viewBox="0 0 260 260"

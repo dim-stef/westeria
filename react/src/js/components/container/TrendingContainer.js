@@ -1,4 +1,5 @@
 import React, {useContext, useEffect, useState} from "react"
+import {Link} from "react-router-dom";
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {CachedBranchesContext} from "./ContextContainer"
@@ -30,6 +31,7 @@ export function TrendingWithWrapper(){
                 }}>Popular now</p>
                 <TrendingContainer/>
             </div>
+            <Link to="/about" style={{color:theme.textLightColor}}>About</Link>
         </div>
     )
 }

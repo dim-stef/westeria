@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from branchchat.models import ChatRequest,BranchChat
+from feedback.models import Feedback
 from api import serializers as serializers_v0
 from notifications.models import Notification
 
@@ -30,5 +31,15 @@ class NewChatRoomSerializer(serializers.ModelSerializer):
                                                branch_chat=new_room,
                                                request_from=room_owner,
                                                request_to=member)
-
         return new_room
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['subject','details','email']
+
+class FeedbackWithUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['subject','details','user']
+        read_only_fields = ['user']

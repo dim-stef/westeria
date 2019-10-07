@@ -67,7 +67,7 @@ class NotificationsPagination(CursorPagination):
     ordering = '-timestamp'
 
 class LargeLinkPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 50
 
 
 class IsOwnerOfBranch(permissions.BasePermission):
@@ -139,7 +139,7 @@ class SearchResults(viewsets.GenericViewSet,
                     mixins.ListModelMixin):
     lookup_value_regex = '(?i)[\w.@+-]+'
     lookup_field = 'uri'
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     serializer_class = serializers.BranchSerializer
 
     def get_queryset(self):

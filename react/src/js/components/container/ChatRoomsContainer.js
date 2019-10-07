@@ -194,6 +194,28 @@ function RoomContainer({roomData,match}){
     useEffect(()=>{
         getMessages(messages);
         getMembers();
+
+        try{
+            let bigContainer = document.getElementById('wide-content-container');
+            bigContainer.style.paddingBottom = '0';
+
+            let mobileNavBar = document.getElementById('mobile-nav-bar');
+            mobileNavBar.style.display = 'none';
+        }catch(e){
+
+        }
+
+        return ()=>{
+            try{
+                let bigContainer = document.getElementById('wide-content-container');
+                bigContainer.style.paddingBottom = null;
+
+                let mobileNavBar = document.getElementById('mobile-nav-bar');
+                mobileNavBar.style.display = null;
+            }catch(e){
+
+            }
+        }
     },[])
 
     useEffect(()=>{

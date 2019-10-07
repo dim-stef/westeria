@@ -8,7 +8,7 @@ def generate_unique_uri(name):
     branch_name = ''.join(name.split())
     tester = branch_name
     x = 0
-    while Branch.objects.filter(uri=tester).exists() or branch_name in invalid_names:
+    while Branch.objects.filter(uri_iexact=tester).exists() or branch_name in invalid_names:
         tester = branch_name
         tester = tester + str(x)
         x += 1

@@ -12,6 +12,17 @@ var staticCacheName = 'v1';
 
 const staticAssets = [
     './',
+    './index.html',
+    'https://sb-static.s3.amazonaws.com/static/css/index.css',
+    'https://sb-static.s3.amazonaws.com/static/accounts/auth.css',
+    'https://sb-static.s3.amazonaws.com/static/css/errors.css',
+    'https://sb-static.s3.amazonaws.com/static/core/css/modal.css',
+    'https://sb-static.s3.amazonaws.com/static/groups/css/creategroup.css',
+    'https://sb-static.s3.amazonaws.com/static/groups/css/index.css',
+    'https://sb-static.s3.amazonaws.com/static/groupchat/css/groupchat.css',
+    'https://sb-static.s3.amazonaws.com/static/js/csrf.js',
+    'https://sb-static.s3.amazonaws.com/static/js/app.bundle.js',
+    'https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png',
 ];
 
 self.addEventListener('install', async e => {

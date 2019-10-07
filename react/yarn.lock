@@ -8879,6 +8879,11 @@ react-tabs@^2.3.0:
     classnames "^2.2.0"
     prop-types "^15.5.0"
 
+react-tappable@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/react-tappable/-/react-tappable-1.0.4.tgz#282b7b3dc25e6170b55d1ea33d986b7624a19fb9"
+  integrity sha512-thWt8b11Hy1BmWDPuqbj+Qom5MmnMZDjfzgSE2L2Yh0Hoc9+I6DKNmWrOJGaZtH6fL4FWtRk4HwyMfUJ10M67g==
+
 react-testing-library@^5.3.1:
   version "5.9.0"
   resolved "https://registry.yarnpkg.com/react-testing-library/-/react-testing-library-5.9.0.tgz#e1c8a586d2f2cbd5f0035474ca90258eef1fece6"

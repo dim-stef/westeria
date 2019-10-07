@@ -28,7 +28,6 @@ const MessageSvg = props => (
     <div className="flex-fill" style={{borderRadius:'50%',overflow:'hidden',
     WebkitMaskImage:'-webkit-radial-gradient(white, black)'}}>
         <svg
-        id="Layer_1"
         x="0px"
         y="0px"
         viewBox="0 0 260 260"

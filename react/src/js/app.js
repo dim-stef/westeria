@@ -1,6 +1,5 @@
-import 'react-app-polyfill/ie11';
-import 'react-app-polyfill/stable';
-global._babelPolyfill = false;
+//import 'react-app-polyfill/ie11';
+//import 'react-app-polyfill/stable';
 require('intersection-observer');
 import "@babel/polyfill";
 import React from "react";
