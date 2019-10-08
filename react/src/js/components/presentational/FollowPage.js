@@ -61,6 +61,8 @@ export function FollowPage({match,type="followed_by"}){
             dataLength={branches?branches.length:0}
             next={getMoreBranches}
             hasMore={hasMore}
+            scrollableTarget={document.getElementById('mobile-content-container')?
+            document.getElementById('mobile-content-container'):null}
             endMessage={
                 <div></div>
             }

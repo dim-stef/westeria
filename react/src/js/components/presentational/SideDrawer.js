@@ -51,37 +51,41 @@ const borderBottom = emotionTheme =>css({
     borderBottom:`1px solid ${emotionTheme.borderColor}`
 })
 
-export function SideDrawer({children}){
+export function SideDrawer({open,setOpen,children}){
     const theme = useTheme();
     const emotionTheme = useEmotionTheme();
     const userContext = useContext(UserContext);
-    
     const [inProp, setInProp] = useState(false);
     const ref = useRef(null);
 
     function handleHide(e,hide){
         e.stopPropagation();
-        setInProp(false);
+        setOpen(false);
         //hide();
     }
 
     function handleShow(e,show){
-        e.stopPropagation();
-        setInProp(true);
+        if(e){
+            e.stopPropagation();
+        }
+        
+        setOpen(true);
         show();
     }
 
     return(
         <ToggleContent 
-            toggle={show=>(
+            toggle={show=>{
+                return (
                 <div className="flex-fill" css={emotionTheme=>mobileNavBarContainer(emotionTheme)}
                 onClick={(e)=>handleShow(e,show)}>
                     {children}
                 </div>
-            )}
+            )
+            }}
             content={hide => (
                 <Modal onClick={(e)=>handleHide(e,hide)}>
-                    <CSSTransition in={inProp} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
+                    <CSSTransition in={open} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
                         <div onClick={e=>e.stopPropagation()} 
                         className={`side-drawer flex-fill`}
                         style={{height:'100%',width:'55%',backgroundColor:emotionTheme.backgroundColor,

@@ -86,7 +86,7 @@ function FrontPageList(){
     })
 
     useEffect(()=>{
-        console.log("mount")
+        //console.log("mount")
     },[])
     // 20 pixels from excess padding
     let width = userContext.isAuth?listWidth/3 - 20:listWidth - 20;
@@ -193,17 +193,25 @@ const postList = theme => css({
 function DisplayPosts({isFeed,posts,setPosts,
     postsContext,resetPostsContext,
     updateFeed,postedId,fetchData,hasMore,
-    showPostedTo,activeBranch,refresh}){
+    showPostedTo,activeBranch,refresh,target}){
     
     const theme = useTheme();
-    
+
+    function shouldPullToRefresh(){
+        let scrollTarget = document.getElementById('scrollTarget');
+        if(scrollTarget){
+            return document.getElementById('mobile-content-container').scrollTop <=0
+        }
+    }
+
     return(
         <>
         <Pullable
-            onRefresh={refresh}
-            centerSpinner={false}
-            spinnerColor="#2196F3"
-            >
+        onRefresh={refresh}
+        shouldPullToRefresh={shouldPullToRefresh}
+        centerSpinner={false}
+        spinnerColor="#2196F3"
+        >
         <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
         resetPostsContext={resetPostsContext} fetchData={fetchData}/>
         <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
@@ -211,10 +219,10 @@ function DisplayPosts({isFeed,posts,setPosts,
         {posts.length>0?
             
         <InfiniteScroll
-            
             dataLength={posts.length}
             next={fetchData}
             hasMore={hasMore}
+            scrollableTarget={document.getElementById('mobile-content-container')?'mobile-content-container':null}
             endMessage={
                 <p style={{textAlign: 'center'}}>
                     <b style={{fontSize:'2rem'}}>Nothing more to see</b>
@@ -240,7 +248,8 @@ function DisplayPosts({isFeed,posts,setPosts,
             </div>
             )}>
             <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
-                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts}
+                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts} 
+                scrollTarget={document.getElementById('mobile-content-container')?document.getElementById('mobile-content-container'):window}
             />
         </InfiniteScroll>
         :
@@ -282,7 +291,7 @@ const branchCommunityPostsCache = new CellMeasurerCache(genericCache)
 const allPostsCache = new CellMeasurerCache(genericCache)
 const treePostsCache = new CellMeasurerCache(genericCache)
 
-function VirtualizedPosts({isFeed,posts,setPosts,postsContext,activeBranch,showPostedTo}){
+function VirtualizedPosts({isFeed,scrollTarget,posts,setPosts,postsContext,activeBranch,showPostedTo}){
     const ref = useRef(null);
     const cellRef = useRef(null);
     const [previousWidth,setPreviousWidth] = useState(0);
@@ -316,6 +325,7 @@ function VirtualizedPosts({isFeed,posts,setPosts,postsContext,activeBranch,showP
     //let lastVisibleIndex = Math.ceil(postsContext.lastVisibleIndex);
     return(
         <WindowScroller
+        scrollElement={scrollTarget}
         onScroll={onScroll}>
             {({ height, isScrolling, onChildScroll, scrollTop }) => (
                 <AutoSizer 
@@ -402,7 +412,10 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
-
+    const scrollableTarget = useRef(null);
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
     let usingCache = cache //default;
 
     if(postsContext.content=="feed"){
@@ -525,13 +538,24 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
         },
         [posts],
     );
+    //console.log(scrollableTarget)
+
+    useEffect(()=>{
+        //console.log(document.getElementById('scrollTarget'))
+    },[scrollableTarget])
+
+    refreshContext.refresh = refresh;
 
     return(
-        <DisplayPosts isFeed={isFeed} refresh={refresh}
-        updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
-        posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
-        activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
-        />
+        <div id={isMobile?"scrollTarget":null} ref={scrollableTarget}>
+            <DisplayPosts isFeed={isFeed} refresh={refresh}
+            updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
+            posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
+            activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
+            target={isMobile?scrollableTarget.current:null}
+            />
+            
+        </div>
     )
 }
 
@@ -727,6 +751,7 @@ export const DisplayPosts3 = (props)=>{
     );
 
     let activeBranch = props.activeBranch
+
     return(
         <ul className="post-list">
             <FilterPosts setPosts={setPosts} resetPostsContext={resetPostsContext}/>
@@ -841,7 +866,8 @@ function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunc
     return(
         <div className="flex-fill" 
         style={{height:50,
-        justifyContent:'space-evenly',alignItems:'center'}}>
+        justifyContent:'space-evenly',alignItems:'center',
+        WebkitJustifyContent:'space-evenly',WebkitAlignItems:'center'}}>
             <ContentTypeFilter setParams={setParams} params={params} 
             defaultOption={postsContext.params?postsContext.params.content:null}/>
             <AlgorithmFilter setParams={setParams} params={params}

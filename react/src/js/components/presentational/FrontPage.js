@@ -167,8 +167,8 @@ export function FollowingBranches(){
     )
 }
 
-const postList = theme => css({
-    flexBasis:'56%',
+const postList = (theme,isMobile) => css({
+    flexBasis:isMobile?'100%':'56%',
     width:'100%',
     padding:0,
     listStyle:'none',
@@ -206,8 +206,12 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
 
 function FrontPagePostList(){
     const userContext = useContext(UserContext);
+    const isMobile = useMediaQuery({
+        query:'(max-device-width: 767px)'
+    })
+
     return(
-        <div className="post-list" id="post-list" css={theme=>postList(theme)}>
+        <div className="post-list" id="post-list" css={theme=>postList(theme,isMobile)}>
             <FrontPageList/>
             <Switch>
                 <Route exact path="/" component={

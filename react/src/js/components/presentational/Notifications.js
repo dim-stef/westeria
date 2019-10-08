@@ -175,6 +175,8 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
             </div>:
             notifications.length>0?
                 <InfiniteScroll
+                scrollableTarget={document.getElementById('mobile-content-container')?
+                document.getElementById('mobile-content-container'):null}
                 dataLength={notifications.length}
                 next={getMoreNotifications}
                 hasMore={hasMore}

@@ -139,14 +139,13 @@ class SearchResults(viewsets.GenericViewSet,
                     mixins.ListModelMixin):
     lookup_value_regex = '(?i)[\w.@+-]+'
     lookup_field = 'uri'
-    permission_classes = (permissions.AllowAny,)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly)
     serializer_class = serializers.BranchSerializer
 
     def get_queryset(self):
         vector = SearchVector('uri')
         query = SearchQuery(self.kwargs.get('query'))
         queryset= Branch.objects.annotate(rank=SearchRank(vector,query))
-        print(queryset)
         return queryset
 
 
@@ -162,6 +161,7 @@ def search(request):
 from rest_framework import filters
 
 class SearchViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    permission_classes = (permissions.AllowAny,)
     pagination_class = TrendingPagination
     filter_backends = [filters.SearchFilter]
     search_fields = ['$uri', '$name']

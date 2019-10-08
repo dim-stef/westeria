@@ -11,6 +11,7 @@ import {isMobile} from 'react-device-detect';
 import {Desktop, Mobile, Tablet} from './Responsive'
 import {useTheme} from "../container/ThemeContainer";
 import {askForPermissionToReceiveNotifications} from '../../push-notification';
+import history from "../../history"
 import axios from 'axios'
 
 export function ResponsiveNavigationBar(){
@@ -178,8 +179,15 @@ const mobileNavBarContainer = theme => css({
 
 export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const context = useContext(UserContext);
+    const navRef = useRef(null);
+    const homeRef = useRef(null)
+    const searchRef = useRef(null);
+    const messRef = useRef(null);
+    const notRef = useRef(null);
+    const profRef = useRef(null);
+    const [drawerOpen,setDrawerOpen] = useState(false);
     const notificationsContext = useContext(NotificationsContext);
-    
+    const [touchCoordinates,setCoordinates] = useState(null)
     let activeStyle={borderTop:'2px solid #2397f3'};
 
     function handleSendToTop(){
@@ -193,18 +201,83 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
         }
     }
 
+    function listenForNavTouches(e){
+        let x = e.changedTouches[0].clientX;
+        let y = e.changedTouches[0].clientY
+        let coordinates = {
+            x:x,
+            y:y
+        }
+        //console.log(e,coordinates)
+        //console.log(`document.elementFromPoint(${x}, ${y})`);
+        //console.log(document.elementFromPoint(x, y));
+        setCoordinates({...coordinates})
+    }
+
+    useEffect(()=>{
+
+        if(touchCoordinates && touchCoordinates.y > window.innerHeight - navRef.current.clientHeight){
+            let homeRect = homeRef.current.getBoundingClientRect();
+            let messRect = null;
+            let notRect = null;
+            if(messRef.current && notRef.current){
+                messRect = messRef.current.getBoundingClientRect();
+                notRect = notRef.current.getBoundingClientRect();
+            }
+           
+            let searchRect = searchRef.current.getBoundingClientRect();
+            let profRect = profRef.current.getBoundingClientRect();
+
+            /*if(touchCoordinates.x >= homeRect.left && touchCoordinates.x <= homeRect.right){
+                //history.push(homeRef.current.parentElement.getAttribute("href"))
+            }
+            if(messRef.current){
+                if(touchCoordinates.x >= messRect.left && touchCoordinates.x <=messRect.right){
+                    history.push(messRef.current.parentElement.getAttribute("href"))
+                }
+            }
+            
+            if(notRef.current){
+                if(touchCoordinates.x >= notRect.left && touchCoordinates.x <=notRect.right){
+                    history.push(notRef.current.parentElement.getAttribute("href"))
+                }
+            }
+            
+            if(touchCoordinates.x >= searchRect.left && touchCoordinates.x <=searchRect.right){
+                history.push(searchRef.current.parentElement.getAttribute("href"))
+            }
+            if(touchCoordinates.x >= profRect.left && touchCoordinates.x <=profRect.right){
+                //history.push(profRef.current.parentElement.getAttribute("href"))
+                setDrawerOpen(true);
+            }*/
+        }
+    },[touchCoordinates]);
+
+    useEffect(()=>{
+        window.addEventListener('touchstart',listenForNavTouches);
+
+        return ()=>{
+            window.removeEventListener('touchstart',listenForNavTouches);
+        }
+    },[])
+
+
     return(
-        <div className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
+        <div ref={navRef} className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
             <NavLink exact to="/" className="flex-fill center-items"
             activeClassName="active-tab-route"
             activeStyle={activeStyle}
             css={theme=>mobileNavBarContainer(theme)}>
-                <Home/>
+                <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                    <Home/>
+                </div>
             </NavLink>
             <NavLink to="/search" className="flex-fill center-items"
             activeClassName="active-tab-route" activeStyle={activeStyle}
             css={theme=>mobileNavBarContainer(theme)}>
-                <SearchSvg/>
+                <div ref={searchRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                    <SearchSvg/>
+                </div>
             </NavLink>
             {context.isAuth?
                 <NavLink to="/notifications"
@@ -213,7 +286,9 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                 activeStyle={activeStyle}
                 css={theme=>mobileNavBarContainer(theme)} 
                 onClick={readAllNotifications}>
-                    <NotificationsContainer inBox/>
+                    <div ref={notRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                        <NotificationsContainer inBox/>
+                    </div>
                 </NavLink>:null
             }
 
@@ -223,17 +298,22 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                 className="flex-fill center-items"
                 activeStyle={activeStyle}
                 css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
-                <div style={{position:'relative'}}>
-                    <Messages/>
-                    {notificationsContext.messages.filter(n=>n.unread==true).length>0?
-                    <span className="new-circle">
+                    <div ref={messRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                        <div style={{position:'relative'}}>
+                            <Messages/>
+                            {notificationsContext.messages.filter(n=>n.unread==true).length>0?
+                            <span className="new-circle">
 
-                    </span>:null}
+                            </span>:null}
+                        </div>
                     </div>
                 </NavLink>:null
             }
-            <SideDrawer>
-                <Profile/>
+
+            <SideDrawer open={drawerOpen} setOpen={setDrawerOpen}>
+                <div ref={profRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                    <Profile/>
+                </div>
             </SideDrawer>
         </div>
     )  
@@ -450,7 +530,6 @@ const SearchSvg = props => (
     <div className="flex-fill" style={{borderRadius:'50%',overflow:'hidden',
     WebkitMaskImage:'-webkit-radial-gradient(white, black)'}}>
         <svg
-        id="Layer_1"
         x="0px"
         y="0px"
         viewBox="0 0 260 260"

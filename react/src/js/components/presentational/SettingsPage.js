@@ -272,8 +272,9 @@ function UpdateBranch({branch}){
     async function onSubmit(values){
         let errors = {};
         let form = document.getElementById("branchForm");
+        let description = document.getElementById('description');
+        description.value = description.value.replace(/(\r\n|\n|\r)/gm, "")
         var formData = new FormData(form)
-        formData.set('description',formData.get('description').replace(/(\r\n|\n|\r)/gm, ""))
         let url = `/api/branches/update/${branch.uri}/`;
          
 
@@ -322,8 +323,9 @@ function CreateNewBranch(){
     async function onSubmit(values){
          
         let form = document.getElementById("branchForm");
+        let description = document.getElementById('description');
+        description.value = description.value.replace(/(\r\n|\n|\r)/gm, "")
         var formData = new FormData(form);
-        formData.set('description',formData.get('description').replace(/(\r\n|\n|\r)/gm, ""))
         let errors = {};
         let url = `/api/branches/new/`;
 

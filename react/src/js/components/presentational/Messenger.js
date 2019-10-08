@@ -84,7 +84,6 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                     setLoading(false);
                     scrollToBottom();
               }).catch(e=>{
-                console.log(e)
               })*/
 
 

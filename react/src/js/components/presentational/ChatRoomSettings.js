@@ -94,9 +94,9 @@ function BasicSettings({room}){
     async function onSubmit(values){
             
         let form = document.getElementById("createConversationForm");
+        let name = document.getElementById('name');
+        name.value = name.value.replace(/(\r\n|\n|\r)/gm, "");
         var formData = new FormData(form);
-        formData.set('name',formData.get('name').replace(/(\r\n|\n|\r)/gm, ""))
-
 
         let errors = {};
         let url = `/api/v1/branches/${userContext.currentBranch.uri}/chat_rooms/update/${room.id}/`;
@@ -131,7 +131,7 @@ function BasicSettings({room}){
                         {({ input, meta }) => (
                             <div style={{margin:'10px 0'}}>
                                 <label css={theme=>settingLabel(theme)}>Name</label>
-                                <input {...input} css={theme=>settingInput(theme)}
+                                <input {...input} id="name" css={theme=>settingInput(theme)}
                                 required/>
                                 {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
                             </div>

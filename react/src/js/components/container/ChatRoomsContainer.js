@@ -108,6 +108,7 @@ function RoomContainer({roomData,match}){
     const [heightWithKeyboard,setHeightWithKeyboard] = useState(0);
     const [heightWithoutKeyboard,setHeightWithoutKeyboard] = useState(window.innerHeight);
     const [height,setHeight] = useState(window.innerHeight);
+    const [prevContainerHeight,setContainerHeight] = useState(window.innerHeight); 
     const [prevScrollHeight,setScrollHeight] = useState(0);
     const ref = useRef(null);
     const parentRef = useRef(null);
@@ -194,12 +195,16 @@ function RoomContainer({roomData,match}){
     useEffect(()=>{
         getMessages(messages);
         getMembers();
+    },[])
+
+    useLayoutEffect(()=>{
 
         try{
-            let bigContainer = document.getElementById('wide-content-container');
+            let bigContainer = document.getElementById('mobile-content-container');
             bigContainer.style.paddingBottom = '0';
+            bigContainer.style.height = `${window.innerHeight}px`;
 
-            let mobileNavBar = document.getElementById('mobile-nav-bar');
+            let mobileNavBar = document.getElementById('nav-container');
             mobileNavBar.style.display = 'none';
         }catch(e){
 
@@ -207,17 +212,19 @@ function RoomContainer({roomData,match}){
 
         return ()=>{
             try{
-                let bigContainer = document.getElementById('wide-content-container');
+                let bigContainer = document.getElementById('mobile-content-container');
                 bigContainer.style.paddingBottom = null;
+                bigContainer.style.height = null;
 
-                let mobileNavBar = document.getElementById('mobile-nav-bar');
+                let mobileNavBar = document.getElementById('nav-container');
                 mobileNavBar.style.display = null;
+                //bigContainer.style.height = `${window.innerHeight - mobileNavBar.clientHeight}px !important`;
             }catch(e){
 
             }
         }
     },[])
-
+    
     useEffect(()=>{
         if(parentRef.current){
             parentRef.current.addEventListener('scroll',chatScrollListener)

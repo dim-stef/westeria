@@ -89,7 +89,6 @@ const Routes = ()=>{
           <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
           <Page>
               <NonAuthenticationRoutes/>
-              <ResponsiveNavigationBar/>
           </Page>
           
       </Switch>
@@ -109,6 +108,7 @@ const makeGlobalStyles = theme => css`
   body {
     background: ${theme.backgroundColor};
     color: ${theme.textColor};
+    -webkit-overflow-scrolling: touch;
   }
 `
 

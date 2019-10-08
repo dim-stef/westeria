@@ -14,6 +14,21 @@ const trending = theme => css({
     backgroundColor:theme.backgroundColor
 })
 
+const siteInfo = theme => css({
+    display:'flex',
+    justifyContent:'space-around',
+    margin:15,
+    fontSize:'1.4rem'
+})
+
+const link = theme => css({
+    textDecoration:'none',
+    color:theme.textLightColor,
+    '&:hover':{
+        textDecoration:'underline'
+    }
+})
+
 export function TrendingWithWrapper(){
     const theme = useTheme();
     return(
@@ -31,7 +46,11 @@ export function TrendingWithWrapper(){
                 }}>Popular now</p>
                 <TrendingContainer/>
             </div>
-            <Link to="/about" style={{color:theme.textLightColor}}>About</Link>
+            <div css={siteInfo}>
+                <Link to="/about" css={theme=>link(theme)}>About</Link>
+                <span style={{color:theme.textLightColor}}>© 2019 Subranch</span>
+            </div>
+            
         </div>
     )
 }

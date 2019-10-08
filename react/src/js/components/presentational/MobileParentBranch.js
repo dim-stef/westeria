@@ -50,7 +50,7 @@ export function MobileBranchPageWrapper({branch,children}){
     },[ref])
 
     return(
-        <>
+        <div>
         <div style={{width:'100%',position:'relative'}}>
             <div style={{
                     display: 'inline-block',
@@ -94,7 +94,7 @@ export function MobileBranchPageWrapper({branch,children}){
         </div>
         <NavigationTabs branch={branch}/>
         {children}
-        </>
+        </div>
     )
 }
 
