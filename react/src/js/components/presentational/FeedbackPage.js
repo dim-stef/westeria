@@ -12,6 +12,14 @@ const mainColumn = theme => css({
     margin:0,
     border:`1px solid ${theme.borderColor}`
 })
+
+const feedParagraph = theme =>css({
+    margin:10,
+    fontSize:'2rem',
+    fontWeight:500,
+    color:theme.textColor
+})
+
 export function FeedbackPage(){
     return(
         <FeedbackForm/>
@@ -42,7 +50,7 @@ export function FeedbackForm(){
                     },
                 })
         }catch(e){
-            console.log(e)
+            //console.log(e)
         }
         
         return errors;
@@ -65,6 +73,8 @@ export function FeedbackForm(){
             <Form onSubmit={onSubmit} validate={validate}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return <form id="feedback" style={{padding:10}} onSubmit={handleSubmit}>
+                    <p css={theme=>feedParagraph(theme)}>We would like your feedback to improve our website</p>
+
                     {!userContext.isAuth?<div style={{margin:10}}>
                         <Input name="email" placeholder="Email"
                         label="Email"/> 

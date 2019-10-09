@@ -61,7 +61,8 @@ export const Page = React.memo(function Page(props){
                     className="wide-content-container" css={isMobile?()=>contentContainer(contentHeight):null}>
                         {props.children}
                     </div>
-                    <div ref={navBar} id="nav-container" className="flex-fill center-items">
+                    <div ref={navBar} id="nav-container" className="flex-fill center-items" 
+                    style={{display:isMobile?'block':null}}>
                         <ResponsiveNavigationBar/>
                     </div>
                 </div>

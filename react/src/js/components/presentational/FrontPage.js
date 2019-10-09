@@ -252,6 +252,7 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
             <Helmet>
                 <title>Home - Subranch</title>
                 <meta name="description" content="Your personal feed created from the communities you follow." />
+                <link rel="canonical" href="https://subranch.com"/>
             </Helmet>
             <FeedPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
             postedId={context.currentBranch.id} usePostsContext showPostedTo 
@@ -286,6 +287,7 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
             <title>Subranch</title>
             <meta name="description" content="Browse all the leaves created 
             by the subranch community."/>
+            <link rel="canonical" href="https://subranch.com"/>
         </Helmet>
         <AllPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
         postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 
@@ -317,6 +319,8 @@ export const FrontPageTreePosts = React.memo(function FrontPageAllPosts(props){
             <title>Tree - Subranch</title>
             <meta name="description" content="Browse all the leaves created 
             by the subranch community." />
+            <link rel="canonical" href="https://subranch.com/tree"/>
+
         </Helmet>
         <TreePosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
         postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 

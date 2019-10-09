@@ -54,7 +54,7 @@ class FeedPagination(CursorPagination):
     page_size = 12
 
 class TrendingPagination(PageNumberPagination):
-    page_size = 5
+    page_size = 10
 
 class FollowedByPagination(PageNumberPagination):
     page_size = 15

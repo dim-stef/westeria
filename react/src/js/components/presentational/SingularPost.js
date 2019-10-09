@@ -479,11 +479,13 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
                 <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
                 <div className="flex-fill">
-                    <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
+                    <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null,flexFlow:'column'}}>
                         <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
                         date={date} post={post} dimensions={viewAs=='reply'?24:36}/>
                         <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
-                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:36}/>
+                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:36}
+                        measure={measure}
+                        />
                     </div>
                     <More post={post} posts={posts} setPosts={setPosts}/>
                     </div>
@@ -503,7 +505,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
     )
 }
 
-function PostedToExtension({post,activeBranch,mainPostedBranch}){
+function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
     
     const userContext = useContext(UserContext);
     const [branches,setBranches] = useState([]);
@@ -521,7 +523,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
         })
     }
 
-    useEffect(()=>{
+    useEffect(()=>{        
         if(userContext.isAuth){
             setBranches(branchesToDisplay())
         }else{
@@ -562,7 +564,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch}){
 }
 
 
-function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dimensions=48}){
+function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dimensions=48,measure}){
 
     return(
         mainPostedBranch && post.type!=="reply"?
@@ -582,7 +584,8 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dim
                             </Link>
                         </div>*/}
                         <ShownBranch branch={mainPostedBranch} dimensions={dimensions}/>
-                        <PostedToExtension post={post} activeBranch={activeBranch} mainPostedBranch={mainPostedBranch}/>
+                        <PostedToExtension post={post} activeBranch={activeBranch} 
+                        mainPostedBranch={mainPostedBranch} measure={measure}/>
                     </div>
                 </div>
             </div>

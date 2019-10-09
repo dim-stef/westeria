@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useState, useRef,useLayoutEffect} from "react";
 import {Helmet} from 'react-helmet'
 import {useMediaQuery} from "react-responsive";
+import {useTheme} from "emotion-theming";
 import {ChildBranch} from "./Branch"
 import {NavLink, Route, Switch} from 'react-router-dom'
 import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
@@ -159,6 +160,7 @@ function BranchChildren({currentBranch,count,activeTab}){
 }
 
 export function BranchList(props){
+    const theme = useTheme();
     //style={{display:'flex', width:'100%',width:'100%',flexFlow:'column'}}
     return(
         props.branches.map((c,i)=>{
@@ -168,7 +170,7 @@ export function BranchList(props){
             }
 
             return [
-                <div className="branch-container flex-fill" >
+                <div className="branch-container flex-fill" style={{border:`1px solid ${theme.borderColor}`}}>
                     <ChildBranch
                     style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
                     branch={c}>

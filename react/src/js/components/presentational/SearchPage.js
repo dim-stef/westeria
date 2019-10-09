@@ -39,7 +39,7 @@ const searchContainer = () => css({
 
 const searchList = theme => css({
     minWidth:250, 
-    width:'30%',
+    width:'auto',
     flexGrow:1,
     margin:10,
     flexFlow:'column',
@@ -103,7 +103,7 @@ function Search(){
         <Helmet>
             <title>Search - Subranch</title>
             <meta name="description" content="Search the branches of Subranch." />
-
+            <link rel="canonical" href="https://subranch.com/search"/>
         </Helmet>
         <div ref={wrapperRef}>
             <div style={{padding:10}}>

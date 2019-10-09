@@ -47,6 +47,8 @@ function PasswordReset(){
         <Helmet>
             <title>Password reset - Subranch</title>
             <meta name="description" content="Forgot your password? You can reset it here." />
+            <link rel="canonical" href="https://subranch.com/password/reset"/>
+
         </Helmet>
         <AuthFormWrapper>
             <Form onSubmit={handlePasswordReset}

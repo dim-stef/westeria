@@ -49,7 +49,7 @@ const searchContainer = () => css({
 
 const searchList = theme => css({
     minWidth:250, 
-    width:'30%',
+    width:'auto',
     flexGrow:1,
     margin:10,
     flexFlow:'column',

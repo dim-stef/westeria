@@ -217,7 +217,7 @@ function RoomContainer({roomData,match}){
                 bigContainer.style.height = null;
 
                 let mobileNavBar = document.getElementById('nav-container');
-                mobileNavBar.style.display = null;
+                mobileNavBar.style.display = 'block';
                 //bigContainer.style.height = `${window.innerHeight - mobileNavBar.clientHeight}px !important`;
             }catch(e){
 

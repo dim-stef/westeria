@@ -95,6 +95,7 @@ export default class Login extends Component{
             <Helmet>
                 <title>Login - Subranch</title>
                 <meta name="description" content="Login to Subranch" />
+                <link rel="canonical" href="https://subranch.com/login"/>
             </Helmet>
             <div className="main-layout">
                 <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>

@@ -111,6 +111,7 @@ export default class Register extends Component{
             <Helmet>
                 <title>Register - Subranch</title>
                 <meta name="description" content="Register to Subranch" />
+                <link rel="canonical" href="https://subranch.com/register"/>
             </Helmet>
             <div className="main-layout">
                 <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
