@@ -406,28 +406,61 @@
     cursor: pointer;
 }
 
-.pages-enter {
+/*.pages-enter {
   opacity: 0;
   transform: scale(1.1);
+}*/
+
+.pages-enter #scrollTarget,  .pages-enter .main-column{
+    transform: translateX(-100%);
+    opacity: 0;
 }
 
-.pages-enter-active {
+/*.pages-enter-active {
   opacity: 1;
   transform: scale(1);
   transition: opacity 300ms, transform 300ms;
+}*/
+
+.pages-enter-active #scrollTarget,  .pages-enter-active .main-column{
+    z-index: 10000000;
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform 0.15s cubic-bezier(0, 0, 0.58, 1);
 }
 
-.pages-exit {
+/*.pages-exit {
   opacity: 1;
   transform: scale(1);
+}*/
+
+.pages-exit #scrollTarget,  .pages-exit .main-column{
+    z-index: 10000000;
+    transform: translateX(0);
+    opacity: 1;
 }
 
-.pages-exit-active {
+/*.pages-exit-active {
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 300ms, transform 300ms;
+}*/
+
+.pages-exit-active #scrollTarget,  .pages-exit-active .main-column{
+    z-index: 10000000;
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.15s cubic-bezier(0, 0, 0.58, 1);
 }
 
+.switch-wrapper{
+    width:100%;
+}
+
+.switch-wrapper > div{
+    display: flex;
+    width: 100%;
+}
 
 div.route-section {
     position: absolute;

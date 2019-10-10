@@ -85,9 +85,6 @@ function FrontPageList(){
         tourContext.frontPagePostList = true;
     })
 
-    useEffect(()=>{
-        //console.log("mount")
-    },[])
     // 20 pixels from excess padding
     let width = userContext.isAuth?listWidth/3 - 20:listWidth - 20;
 

@@ -33,11 +33,12 @@ export function BranchPagePostList({branch}){
     return(
         <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
         top:isMobile?0:52,zIndex:4}} ref={ref}>
-            <NavLink to={`/${branch.uri}`} exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+            <NavLink to={{pathname:`/${branch.uri}`,state:'branch'}}  exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 {branch.name}
             </NavLink>
             
-            <NavLink to={`/${branch.uri}/tree`} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+            <NavLink to={{pathname:`/${branch.uri}/tree`,state:'branch'}} 
+            activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Tree
             </NavLink>
 

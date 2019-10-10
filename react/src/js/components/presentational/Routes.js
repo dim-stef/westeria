@@ -1,9 +1,10 @@
 import React, {Component, useContext, useEffect, useState} from "react"
-import {Link, Redirect, Route, Switch, withRouter} from 'react-router-dom'
+import {Link, Redirect, Route, Switch, withRouter,useParams,useRouteMatch,useLocation } from 'react-router-dom'
 import { Global, css } from "@emotion/core";
 import styled from '@emotion/styled'
 import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming'
-import { useBeforeunload } from 'react-beforeunload';
+import {useMediaQuery} from 'react-responsive';
+//import { useBeforeunload } from 'react-beforeunload';
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
 import Login from "./Login"
@@ -37,7 +38,7 @@ import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
-import {CSSTransition} from "react-transition-group";
+import {CSSTransition,TransitionGroup,Transition} from "react-transition-group";
 import MyBranchesColumnContainer from "./MyBranchesColumn"
 //const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
 //const FeedPosts = lazy(() => import('./BranchPosts'));
@@ -73,11 +74,11 @@ function RouteTransition({location,children}){
                             </TransitionGroup>*/
 const Routes = ()=>{
 
-  function beforeUnload(e){
+  /*function beforeUnload(e){
     localStorage.setItem('has_seen_tour',true)
   }
 
-  useBeforeunload(beforeUnload)
+  useBeforeunload(beforeUnload)*/
 
   return(
       <Switch>
@@ -130,6 +131,44 @@ const RoutesWrapper = (props) =>{
   )
 }
 
+
+const AnimatedSwitch = ({ animationClassName, animationTimeout, children }) => {
+  const match = useRouteMatch("/:uri?");
+  const {uri} = useParams();
+  const loc = useLocation();
+
+  return <Route render={({ location }) => {
+    console.log(location)
+    return(
+    <TransitionGroup component={null}>
+      <CSSTransition
+        key={location.state=='branch'?'branch':location.key}
+        timeout={animationTimeout}
+        classNames={animationClassName}
+      >
+        <Switch location={location}>
+          {children}
+        </Switch>
+      </CSSTransition>
+    </TransitionGroup>
+    )
+  }} />
+};
+
+const AnimatedRoute = (props) => {
+  
+  const isMobile = useMediaQuery({
+    query: '(max-device-width: 767px)'
+  })
+
+  return (
+  <div css={{
+      display:isMobile?'block':'flex',
+      width:'100%',
+    }}>
+      <Route {...props} />
+    </div>
+)};
 export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
@@ -159,23 +198,31 @@ function NonAuthenticationRoutes(){
     },[])
 
     return(
-        <Switch>
-            <Route exact path='/google/links/branches/:pageNumber?' component={(props)=><BranchLinks {...props}/>}/>
-            <Route exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
-            <Route path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
-            <Route exact path='/:page(all|tree)?/' render={()=><FrontPage/>}/>
-            <Route path='/search' component={SearchPage} />
-            <Route path='/about' component={FeedbackPage} />
-            <Route path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
-            <Route exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
-            <Route exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
-            <Route path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
-            <Route path='/:uri/leaves/:externalId' render={({match}) => 
-                <SingularPostWrapper externalPostId={match.params.externalId}/>}/>
-            <Route path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
-            <Route path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
-            <Route path='/:uri?' render={(props)=><BranchContainer {...props}/>}/>
-        </Switch>
+      <>
+      <AnimatedSwitch 
+        animationClassName="pages" 
+        animationTimeout={150}
+      >
+            <AnimatedRoute exact path='/google/links/branches/:pageNumber?' component={(props)=><BranchLinks {...props}/>}/>
+            <AnimatedRoute exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
+            <AnimatedRoute path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/:page(all|tree)?/' render={()=><FrontPage/>}/>
+            <AnimatedRoute path='/search' component={SearchPage} />
+            <AnimatedRoute path='/about' component={FeedbackPage} />
+            <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
+              
+            <AnimatedRoute path='/:uri/leaves/:externalId' render={({match}) => 
+            
+              <SingularPostWrapper externalPostId={match.params.externalId}/>
+            }/>
+            <AnimatedRoute path="/:uri?" render={(props)=><BranchContainer {...props}/>}/>
+            <AnimatedRoute path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
+            <AnimatedRoute path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
+        </AnimatedSwitch>
+        </>
     )
 }
 
