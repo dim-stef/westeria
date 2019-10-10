@@ -136,7 +136,7 @@ function ImageNeighbour({el,branch}){
     },[el])
 
     return(
-        <div style={{width:'100%',height:80}}>
+        <div style={{width:'100%',height:80,position:'relative'}}>
             <div style={{position:'absolute',left:left}}>
                 <Identifiers branch={branch}/>
             </div>

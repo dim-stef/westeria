@@ -71,7 +71,6 @@ class LargeLinkPagination(PageNumberPagination):
 
 
 class IsOwnerOfBranch(permissions.BasePermission):
-
     def has_object_permission(self, request, view, obj):
         lookup = 'branch__uri' if 'branch__uri' in request.resolver_match.kwargs else 'uri'
         branch = Branch.objects.get(uri=request.resolver_match.kwargs.get(lookup))

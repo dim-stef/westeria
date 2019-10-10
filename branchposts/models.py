@@ -130,7 +130,8 @@ class PostImage(models.Model):
                                        width_field='width')
 
     def save(self, *args, **kwargs):
-        self.original_image = self.image
+        if self.pk is None:
+            self.original_image = self.image
 
         im = Image.open(self.image)
         im.load()

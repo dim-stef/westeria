@@ -1,4 +1,5 @@
 import React, {useContext, useEffect, useState} from "react";
+import {useLocation} from 'react-router-dom';
 import axios from 'axios'
 import {Helmet} from "react-helmet";
 import {AddBranch, BranchList} from "../presentational/BranchesPage"
@@ -85,6 +86,8 @@ export function usePendingRequests(branch){
 }
 
 export function BranchContainer(props){
+    const location = useLocation();
+    
     const actionContext = useContext(UserActionsContext)
     const [branch,setBranch] = useState(null);
     const [loaded,setLoaded] = useState(false);
@@ -115,6 +118,7 @@ export function BranchContainer(props){
 
     if(loaded){
         if(branch){
+            location.state = 'branch';
             return <BranchPage externalPostId={props.match.params.externalPostId} branch={branch} match={branchUri}/>
         }else{
             return <>

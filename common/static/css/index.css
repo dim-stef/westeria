@@ -182,7 +182,12 @@ body {
     display: -ms-flex;
     display: -moz-flex;
     display:flex;
+    position: relative;
     max-width: 1200px;
+}
+
+.wide-content-container > div{
+    width:100%;
 }
 
 .mobile-menu{
