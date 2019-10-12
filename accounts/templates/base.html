@@ -29,10 +29,10 @@
     <script>
     if('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js', {scope: '/'})
-               .then(reg => {
-				reg.onupdatefound = () => {
+               .then(function(reg) {
+				reg.onupdatefound = function(){
                         const installingWorker = reg.installing;
-                        installingWorker.onstatechange = () => {
+                        installingWorker.onstatechange = function(){
                             switch (installingWorker.state) {
                                 case 'installed':
                                     if (navigator.serviceWorker.controller) {

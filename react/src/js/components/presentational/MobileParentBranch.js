@@ -30,7 +30,7 @@ const followCss = theme =>css({
     cursor:'pointer',
 })
 
-export function MobileBranchPageWrapper({branch,children}){
+export const MobileBranchPageWrapper = React.memo(function({branch,children}){
     const theme = useTheme();
     const ref = useRef(null);
     const [left,setLeft] = useState(0);
@@ -50,7 +50,7 @@ export function MobileBranchPageWrapper({branch,children}){
     },[ref])
 
     return(
-        <div>
+        <div className="mobile-branch-front-page">
         <div style={{width:'100%',position:'relative'}}>
             <div style={{
                     display: 'inline-block',
@@ -96,7 +96,7 @@ export function MobileBranchPageWrapper({branch,children}){
         {children}
         </div>
     )
-}
+})
 
 function Description({description}){
     return(
@@ -110,13 +110,13 @@ function FollowInfo({branch,followersCount,followingCount}){
 
     return(
         <>
-        <Link to={`/${branch.uri}/followers`} style={{textDecoration:'none'}}>
+        <Link to={{pathname:`/${branch.uri}/followers`,state:'followers'}} style={{textDecoration:'none'}}>
             <div css={followCss}>
                 <span style={{color: '#2196f3'}}>{followersCount}{' '}</span>
                 <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Followers</span>
             </div>
         </Link>
-        <Link to={`/${branch.uri}/following`} style={{textDecoration:'none'}}>
+        <Link to={{pathname:`/${branch.uri}/following`,state:'following'}} style={{textDecoration:'none'}}>
             <div css={followCss}>
                 <span style={{color: '#2196f3'}}>{followingCount}{' '}</span>
                 <span style={{fontWeight:500,fontSize:'0.9em',color:theme.textLightColor}}>Following</span>
@@ -178,10 +178,10 @@ function NavigationTabs({branch}){
     return(
         <div className="flex-fill" style={{justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',
         WebkitAlignItems:'center',padding:10}}>
-            <NavLink exact to={`/${branch.uri}`}
+            <NavLink exact to={{pathname:`/${branch.uri}`,state:'branch'}} 
             style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Posts</NavLink>
-            <NavLink to={`/${branch.uri}/branches`}
+            <NavLink to={{pathname:`/${branch.uri}/branches`,state:'branch'}} 
             style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>
             {branch.branch_count>0?branch.branch_count:0} Branches</NavLink>

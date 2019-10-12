@@ -30,7 +30,7 @@ function EmailConfirm({match}){
             if(error.response.data.key){
                 errors.key = error.response.data.key[0]
             }
-            console.log(error.response)
+             
         }
 
         return errors;

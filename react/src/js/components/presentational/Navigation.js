@@ -118,24 +118,26 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
         <div css={theme=>navBarPositioner(theme)}
         >
             <div className="flex-fill" css={theme=>navBarContainer(theme)}>
-                <NavLink exact to="/" className="flex-fill nav-icon-container center-items"
+                <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill nav-icon-container center-items"
                 activeStyle={activeStyle} activeClassName="active-tab-route"
                 style={style}>
                     <Home/>
                 </NavLink>
-                <NavLink to="/search" className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
+                <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
                 style={style} activeStyle={activeStyle}>
                     <SearchSvg/>
                 </NavLink>
                 {context.isAuth?
-                    <NavLink to="/notifications" activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
+                    <NavLink to={{pathname:"/notifications",state:'notifications'}}
+                    activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
                     style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
                         <NotificationsContainer inBox/>
                     </NavLink>:null
                 }
 
                 {context.isAuth?
-                    <NavLink to="/messages" activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
+                    <NavLink to={{pathname:"/messages",state:'messages'}} 
+                    activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
                     style={style} activeStyle={activeStyle} onClick={readAllMessages}>
                     <div style={{position:'relative'}}>
                     <Messages/>
@@ -208,9 +210,9 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
             x:x,
             y:y
         }
-        //console.log(e,coordinates)
-        //console.log(`document.elementFromPoint(${x}, ${y})`);
-        //console.log(document.elementFromPoint(x, y));
+        // 
+        // 
+        // 
         setCoordinates({...coordinates})
     }
 
@@ -253,18 +255,10 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
         }
     },[touchCoordinates]);
 
-    useEffect(()=>{
-        window.addEventListener('touchstart',listenForNavTouches);
-
-        return ()=>{
-            window.removeEventListener('touchstart',listenForNavTouches);
-        }
-    },[])
-
 
     return(
         <div ref={navRef} className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
-            <NavLink exact to="/" className="flex-fill center-items"
+            <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
             activeClassName="active-tab-route"
             activeStyle={activeStyle}
             css={theme=>mobileNavBarContainer(theme)}>
@@ -272,7 +266,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     <Home/>
                 </div>
             </NavLink>
-            <NavLink to="/search" className="flex-fill center-items"
+            <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill center-items"
             activeClassName="active-tab-route" activeStyle={activeStyle}
             css={theme=>mobileNavBarContainer(theme)}>
                 <div ref={searchRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
@@ -280,7 +274,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                 </div>
             </NavLink>
             {context.isAuth?
-                <NavLink to="/notifications"
+                <NavLink to={{pathname:"/notifications",state:'notifications'}}
                 className="flex-fill center-items"
                 activeClassName="active-tab-route"
                 activeStyle={activeStyle}
@@ -293,7 +287,7 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
             }
 
             {context.isAuth?
-                <NavLink to="/messages"
+                <NavLink to={{pathname:"/messages",state:'messages'}}
                 activeClassName="active-tab-route"
                 className="flex-fill center-items"
                 activeStyle={activeStyle}

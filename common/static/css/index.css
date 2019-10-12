@@ -31,6 +31,7 @@ body {
     -webkit-flex-basis: 56%;
     margin: 0 10px;
     border: 1px solid #e2eaf1;
+    overflow-x: hidden;
 }
 
 .big-main-column{
@@ -39,6 +40,7 @@ body {
     -ms-flex: 1 1 auto;
     margin: 0 10px;
     border: 1px solid #e2eaf1;
+    overflow-x: hidden;
 }
 
 .full-height{

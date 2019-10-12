@@ -63,7 +63,7 @@ export default class Register extends Component{
                  
             })
             .catch(function (err) {
-                console.log(err.response)
+                 
                 let errors = [];
                 let email = err.response.data.email;
                 let password1 = err.response.data.password1;

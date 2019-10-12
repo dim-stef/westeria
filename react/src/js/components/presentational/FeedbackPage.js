@@ -50,7 +50,7 @@ export function FeedbackForm(){
                     },
                 })
         }catch(e){
-            //console.log(e)
+            // 
         }
         
         return errors;

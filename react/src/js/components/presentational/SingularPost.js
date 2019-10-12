@@ -1374,7 +1374,7 @@ function More({post,posts,setPosts}){
             let response = await axios.delete(url,axiosConfigObject);
             setDeleted(true);
         }catch(e){
-            //console.log("an error occured")
+            // 
             setMessage('An error occured. Could not delete message');
         }
     }

@@ -13,7 +13,7 @@ import axios from 'axios'
 
 import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
-import "react-toggle/style.css" // for ES6 modules
+import "react-toggle/style.css"
 
 axiosRetry(axios, 
     {
@@ -169,12 +169,13 @@ function BranchSettingsWrapper({match,history}){
 
     useEffect(()=>{
         if(branch){
-            history.push(`/settings/branches/${branch.uri}`);
+            //history.push(`/settings/branches/${branch.uri}`);
+            window.history.pushState({setting: 1}, "", `/settings/branches/${branch.uri}`);
         }
     },[branch])
 
     useEffect(()=>{
-        if(myBranches.length>0){
+        if(myBranches.length>0 && !branch){
             let findBranch = myBranches.find(b=>{
                 return match.params.uri == b.uri
             });

@@ -17,9 +17,15 @@ import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
 import {TooltipChain,Tooltip} from "./Tooltip"
 import FeedPosts, {AllPosts, TreePosts} from "./BranchPosts"
 import {Helmet} from "react-helmet";
-import {Link, NavLink, Redirect, Route, Switch} from 'react-router-dom'
+import {Link, NavLink, Redirect, Route, Switch,useLocation} from 'react-router-dom'
 import {Desktop, Mobile, Tablet} from "./Responsive"
 
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js');
+    whyDidYouRender(React);
+  }
+
+  
 function NonAuthenticationColumn(){
     return(
         <div className="box-border flex-fill" style={{padding:'10px 20px',
@@ -66,16 +72,17 @@ function FrontPageList(){
         <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
         top:isDesktopOrLaptop?52:0,zIndex:4}} ref={ref}>
             {userContext.isAuth?
-            <NavLink to="/" exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+            <NavLink to={{pathname:"/",state:'front'}} exact 
+            activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Feed
             </NavLink>:null}
             
             {userContext.isAuth?
-            <NavLink to="/tree" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+            <NavLink to={{pathname:"/tree",state:'front'}} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 Tree
             </NavLink>:null}
 
-            <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
+            <NavLink to={{pathname:"/all",state:'front'}} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
                 All
             </NavLink>
             {localStorage.getItem('has_seen_tour')==='false' && !tourContext.seenFrontPageTip?
@@ -176,10 +183,10 @@ const postList = (theme,isMobile) => css({
 })
 
 
-export const FrontPage = React.memo(function FrontPage({externalPostId}){
-
+export const FrontPage = React.memo(function FrontPage(props){
     const actionContext = useContext(UserActionsContext);
     const userContext = useContext(UserContext);
+     
 
     useEffect(()=>{
         actionContext.lastPostListType = 'front'
@@ -204,27 +211,30 @@ export const FrontPage = React.memo(function FrontPage({externalPostId}){
     )
 })
 
-function FrontPagePostList(){
+const FrontPagePostList = React.memo(function FrontPagePostList({page}){
     const userContext = useContext(UserContext);
     const isMobile = useMediaQuery({
         query:'(max-device-width: 767px)'
     })
 
     return(
-        <div className="post-list" id="post-list" css={theme=>postList(theme,isMobile)}>
+        <div className="post-list" css={theme=>postList(theme,isMobile)}>
             <FrontPageList/>
             <Switch>
-                <Route exact path="/" component={
-                    (props) => userContext.isAuth?<FrontPageFeed device="desktop" {...props}/>:
-                    <FrontPageAllPosts device="desktop" {...props}/>
+                <Route exact path="/" render={
+                    () => userContext.isAuth?<FrontPageFeed />:
+                    <FrontPageAllPosts/>
                 }/>
-                <Route exact path="/all" component={(props)=> <FrontPageAllPosts device="desktop" {...props}/>}/>
-                <Route exact path="/tree" component={(props)=> userContext.isAuth?
-                <FrontPageTreePosts device="desktop" {...props}/>:<Redirect to="/login"/>}/>
+                <Route exact path="/all" render={()=> <FrontPageAllPosts/>}/>
+                <Route exact path="/tree" render={()=> userContext.isAuth?
+                <FrontPageTreePosts/>:<Redirect to="/login"/>}/>
             </Switch>
         </div>
     )
-}
+})
+
+FrontPagePostList.whyDidYouRender = true
+
 
 export const FrontPageFeed = React.memo(function FrontPageFeed(props){
     const context = useContext(UserContext);
@@ -297,7 +307,7 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
     )
 })
 
-export const FrontPageTreePosts = React.memo(function FrontPageAllPosts(props){
+export const FrontPageTreePosts = React.memo(function FrontPageTreePosts(props){
     const context = useContext(UserContext);
     const postsContext = useContext(TreePostsContext);
     const [uri,setUri] = useState('initialUri')

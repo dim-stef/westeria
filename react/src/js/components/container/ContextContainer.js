@@ -108,3 +108,8 @@ export const TourContext = React.createContext({
     seenBranchPostListTip:false,
     seenBranchTabs:false,
 })
+
+export const RouteTransitionContext = React.createContext({
+    exiting:false,
+    entered:false
+})
