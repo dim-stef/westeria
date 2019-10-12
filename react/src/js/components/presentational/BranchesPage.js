@@ -128,7 +128,7 @@ function BranchTypeSelectionBar({activeTab,currentBranch,branch}){
 
 function BranchParents({currentBranch,count}){
     return(
-        <NavLink exact to={`/${currentBranch}/branches/parents`} activeStyle={{backgroundColor:'#1c87dc'}}
+        <NavLink exact to={{pathname:`/${currentBranch}/branches/parents`,state:'branch'}} activeStyle={{backgroundColor:'#1c87dc'}}
         style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
             <div className="branch-selection flex-fill center-items">
                 <h1>{count>0?`${count} `:''}Parents</h1>
@@ -139,7 +139,7 @@ function BranchParents({currentBranch,count}){
 
 function BranchSiblings({currentBranch,count}){
     return(
-        <NavLink exact to={`/${currentBranch}/branches/siblings`} activeStyle={{backgroundColor:'#1c87dc'}}
+        <NavLink exact to={{pathname:`/${currentBranch}/branches/siblings`,state:'branch'}} activeStyle={{backgroundColor:'#1c87dc'}}
         style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
             <div className="branch-selection flex-fill center-items">
                 <h1>{count>0?`${count} `:''}Siblings</h1>
@@ -150,7 +150,7 @@ function BranchSiblings({currentBranch,count}){
 
 function BranchChildren({currentBranch,count,activeTab}){
     return(
-        <NavLink exact to={`/${currentBranch}/branches/children`} activeStyle={{backgroundColor:'#1c87dc'}}
+        <NavLink exact to={{pathname:`/${currentBranch}/branches/children`,state:'branch'}} activeStyle={{backgroundColor:'#1c87dc'}}
         style={{height:'100%',width:'100%',color:'white',textDecoration:'none',backgroundColor:activeTab?null:'#1c87dc'}}>
             <div className="branch-selection flex-fill center-items">
                 <h1>{count>0?`${count} `:''}Children</h1>

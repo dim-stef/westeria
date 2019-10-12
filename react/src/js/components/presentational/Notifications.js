@@ -13,6 +13,16 @@ import {FrontPageLeftBar} from "./FrontPage"
 import {Post} from "./SingularPost"
 import {Desktop, Mobile, Tablet} from "./Responsive"
 import axios from 'axios'
+import axiosRetry from 'axios-retry';
+
+axiosRetry(axios, 
+    {
+        retries:15,
+        retryDelay: axiosRetry.exponentialDelay
+    });
+
+let CancelToken = axios.CancelToken;
+let source = CancelToken.source();
 
 const notificationCss = theme =>css({
     '&:hover':{
@@ -23,7 +33,6 @@ const notificationCss = theme =>css({
 const borderBottom = theme =>css({
     borderBottom: `1px solid ${theme.borderColor}`
 })
-
 
 export function NotificationsContainer({inBox}){
     const context = useContext(UserContext);
@@ -73,7 +82,7 @@ export function NotificationsContainer({inBox}){
     async function getNotifications(){
         // TODO
         // add notification context
-        let response = await axios.get('/api/notifications/');
+        let response = await axios.get('/api/notifications/',{cancelToken: source.token});
 
         // init notifications
         notificationsContext.setNotifications(response.data.results);

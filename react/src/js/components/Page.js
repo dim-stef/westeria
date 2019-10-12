@@ -14,6 +14,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 const contentContainer = (contentHeight) =>css({
     overflowY:'auto',
+    overflowX:'hidden',
     display:'flex',
     flexFlow:'column',
     paddingBottom:0,

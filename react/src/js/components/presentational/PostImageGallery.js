@@ -1,4 +1,4 @@
-import React, {useRef, useState} from "react"
+import React, {useRef, useState,useEffect} from "react"
 import { Prompt } from "react-router"
 import history from "../../history"
 import {useTheme} from "emotion-theming";
@@ -94,6 +94,32 @@ export function Images(props){
         setIndex(index)
     }
 
+
+    // These bottom 3 functions prevent react-swipeable-views from applying their own transition
+    // If that was the case, for some reason the first index item gets no transition from swipeable views
+
+    function handleResetTransition(){
+        let swipeContainers = document.getElementsByClassName('react-swipeable-view-container');
+        for(let i = 0; i < swipeContainers.length; i++) {
+            swipeContainers[i].style.transition = null;
+        }
+    }
+
+    useEffect(()=>{
+        window.addEventListener('touchend',handleResetTransition)
+
+        return ()=>{
+            window.removeEventListener('touchend',handleResetTransition)
+        }
+    },[])
+
+    function onSwitching(){
+        let swipeContainers = document.getElementsByClassName('react-swipeable-view-container');
+        for(let i = 0; i < swipeContainers.length; i++) {
+            swipeContainers[i].style.transition = 'all 0s ease 0s';
+        }
+    }
+
     return(
         <div ref={ref} style={{...style,overflow: 'hidden',maxHeight:maxHeight}}>
             <div style={{position:'relative',paddingTop:paddTop}} >
@@ -104,7 +130,7 @@ export function Images(props){
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
                     {/* <SwipeableViews> must be the last child of .post-image-wrapper in order to apply css*/}
-                    <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading
+                    <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading onSwitching={onSwitching}
                     slideStyle={{position:'relative',overflow:'hidden',alignItems:'center',WebkitAlignItems:'center'}} 
                     slideClassName="flex-fill">
                         {props.images.map(img=>{

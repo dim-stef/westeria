@@ -1,5 +1,6 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
+import {useLocation} from "react-router-dom"
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import Pullable from 'react-pullable';
@@ -16,7 +17,7 @@ import {
     RefreshContext,
     TreePostsContext,
     UserContext,
-    TourContext
+    RouteTransitionContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
 import {Tooltip, TooltipChain} from "./Tooltip";
@@ -62,143 +63,20 @@ function resetBranchPostsContext(postsContext,props){
     postsContext.branchUri = props.branch;
 }
 
-//const cache = [];
-
-function FrontPageList(){
-    const userContext = useContext(UserContext);
-    const tourContext = useContext(TourContext);
-    const ref = useRef(null);
-    const [top,setTop] = useState(0);
-    const [listWidth,setListWidth] = useState(0);
-    const isDesktopOrLaptop = useMediaQuery({
-        query: '(min-device-width: 1224px)'
-    })
-
-    useLayoutEffect(()=>{
-        if(ref.current){
-            setTop(ref.current.clientHeight)
-            setListWidth(ref.current.clientWidth);
-        }
-    },[ref.current])
-
-    useEffect(()=>{
-        tourContext.frontPagePostList = true;
-    })
-
-    // 20 pixels from excess padding
-    let width = userContext.isAuth?listWidth/3 - 20:listWidth - 20;
-
-    return(
-        <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
-        top:isDesktopOrLaptop?52:0,zIndex:5}} ref={ref}>
-            {userContext.isAuth?
-            <NavLink to="/" exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                Feed
-            </NavLink>:null}
-            
-            {userContext.isAuth?
-            <NavLink to="/tree" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                Tree
-            </NavLink>:null}
-
-            <NavLink to="/all" activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                All
-            </NavLink>
-            {!tourContext.frontPagePostList?
-                userContext.isAuth?
-                <TooltipChain delay={800000}>
-                    <Tooltip position={{left:0,top:top}}>
-                        <p css={{fontWeight:500,width:width}}>Your personalized feed based on the content of the branches you follow</p>
-                    </Tooltip>
-                    <Tooltip position={{left:listWidth/3,top:top}}>
-                        <p css={{fontWeight:500,width:width}}>
-                        Tree is a feed made from all the subsequent branches based on the branches you follow
-                        </p>
-                    </Tooltip>
-                    <Tooltip position={{left:listWidth/3 * 2,top:top}}>
-                        <p css={{fontWeight:500,width:width}}>You can see the content from all the branches of Subranch here</p>
-                    </Tooltip>
-                </TooltipChain>
-                :<TooltipChain delay={800000}>
-                <Tooltip position={{left:0,top:top}}>
-                        <p css={{fontWeight:500,width:width}}>You can see the content from all the branches of Subranch here</p>
-                </Tooltip>
-            </TooltipChain>:null}
-            
-        </div>
-    )
-}
-
-function BranchPageList({branch}){
-    const userContext = useContext(UserContext);
-    const ref = useRef(null);
-    const [top,setTop] = useState(0);
-    const [listWidth,setListWidth] = useState(0);
-    const isDesktopOrLaptop = useMediaQuery({
-        query: '(min-device-width: 1224px)'
-    })
-
-    useLayoutEffect(()=>{
-        if(ref.current){
-            setTop(ref.current.clientHeight)
-            setListWidth(ref.current.clientWidth);
-        }
-    },[ref.current])
-
-    // 20 pixels from excess padding
-    let width = listWidth/3 - 20;
-
-    return(
-        <div className="flex-fill" style={{justifyContent:'space-around',WebkitJustifyContent:'space-around',
-        backgroundColor:'#08aeff',position:'relative'}} ref={ref}>
-            <NavLink to={`/${branch.uri}`} exact activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                {branch.name}
-            </NavLink>
-            
-            <NavLink to={`/${branch.uri}/tree`} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                Tree
-            </NavLink>
-
-            <NavLink to={`/${branch.uri}/community`} activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
-                Community
-            </NavLink>
-            <TooltipChain delay={800000}>
-                <Tooltip position={{left:0,top:top}}>
-                    <p css={{fontWeight:500,width:width}}>{branch.name}'s leaves</p>
-                </Tooltip>
-                <Tooltip position={{left:listWidth/3,top:top}}>
-                    <p css={{fontWeight:500,width:width}}>
-                    {branch.name}'s tree. Based on all the communities similar to {branch.name}
-                    </p>
-                </Tooltip>
-                <Tooltip position={{left:listWidth/3 * 2,top:top}}>
-                    <p css={{fontWeight:500,width:width}}>The leaves from {branch.name}'s community</p>
-                </Tooltip>
-            </TooltipChain>
-        </div>
-    )
-}
-
-const postList = theme => css({
-    flexBasis:'56%',
-    width:'100%',
-    padding:0,
-    listStyle:'none',
-    border:`1px solid ${theme.borderColor}`
-})
-
 function DisplayPosts({isFeed,posts,setPosts,
     postsContext,resetPostsContext,
     updateFeed,postedId,fetchData,hasMore,
-    showPostedTo,activeBranch,refresh,target}){
+    showPostedTo,activeBranch,refresh,target,keyword}){
     
     const theme = useTheme();
 
     function shouldPullToRefresh(){
-        let scrollTarget = document.getElementById('scrollTarget');
-        if(scrollTarget){
+        try{
             return document.getElementById('mobile-content-container').scrollTop <=0
+        }catch(e){
+            return true
         }
+        
     }
 
     return(
@@ -245,7 +123,7 @@ function DisplayPosts({isFeed,posts,setPosts,
             </div>
             )}>
             <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
-                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts} 
+                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts} keyword={keyword} 
                 scrollTarget={document.getElementById('mobile-content-container')?document.getElementById('mobile-content-container'):window}
             />
         </InfiniteScroll>
@@ -288,12 +166,12 @@ const branchCommunityPostsCache = new CellMeasurerCache(genericCache)
 const allPostsCache = new CellMeasurerCache(genericCache)
 const treePostsCache = new CellMeasurerCache(genericCache)
 
-function VirtualizedPosts({isFeed,scrollTarget,posts,setPosts,postsContext,activeBranch,showPostedTo}){
+function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsContext,activeBranch,showPostedTo}){
     const ref = useRef(null);
     const cellRef = useRef(null);
     const [previousWidth,setPreviousWidth] = useState(0);
     let usingCache = cache //default;
-
+    const [listLength,setListLength] = useState(1);
     if(postsContext.content=="feed"){
         usingCache = cache;
     }else if(postsContext.content=="all"){
@@ -309,13 +187,24 @@ function VirtualizedPosts({isFeed,scrollTarget,posts,setPosts,postsContext,activ
     }
 
     useEffect(()=>{
+         
         if(ref){
+             
             ref.current.scrollToRow(postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
         }
-    },[ref])
+    },[keyword])
+
+    useEffect(()=>{
+        let lists = document.getElementsByClassName("ReactVirtualized__List");
+         
+        if(lists.length != listLength){
+            //setListLength(lists.length)
+        }
+    })
 
     function onScroll(scroll){
+         
         postsContext.scroll = scroll.scrollTop;
     }
 
@@ -463,7 +352,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
             }
         }
 
-
         const response = await axios(uri,{
             cancelToken: source.token
           });
@@ -472,16 +360,17 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
             postsContext.hasMore = false;
         }
 
-        if(externalId){ // request will return non-array results but posts need to be array
-            setPosts([response.data]);
-        }
 
-        else{
+        if(postsContext.loadedPosts == 0){
+            postsContext.loadedPosts = [...response.data.results];
+            setPosts([...response.data.results]); 
+        }else{
             postsContext.loadedPosts = [...posts,...response.data.results];
             setPosts([...posts,...response.data.results]);
-            //setNext(response.data.next);
-            postsContext.next = response.data.next;
         }
+        
+        //setNext(response.data.next);
+        postsContext.next = response.data.next;
     };
 
     useEffect(()=>{
@@ -490,6 +379,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
             setPosts([])
             fetchData();
         }
+
         if(isFeed){
             refreshContext.feedRefresh = () =>{
                 source.cancel('Operation canceled by the user.');
@@ -510,8 +400,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
                 //branchPostsCache.clearAll()
             };
         }
-    },[branch])
-
+    },[branch,keyword])
 
     useEffect(()=>{
         refreshContext.page = isFeed?'feed':'branch';
@@ -535,17 +424,17 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
         },
         [posts],
     );
-    //console.log(scrollableTarget)
+    // 
 
     useEffect(()=>{
-        //console.log(document.getElementById('scrollTarget'))
+        // 
     },[scrollableTarget])
 
     refreshContext.refresh = refresh;
 
     return(
-        <div id={isMobile?"scrollTarget":null} ref={scrollableTarget}>
-            <DisplayPosts isFeed={isFeed} refresh={refresh}
+        <div ref={scrollableTarget}>
+            <DisplayPosts isFeed={isFeed} refresh={refresh} keyword={keyword}
             updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
             posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
             activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
@@ -631,203 +520,28 @@ export function BranchPosts(props){
 }
 
 export function GenericBranchPosts(props){
-    let context = null;
+    let context = props.postsContext;
 
-    if(!props.keyword){
-        context = BranchPostsContext
-    }else if(props.keyword=='community'){
-        context = BranchCommunityPostsContext
-    }else{
-        context = BranchTreePostsContext
-    }
+     
 
-    const postsContext = useContext(context);
+    const branchPostsContext = useContext(BranchPostsContext);
     const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
         // If navigate to different branch,reset all posts tabs
-        if(postsContext.branchUri != props.branch){
+        if(context.branchUri != props.branch){
             resetPostListContext(branchPostsContext,props);
             resetPostListContext(branchCommunityPostsContext,props);
             resetPostListContext(branchTreePostsContext,props);
         }
-    },[postsContext.branchUri])
+    },[context.branchUri])
 
     return(
-        <FinalDisplayPosts {...props} keyword={props.keyword} postsContext={postsContext}
-         resetPostsContext={()=>resetBranchPostsContext(postsContext,props)}/>
+        <FinalDisplayPosts {...props} keyword={props.keyword} postsContext={context}
+        resetPostsContext={()=>resetBranchPostsContext(context,props)}/>
     )
 }
-
-export const DisplayPosts3 = (props)=>{
-    // Using context instead of state in order for the data to be
-    // maintained on route change
-    const postsContext = useContext(PostsContext);
-    const [posts,setPosts] = useState(postsContext.loadedPosts);
-    const [showPostedTo,setShowPostedTo] = useState(props.showPostedTo);
-    const context = useContext(RefreshContext);
-    
-    //let CancelToken = axios.CancelToken;
-    //let source = CancelToken.source();
-
-
-    useEffect(()=>{
-        context.page = 'feed'
-    },[])
-
-    function resetPostsContext(newBranch){
-        postsContext.hasMore = true;
-        postsContext.next = null;
-        postsContext.lastVisibleElement = null;
-        postsContext.loadedPosts = [];
-        postsContext.branchUri = newBranch;
-    }
-
-    function buildQuery(baseUri,params){
-        if(params){
-            var esc = encodeURIComponent;
-            var query = Object.keys(params)
-                .map(k => esc(k) + '=' + esc(params[k].value))
-                .join('&');
-            let newUri = `${baseUri}?${query}`;
-            return newUri;
-        }
-        return baseUri;
-    }
-
-    const fetchData = async () =>{
-        if(!postsContext.hasMore){
-            return;
-        }
-
-        let uri = postsContext.next?postsContext.next:buildQuery(`/api/branches/${props.branch}/feed`,postsContext.params);
-
-        const response = await axios(uri,{
-            cancelToken: source.token
-          });
-        if(!response.data.next){
-            postsContext.hasMore = false;
-        }
-        if(props.externalId){ // request will return non-array results but posts need to be array
-            setPosts([response.data]);
-        }
-        else{
-            postsContext.loadedPosts = [...posts,...response.data.results];
-            setPosts([...posts,...response.data.results]);
-            //setNext(response.data.next);
-            postsContext.next = response.data.next;
-        }
-    };
-
-
-    useEffect(()=>{
-        if(postsContext.loadedPosts.length==0 || postsContext.branchUri != props.branch){
-            resetPostsContext(props.branch);
-            fetchData();
-            postsContext.branchUri = props.branch;
-        }
-
-        context.setFeedRefresh(() => ()=>{
-            source.cancel('Operation canceled by the user.');
-            CancelToken = axios.CancelToken;
-            source = CancelToken.source();
-            resetPostsContext(props.branch);
-            fetchData();
-            setPosts([]);
-        });
-        
-    },[props.branch])
-
-    const updateFeed = useCallback(
-        (newPosts) => {
-            postsContext.loadedPosts = [...newPosts,...postsContext.loadedPosts];
-            setPosts(newPosts.concat(posts))
-        },
-        [posts], // list of params on which the callback should be recreated, this array might also stay blank
-    );
-
-    let activeBranch = props.activeBranch
-
-    return(
-        <ul className="post-list">
-            <FilterPosts setPosts={setPosts} resetPostsContext={resetPostsContext}/>
-            <StatusUpdate updateFeed={updateFeed} postedId={props.postedId} key={props.postedId}/>
-            {postsContext.loadedPosts.length>0?
-            <InfiniteScroll
-                pullDownToRefresh
-                refreshFunction={context.feedRefresh}
-                pullDownToRefreshContent={
-                    <h3 style={{textAlign: 'center'}}>&#8595; Pull down to refresh</h3>
-                }
-                releaseToRefreshContent={
-                    <h3 style={{textAlign: 'center'}}>&#8593; Release to refresh</h3>
-                }
-                dataLength={postsContext.loadedPosts.length}
-                next={fetchData}
-                hasMore={postsContext.hasMore}
-                endMessage={
-                    <p style={{textAlign: 'center'}}>
-                    <b>Yay! You have seen it all</b>
-                    </p>
-                }
-
-                loader={[...Array(3)].map((e, i) => 
-                <div key={i} style={{width:'100%',marginTop:10}}>
-                    <div style={{backgroundColor:'white',padding:'10px'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                            <Skeleton circle={true} width={48} height={48}/>
-                        </SkeletonTheme>
-                        <div style={{marginTop:10,lineHeight:'2em'}}>
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={2} width="100%" height={10}/>
-                            </SkeletonTheme>
-
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={1} width="30%" height={10}/>
-                            </SkeletonTheme>
-                        </div>
-                    </div>
-                </div>
-                )}>
-                {postsContext.loadedPosts.map((post,i) => {
-                            
-                            let props = {
-                            post:post,
-                            key:[post.id,post.spreaders],
-                            removeFromEmphasized:null,
-                            showPostedTo:showPostedTo?true:false,
-                            viewAs:"post",
-                            activeBranch:activeBranch};
-
-                            return <li key={[post.id,post.spreaders]}><Post {...props} minimized/></li>
-                        }   
-                    )
-                }
-            </InfiniteScroll>:
-                [...Array(8)].map((e, i) => 
-                <div key={i} style={{width:'100%',marginTop:10}}>
-                    <div style={{backgroundColor:'white',padding:'10px'}}>
-                        <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                            <Skeleton circle={true} width={48} height={48}/>
-                        </SkeletonTheme>
-                        <div style={{marginTop:10,lineHeight:'2em'}}>
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={2} width="100%" height={10}/>
-                            </SkeletonTheme>
-
-                            <SkeletonTheme color="#ceddea" highlightColor="#e1eaf3">
-                                <Skeleton count={1} width="30%" height={10}/>
-                            </SkeletonTheme>
-                        </div>
-                    </div>
-                </div>
-                )}
-        </ul>
-    )
-}
-
-
 
 function FilterPosts({setPosts,postsContext,resetPostsContext,isFeed,refreshFunction,fetchData}){
     const [params,setParams] = useState(postsContext.params || null);

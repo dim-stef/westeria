@@ -411,9 +411,10 @@
   transform: scale(1.1);
 }*/
 
-.pages-enter #scrollTarget,  .pages-enter .main-column{
+.pages-enter .post-list,  .pages-enter .main-column, .pages-enter .big-main-column,
+.pages-enter .mobile-branch-front-page{
     transform: translateX(-100%);
-    opacity: 0;
+    /*opacity: 0;*/
 }
 
 /*.pages-enter-active {
@@ -422,11 +423,11 @@
   transition: opacity 300ms, transform 300ms;
 }*/
 
-.pages-enter-active #scrollTarget,  .pages-enter-active .main-column{
-    z-index: 10000000;
+.pages-enter-active .post-list,  .pages-enter-active .main-column, .pages-enter-active .big-main-column,
+.pages-enter-active .mobile-branch-front-page{
     transform: translateX(0);
-    opacity: 1;
-    transition: transform 0.15s cubic-bezier(0, 0, 0.58, 1);
+    /*opacity: 1;*/
+    transition: transform 0.3s cubic-bezier(0, 0, 0.58, 1);
 }
 
 /*.pages-exit {
@@ -434,8 +435,8 @@
   transform: scale(1);
 }*/
 
-.pages-exit #scrollTarget,  .pages-exit .main-column{
-    z-index: 10000000;
+.pages-exit .post-list,  .pages-exit .main-column, .pages-exit .big-main-column,
+.pages-exit .mobile-branch-front-page{
     transform: translateX(0);
     opacity: 1;
 }
@@ -446,11 +447,18 @@
   transition: opacity 300ms, transform 300ms;
 }*/
 
-.pages-exit-active #scrollTarget,  .pages-exit-active .main-column{
-    z-index: 10000000;
-    transform: translateX(-100%);
-    opacity: 0;
-    transition: transform 0.15s cubic-bezier(0, 0, 0.58, 1);
+.pages-exit-active .post-list,  .pages-exit-active .main-column,.pages-exit-active .big-main-column,
+.pages-exit-active .mobile-branch-front-page{
+    transform: translateX(100%);
+    transition: transform 0.3s cubic-bezier(0, 0, 0.58, 1);
+}
+
+.mobile-transition-container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.mobile-transition-container::-webkit-scrollbar {
+    display: none;
 }
 
 .switch-wrapper{
@@ -734,8 +742,8 @@ div.route-section {
     height: 100%;
 }
 
-.no-touch .react-swipeable-view-container {
-    transition: -webkit-transform 0.35s cubic-bezier(0.15, 0.3, 0.25, 1) 0s !important;
+.react-swipeable-view-container {
+    transition: -webkit-transform 0.35s cubic-bezier(0.15, 0.3, 0.25, 1) 0s;
 }
 
 .main-post{

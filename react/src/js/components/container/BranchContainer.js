@@ -116,9 +116,10 @@ export function BranchContainer(props){
         getBranch(branchUri);
     },[branchUri])
 
+    location.state = 'branch';
+
     if(loaded){
         if(branch){
-            location.state = 'branch';
             return <BranchPage externalPostId={props.match.params.externalPostId} branch={branch} match={branchUri}/>
         }else{
             return <>

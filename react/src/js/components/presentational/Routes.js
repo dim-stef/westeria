@@ -20,7 +20,8 @@ import {
     NotificationsProvider,
     SingularPostContext,
     TourContext,
-    UserContext
+    UserContext,
+    RouteTransitionContext
 } from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import {ChatRoomSettings} from "./ChatRoomSettings"
@@ -72,7 +73,7 @@ function RouteTransition({location,children}){
 </div>
                                 </CSSTransition>
                             </TransitionGroup>*/
-const Routes = ()=>{
+const Routes = () =>{
 
   /*function beforeUnload(e){
     localStorage.setItem('has_seen_tour',true)
@@ -80,6 +81,17 @@ const Routes = ()=>{
 
   useBeforeunload(beforeUnload)*/
 
+  function updateTour(){
+    localStorage.setItem('has_seen_tour',true)
+  }
+
+  useEffect(()=>{
+    window.addEventListener('beforeunload',updateTour)
+    
+    return()=>{
+      window.removeEventListener('beforeunload',updateTour)
+    }
+  },[])
   return(
       <Switch>
           <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
@@ -132,37 +144,79 @@ const RoutesWrapper = (props) =>{
 }
 
 
-const AnimatedSwitch = ({ animationClassName, animationTimeout, children }) => {
-  const match = useRouteMatch("/:uri?");
-  const {uri} = useParams();
-  const loc = useLocation();
+const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeout, children }){
+  const isMobile = useMediaQuery({
+    query: '(max-device-width: 767px)'
+  })
 
-  return <Route render={({ location }) => {
-    console.log(location)
-    return(
-    <TransitionGroup component={null}>
+  const location = useLocation();
+  const transitionContext = useContext(RouteTransitionContext);
+  
+  // This prevents static routes like "/notifications" to be remounted when clicked from the navigation bar
+  // state is defined in each Link
+  let key = location.state || location.key;
+   
+  function onExiting(){
+    transitionContext.entered = false;
+    transitionContext.exiting = true;
+  }
+
+  function onExited(){
+    transitionContext.exiting = false;
+  }
+
+  function onEntered(){
+    transitionContext.exiting = false;
+    transitionContext.entered = true;
+  }
+
+  function onEnter(){
+    transitionContext.entered = false;
+  }
+
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+
+  return(
+    isMobile?<TransitionGroup component={null}>
       <CSSTransition
-        key={location.state=='branch'?'branch':location.key}
+        key={key}
         timeout={animationTimeout}
         classNames={animationClassName}
-      >
+        onExiting={onExiting}
+        onExited={onExited}
+        onEnter={onEnter}
+        onEntered={onEntered}
+        >
         <Switch location={location}>
           {children}
         </Switch>
       </CSSTransition>
     </TransitionGroup>
-    )
-  }} />
-};
+    :
+    <Switch location={location}>
+      {children}
+    </Switch>
+  )
+
+});
 
 const AnimatedRoute = (props) => {
-  
   const isMobile = useMediaQuery({
     query: '(max-device-width: 767px)'
   })
 
+  let mobileCss = isMobile?{
+      position:'absolute',
+      top:0,
+      bottom:0,
+      left:0,
+      right:0,
+  }:{}
   return (
-  <div css={{
+  <div id="transition-container" className={isMobile?"mobile-transition-container":''} css={{
+      ...mobileCss,
       display:isMobile?'block':'flex',
       width:'100%',
     }}>
@@ -190,7 +244,7 @@ function NonAuthenticationRoutes(){
             },
             withCredentials: true,
         }).then(response => { 
-            //console.log(response);
+            // 
         })
         .catch(error => {
         });
@@ -201,12 +255,12 @@ function NonAuthenticationRoutes(){
       <>
       <AnimatedSwitch 
         animationClassName="pages" 
-        animationTimeout={150}
+        animationTimeout={{enter: 300, exit: 300}}
       >
             <AnimatedRoute exact path='/google/links/branches/:pageNumber?' component={(props)=><BranchLinks {...props}/>}/>
             <AnimatedRoute exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
             <AnimatedRoute path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/:page(all|tree)?/' render={()=><FrontPage/>}/>
+            <AnimatedRoute exact path='/:page(all|tree)?' render={(props)=><FrontPage {...props}/>}/>
             <AnimatedRoute path='/search' component={SearchPage} />
             <AnimatedRoute path='/about' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
@@ -214,13 +268,13 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
             <AnimatedRoute path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
               
-            <AnimatedRoute path='/:uri/leaves/:externalId' render={({match}) => 
+            <AnimatedRoute exact path='/:uri/leaves/:externalId' render={({match}) => 
             
               <SingularPostWrapper externalPostId={match.params.externalId}/>
             }/>
+            <AnimatedRoute exact path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
+            <AnimatedRoute exact path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
             <AnimatedRoute path="/:uri?" render={(props)=><BranchContainer {...props}/>}/>
-            <AnimatedRoute path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
-            <AnimatedRoute path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
         </AnimatedSwitch>
         </>
     )
@@ -358,7 +412,8 @@ function DesktopParentBranchWrapper(props){
 
 import {FollowPage} from "./FollowPage"
 
-export function BranchPage(props){
+export const BranchPage = function(props){
+
     return(
         <ResponsiveBranchPage branch={props.branch}>
             <Helmet>
@@ -367,13 +422,14 @@ export function BranchPage(props){
                 <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
             </Helmet>
             <Switch>
-                <Route path={`/${props.match}/branches`} component={() => <BranchesPageRoutes {...props}/>}/>
+                <Route path={`/${props.match}/branches`} render={() => <BranchesPageRoutes {...props}/>}/>
                 <Route path={`/${props.match}/:keyword(community|tree)?/`} 
-                component={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
+                render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
             </Switch>
         </ResponsiveBranchPage>
     )        
 }
+
 
 function BranchFrontPage(props){
     let _context = null;
@@ -397,14 +453,13 @@ function BranchFrontPage(props){
     
 
     useEffect(()=>{
-        
         return ()=>{
             let lastVisibleElements = document.querySelectorAll('[data-visible="true"]');
             postsContext.lastVisibleElement = lastVisibleElements[0];
             postsContext.lastVisibleIndex = lastVisibleElements[0]?
             lastVisibleElements[0].dataset.index:0;
         }
-    },[])
+    },[keyword])
 
     return(
         <>
@@ -427,6 +482,7 @@ function BranchFrontPage(props){
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
                         />:<BranchPosts {...props}
+                        postsContext={postsContext}
                         keyword={keyword}
                         branch={props.match}
                         activeBranch={props.branch}
@@ -441,6 +497,7 @@ function BranchFrontPage(props){
         </Desktop>
         <Tablet>
             <BranchPosts {...props}
+            postsContext={postsContext}
             keyword={keyword}
             branch={props.match}
             activeBranch={props.branch}
@@ -450,6 +507,7 @@ function BranchFrontPage(props){
         </Tablet>
         <Mobile>
             <BranchPosts {...props}
+            postsContext={postsContext}
             keyword={keyword}
             branch={props.match}
             activeBranch={props.branch}
