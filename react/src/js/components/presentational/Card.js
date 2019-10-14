@@ -188,6 +188,7 @@ export function FollowButton({id,uri,style=null}){
             width:140,
             fontSize: "1.6em",
             fontWeight: 600,
+            maxHeight:60,
             ...style,
         }}>{following ? 'Following':'Follow'}</button>
     )

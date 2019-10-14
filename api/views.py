@@ -660,24 +660,38 @@ class FollowingTreeViewSet(PostListWithSpreader):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,IsOwnerOfBranch)
     serializer_class = serializers.BranchPostSerializer
 
-    def get_children(self,branch):
+    def get_children(self,root,branch=None):
+        if not branch:
+            branch = root
         children = branch.children.all()
+
+        index = None
+        for i, match in enumerate(self.matches):
+            if root.uri == match['root']:
+                index = i
+                break
+            else:
+                continue
+
         self.qs |= children
 
         for child in children:
+            self.matches[index]['nodes'].append(child.uri)
             if child.pk not in self.searched_branches:
                 self.searched_branches.append(child.pk)
-                self.get_children(child)
+                self.get_children(root,child)
         return self.qs
 
     def get_queryset(self):
         self.qs = Branch.objects.none()
         self.searched_branches = []
+        self.matches = []
         branch = Branch.objects.prefetch_related('follows').get(uri__iexact=self.kwargs['branch__uri'])
         following = branch.follows.all()
         self.qs |= following
 
         for branch in following:
+            self.matches.append({'root':branch.uri,'nodes':[]})
             self.searched_branches.append(branch.pk)
             self.get_children(branch)
         post_tree = Post.objects.filter(poster__in=self.qs.distinct())
@@ -686,6 +700,8 @@ class FollowingTreeViewSet(PostListWithSpreader):
         past = self.request.query_params.get('past', None)
         return filter_posts(post_tree, content, past)
 
+    def get_serializer_context(self):
+        return {'matches': self.matches}
 
 from datetime import datetime, timedelta
 from django.db.models import Sum,Count,F

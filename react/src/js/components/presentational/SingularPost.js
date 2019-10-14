@@ -26,10 +26,10 @@ import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import '@material/react-ripple/dist/ripple.css';
-
 import {withRipple} from '@material/react-ripple';
 import {DropdownActionList} from "./DropdownActionList"
 import {InfoMessage} from "./InfoMessage"
+import {Path} from "./LeafPath"
 
 const copy = require('clipboard-copy')
 
@@ -475,9 +475,11 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
         <div className={className}>
             <div ref={ref} css={theme=>postCss(theme,isEmbedded,extraStyles)} className={`post`}
             style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} >
+            
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
                 <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
+                <Path from={post.matches.from} to={post.matches.to}/>
                 <div className="flex-fill">
                     <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null,flexFlow:'column'}}>
                         <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 

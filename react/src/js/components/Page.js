@@ -18,7 +18,7 @@ const contentContainer = (contentHeight) =>css({
     display:'flex',
     flexFlow:'column',
     paddingBottom:0,
-    height:contentHeight
+    height:'100vh',
 })
 
 export const Page = React.memo(function Page(props){
@@ -59,7 +59,8 @@ export const Page = React.memo(function Page(props){
             <div>
                 <div id="main-wrapper" className="main-wrapper">
                     <div id={isMobile?'mobile-content-container':'content-container'}
-                    className="wide-content-container" css={isMobile?()=>contentContainer(contentHeight):null}>
+                    className="wide-content-container" style={{height:isMobile?contentHeight:null}}
+                    css={isMobile?()=>contentContainer(contentHeight):null}>
                         {props.children}
                     </div>
                     <div ref={navBar} id="nav-container" className="flex-fill center-items" 

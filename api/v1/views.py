@@ -103,3 +103,12 @@ class FeedbackViewSet(viewsets.GenericViewSet,
             serializer.save(user=self.request.user)
         else:
             serializer.save()
+
+
+class GetPathsViewSet(viewsets.GenericViewSet,
+                      mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchSerializer
+
+    def get_queryset(self):
+        return Branch.objects.filter(uri__iexact=self.request.GET['to'])
