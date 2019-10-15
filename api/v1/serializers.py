@@ -71,6 +71,21 @@ class BranchSerializer(serializers.ModelSerializer):
         except ObjectDoesNotExist:
             return None
 
+        def find_parent_paths(start, path=[]):
+            path = path + [start]
+            if not start.parents.count():
+                return [path]
+            paths = []
+            print(start.parents.all(),start)
+            for node in start.parents.all():
+                print(node)
+                if node not in path:
+                    newpaths = find_parent_paths(node, path)
+                    for newpath in newpaths:
+                        paths.append(newpath)
+            print(paths)
+            return paths
+
         def find_all_paths(start, end, path=[]):
             path = path + [start]
             if start == end:
@@ -84,9 +99,10 @@ class BranchSerializer(serializers.ModelSerializer):
             return paths
 
         try:
+            print(find_parent_paths(branch_to))
             paths = find_all_paths(branch_from,branch_to)
             for path in paths:
-                for i,branch in enumerate(path):
+                for i, branch in enumerate(path):
                     path[i] = serializers_v0.BranchSerializer(branch).data
             return paths
         except RecursionError:
