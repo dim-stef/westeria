@@ -141,10 +141,18 @@ class BranchSerializer(serializers.ModelSerializer):
                 left = find_all_paths(branch_from,branch_to)
             right = find_children_paths(branch_to)
             # fill both lists with the same amount of values in order to combine them 1-1 later
+            # try except block is there in case of len(list) == 0
+
             while len(right) > len(left):
-                left.append(left[random.randrange(0, len(left))])
+                try:
+                    left.append(left[random.randrange(0, len(left))])
+                except ValueError:
+                    pass
             while len(left) > len(right):
-                right.append(right[random.randrange(0, len(right))])
+                try:
+                    right.append(right[random.randrange(0, len(right))])
+                except ValueError:
+                    pass
 
             data = []
             for l,r in zip(left,right):
