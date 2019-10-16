@@ -58,6 +58,9 @@ class PathSerializer(serializers.ListSerializer):
             for kwdGroup in Branch.objects.all()
         }
 
+import itertools,random
+from collections import OrderedDict
+
 class BranchSerializer(serializers.ModelSerializer):
     paths = serializers.SerializerMethodField()
 
@@ -66,27 +69,60 @@ class BranchSerializer(serializers.ModelSerializer):
         branch_from_param = self.context.get('request').query_params.get('from')
 
         try:
-            branch_to = Branch.objects.get(uri__iexact = branch_to_param) or Branch.objects.none()
-            branch_from = Branch.objects.get(uri__iexact = branch_from_param) or Branch.objects.none()
+            branch_to = Branch.objects.get(uri__iexact = branch_to_param)
         except ObjectDoesNotExist:
             return None
 
+        try:
+            branch_from = Branch.objects.get(uri__iexact = branch_from_param)
+        except ObjectDoesNotExist:
+            branch_from = Branch.objects.none()
+
+
         def find_parent_paths(start, path=[]):
+            '''
+            Finds all paths from a nodes parents and beyond to exhaustion
+            :param start: Starting node
+            :param path: Should not be populated
+            :return: List containing the paths
+            '''
             path = path + [start]
             if not start.parents.count():
                 return [path]
             paths = []
-            print(start.parents.all(),start)
             for node in start.parents.all():
-                print(node)
                 if node not in path:
                     newpaths = find_parent_paths(node, path)
                     for newpath in newpaths:
                         paths.append(newpath)
-            print(paths)
+            return paths
+
+        def find_children_paths(start, path=[]):
+            '''
+            Finds all paths from a nodes children and beyond to exhaustion
+            :param start: Starting node
+            :param path: Should not be populated
+            :return: List containing the paths
+            '''
+            path = path + [start]
+            if not start.children.count():
+                return [path]
+            paths = []
+            for node in start.children.all():
+                if node not in path:
+                    newpaths = find_children_paths(node, path)
+                    for newpath in newpaths:
+                        paths.append(newpath)
             return paths
 
         def find_all_paths(start, end, path=[]):
+            '''
+            Finds all paths between 2 nodes
+            :param start: Starting node
+            :param end: Ending node
+            :param path: Should not be populated
+            :return: List containing the paths
+            '''
             path = path + [start]
             if start == end:
                 return [path]
@@ -99,12 +135,43 @@ class BranchSerializer(serializers.ModelSerializer):
             return paths
 
         try:
-            print(find_parent_paths(branch_to))
-            paths = find_all_paths(branch_from,branch_to)
-            for path in paths:
+            if not branch_from:
+                left = find_parent_paths(branch_to)
+            else:
+                left = find_all_paths(branch_from,branch_to)
+            right = find_children_paths(branch_to)
+            # fill both lists with the same amount of values in order to combine them 1-1 later
+            while len(right) > len(left):
+                left.append(left[random.randrange(0, len(left))])
+            while len(left) > len(right):
+                right.append(right[random.randrange(0, len(right))])
+
+            data = []
+            for l,r in zip(left,right):
+                # exclude first item from the right list
+                # because it is the same as the last item from the left list
+
+                if not branch_from:
+                    # if starting branch is not defined show 5 branches before and after the desired branch
+                    # to simulate a "path"
+
+                    data.append(r[1:5] + l[:5])
+                else:
+                    # if starting branch is defined we need the whole left path as is
+                    # but also show 5 children just for visual presentation
+
+                    data.append(l + r[1:5])
+
+            sorted_data = list()
+
+
+            for sublist in data:
+                if sublist not in sorted_data:
+                    sorted_data.append(sublist)
+            for path in sorted_data:
                 for i, branch in enumerate(path):
                     path[i] = serializers_v0.BranchSerializer(branch).data
-            return paths
+            return sorted_data
         except RecursionError:
             return None
 

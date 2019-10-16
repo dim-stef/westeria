@@ -58,6 +58,9 @@ export function NotificationsContainer({inBox}){
             ws_scheme + '://' + window.location.host +
             '/ws/notifications/' + context.currentBranch.uri + '/');
     
+        chatSocket.reconnectDecay = false;
+        chatSocket.debug = true;
+        chatSocket.reconnectInterval = 2000
         chatSocket.onmessage = function(e) {
             let data = JSON.parse(e.data);
             let id = data['id'];
