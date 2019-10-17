@@ -137,6 +137,8 @@ class BranchSerializer(serializers.ModelSerializer):
         try:
             if not branch_from:
                 left = find_parent_paths(branch_to)
+                for i,path in enumerate(left):
+                    left[i].reverse()
             else:
                 left = find_all_paths(branch_from,branch_to)
             right = find_children_paths(branch_to)
@@ -163,7 +165,8 @@ class BranchSerializer(serializers.ModelSerializer):
                     # if starting branch is not defined show 5 branches before and after the desired branch
                     # to simulate a "path"
 
-                    data.append(r[1:5] + l[:5])
+                    data.append(l[:5] + r[1:5])
+                    print(data)
                 else:
                     # if starting branch is defined we need the whole left path as is
                     # but also show 5 children just for visual presentation

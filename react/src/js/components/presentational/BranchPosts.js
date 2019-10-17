@@ -49,18 +49,7 @@ function resetPostListContext(postsContext,props){
     postsContext.openPosts.length = 0;
     postsContext.uniqueCached.length = 0;
     postsContext.branchUri = props.branch;
-}
-
-function resetBranchPostsContext(postsContext,props){
-    postsContext.hasMore = true;
-    postsContext.next = null;
-    postsContext.lastVisibleElement = null;
-    postsContext.lastVisibleIndex = 0;
-    postsContext.loadedPosts.length = 0;
-    postsContext.cachedPosts.length = 0;
-    postsContext.openPosts.length = 0;
-    postsContext.uniqueCached.length = 0;
-    postsContext.branchUri = props.branch;
+    postsContext.paths.length = 0;
 }
 
 function DisplayPosts({isFeed,posts,setPosts,
@@ -453,9 +442,9 @@ export default function FeedPosts(props){
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
-        resetBranchPostsContext(branchPostsContext,props);
-        resetBranchPostsContext(branchCommunityPostsContext,props);
-        resetBranchPostsContext(branchTreePostsContext,props);
+        resetPostListContext(branchPostsContext,props);
+        resetPostListContext(branchCommunityPostsContext,props);
+        resetPostListContext(branchTreePostsContext,props);
     },[])
 
     return(
@@ -471,9 +460,9 @@ export function AllPosts(props){
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
-        resetBranchPostsContext(branchPostsContext,props);
-        resetBranchPostsContext(branchCommunityPostsContext,props);
-        resetBranchPostsContext(branchTreePostsContext,props);
+        resetPostListContext(branchPostsContext,props);
+        resetPostListContext(branchCommunityPostsContext,props);
+        resetPostListContext(branchTreePostsContext,props);
     },[])
 
     return(
@@ -490,9 +479,9 @@ export function TreePosts(props){
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
-        resetBranchPostsContext(branchPostsContext,props);
-        resetBranchPostsContext(branchCommunityPostsContext,props);
-        resetBranchPostsContext(branchTreePostsContext,props);
+        resetPostListContext(branchPostsContext,props);
+        resetPostListContext(branchCommunityPostsContext,props);
+        resetPostListContext(branchTreePostsContext,props);
     },[])
 
     return(
@@ -508,14 +497,14 @@ export function BranchPosts(props){
 
     useEffect(()=>{
         if(postsContext.branchUri != props.branch){
-            resetBranchPostsContext(postsContext,props);
-            resetBranchPostsContext(branchCommunityPostsContext,props);
-            resetBranchPostsContext(branchTreePostsContext,props);
+            resetPostListContext(postsContext,props);
+            resetPostListContext(branchCommunityPostsContext,props);
+            resetPostListContext(branchTreePostsContext,props);
         }
     },[postsContext.branchUri])
 
     return(
-        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetBranchPostsContext(postsContext,props)}/>
+        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
     )
 }
 
@@ -539,7 +528,7 @@ export function GenericBranchPosts(props){
 
     return(
         <FinalDisplayPosts {...props} keyword={props.keyword} postsContext={context}
-        resetPostsContext={()=>resetBranchPostsContext(context,props)}/>
+        resetPostsContext={()=>resetPostListContext(context,props)}/>
     )
 }
 

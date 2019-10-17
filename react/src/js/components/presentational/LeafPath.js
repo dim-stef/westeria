@@ -25,23 +25,31 @@ const bullet = theme =>css({
     height:4,
     width:4
 })
-export function Path({from,to}){
-    const branches = useGetAllPaths(from,to);
+
+export function Path({from,to,id,postsContext}){
+    const paths = useGetAllPaths(from,to);
     return (
         <div css={imgWrapper}>
             <Logo/>
-            {branches?
-                branches.map((b,i)=>{
+            {paths?
+                paths[0].map((b,i)=>{
+                let className;
+                if(b.uri==from || b.uri==to){
+                    className='double-border'
+                }else{
+                    className=''
+                }
+
                 return (
-                    <>
+                    <React.Fragment key={b.uri}>
                     <div style={{margin:'0 10px'}}>
-                        <img src={b.branch_image} className={`round-picture ${b.uri==from?'double-border':''}`} 
+                        <img src={b.branch_image} className={`round-picture ${className}`} 
                         style={{height:30,width:30,objectFit:'cover'}}/>
                     </div>
-                    {branches.length - 1 !=i?<div css={arrow}>
+                    {paths[0].length - 1 !=i?<div css={arrow}>
                         <span css={theme=>bullet(theme)}></span>
                     </div>:null}
-                    </>
+                    </React.Fragment>
                 )
             }):null}
         </div>

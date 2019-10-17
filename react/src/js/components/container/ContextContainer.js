@@ -12,6 +12,7 @@ let frontPagePostList = {
     uniqueCached:[],
     measuredPosts:[],
     openPosts:[],
+    paths:[],
     previousUri:null,
     branchUri:'',
     params:{
@@ -71,6 +72,7 @@ export const SingularPostContext = React.createContext(
         cachedPosts:[],
         uniqueCached:[],
         openPosts:[],
+        paths:[],
         previousUri:null,
         branchUri:'',
     }
@@ -113,3 +115,5 @@ export const RouteTransitionContext = React.createContext({
     exiting:false,
     entered:false
 })
+
+export const PathContext = React.createContext([])

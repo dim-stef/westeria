@@ -961,6 +961,27 @@ div.top-spread-list{
     pointer-events: none;
 }
 
+.double-border-orange {
+    background-color: #fff;
+    border: 2px solid #f38321;
+    padding: 0.3em;
+    position: relative;
+    margin: 0 auto;
+    border-radius: 50%;
+}
+.double-border-orange:before {
+    background: none;
+    border: 2px solid #f38321;
+    content: "";
+    display: block;
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    right: 4px;
+    bottom: 4px;
+    pointer-events: none;
+}
+
 .slide-bottom {
 	-webkit-animation: slide-bottom 0.05s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 	        animation: slide-bottom 0.05s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;

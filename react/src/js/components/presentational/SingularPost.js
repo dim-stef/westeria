@@ -479,7 +479,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
                 <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
-                <Path from={post.matches.from} to={post.matches.to}/>
+                <Path from={post.matches.from} to={post.matches.to || post.posted_to[0].uri} id={post.id} postsContext={postsContext}/>
                 <div className="flex-fill">
                     <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null,flexFlow:'column'}}>
                         <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
