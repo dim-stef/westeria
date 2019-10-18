@@ -473,6 +473,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
     replied_to = serializers.SerializerMethodField()
     replies_count = serializers.SerializerMethodField()
     spreads_count = serializers.SerializerMethodField()
+    matches = serializers.SerializerMethodField()
 
     def get_posted_to_uri(self,post):
         uri_list = []
@@ -562,6 +563,35 @@ class BranchPostSerializer(serializers.ModelSerializer):
             return branches
         return []
 
+    def get_matches(self,post):
+        if 'matches' in self.context:
+            for match in self.context['matches']:
+                if post.poster in match['nodes']:
+                    return {
+                        'from':match['root'],
+                        'to':post.poster,
+                        'nodes':match['nodes']
+                    }
+
+                for posted_to in post.posted_to.all():
+                    if posted_to.uri in match['nodes']:
+                        return {
+                            'from':match['root'],
+                            'to': posted_to.uri,
+                            'nodes':match['nodes']
+                        }
+            return {
+                    'from':None,
+                    'to': None,
+                    'nodes':[]
+                }
+        else:
+            return {
+                    'from':None,
+                    'to': None,
+                    'nodes':[]
+                }
+
     class Meta:
         model = Post
         fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
@@ -569,7 +599,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner','description',
                   'replied_to','replies','replies_count','spreads_count',
-                  'level','stars','dislikes','hot_score','images','videos','thumbnails')
+                  'level','stars','dislikes','hot_score','images','videos','thumbnails','matches')
         read_only_fields = ('level',)
 
 

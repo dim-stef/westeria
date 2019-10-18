@@ -71,6 +71,9 @@ function WebSocketRooms({rooms,inBox,match,loaded,setRooms}){
         let webSockets = rooms.map(r=>{
             let ws = new ReconnectingWebSocket(`${ws_scheme}://${window.location.host}/ws/chat/${r.id}/`);
 
+            ws.reconnectDecay = false;
+            ws.debug = true;
+            ws.reconnectInterval = 2000
             return {
                 room: r,
                 ws: ws

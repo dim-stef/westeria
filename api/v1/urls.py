@@ -11,7 +11,7 @@ router = routers.DefaultRouter()
 router.register(r'device/apns', APNSDeviceAuthorizedViewSet)
 router.register(r'device/gcm', GCMDeviceAuthorizedViewSet)
 router.register(r'feedback/new',views.FeedbackViewSet,base_name="new_feedback")
-
+router.register(r'get_paths',views.GetPathsViewSet,base_name="get_paths")
 router.register(r'owned_branches',views.OwnedBranchesViewSet,base_name="owned_branches")
 router.register(r'branches', views_v0.BranchViewSet, base_name='branch')
 

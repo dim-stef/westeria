@@ -26,10 +26,10 @@ import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 import '@material/react-ripple/dist/ripple.css';
-
 import {withRipple} from '@material/react-ripple';
 import {DropdownActionList} from "./DropdownActionList"
 import {InfoMessage} from "./InfoMessage"
+import {Path} from "./LeafPath"
 
 const copy = require('clipboard-copy')
 
@@ -328,29 +328,10 @@ if (process.env.NODE_ENV !== 'production') {
 
 function ShownBranch({branch,date,dimensions=48}){
     const theme = useTheme();
-    const [showCard,setShowCard] = useState(false);
-    let setTimeoutConst;
-    let setTimeoutConst2;
     let dateElement=null;
 
     if(date){
         dateElement = timeDifference(date,new Date());
-    }
-
-    function handleMouseEnter(){
-        clearTimeout(setTimeoutConst2)
-
-        setTimeoutConst = setTimeout(()=>{
-            setShowCard(true);
-        },500)
-    }
-
-    function handleMouseLeave(){
-        clearTimeout(setTimeoutConst)
-
-        setTimeoutConst2 = setTimeout(()=>{
-            setShowCard(false);
-        },500)
     }
 
     function handleAnchorClick(e){
@@ -358,23 +339,24 @@ function ShownBranch({branch,date,dimensions=48}){
     }
 
     return(
-        <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
-        display:'inline-flex',position:'relative'}} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-            <PostPicture picture={branch.branch_image} 
-            style={{width:dimensions,height:dimensions}}
-            uri={branch.uri}/>
-            <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
-                <Link to={`/${branch.uri}`} onClick={handleAnchorClick} 
-                style={{textDecoration:'none', color:theme.textHarshColor,marginRight:10}}>
-                        <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
-                </Link>
-                {date?<div style={{padding:'3px 0px',color:theme.textLightColor,fontWeight:600}}>
-                    {dateElement}
-                </div> :null}
-                
+        <SmallCard branch={branch}>
+            <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
+            display:'inline-flex',position:'relative'}} >
+                <PostPicture picture={branch.branch_image} 
+                style={{width:dimensions,height:dimensions}}
+                uri={branch.uri}/>
+                <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
+                    <Link to={`/${branch.uri}`} onClick={handleAnchorClick} 
+                    style={{textDecoration:'none', color:theme.textHarshColor,marginRight:10}}>
+                            <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
+                    </Link>
+                    {date?<div style={{padding:'3px 0px',color:theme.textLightColor,fontWeight:600}}>
+                        {dateElement}
+                    </div> :null}
+                    
+                </div>
             </div>
-            {showCard?<SmallCard branch={branch}/>:null}
-        </div>
+        </SmallCard>
     )
 }
 
@@ -475,9 +457,13 @@ function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
         <div className={className}>
             <div ref={ref} css={theme=>postCss(theme,isEmbedded,extraStyles)} className={`post`}
             style={{display:'block',border:border,borderBottom:borderBottom,borderRadius:borderRadius,marginTop:marginTop}} >
+            
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
                 <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
+                {viewAs=='post'?
+                <Path from={post.matches.from} to={post.matches.to || post.posted_to[0].uri} id={post.id} postsContext={postsContext}/>:
+                null} 
                 <div className="flex-fill">
                     <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null,flexFlow:'column'}}>
                         <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
@@ -572,17 +558,6 @@ function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dim
                 <div className="arrow-right"></div>
                 <div style={{marginLeft:20}}>
                     <div className="flex-fill">
-                        {/*<PostPicture style={{width:dimensions,height:dimensions}} 
-                        picture={mainPostedBranch.branch_image} 
-                        uri={mainPostedBranch.uri}/>
-                        <div>
-                            <Link to={post.poster} style={{textDecoration:'none', color:'black'}}>
-                                <strong style={{fontSize:'1.7em'}}>{mainPostedBranch.name}</strong>
-                                <div style={{padding:'3px 0px',color:'#1b4f7b',fontWeight:600,fontSize:'1.4em'}}>
-                                    @{mainPostedBranch.uri}
-                                </div> 
-                            </Link>
-                        </div>*/}
                         <ShownBranch branch={mainPostedBranch} dimensions={dimensions}/>
                         <PostedToExtension post={post} activeBranch={activeBranch} 
                         mainPostedBranch={mainPostedBranch} measure={measure}/>

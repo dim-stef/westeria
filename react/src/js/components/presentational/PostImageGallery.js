@@ -1,4 +1,4 @@
-import React, {useRef, useState,useEffect} from "react"
+import React, {useRef, useState,useEffect,useLayoutEffect} from "react"
 import { Prompt } from "react-router"
 import history from "../../history"
 import {useTheme} from "emotion-theming";
@@ -104,6 +104,13 @@ export function Images(props){
             swipeContainers[i].style.transition = null;
         }
     }
+
+    useLayoutEffect(()=>{
+        let swipeContainers = document.getElementsByClassName('react-swipeable-view-container');
+        for(let i = 0; i < swipeContainers.length; i++) {
+            swipeContainers[i].style.transition = null;
+        }
+    },[index])
 
     useEffect(()=>{
         window.addEventListener('touchend',handleResetTransition)

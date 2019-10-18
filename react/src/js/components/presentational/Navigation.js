@@ -99,7 +99,11 @@ const navBarPositioner = theme => css({
     backgroundColor: theme.backgroundColor,
     maxWidth:1200,
     zIndex: 5,
-    top:0
+    top:0,
+    left:0,
+    right:0,
+    marginLeft:'auto',
+    marginRight:'auto'
 })
 
 

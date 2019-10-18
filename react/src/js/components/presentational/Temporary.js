@@ -42,7 +42,7 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
             <TopBar branch={branch}/>
             <DescriptionBox description={branch.description}/>
             <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around',WebkitJustifyContent:'space-around',
-            height:140}}>
+            maxHeight:140,minHeight:36}}>
                 <FollowButton uri={branch.uri} id={branch.id}/>
                 {pendingStatus?
                     pendingStatus=='accepted'?<div>
@@ -64,7 +64,7 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
 function TopBar({branch}){
     let left = 100 + 6 + 20 +10; //picture dimension + border x2 + picture left position +empty space
     return(
-        <div style={{height:180,width:'100%', position:'relative'}}>
+        <div style={{height:160,width:'100%', position:'relative'}}>
             <div style={{position:'absolute',left:left}}>
                 <NameBox name={branch.name} uri={branch.uri}/>
             </div>
