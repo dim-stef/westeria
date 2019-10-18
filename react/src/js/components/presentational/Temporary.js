@@ -42,7 +42,7 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
             <TopBar branch={branch}/>
             <DescriptionBox description={branch.description}/>
             <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around',WebkitJustifyContent:'space-around',
-            maxHeight:140}}>
+            maxHeight:140,minHeight:36}}>
                 <FollowButton uri={branch.uri} id={branch.id}/>
                 {pendingStatus?
                     pendingStatus=='accepted'?<div>

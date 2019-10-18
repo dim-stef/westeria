@@ -59,10 +59,9 @@ export function SmallBranch({branch,isLink=true,
 
     return(
         <>
+        <SmallCard branch={branch} hoverable={hoverable}>
         <div
         onClick={onClick}
-        onMouseEnter={isMobile || !hoverable?null:handleMouseEnter}
-        onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}
          style={{position:'relative'}} className="noselect small-branch-container flex-fill">
             <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
                 <div className="flex-fill center-items"
@@ -78,10 +77,9 @@ export function SmallBranch({branch,isLink=true,
                 </div>
                 
             </SmallBranchWrapper>
-            {showCard?<SmallCard branch={branch}/>:null}
             {children}
         </div>
-        
+        </SmallCard>
         </>
     )
 }

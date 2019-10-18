@@ -217,15 +217,47 @@ const cardNumber = theme => css({
     color:theme.textLightColor,fontWeight:600
 })
 
-export function SmallCard({branch}){
-     
+import {useMediaQuery} from 'react-responsive'
+
+
+export function SmallCard({branch,hoverable=true,children}){
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    const [showCard,setShowCard] = useState(false);
+    let setTimeoutConst;
+    let setTimeoutConst2;
+
+    function handleMouseEnter(){
+        clearTimeout(setTimeoutConst2)
+
+        setTimeoutConst = setTimeout(()=>{
+            setShowCard(true);
+        },500)
+    }
+
+    function handleMouseLeave(){
+        clearTimeout(setTimeoutConst)
+
+        setTimeoutConst2 = setTimeout(()=>{
+            setShowCard(false);
+        },500)
+    }
+
     function onClick(e){
         e.stopPropagation();
         e.preventDefault();
     }
 
     return(
-        <div css={theme=>smallCardContainer(theme)} onClick={onClick}>
+        <div style={{position:'relative'}}>
+        {React.Children.map(children, (child, i) => {
+            return React.cloneElement(child, { onMouseEnter:isMobile || !hoverable?null:handleMouseEnter,
+            onMouseLeave:isMobile || !hoverable?null:handleMouseLeave })
+        })}
+        {showCard?<div css={theme=>smallCardContainer(theme)} onClick={onClick}
+        onMouseEnter={isMobile || !hoverable?null:handleMouseEnter} onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}>
             <div
                 style={{position:'relative'}} className="noselect small-branch-container flex-fill">
                 <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
@@ -255,6 +287,8 @@ export function SmallCard({branch}){
                     <span css={theme=>cardNumber(theme)}>{branch.branch_count?branch.branch_count:0}</span>
                 </div>
             </div>
+        </div>:null}
+        
         </div>
     )
 }
