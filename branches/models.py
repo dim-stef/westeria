@@ -36,6 +36,15 @@ def calculate_trending_score(posts):
 def deEmojify(inputString):
     return inputString.encode('ascii', 'ignore').decode('ascii')
 
+
+class BranchQuerySet(models.QuerySet):
+    def siblings(self,uri):
+        parents = Branch.objects.get(uri__iexact=uri).parents.all()
+        siblings = Branch.objects.filter(parents__in=parents) \
+            .exclude(uri__iexact=uri) \
+            .distinct()
+        return siblings
+
 class Branch(models.Model):
     class Meta:
         unique_together = ('owner', 'name')
@@ -112,13 +121,10 @@ class Branch(models.Model):
 
         self.branch_image = self.encode_image(self.branch_image)
         self.branch_banner = self.encode_image(self.branch_banner)
-
-        '''icon, im_io = JPEGSaveWithTargetSize(self.branch_image, "%s_icon.jpg" % self.branch_image.name, 3000)
-        self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.branch_image.name.split('.')[0],
-                                             'image/jpeg', im_io.getbuffer().nbytes, None)
-            # File too big to be compressed to 3kb
-        pass'''
         super().save(*args, **kwargs)
+
+    objects = BranchQuerySet.as_manager()
+
 
 def validate_manytomany(self,instance,target):
     #self.delete()

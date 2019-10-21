@@ -1,5 +1,6 @@
 import React, {useEffect,useState} from 'react'
 import {css} from "@emotion/core";
+import {Link} from "react-router-dom";
 import {useGetAllPaths} from "../container/PathContainer";
 import {HoverableTooltip} from "./Tooltip"
 import {SmallCard} from "./Card"
@@ -39,9 +40,14 @@ export function Path({from,to,id,postsContext}){
 
     let compassText;
     if(!from){
-        compassText = `One of the paths leading to @${to}`
+        compassText = `One of the paths containing @${to}`
     }else{
         compassText = `This is the path Subranch took to show you this leaf from @${to}`;
+    }
+
+    function handleClick(e){
+        e.stopPropagation();
+        e.preventDefault();
     }
 
     return (
@@ -61,9 +67,11 @@ export function Path({from,to,id,postsContext}){
                 return (
                         <React.Fragment key={b.uri}>
                         <SmallCard branch={b}>
-                            <div style={{margin:'0 10px'}}>
-                                <img src={b.branch_image} className={`round-picture ${className}`} 
-                                style={{height:30,width:30,objectFit:'cover'}}/>
+                            <div style={{margin:'0 10px'}} onClick={handleClick}>
+                                <Link to={`/${b.uri}`}>
+                                    <img src={b.branch_image} className={`round-picture ${className}`} 
+                                    style={{height:30,width:30,objectFit:'cover'}}/>
+                                </Link>
                             </div>
                         </SmallCard>
                         {paths[0].length - 1 !=i?<div css={arrow}>

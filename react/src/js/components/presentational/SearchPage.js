@@ -174,7 +174,6 @@ function Trending(){
                             branch={b}/>
                             <BranchFooter branch={b}/>
                         </div>
-                       
             }):null}
         </div>
         <div className="flex-fill center-items">
