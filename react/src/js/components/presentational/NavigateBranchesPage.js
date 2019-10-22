@@ -3,6 +3,8 @@ import {useMediaQuery} from "react-responsive";
 import {MoonLoader} from 'react-spinners';
 import {css} from "@emotion/core"
 import {useTheme} from "emotion-theming";
+import {FadeImage} from "./FadeImage"
+import {CircularSkeletonList} from "./SkeletonBranchList"
 import history from "../../history";
 import axios from "axios";
 import axiosRetry from "axios-retry"
@@ -21,29 +23,54 @@ const container = () =>css({
 })
 
 const rowContainer = () =>css({
-    height:'100%',
     display:'flex',
     flexFlow:'column',
-    justifyContent:'space-evenly'
+    justifyContent:'flex-start',
+    flex:1
 })
-const branchRow = () => css({
+const branchRow = isMobile => css({
     display:'inline-flex',
-    justifyContent:'center',
+    justifyContent:isMobile?'center':'flex-start',
     alignItems:'center',
+    flexFlow:isMobile?'row':'row wrap',
+    padding:'10px 0'
+})
+
+const skeletonRow = isMobile => css({
+    display:'inline-flex',
+    justifyContent:'space-evenly',
+    alignItems:'center',
+    flex:'1 1 auto',
+    width:'100%',
+    margin:isMobile?0:20
 })
 
 const header = theme =>css({
     color:theme.textColor,
-    margin:'20px 10px'
+    margin:10
 })
 
 const topRow = () =>css({
-    height:100,
+    width:'100%',
     display:'flex',
     flexFlow:'row',
     justifyContent:'space-between',
     alignItems:'center',
-    margin:20
+    padding:20,
+    boxShadow:'0 1px 1px rgba(0,0,0,0.15), 0 2px 2px rgba(0,0,0,0.15), 0 4px 4px rgba(0,0,0,0.15), 0 5px 5px rgba(0,0,0,0.15)'
+})
+
+const imageContainer = () =>css({
+    display:'flex',
+    flexFlow:'column',
+    justifyContent:'center',
+    alignItems:'center'
+})
+
+const name = theme =>css({
+   color: theme.textLightColor,
+   fontSize:'1.1rem',
+   fontWeight:500
 })
 
 export function DiscoverBranchesPage({match}){
@@ -76,13 +103,13 @@ function ResponsiveBranchRows({uri}){
     },[])
 
     return(
-        <div css={container}>
+        <div css={container} className="big-main-column" style={{padding:0}}>
             <div css={topRow}>
-                <img src={branch?branch.branch_image:null} className="round-picture" style={{objectFit:'cover',
+                <FadeImage src={branch?branch.branch_image:null} className="round-picture" style={{objectFit:'cover',
                 height:80,width:80}}/>
             </div>
             <div css={rowContainer}>
-                {isMobile && branch?<>
+                {branch?<>
                     <BranchRow type="parents" branch={branch} key="parents"/>
                     <BranchRow type="siblings" branch={branch} key="siblings"/>
                     <BranchRow type="children" branch={branch} key="children"/>
@@ -119,7 +146,7 @@ function useBranches(type="children",branch){
     }
 
     useEffect(()=>{
-        setBranches([]);
+        setBranches(null);
         setNext(null);
         setHasMore(true);
         getBranches();
@@ -128,10 +155,15 @@ function useBranches(type="children",branch){
     return [branches,next,hasMore,getBranches]
 }
 
+
 function BranchRow({type,branch}){
     const ref = useRef(null);
     const [branches,next,hasMore,getBranches] = useBranches(type,branch);
     const theme = useTheme();
+
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
 
     let infoText;
     if(type=='children'){
@@ -146,48 +178,48 @@ function BranchRow({type,branch}){
         history.push(`/search/${branch.uri}`)
     }
 
-    useEffect(()=>{
-        console.log(ref)
-    },[ref])
-
     return(
-        branches?branches.length>0?<div style={{height:'100%'}}>
+        branches?branches.length>0?<><div>
             <h1 css={theme=>header(theme)}>{infoText}</h1>
-            <div style={{overflow:'auto'}} ref={ref}>
-                {ref.current?<InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
-                next={next} hasMore={hasMore} loadMore={getBranches} dataLength={branches?branches.length:0}>
-                <div css={branchRow}>
-                    {branches?branches.map(b=>{
-                        return(
-                            <div onClick={e=>handleClick(b)} key={b.id}>
-                                <img className="round-picture" style={{height:100,width:100,display:'block',
-                                objectFit:'cover',margin:'0 20px'}} 
-                                src={b.branch_image}/>
-                            </div>
-                        )
-                    }):null}
-                    {hasMore && branches && branches.length != 0?
-                        <div className="flex-fill load-spinner-wrapper" css={{justifyContent:'center',margin:'0 30px'}}>
-                        <MoonLoader
-                            sizeUnit={"px"}
-                            size={20}
-                            color={theme.textLightColor}
-                            loading={true}
-                        />
-                    </div>:null}
-                </div>
                 
-                </InfiniteHorizontalScroll>:null}
-                
+            <InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
+            next={next} hasMore={hasMore} loadMore={getBranches} dataLength={branches?branches.length:0}>
+            
+            <div css={()=>branchRow(isMobile)}>
+                {branches?branches.map(b=>{
+                    return(
+                        <div onClick={e=>handleClick(b)} css={imageContainer} key={b.id}>
+                            <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
+                            objectFit:'cover',margin:'10px 20px'}}
+                            src={b.branch_image}/>
+                            <span css={name}>{b.name}</span>
+                        </div>
+                    )
+                }):null}
+                {hasMore && branches && branches.length != 0?
+                    <div className="flex-fill load-spinner-wrapper" css={{justifyContent:'center',margin:'0 30px'}}>
+                    <MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={theme.textLightColor}
+                        loading={true}
+                    />
+                </div>:null}
             </div>
+            </InfiniteHorizontalScroll>
+            </div>
+            
+            </>
+            
+            
+        :null:<div css={()=>skeletonRow(isMobile)}>
+            <CircularSkeletonList count={5} dimensions={isMobile?70:100}/>
         </div>
-        :null:null
     )
 }
 
 function InfiniteHorizontalScroll({scrollTarget=window,value=null,hasMore,loadMore,dataLength,children}){
-
-    const [prevValue,setPrevValue] = useState(value)
+    const ref = useRef(null);
     const [scroll,setScroll] = useState(0);
     const [itemCount,setItemCount] = useState(0);
 
@@ -197,9 +229,7 @@ function InfiniteHorizontalScroll({scrollTarget=window,value=null,hasMore,loadMo
 
     useEffect(()=>{
 
-        console.log(scroll,scrollTarget.scrollWidth - scrollTarget.clientWidth - 250,scrollTarget)
-
-        if(scroll > scrollTarget.scrollWidth - scrollTarget.clientWidth - 250){
+        if(scroll > ref.current.scrollWidth - ref.current.clientWidth - 250){
             if(hasMore && (dataLength != itemCount || dataLength == 0)){
                 
                 loadMore();
@@ -209,17 +239,20 @@ function InfiniteHorizontalScroll({scrollTarget=window,value=null,hasMore,loadMo
     },[scroll])
 
     useEffect(()=>{
-        scrollTarget.addEventListener('scroll',listenHorizontal);
+        if(ref.current){
+            ref.current.addEventListener('scroll',listenHorizontal);
 
-        return ()=>{
-            scrollTarget.removeEventListener('scroll',listenHorizontal);
+            return ()=>{
+                ref.current.removeEventListener('scroll',listenHorizontal);
+            }
         }
-    },[scrollTarget])
+       
+    },[ref])
 
     return (
-        <>
+        <div style={{overflow:'auto'}} ref={ref}>
             {children}
-        </>
+        </div>
         
     )
 }

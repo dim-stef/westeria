@@ -1067,6 +1067,20 @@ button[disabled=disabled], button:disabled {
     width: auto !important;
 }
 
+.spin360{
+    -webkit-transition: transform 0.5s;
+    -moz-transition: transform 0.5s;
+    -ms-transition: transform 0.5s;
+    -o-transition: transform 0.5s;
+    transition: transform 0.5s;
+
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+}
+
 a,button::-moz-focus-inner { /* removes dotted outline firefox */
     border: 0;
   }
