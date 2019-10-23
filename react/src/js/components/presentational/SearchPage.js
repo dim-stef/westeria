@@ -4,6 +4,7 @@ import {useTheme} from "emotion-theming";
 import {Helmet} from 'react-helmet'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
+import {Grid} from "./Grid"
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
@@ -165,6 +166,7 @@ function Trending(){
 
     return(
         <>
+        <Grid/>
         <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
             {branches.length>0?
             branches.map(b=>{
