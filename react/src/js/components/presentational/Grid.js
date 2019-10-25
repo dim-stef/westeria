@@ -1,152 +1,142 @@
 import React, {useState,useRef} from "react";
 import {css} from "@emotion/core";
 
+// proceed with caution
+
 const gridContainer = () =>css({
     display:'grid',
     placeContent:'stretch',
-    gridTemplateColumns:'repeat(4, 1fr)',
-    gridTemplateRows:'repeat(4, 1fr)',
+    gridTemplateColumns:'repeat(2, 1fr)',
+    gridTemplateRows:'repeat(2, 1fr)',
     gridAutoFlow:'dense',
     gridGap:10,
-    height:400
+    height:600
 })
 
-const cell = size =>css({
-    gridColumn:`span ${size[0]}`,
-    gridRow:`span ${size[1]}`,
+const nestedContainer = (size,item,parentGridSize) =>css({
+    display:'grid',
+    placeContent:'stretch',
+    gridTemplateColumns:`repeat(${size}, 1fr)`,
+    gridTemplateRows:`repeat(${size}, 1fr)`,
+    gridRow:`span ${item.isFlat?'initial':parentGridSize}`,
+    gridColumn:`span ${item.isFlat?parentGridSize:'initial'}`,
+    gridAutoFlow:'dense',
+    gridGap:10,
 })
 
-var randomProperty = function (obj) {
-    var keys = Object.keys(obj)
-    return obj[keys[ keys.length * Math.random() << 0]];
-};
+const smallGrid = (isParentFlat,isBigFlat) =>css({
+    display:'grid',
+    placeContent:'stretch',
+    gridTemplateColumns:`repeat(2, 1fr)`,
+    gridTemplateRows:`repeat(2, 1fr)`,
+    gridRow:`span ${isParentFlat?isBigFlat?2:1:isBigFlat?4:2}`,
+    gridColumn:`span ${isParentFlat?isBigFlat?2:4:isBigFlat?1:2}`,
+    gridAutoFlow:'dense',
+    gridGap:10,
+})
+
+const cell = (item,isFlat=false,isParentFlat) =>css({
+    gridColumn:`span ${item.size.getDimensions(isFlat,isParentFlat)[0]}`,
+    gridRow:`span ${item.size.getDimensions(isFlat,isParentFlat)[1]}`,
+})
 
 function getRandomInt(max) {
     return Math.floor(Math.random() * Math.floor(max));
 }
 
-function shuffle(a) {
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [a[i], a[j]] = [a[j], a[i]];
-    }
 
-    return a;
-}
-/*[
-    // [row, available cells]
-    [1,2],
-    [2,2],
-    []
-]*/
-
-let orde2r = [1,2,3,4,5]
-
-export function Grid(){
-    // 4x4 grid
-    let availableSize = [4,4];
-
-    function getOrder(){
-
-    }
-    
-    //const [order,setOrder] = useState(shuffle([1,2,3,4,5]))
-
-    const order = useRef([1,2,3,4,5])
+export function Grid({posts}){
     let sizes = {
+        xsmall:{
+            getDimensions:(isFlat,isParentFlat)=>{
+                if(isFlat){
+                    return [1,2]
+                }else{
+                    return [2,1]
+                }
+            },
+            label:'xsmall',
+        },
         small:{
-            dimensions:[1,1],
-            label:'xsmall'
-        },
-        flat:{
-            dimensions:[2,1],
+            getDimensions:(isFlat,isParentFlat)=>{
+                if(isFlat){
+                    if(isParentFlat){
+                        return [2,2]
+                    }else{
+                        return [4,1]
+                    }
+                }else{
+                    if(isParentFlat){
+                        return [1,4]
+                    }else{
+                        return [2,2]
+                    }
+                }
+            },
             label:'small'
         },
-        stand:{
-            dimensions:[1,2],
-            label:'small'
-        },
-        square:{
-            dimensions:[2,2],
+        medium:{
+            getDimensions:(isParentFlat)=>{
+                if(isParentFlat){
+                    return [2,4]
+                }else{
+                    return [4,2]
+                }
+            },
             label:'medium'
         },
-        bigFlat:{
-            dimensions:[4,2],
-            label:'large'
-        },
-        bigStand:{
-            dimensions:[2,4],
+        large:{
+            getDimensions:(isFlat)=>{
+                if(isFlat){
+                    return [2,1]
+                }else{
+                    return [1,2]
+                }
+            },
             label:'large'
         }
     }
 
-
-    function getOrder(size){
-        
-        if(order.current.length == 0){
-            order.current = [1,2,3,4,5]
-        }
-        let num;
-        if(size=='large'){
-            num = [1,6][Math.floor(Math.random()*[1,6].length)];
-        }else if(size=='medium'){
-            num = [2,3,4][Math.floor(Math.random()*[2,3,4].length)];
-        }else if(size=='small'){
-            let intersection = [2,3,4,5].filter(value => -1 !== order.current.indexOf(value))
-            num = intersection[Math.floor(Math.random()*intersection.length)];
-        }else{
-            let intersection = [1,2,3,4,5].filter(value => -1 !== order.current.indexOf(value))
-            num = intersection[Math.floor(Math.random()*intersection.length)];
-        }
-
-        let index = order.current.indexOf(num);
-        if (index > -1) {
-            order.current.splice(index, 1);
-        }
-
-
-
-        console.log(num,order.current)
-        //console.log(ord,order,order[ord])
-        return num
-    }
 
     let items = [
         {
-            size:sizes.stand,
-            order:getOrder(sizes.stand.label)
+            size:sizes.large,
+            isFlat:false
+        },
+        {
+            size:sizes.medium,
+            isFlat:false
         },
         {
             size:sizes.small,
-            order:getOrder(sizes.stand.label)
-
+            isFlat:true
         },
         {
-            size:sizes.square,
-            order:getOrder(sizes.square.label)
-
+            size:sizes.xsmall,
+            isFlat:false
         },
         {
-            size:sizes.bigStand,
-            order:getOrder(sizes.bigFlat.label)
-
-        },
-        {
-            size:sizes.small,
-            order:getOrder(sizes.small.label)
-
+            size:sizes.xsmall,
+            isFlat:false
         }
     ]
-    //cell(randomProperty(sizes)
 
     return(
         <div css={gridContainer}>
-            <div style={{backgroundColor:'red',order:items[0].order}} css={()=>cell(items[0].size.dimensions)}></div>
-            <div style={{backgroundColor:'green',order:items[2].order}} css={()=>cell(items[2].size.dimensions)}></div>
-            <div style={{backgroundColor:'purple',order:items[1].order}} css={()=>cell(items[1].size.dimensions)}></div>
-            <div style={{backgroundColor:'blue',order:items[4].order}} css={()=>cell(items[4].size.dimensions)}></div>
-            <div style={{backgroundColor:'black',order:items[3].order}} css={()=>cell(items[3].size.dimensions)}></div>
-
+            <div style={{backgroundColor:'black',order:getRandomInt(2)}} 
+            css={()=>cell(items[0],items[0].isFlat)}></div>
+            <div css={()=>nestedContainer(4,items[0],2)}>
+                <div style={{backgroundColor:'green'}} 
+                css={()=>cell(items[1],items[0].isFlat)}></div>
+                <div style={{backgroundColor:'red',order:getRandomInt(3)-1}} 
+                css={()=>cell(items[2],items[2].isFlat,items[0].isFlat)}></div>
+                <div css={()=>smallGrid(items[2].isFlat,items[0].isFlat)}>
+                    <div style={{backgroundColor:'purple',order:getRandomInt(2)}} 
+                    css={()=>cell(items[3],items[2].isFlat,items[0].isFlat)}></div>
+                    <div style={{backgroundColor:'blue',order:getRandomInt(2)-1}} 
+                    css={()=>cell(items[4],items[2].isFlat,items[0].isFlat)}></div>
+                </div>
+            </div>
         </div>
     )
 }
