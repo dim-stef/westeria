@@ -5,6 +5,7 @@ import {css} from "@emotion/core";
 
 const gridContainer = () =>css({
     display:'grid',
+    position:'relative',
     placeContent:'stretch',
     gridTemplateColumns:'repeat(2, 1fr)',
     gridTemplateRows:'repeat(2, 1fr)',
@@ -46,6 +47,21 @@ function getRandomInt(max) {
 
 
 export function Grid({posts}){
+    
+    const [isShown,setShown] = useState(false);
+
+    function getOrder(){
+        let orderedPosts = [];
+        for(post of post){
+
+        }
+    }
+
+    const [order,setOrder] = useState(getOrder())
+    function onTouchStart(){
+        setShown(true);
+    }
+
     let sizes = {
         xsmall:{
             getDimensions:(isFlat,isParentFlat)=>{
@@ -101,7 +117,7 @@ export function Grid({posts}){
     let items = [
         {
             size:sizes.large,
-            isFlat:false
+            isFlat:true
         },
         {
             size:sizes.medium,
@@ -109,7 +125,7 @@ export function Grid({posts}){
         },
         {
             size:sizes.small,
-            isFlat:true
+            isFlat:false
         },
         {
             size:sizes.xsmall,
@@ -124,7 +140,8 @@ export function Grid({posts}){
     return(
         <div css={gridContainer}>
             <div style={{backgroundColor:'black',order:getRandomInt(2)}} 
-            css={()=>cell(items[0],items[0].isFlat)}></div>
+            css={()=>cell(items[0],items[0].isFlat)} onTouchStart={onTouchStart}></div>
+            {isShown?<div style={{position:'absolute',height:'100%',width:'100%',backgroundColor:'black'}}></div>:null}
             <div css={()=>nestedContainer(4,items[0],2)}>
                 <div style={{backgroundColor:'green'}} 
                 css={()=>cell(items[1],items[0].isFlat)}></div>
