@@ -48,10 +48,7 @@ class BranchChatMessagePagination(CursorPagination):
     page_size = 30
 
 class BranchPostPagination(CursorPagination):
-    page_size = 15
-
-class FeedPagination(CursorPagination):
-    page_size = 12
+    page_size = 30
 
 class TrendingPagination(PageNumberPagination):
     page_size = 10
@@ -461,7 +458,7 @@ from datetime import datetime,timedelta
 
 
 class GenericPostList(viewsets.GenericViewSet, mixins.ListModelMixin,mixins.RetrieveModelMixin):
-    pagination_class = FeedPagination
+    pagination_class = BranchPostPagination
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('hot_score', 'created')
     ordering = ('-hot_score',)

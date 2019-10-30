@@ -28,6 +28,18 @@ Number.prototype.roundTo = function(num) {
     }
 }
 
+export function PreviewPostMedia({images,videos}){
+    return(
+        <div style={{height:'100%',width:'100%'}}>
+            {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
+                thumbnail={videos[0].thumbnail}
+            />:
+            <img style={{objectFit:'cover',maxHeight:'100%',width:'100%',height:'100%'}} src={images[0].image}/>}
+            
+        </div>
+    )
+}
+
 export function Images(props){
     const theme = useTheme();
 
@@ -163,8 +175,7 @@ export function Images(props){
 }
 
 //disablepictureinpicture controlslist="nodownload"
-function VideoComponent({src,thumbnail,width}){
-    let height = width / (16/9);
+function VideoComponent({src,thumbnail}){
 
     return(
         <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container">
@@ -201,7 +212,7 @@ function getScrollbarWidth() {
 }
 
 
-function ImageComponent({src,maxHeight,width,imgWidth,height}){
+function ImageComponent({src,maxHeight,imgWidth,height}){
 
     function handleModalOpen(e,show){
         e.stopPropagation();

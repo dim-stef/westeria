@@ -28,6 +28,7 @@ import {Post} from './SingularPost';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
+import {Grid} from "./Grid"
 import {useMediaQuery} from 'react-responsive'
 
 axiosRetry(axios, 
@@ -38,6 +39,12 @@ axiosRetry(axios,
 
 let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
+
+function cssPropertyValueSupported(prop, value) {
+    var d = document.createElement('div');
+    d.style[prop] = value;
+    return d.style[prop] === value;
+}
 
 function resetPostListContext(postsContext,props){
     postsContext.hasMore = true;
@@ -228,7 +235,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                 isScrolling={isScrolling}
                 onScroll={onChildScroll}
                 scrollTop={scrollTop}
-                rowCount={posts.length}
+                rowCount={cssPropertyValueSupported('display', 'grid')?posts.length/5:posts.length}
                 deferredMeasurementCache={usingCache}
                 rowHeight={usingCache.rowHeight}
                 ref={ref}
@@ -237,13 +244,8 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                     let post = posts[index];
                     let isOpen = postsContext.openPosts.some(id=> id == post.id)
                     let props = {
-                        isOpen:isOpen,
                         post:post,
-                        posts:posts,
-                        setPosts:setPosts,
                         key:[post.id,post.spreaders,postsContext.content],
-                        removeFromEmphasized:null,
-                        showPostedTo:showPostedTo?true:false,
                         viewAs:"post",
                         activeBranch:activeBranch,
                         postsContext:postsContext
@@ -262,7 +264,9 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                             key={key}
                             style={style}
                             >
-                                <li><Post {...props} index={index} measure={measure} minimized/></li>
+                                <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
+                                postsContext={postsContext} measure={measure}/>
+                                {/*<li><Post {...props} index={index} measure={measure}/></li>*/}
                             </div>
                         )}
                     </CellMeasurer>

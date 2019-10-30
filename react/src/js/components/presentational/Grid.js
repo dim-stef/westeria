@@ -1,9 +1,11 @@
-import React, {useState,useRef} from "react";
+import React, {useState,useRef,useLayoutEffect} from "react";
+import {Post} from "./SingularPost"
+import {PreviewPost} from "./PreviewPost"
 import {css} from "@emotion/core";
 
 // proceed with caution
 
-const gridContainer = () =>css({
+const gridContainer = (height) =>css({
     display:'grid',
     position:'relative',
     placeContent:'stretch',
@@ -11,7 +13,8 @@ const gridContainer = () =>css({
     gridTemplateRows:'repeat(2, 1fr)',
     gridAutoFlow:'dense',
     gridGap:10,
-    height:600
+    margin:10,
+    height:height
 })
 
 const nestedContainer = (size,item,parentGridSize) =>css({
@@ -37,6 +40,8 @@ const smallGrid = (isParentFlat,isBigFlat) =>css({
 })
 
 const cell = (item,isFlat=false,isParentFlat) =>css({
+    height:'100%',
+    display:'grid', // this fixes height of cell
     gridColumn:`span ${item.size.getDimensions(isFlat,isParentFlat)[0]}`,
     gridRow:`span ${item.size.getDimensions(isFlat,isParentFlat)[1]}`,
 })
@@ -46,22 +51,7 @@ function getRandomInt(max) {
 }
 
 
-export function Grid({posts}){
-    
-    const [isShown,setShown] = useState(false);
-
-    function getOrder(){
-        let orderedPosts = [];
-        for(post of post){
-
-        }
-    }
-
-    const [order,setOrder] = useState(getOrder())
-    function onTouchStart(){
-        setShown(true);
-    }
-
+export function Grid({posts,activeBranch,measure,postsContext}){
     let sizes = {
         xsmall:{
             getDimensions:(isFlat,isParentFlat)=>{
@@ -113,45 +103,101 @@ export function Grid({posts}){
         }
     }
 
+    const [isShown,setShown] = useState(false);
+    const [height,setHeight] = useState(0);
+    const ref = useRef(null);
 
-    let items = [
-        {
-            size:sizes.large,
-            isFlat:true
-        },
-        {
-            size:sizes.medium,
-            isFlat:false
-        },
-        {
-            size:sizes.small,
-            isFlat:false
-        },
-        {
-            size:sizes.xsmall,
-            isFlat:false
-        },
-        {
-            size:sizes.xsmall,
-            isFlat:false
+    function getOrder(){
+        let orderedPosts = [...posts];
+
+        // sort posts by engagement order
+        orderedPosts.sort((a, b) => (a.engagement < b.engagement) ? 1 : -1)
+        return [
+            {
+                post:orderedPosts[0],
+                size:sizes.large,
+                order:getRandomInt(2),
+                isFlat:false
+            },
+            {
+                post:orderedPosts[1],
+                size:sizes.medium,
+                order:null,
+                isFlat:false
+            },
+            {
+                post:orderedPosts[2],
+                size:sizes.small,
+                order:getRandomInt(3)-1,
+                isFlat:false
+            },
+            {
+                post:orderedPosts[3],
+                size:sizes.xsmall,
+                order:getRandomInt(2),
+                isFlat:false
+            },
+            {
+                post:orderedPosts[4],
+                size:sizes.xsmall,
+                order:getRandomInt(2)-1,
+                isFlat:false
+            },
+        ]
+    }
+
+    const [order,setOrder] = useState(getOrder())
+
+    useLayoutEffect(()=>{
+        if(ref.current){
+            setHeight(ref.current.clientWidth)
         }
-    ]
+    },[ref])
+
+
+    useLayoutEffect(()=>{
+        if(height!=0){
+            measure();
+        }
+    },[height])
+
+    function getPostProps(post){
+        let props = {
+            post:post,
+            key:[post.id,post.spreaders,postsContext.content],
+            viewAs:"post",
+            activeBranch:activeBranch,
+            postsContext:postsContext,
+            index:0
+        };
+
+        return props;
+    }
 
     return(
-        <div css={gridContainer}>
-            <div style={{backgroundColor:'black',order:getRandomInt(2)}} 
-            css={()=>cell(items[0],items[0].isFlat)} onTouchStart={onTouchStart}></div>
-            {isShown?<div style={{position:'absolute',height:'100%',width:'100%',backgroundColor:'black'}}></div>:null}
-            <div css={()=>nestedContainer(4,items[0],2)}>
-                <div style={{backgroundColor:'green'}} 
-                css={()=>cell(items[1],items[0].isFlat)}></div>
-                <div style={{backgroundColor:'red',order:getRandomInt(3)-1}} 
-                css={()=>cell(items[2],items[2].isFlat,items[0].isFlat)}></div>
-                <div css={()=>smallGrid(items[2].isFlat,items[0].isFlat)}>
-                    <div style={{backgroundColor:'purple',order:getRandomInt(2)}} 
-                    css={()=>cell(items[3],items[2].isFlat,items[0].isFlat)}></div>
-                    <div style={{backgroundColor:'blue',order:getRandomInt(2)-1}} 
-                    css={()=>cell(items[4],items[2].isFlat,items[0].isFlat)}></div>
+        <div css={()=>gridContainer(height)} ref={ref}>
+            <div style={{order:order[0].order}} 
+            css={()=>cell(order[0],order[0].isFlat)}>
+                {order[0].post?<PreviewPost {...getPostProps(order[0].post)} viewAs="post"/>:null}
+            </div>
+            <div css={()=>nestedContainer(4,order[0],2)}>
+                <div css={()=>cell(order[1],order[0].isFlat)}>
+                    {order[1].post?<PreviewPost {...getPostProps(order[1].post)} viewAs="post"/>:null}
+                </div>
+                <div style={{order:order[2].order}} 
+                css={()=>cell(order[2],order[2].isFlat,order[0].isFlat)}>
+                    {order[2].post?<PreviewPost {...getPostProps(order[2].post)} viewAs="post"/>:null}
+                    
+                </div>
+                <div css={()=>smallGrid(order[2].isFlat,order[0].isFlat)}>
+                    <div style={{order:order[3].order}} 
+                    css={()=>cell(order[3],order[2].isFlat,order[0].isFlat)}>
+                        {order[3].post?<PreviewPost {...getPostProps(order[3].post)} viewAs="post"/>:null}
+                    </div>
+                    <div style={{order:order[4].order}} 
+                    css={()=>cell(order[4],order[2].isFlat,order[0].isFlat)}>
+                        {order[4].post?<PreviewPost {...getPostProps(order[4].post)} viewAs="post"/>:null}
+                    </div>
                 </div>
             </div>
         </div>

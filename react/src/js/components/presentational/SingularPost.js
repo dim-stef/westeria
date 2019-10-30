@@ -221,8 +221,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 }
 
 export const Post = React.memo(function Post({post,parentPost=null,
-    measure=()=>{},postsContext,posts,setPosts,
-    isOpen=false,index,activeBranch,lastComment,
+    measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
     viewAs="post",isSingular,updateTree=()=>{}}){
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
 
@@ -381,8 +380,8 @@ function is_touch_device() {
     return mq(query);
 }
 
-function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
-    activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
+function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
+    activeBranch,open,updateTree,measure,viewAs,isSingular,className,children}){
 
     const context = useContext(UserContext);
     const theme = useTheme();
@@ -609,7 +608,7 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
             videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
             {embeddedPost? <Post post={embeddedPost} parentPost={post} postsContext={postsContext} 
             measure={measure} activeBranch={activeBranch} 
-            lastComment={false} viewAs="embeddedPost"></Post> :null}
+            lastComment={false} viewAs="embeddedPost"></Post>:null}
         </div>
     )
 }
