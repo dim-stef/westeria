@@ -4,6 +4,7 @@ import { useSpring, useTransition, animated, interpolate } from 'react-spring'
 import { useDrag } from 'react-use-gesture'
 import {css} from "@emotion/core";
 import {useTheme} from "emotion-theming";
+import LinesEllipsis from 'react-lines-ellipsis'
 import {Images, PreviewPostMedia} from './PostImageGallery'
 import {Post} from "./SingularPost"
 import {SingularPostContext,UserContext} from "../container/ContextContainer"
@@ -13,22 +14,25 @@ const postCss = theme =>css({
     display:'grid',
     height:'100%',
     position:'relative',
-    borderRadius:20,
+    borderRadius:15,
     overflow:'hidden'
 })
 
-const text = (theme,textPosition) =>css({
+const text = (theme,textPosition,size) =>css({
     position:'absolute',
     top:textPosition,
-    fontSize:'2rem',
-    margin:10,
-    color:theme.textColor
+    fontSize:size=='xsmall' || size=='small' ? '1.1rem' : '2rem',
+    margin:5,
+    color:theme.textColor,
+    wordBreak:'break-word'
 })
 
-const postedToImage = () =>css({
+const postedToImage = (size) =>css({
     position:'absolute',
     margin:'5px',
-    zIndex:33
+    zIndex:33,
+    width:size=='xsmall' || size=='small'?20:40,
+    height:size=='xsmall' || size=='small'?20:40,
 })
 
 const zoom = () =>css({
@@ -53,7 +57,7 @@ const openPreviewPost = theme =>css({
     }
 })
 
-export function PreviewPost({post,viewAs}){
+export function PreviewPost({post,viewAs,size}){
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
     const ref = useRef(null);
@@ -182,11 +186,19 @@ export function PreviewPost({post,viewAs}){
         >
             
             <img className="post-profile-picture round-picture double-border" 
-            src={post.posted_to[0].branch_image} css={postedToImage} ref={imageRef}/>
+            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}/>
             <div css={zoom} ref={zoomRef}>
                 {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
                 videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
-                {post.text?<p className="noselect" css={theme=>text(theme,textPosition)}>{post.text}</p>:null}
+                
+                {post.text?<LinesEllipsis
+                    text={post.text}
+                    className="noselect" css={theme=>text(theme,textPosition,size)}
+                    maxLine='3'
+                    ellipsis='...'
+                    trimRight
+                    basedOn='letters'
+                />:null}
             </div>
             
         </div>

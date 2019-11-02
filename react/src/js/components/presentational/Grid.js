@@ -178,25 +178,25 @@ export function Grid({posts,activeBranch,measure,postsContext}){
         <div css={()=>gridContainer(height)} ref={ref}>
             <div style={{order:order[0].order}} 
             css={()=>cell(order[0],order[0].isFlat)}>
-                {order[0].post?<PreviewPost {...getPostProps(order[0].post)} viewAs="post"/>:null}
+                {order[0].post?<PreviewPost {...getPostProps(order[0].post)} viewAs="post" size="large"/>:null}
             </div>
             <div css={()=>nestedContainer(4,order[0],2)}>
                 <div css={()=>cell(order[1],order[0].isFlat)}>
-                    {order[1].post?<PreviewPost {...getPostProps(order[1].post)} viewAs="post"/>:null}
+                    {order[1].post?<PreviewPost {...getPostProps(order[1].post)} viewAs="post" size="medium"/>:null}
                 </div>
                 <div style={{order:order[2].order}} 
                 css={()=>cell(order[2],order[2].isFlat,order[0].isFlat)}>
-                    {order[2].post?<PreviewPost {...getPostProps(order[2].post)} viewAs="post"/>:null}
+                    {order[2].post?<PreviewPost {...getPostProps(order[2].post)} viewAs="post" size="small"/>:null}
                     
                 </div>
                 <div css={()=>smallGrid(order[2].isFlat,order[0].isFlat)}>
                     <div style={{order:order[3].order}} 
                     css={()=>cell(order[3],order[2].isFlat,order[0].isFlat)}>
-                        {order[3].post?<PreviewPost {...getPostProps(order[3].post)} viewAs="post"/>:null}
+                        {order[3].post?<PreviewPost {...getPostProps(order[3].post)} viewAs="post" size="xsmall"/>:null}
                     </div>
                     <div style={{order:order[4].order}} 
                     css={()=>cell(order[4],order[2].isFlat,order[0].isFlat)}>
-                        {order[4].post?<PreviewPost {...getPostProps(order[4].post)} viewAs="post"/>:null}
+                        {order[4].post?<PreviewPost {...getPostProps(order[4].post)} viewAs="post" size="xsmall"/>:null}
                     </div>
                 </div>
             </div>
