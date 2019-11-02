@@ -40,6 +40,12 @@ axiosRetry(axios,
 let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
 
+
+const postsContainer = () =>css({
+    willChange:'filter',
+    transition:'filter 0.2s ease'
+})
+
 function cssPropertyValueSupported(prop, value) {
     var d = document.createElement('div');
     d.style[prop] = value;
@@ -68,7 +74,8 @@ function DisplayPosts({isFeed,posts,setPosts,
 
     function shouldPullToRefresh(){
         try{
-            return document.getElementById('mobile-content-container').scrollTop <=0
+            return document.getElementById('mobile-content-container').scrollTop <=0 &&
+            document.getElementById("leaf-preview-root").childElementCount == 0
         }catch(e){
             return true
         }
@@ -185,7 +192,6 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     useEffect(()=>{
          
         if(ref){
-             
             ref.current.scrollToRow(postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
         }
@@ -235,7 +241,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                 isScrolling={isScrolling}
                 onScroll={onChildScroll}
                 scrollTop={scrollTop}
-                rowCount={cssPropertyValueSupported('display', 'grid')?posts.length/5:posts.length}
+                rowCount={cssPropertyValueSupported('display', 'grid')?Math.ceil(posts.length/5):posts.length}
                 deferredMeasurementCache={usingCache}
                 rowHeight={usingCache.rowHeight}
                 ref={ref}
@@ -426,7 +432,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     refreshContext.refresh = refresh;
 
     return(
-        <div ref={scrollableTarget}>
+        <div ref={scrollableTarget} css={postsContainer} id="posts-container">
             <DisplayPosts isFeed={isFeed} refresh={refresh} keyword={keyword}
             updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
             posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}

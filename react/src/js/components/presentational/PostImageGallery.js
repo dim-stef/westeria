@@ -1,5 +1,5 @@
 import React, {useRef, useState,useEffect,useLayoutEffect} from "react"
-import { Prompt } from "react-router"
+import {css} from "@emotion/core"
 import history from "../../history"
 import {useTheme} from "emotion-theming";
 import {ToggleContent} from './Temporary'
@@ -28,14 +28,35 @@ Number.prototype.roundTo = function(num) {
     }
 }
 
+const previewImage = () =>css({
+    objectFit:'cover',
+    maxHeight:'100%',
+    width:'100%',
+    height:'100%',
+    
+})
+
+const mediaContainer = (image=null) =>css({
+    height:'100%',
+    width:'100%',
+    position:'relative',
+    '&:after':{
+        content:'" "',
+        position:'absolute',
+        top:0,
+        right:0,
+        left:0,
+        bottom:0,
+        zIndex:99
+    }
+})
+
 export function PreviewPostMedia({images,videos}){
     return(
-        <div style={{height:'100%',width:'100%'}}>
+        <div css={()=>mediaContainer()}>
             {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
                 thumbnail={videos[0].thumbnail}
-            />:
-            <img style={{objectFit:'cover',maxHeight:'100%',width:'100%',height:'100%'}} src={images[0].image}/>}
-            
+            />:<img className="noselect" css={previewImage} src={images[0].image}/>}
         </div>
     )
 }

@@ -987,6 +987,10 @@ div.top-spread-list{
 	        animation: slide-bottom 0.05s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;
 }
 
+.infinite-scroll-component > div > div{
+    outline: none;
+}
+
 .opacity-animation{
     -webkit-transition: opacity .10s ease-in-out;
     -moz-transition: opacity .10s ease-in-out;

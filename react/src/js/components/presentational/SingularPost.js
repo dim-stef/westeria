@@ -220,7 +220,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     )
 }
 
-export const Post = React.memo(function Post({post,parentPost=null,
+export const Post = React.memo(function Post({post,parentPost=null,down=0,
     measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
     viewAs="post",isSingular,updateTree=()=>{}}){
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
@@ -274,7 +274,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
     }
 
     return(
-        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
+        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular} down={down}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
                 <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
@@ -287,7 +287,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
     )
 })
 
-function StyledPostWrapper({post,viewAs,index,isSingular,children}){
+function StyledPostWrapper({post,down,viewAs,index,isSingular,children}){
     if(viewAs=="reply" || isSingular){
         return(
             <div id={post.id}>
@@ -296,21 +296,25 @@ function StyledPostWrapper({post,viewAs,index,isSingular,children}){
         )
     }else{
         return(
-            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id}>
+            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id} down={down}>
                 {children}
             </LinkedPostWithRouter>
         )
     }
 }
 
-function LinkedPost({history,dataIndex,id,to,children}){
+function LinkedPost({history,dataIndex,down=0,id,to,children}){
 
-    function handleClick(e){         
-        history.push(to);
+    const ref = useRef(null);
+
+    function handleClick(e){
+        if(down==ref.current.getBoundingClientRect().y){
+            history.push(to);
+        }
     }
 
     return(
-        <div className="preview-post" onClick={handleClick} data-index={dataIndex} id={id}>
+        <div className="preview-post" onClick={handleClick} data-index={dataIndex} id={id} ref={ref}>
             {children}
         </div>
     )
