@@ -278,7 +278,7 @@ export const Post = React.memo(function Post({post,parentPost=null,down=0,
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
                 <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
-                showPostedTo activeBranch={activeBranch}
+                showPostedTo activeBranch={activeBranch} down={down}
                 open={open} measure={measure} postsContext={postsContext}
                 isStatusUpdateActive={isStatusUpdateActive} isSingular={isSingular} updateTree={updateTree}
                 />

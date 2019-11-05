@@ -56,7 +56,7 @@ export function PreviewPostMedia({images,videos}){
         <div css={()=>mediaContainer()}>
             {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
                 thumbnail={videos[0].thumbnail}
-            />:<img className="noselect" css={previewImage} src={images[0].image}/>}
+            />:<img className="noselect" css={previewImage} src={images[0].image} draggable="false"/>}
         </div>
     )
 }
@@ -236,6 +236,7 @@ function getScrollbarWidth() {
 function ImageComponent({src,maxHeight,imgWidth,height}){
 
     function handleModalOpen(e,show){
+
         e.stopPropagation();
         show();
         document.body.style.overflowY = 'hidden';
@@ -244,7 +245,6 @@ function ImageComponent({src,maxHeight,imgWidth,height}){
         {
             window.history.pushState({urlPath:"#"},"",'#')
         }
-        //history.push(history.location.pathname)
     }
 
     function handleModalClose(e,hide){
@@ -284,7 +284,7 @@ function ImageComponent({src,maxHeight,imgWidth,height}){
                         height="100%"
                         >
                         
-                            <img onClick={e=>{
+                            <img draggable="false" onClick={e=>{
                                 handleModalOpen(e,show)
                                 }} style={{width:'100%',
                             objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
