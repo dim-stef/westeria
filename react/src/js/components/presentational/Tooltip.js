@@ -131,7 +131,7 @@ export function Tooltip({index,setIndex,position,children}){
     }
 
     return(
-        <div style={{position:'absolute',left:position.left, top:position.top,zIndex:231}}>
+        <div style={{position:'absolute',left:position.left, top:position.top,zIndex:231}} name="tooltip">
             <div css={tooltipCss}>
                 {children}
                 <button onClick={handleClick} css={gotIt}>Got it</button>

@@ -712,6 +712,7 @@ div.route-section {
 }*/
 .preview-post{
     cursor:pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 /*@media (hover: none) {
    [postState="closed"] {

@@ -175,6 +175,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     const [previousWidth,setPreviousWidth] = useState(0);
     let usingCache = cache //default;
     const [listLength,setListLength] = useState(1);
+    let supportsGrid = cssPropertyValueSupported('display', 'grid');
     if(postsContext.content=="feed"){
         usingCache = cache;
     }else if(postsContext.content=="all"){
@@ -192,7 +193,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     useEffect(()=>{
          
         if(ref){
-            ref.current.scrollToRow(postsContext.lastVisibleIndex);
+            ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
         }
     },[keyword])
@@ -241,7 +242,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                 isScrolling={isScrolling}
                 onScroll={onChildScroll}
                 scrollTop={scrollTop}
-                rowCount={cssPropertyValueSupported('display', 'grid')?Math.ceil(posts.length/5):posts.length}
+                rowCount={supportsGrid?Math.ceil(posts.length/5):posts.length}
                 deferredMeasurementCache={usingCache}
                 rowHeight={usingCache.rowHeight}
                 ref={ref}
@@ -270,8 +271,10 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                             key={key}
                             style={style}
                             >
+                                {supportsGrid?
                                 <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
-                                postsContext={postsContext} measure={measure}/>
+                                postsContext={postsContext} measure={measure}/>:
+                                <li><Post {...props} index={index} measure={measure}/></li>}
                                 {/*<li><Post {...props} index={index} measure={measure}/></li>*/}
                             </div>
                         )}

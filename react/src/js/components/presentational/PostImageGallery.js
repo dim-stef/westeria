@@ -30,10 +30,11 @@ Number.prototype.roundTo = function(num) {
 
 const previewImage = () =>css({
     objectFit:'cover',
-    maxHeight:'100%',
     width:'100%',
     height:'100%',
-    
+    minHeight:'100%',
+    maxHeight:'100%',
+    display:'flex'
 })
 
 const mediaContainer = (image=null) =>css({
@@ -286,7 +287,7 @@ function ImageComponent({src,maxHeight,imgWidth,height}){
                         
                             <img draggable="false" onClick={e=>{
                                 handleModalOpen(e,show)
-                                }} style={{width:'100%',
+                                }} style={{width:'100%',minHeight:'100%',
                             objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
                             {/*,position:'absolute',
                             top:'50%',right:'50%',transform:'translate(50%,-50%)' */}

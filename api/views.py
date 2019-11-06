@@ -57,7 +57,7 @@ class FollowedByPagination(PageNumberPagination):
     page_size = 15
 
 class ReplyTreePagination(CursorPagination):
-    page_size = 4
+    page_size = 5
 
 class NotificationsPagination(CursorPagination):
     page_size = 15

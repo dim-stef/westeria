@@ -166,16 +166,15 @@ function Trending(){
 
     return(
         <>
-        <Grid/>
         <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
             {branches.length>0?
             branches.map(b=>{
                 return  <div key={`${b.id}-trending`} className="branch-container" 
-                        css={theme=>searchList(theme)}>
-                            <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
-                            branch={b}/>
-                            <BranchFooter branch={b}/>
-                        </div>
+                    css={theme=>searchList(theme)}>
+                        <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
+                        branch={b}/>
+                        <BranchFooter branch={b}/>
+                    </div>
             }):null}
         </div>
         <div className="flex-fill center-items">

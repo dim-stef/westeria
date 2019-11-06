@@ -1,6 +1,9 @@
 import React, {useState,useEffect,useLayoutEffect,useCallback,useRef,useContext} from "react";
 import { createPortal } from 'react-dom';
-import { useSpring, useTransition, animated, interpolate } from 'react-spring'
+import {Link} from "react-router-dom"
+import history from "../../history"
+import { useSpring, useTransition, animated, interpolate } from 'react-spring/web.cjs'
+import Tappable from 'react-tappable';
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
 import {css} from "@emotion/core";
@@ -9,6 +12,7 @@ import LinesEllipsis from 'react-lines-ellipsis'
 import {Images, PreviewPostMedia} from './PostImageGallery'
 import {Post} from "./SingularPost"
 import {ReplyTree} from './Comments'
+import {SmallCard} from './Card'
 import {SingularPostContext,UserContext} from "../container/ContextContainer"
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
@@ -20,7 +24,7 @@ const MyRipples = createRipples({
 
 const postCss = theme =>css({
     border:`1px solid ${theme.borderColor}`,
-    display:'grid',
+    display:'flex',
     height:'100%',
     position:'relative',
     borderRadius:15,
@@ -42,6 +46,9 @@ const postedToImage = (size) =>css({
     zIndex:33,
     width:size=='xsmall' || size=='small'?20:40,
     height:size=='xsmall' || size=='small'?20:40,
+    '&:hover':{
+        cursor:'pointer'
+    }
 })
 
 const zoom = () =>css({
@@ -70,7 +77,7 @@ const openPreviewPost = theme =>css({
 const bubbleBox = (theme,height=100) =>css({
     zIndex:23122,
     position:'fixed',
-    top:0,
+    top:20,
     left:0,
     right:0,
     marginLeft:'auto',
@@ -86,13 +93,18 @@ const bubbleBox = (theme,height=100) =>css({
     }
 })
 
+
+document.addEventListener('gesturestart', e => e.preventDefault())
+document.addEventListener('gesturechange', e => e.preventDefault())
+
 export function PreviewPost({post,viewAs,size}){
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
     const ref = useRef(null);
     const imageRef = useRef(null);
     const zoomRef = useRef(null);
-    const previewPostRef = useRef(null)
+    const previewPostRef = useRef(null);
+    const preventScrollRef = useRef(null)
     const [imageWidth,setImageWidth] = useState(0);
     const [textPosition,setTextPosition] = useState(0);
     const [postShown,setPostShown] = useState(false);
@@ -176,22 +188,44 @@ export function PreviewPost({post,viewAs,size}){
         }
     }))
 
+
+    function preventDefault(e){
+        e.preventDefault();
+    }
+
+    function disableScroll(){
+        document.body.addEventListener('touchmove', preventDefault, { passive: false });
+    }
+    function enableScroll(){
+        document.body.removeEventListener('touchmove', preventDefault);
+    }
+
     useEffect(()=>{
         set(()=>to())
 
         try{
             let scrollableContainer = document.getElementById('mobile-content-container');
             if(postShown){
-                scrollableContainer.style.overflow = 'hidden';
+                //scrollableContainer.style.overflow = 'hidden';
             }else{
-                scrollableContainer.style.overflow = 'auto';
+                //scrollableContainer.style.overflow = 'auto';
             }
         }catch(e){
             let scrollableContainer = document.getElementById('body');
             if(postShown){
-                scrollableContainer.style.overflow = 'hidden';
+                //scrollableContainer.style.overflow = 'hidden';
             }else{
+                //scrollableContainer.style.overflow = 'auto';
+            }
+        }
+
+        return()=>{
+            enableScroll();
+            try{
+                let scrollableContainer = document.getElementById('mobile-content-container');
                 scrollableContainer.style.overflow = 'auto';
+            }catch(e){
+
             }
         }
     },[postShown])
@@ -199,20 +233,31 @@ export function PreviewPost({post,viewAs,size}){
     const initTo = to().y
     // 1. Define the gesture
     const bind = useDrag(({ down,initial, movement: [mx,my], direction: [xDir,yDir], velocity}) => {
-        const trigger = velocity > 0.2 && Math.abs(xDir) < 0.5 // If you flick hard enough it should trigger the card to fly out
+        const trigger = velocity > 0.2 && (Math.abs(my) > 60 || Math.abs(xDir) < 0.5) // If you flick hard enough it should trigger the card to fly out
         const dir = yDir < 0 ? -1 : 1 // Direction should either point left or right
-        if (down && my!=0){
-            previewPostRef.current.style.pointerEvents = 'none';
-        }else{
-            previewPostRef.current.style.pointerEvents = null;
+        try{
+            if (down && my!=0){
+                previewPostRef.current.style.pointerEvents = 'none';
+            }else{
+                previewPostRef.current.style.pointerEvents = null;
+            }
+        }catch(e){
+
         }
         
+        if (down){
+            disableScroll();
+            document.body.classList.add('noselect');
+        }else{
+            enableScroll();
+            document.body.classList.remove('noselect');
+        }
+
         if (!down && trigger && dir==-1) shotUp.current = true// If button/finger's up and trigger velocity is reached, we flag the card ready to fly out
         if (!down && trigger && dir==1) {
             shotDown.current = true;
             commentsActive.current = true;
         }
-
 
         try{
             let commentBox = document.getElementById("comment-box");
@@ -222,7 +267,7 @@ export function PreviewPost({post,viewAs,size}){
                 commentBox.style.overflow = 'auto';
             }
         }catch(e){
-            
+
         }
         
         set(() => {
@@ -255,12 +300,57 @@ export function PreviewPost({post,viewAs,size}){
         })
     })
 
+    // Sometimes after mobile scroll taps are not registered on the corresponding elements
+    // Click on document works though so we have to manually create a 'click' event
+    // and compare mouse positions to element positions
+    function handleDocumentClick(e){
+        try{
+            let postRect = ref.current.getBoundingClientRect();
+            if(document.getElementById('leaf-preview-root').childElementCount == 0 &&
+            document.getElementsByName('tooltip').length == 0){
+                if(e.pageX >= postRect.left && e.pageX <= postRect.right &&
+                e.pageY >= postRect.top && e.pageY <= postRect.bottom){
+                    handleClick();
+                }
+            }
+        }catch(e){
+
+        }
+        
+    }
+    useEffect(()=>{
+        document.addEventListener('click',handleDocumentClick)
+
+        return ()=>{
+            document.removeEventListener('click',handleDocumentClick)
+        }
+    },[])
+
+    useEffect(()=>{
+        if(previewPostRef.current){
+            previewPostRef.current.addEventListener('touchstart',preventDefault)
+        }
+
+        return()=>{
+            if(previewPostRef.current){
+                previewPostRef.current.removeEventListener('touchstart',preventDefault)
+            }
+        }
+    },[previewPostRef])
+
+    
     return (
         <>
         <div css={theme=>postCss(theme)} ref={ref}>
-            <img className="post-profile-picture round-picture double-border noselect" 
-            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}/>
-            <MyRipples>
+            <SmallCard branch={post.posted_to[0]} containerWidth={ref.current?ref.current.clientWidth:null}>
+                <img className="post-profile-picture round-picture double-border noselect" 
+                src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
+                    onClick={(e)=>{
+                        e.stopPropagation();
+                        history.push(`/${post.posted_to[0].uri}`);
+                    }}
+                />
+            </SmallCard>
                 <div css={zoom} ref={zoomRef} onClick={handleClick}>
                     {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
                     videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
@@ -271,23 +361,24 @@ export function PreviewPost({post,viewAs,size}){
                         maxLine='3'
                         ellipsis='...'
                         trimRight
-                        basedOn='letters'
-                    />:null}
+                        basedOn='letters'/>:null}
                 </div>
-            </MyRipples>
         </div>
         
 
         {createPortal(
-                postShown?<animated.div>
+                postShown?<div>
                     {commentsShown?
                     <AnimatedCommentBox post={post} offset={200}/>:null}
-                    <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef} id="preview-post"
-                    {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
-                        <Post post={post} postsContext={postsContext} down={initTo}
-                        activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
-                    </animated.div>
-                </animated.div>:null
+                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef} id="preview-post" 
+                        {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
+                            <div ref={preventScrollRef}
+                            style={{touchAction:'none'}} touchAction="none">
+                                <Post post={post} postsContext={postsContext} down={initTo}
+                                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
+                            </div>
+                        </animated.div>
+                    </div>:null
             ,document.getElementById("leaf-preview-root"))
         }
         </>
@@ -327,7 +418,7 @@ function CommentBox({post,postsContext,activeBranch,parentRef}){
 
     return(
         <InfiniteScroll
-        scrollableTarget={parentRef.current}
+        scrollableTarget='comment-box'
         dataLength={replyTrees.length}
         next={()=>fetchData(post)}
         hasMore={hasMore}
@@ -360,9 +451,9 @@ function AnimatedCommentBox({post,offset}){
     const commentRef = useRef(null);
     const hasPressed = useRef(null);
     const shotUp = useRef(null);
-    const [height,setHeight] = useState(window.innerHeight - offset - 20);
-    const to = () => ({ opacity:1, x: 0, y: 0, scale: 1, rot: -10 + Math.random() * 20 })
-    const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 0 })
+    const [height,setHeight] = useState(window.innerHeight - offset - 40);
+    const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
+    const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
     const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
     const [commentProps,set,commentStop] = useSpring(()=>({from:from(),to:to(),
@@ -385,7 +476,7 @@ function AnimatedCommentBox({post,offset}){
 
         set(() => {
           const isGone = shotUp.current;
-          const y = isGone ? (commentRef.current.getBoundingClientRect().height) * dir : 0
+          const y = isGone ? (commentRef.current.getBoundingClientRect().height) * dir : 20
           const rot = mx / 100 + (dir * 10 * velocity)
           const scale = down ? 1 : 1
           return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : 1 ? 200 : 500 } }
@@ -396,7 +487,7 @@ function AnimatedCommentBox({post,offset}){
         <div
         ref={commentRef}
         id="comment-box"
-        css={theme=>bubbleBox(theme,height)} 
+        css={theme=>bubbleBox(theme,height)}
         style={{transform: interpolate([commentProps.rot, commentProps.scale, commentProps.y], trans)}}>
             <CommentBox post={post} postsContext={postsContext}
             activeBranch={userContext?userContext.currentBranch:post.poster}
