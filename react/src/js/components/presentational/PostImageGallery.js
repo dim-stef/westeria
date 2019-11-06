@@ -31,7 +31,7 @@ Number.prototype.roundTo = function(num) {
 const previewImage = () =>css({
     objectFit:'cover',
     width:'100%',
-    height:'100%',
+    height:0,
     minHeight:'100%',
     maxHeight:'100%',
     display:'flex'
