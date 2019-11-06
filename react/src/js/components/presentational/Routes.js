@@ -4,7 +4,6 @@ import { Global, css } from "@emotion/core";
 import styled from '@emotion/styled'
 import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming'
 import {useMediaQuery} from 'react-responsive';
-//import { useBeforeunload } from 'react-beforeunload';
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
 import Login from "./Login"
@@ -41,12 +40,11 @@ import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
 import {CSSTransition,TransitionGroup,Transition} from "react-transition-group";
 import MyBranchesColumnContainer from "./MyBranchesColumn"
-//const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
-//const FeedPosts = lazy(() => import('./BranchPosts'));
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
 import {MobileBranchPageWrapper} from "./MobileParentBranch"
 import {BranchLinks,PostLinks} from "./GoogleLinks"
 import {FeedbackPage} from "./FeedbackPage";
+import {DiscoverBranchesPage} from "./NavigateBranchesPage"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
 import axios from 'axios';
@@ -109,14 +107,6 @@ const Routes = () =>{
 }
 
 
-
-/*const GlobalStyle = createGlobalStyle`
-  body {
-    color: ${props => props.theme.textColor};
-    backgroundColor: ${props => props.theme.backgroundColor};
-  }
-`*/
-
 const makeGlobalStyles = theme => css`
   body {
     background: ${theme.backgroundColor};
@@ -136,7 +126,6 @@ const RoutesWrapper = (props) =>{
   return(
     <NotificationsProvider value={{messages:messages,setMessages:setMessages,
     notifications:notifications,setNotifications:setNotifications}}>
-      {/*<GlobalStyle/>*/}
       <GlobalStyles/>
       <Routes/>
     </NotificationsProvider>
@@ -175,7 +164,11 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   }
 
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    try{
+      window.scrollTo({top:0,behavior:'smooth'})
+    }catch(e){
+      window.scrollTo(0,0)
+    }
   }, [location]);
 
   return(
@@ -261,6 +254,7 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
             <AnimatedRoute path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
             <AnimatedRoute exact path='/:page(all|tree)?' render={(props)=><FrontPage {...props}/>}/>
+            <AnimatedRoute path='/search/:uri' render={(props)=><DiscoverBranchesPage {...props}/>} />
             <AnimatedRoute path='/search' component={SearchPage} />
             <AnimatedRoute path='/about' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>

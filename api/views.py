@@ -41,17 +41,14 @@ class ChildrenPagination(PageNumberPagination):
 
 
 class ChildrenLimitOffsetPagination(LimitOffsetPagination):
-    default_limit = 10
+    default_limit = 4
     max_limit = 20
 
 class BranchChatMessagePagination(CursorPagination):
     page_size = 30
 
 class BranchPostPagination(CursorPagination):
-    page_size = 15
-
-class FeedPagination(CursorPagination):
-    page_size = 12
+    page_size = 30
 
 class TrendingPagination(PageNumberPagination):
     page_size = 10
@@ -60,7 +57,7 @@ class FollowedByPagination(PageNumberPagination):
     page_size = 15
 
 class ReplyTreePagination(CursorPagination):
-    page_size = 4
+    page_size = 5
 
 class NotificationsPagination(CursorPagination):
     page_size = 15
@@ -461,7 +458,7 @@ from datetime import datetime,timedelta
 
 
 class GenericPostList(viewsets.GenericViewSet, mixins.ListModelMixin,mixins.RetrieveModelMixin):
-    pagination_class = FeedPagination
+    pagination_class = BranchPostPagination
     filter_backends = (filters.OrderingFilter,)
     ordering_fields = ('hot_score', 'created')
     ordering = ('-hot_score',)

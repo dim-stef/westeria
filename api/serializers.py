@@ -17,6 +17,7 @@ from random import uniform
 from uuid import uuid4
 import json
 from datetime import datetime, timedelta
+import math
 
 
 temp_path = os.path.join(os.path.expanduser('~'), 'temp_thumbnails')
@@ -474,6 +475,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
     replies_count = serializers.SerializerMethodField()
     spreads_count = serializers.SerializerMethodField()
     matches = serializers.SerializerMethodField()
+    engagement = serializers.SerializerMethodField()
 
     def get_posted_to_uri(self,post):
         uri_list = []
@@ -592,6 +594,29 @@ class BranchPostSerializer(serializers.ModelSerializer):
                     'nodes':[]
                 }
 
+    def get_engagement(self, post):
+        difference = post.reacts.filter(type="star").count() - post.reacts.filter(type="dislike").count()
+        react_sum = post.reacts.filter(type="star").count() + post.reacts.filter(type="dislike").count()
+        print(post.reacts.all())
+        if difference <= 0:
+            ratio = -1
+        else:
+            ratio = 1
+
+        # add 1 in case of difference being 1
+        like_score_selector = difference + 1
+
+        print("react",react_sum)
+        if ratio == 1:
+            like_score = math.log(max(react_sum + 1, 1) * 10, 10)
+        else:
+            like_score = math.log(max(react_sum + 1, 1) * 20, 20)
+
+        print(like_score)
+        comment_score = math.log(max(post.replies.count(), 3), 3) * like_score
+        order = comment_score
+        return order
+
     class Meta:
         model = Post
         fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
@@ -599,7 +624,7 @@ class BranchPostSerializer(serializers.ModelSerializer):
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner','description',
                   'replied_to','replies','replies_count','spreads_count',
-                  'level','stars','dislikes','hot_score','images','videos','thumbnails','matches')
+                  'level','stars','dislikes','hot_score','images','videos','thumbnails','matches','engagement')
         read_only_fields = ('level',)
 
 

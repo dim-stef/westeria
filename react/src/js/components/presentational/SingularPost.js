@@ -220,9 +220,8 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     )
 }
 
-export const Post = React.memo(function Post({post,parentPost=null,
-    measure=()=>{},postsContext,posts,setPosts,
-    isOpen=false,index,activeBranch,lastComment,
+export const Post = React.memo(function Post({post,parentPost=null,down=0,
+    measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
     viewAs="post",isSingular,updateTree=()=>{}}){
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
 
@@ -275,11 +274,11 @@ export const Post = React.memo(function Post({post,parentPost=null,
     }
 
     return(
-        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular}>
+        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular} down={down}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
                 <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
-                showPostedTo activeBranch={activeBranch}
+                showPostedTo activeBranch={activeBranch} down={down}
                 open={open} measure={measure} postsContext={postsContext}
                 isStatusUpdateActive={isStatusUpdateActive} isSingular={isSingular} updateTree={updateTree}
                 />
@@ -288,7 +287,7 @@ export const Post = React.memo(function Post({post,parentPost=null,
     )
 })
 
-function StyledPostWrapper({post,viewAs,index,isSingular,children}){
+function StyledPostWrapper({post,down,viewAs,index,isSingular,children}){
     if(viewAs=="reply" || isSingular){
         return(
             <div id={post.id}>
@@ -297,21 +296,25 @@ function StyledPostWrapper({post,viewAs,index,isSingular,children}){
         )
     }else{
         return(
-            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id}>
+            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id} down={down}>
                 {children}
             </LinkedPostWithRouter>
         )
     }
 }
 
-function LinkedPost({history,dataIndex,id,to,children}){
+function LinkedPost({history,dataIndex,down=0,id,to,children}){
 
-    function handleClick(e){         
-        history.push(to);
+    const ref = useRef(null);
+
+    function handleClick(e){
+        if(down==ref.current.getBoundingClientRect().y){
+            history.push(to);
+        }
     }
 
     return(
-        <div className="preview-post" onClick={handleClick} data-index={dataIndex} id={id}>
+        <div className="preview-post" onClick={handleClick} data-index={dataIndex} id={id} ref={ref}>
             {children}
         </div>
     )
@@ -381,8 +384,8 @@ function is_touch_device() {
     return mq(query);
 }
 
-function StyledPost({post,posts,setPosts,postsContext,date,cls,showPostedTo,
-    activeBranch,open,updateTree,measure,viewAs,isSingular,unbounded,initRipple,className,children}){
+function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
+    activeBranch,open,updateTree,measure,viewAs,isSingular,className,children}){
 
     const context = useContext(UserContext);
     const theme = useTheme();
@@ -609,7 +612,7 @@ function PostBody({post,text, images,postsContext , videos, postRef,measure, act
             videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
             {embeddedPost? <Post post={embeddedPost} parentPost={post} postsContext={postsContext} 
             measure={measure} activeBranch={activeBranch} 
-            lastComment={false} viewAs="embeddedPost"></Post> :null}
+            lastComment={false} viewAs="embeddedPost"></Post>:null}
         </div>
     )
 }

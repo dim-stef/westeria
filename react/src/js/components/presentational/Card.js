@@ -195,8 +195,8 @@ export function FollowButton({id,uri,style=null}){
 }
 
 
-const smallCardContainer = theme => css({
-    width:300,height:'auto',position:'absolute',
+const smallCardContainer = (theme,width) => css({
+    maxWidth:300,width:width || 300,height:'auto',position:'absolute',
     boxShadow:'0px 1px 6px -3px',top:50,backgroundColor:theme.backgroundColor,
     borderRadius:30,zIndex:50,padding:10,cursor:'auto'
 })
@@ -220,7 +220,7 @@ const cardNumber = theme => css({
 import {useMediaQuery} from 'react-responsive'
 
 
-export function SmallCard({branch,hoverable=true,children}){
+export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
     })
@@ -251,12 +251,12 @@ export function SmallCard({branch,hoverable=true,children}){
     }
 
     return(
-        <div style={{position:'relative'}}>
+        <div style={{position:'relative',zIndex:1000}}>
         {React.Children.map(children, (child, i) => {
             return React.cloneElement(child, { onMouseEnter:isMobile || !hoverable?null:handleMouseEnter,
             onMouseLeave:isMobile || !hoverable?null:handleMouseLeave })
         })}
-        {showCard?<div css={theme=>smallCardContainer(theme)} onClick={onClick}
+        {showCard?<div css={theme=>smallCardContainer(theme,containerWidth)} onClick={onClick}
         onMouseEnter={isMobile || !hoverable?null:handleMouseEnter} onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}>
             <div
                 style={{position:'relative'}} className="noselect small-branch-container flex-fill">

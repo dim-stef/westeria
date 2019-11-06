@@ -166,7 +166,6 @@ class BranchSerializer(serializers.ModelSerializer):
                     # to simulate a "path"
 
                     data.append(l[:5] + r[1:5])
-                    print(data)
                 else:
                     # if starting branch is defined we need the whole left path as is
                     # but also show 5 children just for visual presentation

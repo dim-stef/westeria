@@ -4,6 +4,7 @@ import {useTheme} from "emotion-theming";
 import {Helmet} from 'react-helmet'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
+import {Grid} from "./Grid"
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 
@@ -169,12 +170,11 @@ function Trending(){
             {branches.length>0?
             branches.map(b=>{
                 return  <div key={`${b.id}-trending`} className="branch-container" 
-                        css={theme=>searchList(theme)}>
-                            <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
-                            branch={b}/>
-                            <BranchFooter branch={b}/>
-                        </div>
-                       
+                    css={theme=>searchList(theme)}>
+                        <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
+                        branch={b}/>
+                        <BranchFooter branch={b}/>
+                    </div>
             }):null}
         </div>
         <div className="flex-fill center-items">

@@ -28,6 +28,7 @@ import {Post} from './SingularPost';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
+import {Grid} from "./Grid"
 import {useMediaQuery} from 'react-responsive'
 
 axiosRetry(axios, 
@@ -38,6 +39,18 @@ axiosRetry(axios,
 
 let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
+
+
+const postsContainer = () =>css({
+    willChange:'filter',
+    transition:'filter 0.2s ease'
+})
+
+function cssPropertyValueSupported(prop, value) {
+    var d = document.createElement('div');
+    d.style[prop] = value;
+    return d.style[prop] === value;
+}
 
 function resetPostListContext(postsContext,props){
     postsContext.hasMore = true;
@@ -61,7 +74,8 @@ function DisplayPosts({isFeed,posts,setPosts,
 
     function shouldPullToRefresh(){
         try{
-            return document.getElementById('mobile-content-container').scrollTop <=0
+            return document.getElementById('mobile-content-container').scrollTop <=0 &&
+            document.getElementById("leaf-preview-root").childElementCount == 0
         }catch(e){
             return true
         }
@@ -161,6 +175,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     const [previousWidth,setPreviousWidth] = useState(0);
     let usingCache = cache //default;
     const [listLength,setListLength] = useState(1);
+    let supportsGrid = cssPropertyValueSupported('display', 'grid');
     if(postsContext.content=="feed"){
         usingCache = cache;
     }else if(postsContext.content=="all"){
@@ -178,8 +193,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     useEffect(()=>{
          
         if(ref){
-             
-            ref.current.scrollToRow(postsContext.lastVisibleIndex);
+            ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
         }
     },[keyword])
@@ -228,7 +242,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                 isScrolling={isScrolling}
                 onScroll={onChildScroll}
                 scrollTop={scrollTop}
-                rowCount={posts.length}
+                rowCount={supportsGrid?Math.ceil(posts.length/5):posts.length}
                 deferredMeasurementCache={usingCache}
                 rowHeight={usingCache.rowHeight}
                 ref={ref}
@@ -237,13 +251,8 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                     let post = posts[index];
                     let isOpen = postsContext.openPosts.some(id=> id == post.id)
                     let props = {
-                        isOpen:isOpen,
                         post:post,
-                        posts:posts,
-                        setPosts:setPosts,
                         key:[post.id,post.spreaders,postsContext.content],
-                        removeFromEmphasized:null,
-                        showPostedTo:showPostedTo?true:false,
                         viewAs:"post",
                         activeBranch:activeBranch,
                         postsContext:postsContext
@@ -262,7 +271,11 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                             key={key}
                             style={style}
                             >
-                                <li><Post {...props} index={index} measure={measure} minimized/></li>
+                                {supportsGrid?
+                                <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
+                                postsContext={postsContext} measure={measure}/>:
+                                <li><Post {...props} index={index} measure={measure}/></li>}
+                                {/*<li><Post {...props} index={index} measure={measure}/></li>*/}
                             </div>
                         )}
                     </CellMeasurer>
@@ -422,7 +435,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     refreshContext.refresh = refresh;
 
     return(
-        <div ref={scrollableTarget}>
+        <div ref={scrollableTarget} css={postsContainer} id="posts-container">
             <DisplayPosts isFeed={isFeed} refresh={refresh} keyword={keyword}
             updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
             posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}

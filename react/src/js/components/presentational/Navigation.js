@@ -98,7 +98,7 @@ const navBarPositioner = theme => css({
     width: "100%",
     backgroundColor: theme.backgroundColor,
     maxWidth:1200,
-    zIndex: 5,
+    zIndex: 1001,
     top:0,
     left:0,
     right:0,
@@ -171,7 +171,7 @@ const mobileNavBarPositioner = theme => css({
     position: 'fixed',
     width: '100%',
     backgroundColor: theme.backgroundColor,
-    zIndex: 5,
+    zIndex: 1001,
     alignItems: 'center',
     bottom: 0
 })
@@ -259,17 +259,29 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
         }
     },[touchCoordinates]);
 
+    function handleSendToTop(){
+        if(location.pathname==='/'){
+            let scrollElement = document.getElementById('mobile-content-container')
+            try{
+                scrollElement.scrollTo({top:0,behavior:'smooth'})
+            }catch(e){
+                scrollElement.scrollTop = 0
+            }
+        }
+    }
 
     return(
         <div ref={navRef} className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
-            <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
-            activeClassName="active-tab-route"
-            activeStyle={activeStyle}
-            css={theme=>mobileNavBarContainer(theme)}>
-                <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                    <Home/>
-                </div>
-            </NavLink>
+            <div style={{width:'100%',height:'100%',paddingBottom:2}} onClick={handleSendToTop}>
+                <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
+                activeClassName="active-tab-route"
+                activeStyle={activeStyle}
+                css={theme=>mobileNavBarContainer(theme)}>
+                    <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                        <Home/>
+                    </div>
+                </NavLink>
+            </div>
             <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill center-items"
             activeClassName="active-tab-route" activeStyle={activeStyle}
             css={theme=>mobileNavBarContainer(theme)}>

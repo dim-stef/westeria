@@ -1,5 +1,5 @@
 import React, {useRef, useState,useEffect,useLayoutEffect} from "react"
-import { Prompt } from "react-router"
+import {css} from "@emotion/core"
 import history from "../../history"
 import {useTheme} from "emotion-theming";
 import {ToggleContent} from './Temporary'
@@ -26,6 +26,40 @@ Number.prototype.roundTo = function(num) {
     } else {
         return this+num-resto;
     }
+}
+
+const previewImage = () =>css({
+    objectFit:'cover',
+    width:'100%',
+    height:'100%',
+    minHeight:'100%',
+    maxHeight:'100%',
+    display:'flex'
+})
+
+const mediaContainer = (image=null) =>css({
+    height:'100%',
+    width:'100%',
+    position:'relative',
+    '&:after':{
+        content:'" "',
+        position:'absolute',
+        top:0,
+        right:0,
+        left:0,
+        bottom:0,
+        zIndex:99
+    }
+})
+
+export function PreviewPostMedia({images,videos}){
+    return(
+        <div css={()=>mediaContainer()}>
+            {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
+                thumbnail={videos[0].thumbnail}
+            />:<img className="noselect" css={previewImage} src={images[0].image} draggable="false"/>}
+        </div>
+    )
 }
 
 export function Images(props){
@@ -163,8 +197,7 @@ export function Images(props){
 }
 
 //disablepictureinpicture controlslist="nodownload"
-function VideoComponent({src,thumbnail,width}){
-    let height = width / (16/9);
+function VideoComponent({src,thumbnail}){
 
     return(
         <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container">
@@ -201,9 +234,10 @@ function getScrollbarWidth() {
 }
 
 
-function ImageComponent({src,maxHeight,width,imgWidth,height}){
+function ImageComponent({src,maxHeight,imgWidth,height}){
 
     function handleModalOpen(e,show){
+
         e.stopPropagation();
         show();
         document.body.style.overflowY = 'hidden';
@@ -212,7 +246,6 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
         {
             window.history.pushState({urlPath:"#"},"",'#')
         }
-        //history.push(history.location.pathname)
     }
 
     function handleModalClose(e,hide){
@@ -252,9 +285,9 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
                         height="100%"
                         >
                         
-                            <img onClick={e=>{
+                            <img draggable="false" onClick={e=>{
                                 handleModalOpen(e,show)
-                                }} style={{width:'100%',
+                                }} style={{width:'100%',minHeight:'100%',
                             objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
                             {/*,position:'absolute',
                             top:'50%',right:'50%',transform:'translate(50%,-50%)' */}
