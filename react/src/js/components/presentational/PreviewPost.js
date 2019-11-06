@@ -306,8 +306,21 @@ export function PreviewPost({post,viewAs,size}){
     function handleDocumentClick(e){
         try{
             let postRect = ref.current.getBoundingClientRect();
+            let navigationRect = null;
+            try{
+                navigationRect = document.getElementById('mobile-nav-bar').getBoundingClientRect();
+            }catch(e){
+
+            }
+
+            let inNavigation = false;
+            if(e.pageX >= navigationRect.left && e.pageX <= navigationRect.right &&
+                e.pageY >= navigationRect.top && e.pageY <= navigationRect.bottom){
+                inNavigation = true;
+            }
+
             if(document.getElementById('leaf-preview-root').childElementCount == 0 &&
-            document.getElementsByName('tooltip').length == 0){
+            document.getElementsByName('tooltip').length == 0 && !inNavigation){
                 if(e.pageX >= postRect.left && e.pageX <= postRect.right &&
                 e.pageY >= postRect.top && e.pageY <= postRect.bottom){
                     handleClick();
@@ -355,13 +368,7 @@ export function PreviewPost({post,viewAs,size}){
                     {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
                     videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
                     
-                    {post.text?<LinesEllipsis
-                        text={post.text}
-                        className="noselect" css={theme=>text(theme,textPosition,size)}
-                        maxLine='3'
-                        ellipsis='...'
-                        trimRight
-                        basedOn='letters'/>:null}
+                    {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
                 </div>
         </div>
         
