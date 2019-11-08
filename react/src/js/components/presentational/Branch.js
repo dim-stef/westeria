@@ -13,7 +13,7 @@ export function ChildBranch({styleName='', style=null, branch, editMode, childre
         <>
         <div className="flex-fill" style={{marginTop:style.marginTop,
         marginBottom:style.marginBottom,
-        flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis}}>
+        flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis,zIndex:1}}>
             <Link to={"/" + branch.uri} className={`${ styleName }`} style={{width:style.width}}>
                 <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
             </Link>
@@ -37,32 +37,14 @@ const uri = theme => css({
 
 export function SmallBranch({branch,isLink=true,
     onClick=()=>{},hoverable=true,style=null,children}){
-    const [showCard,setShowCard] = useState(false);
-    let setTimeoutConst;
-    let setTimeoutConst2;
 
-    function handleMouseEnter(){
-        clearTimeout(setTimeoutConst2)
-
-        setTimeoutConst = setTimeout(()=>{
-            setShowCard(true);
-        },500)
-    }
-
-    function handleMouseLeave(){
-        clearTimeout(setTimeoutConst)
-
-        setTimeoutConst2 = setTimeout(()=>{
-            setShowCard(false);
-        },500)
-    }
 
     return(
         <>
         <SmallCard branch={branch} hoverable={hoverable}>
         <div
         onClick={onClick}
-         style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+        style={{position:'relative'}} className="noselect small-branch-container flex-fill">
             <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
                 <div className="flex-fill center-items"
                 >

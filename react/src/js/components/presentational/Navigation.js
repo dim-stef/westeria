@@ -1,7 +1,8 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {Link, NavLink} from "react-router-dom"
 import { css } from "@emotion/core";
-import {useTheme as useEmotionTheme} from "emotion-theming";
+import {useTheme as useEmotionTheme} from "emotion-theming"
+import { createRipples } from 'react-ripples';
 import {NotificationsContext, UserContext} from "../container/ContextContainer"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
@@ -13,6 +14,11 @@ import {useTheme} from "../container/ThemeContainer";
 import {askForPermissionToReceiveNotifications} from '../../push-notification';
 import history from "../../history"
 import axios from 'axios'
+
+const Ripple = createRipples({
+    color: '#607d8b21',
+    during: 600,
+})
 
 export function ResponsiveNavigationBar(){
     const notificationsContext = useContext(NotificationsContext);
@@ -122,38 +128,45 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
         <div css={theme=>navBarPositioner(theme)}
         >
             <div className="flex-fill" css={theme=>navBarContainer(theme)}>
-                <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill nav-icon-container center-items"
-                activeStyle={activeStyle} activeClassName="active-tab-route"
-                style={style}>
-                    <Home/>
-                </NavLink>
-                <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
-                style={style} activeStyle={activeStyle}>
-                    <SearchSvg/>
-                </NavLink>
+                <Ripple>
+                    <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill nav-icon-container center-items"
+                    activeStyle={activeStyle} activeClassName="active-tab-route"
+                    style={style}>
+                        <Home/>
+                    </NavLink>
+                </Ripple>
+                <Ripple>
+                    <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
+                    style={style} activeStyle={activeStyle}>
+                        <SearchSvg/>
+                    </NavLink>
+                </Ripple>
                 {context.isAuth?
-                    <NavLink to={{pathname:"/notifications",state:'notifications'}}
-                    activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
-                    style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
-                        <NotificationsContainer inBox/>
-                    </NavLink>:null
+                    <Ripple>
+                        <NavLink to={{pathname:"/notifications",state:'notifications'}}
+                        activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
+                        style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
+                            <NotificationsContainer inBox/>
+                        </NavLink>
+                    </Ripple>:null
                 }
 
                 {context.isAuth?
-                    <NavLink to={{pathname:"/messages",state:'messages'}} 
-                    activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
-                    style={style} activeStyle={activeStyle} onClick={readAllMessages}>
-                    <div style={{position:'relative'}}>
-                    <Messages/>
-                    {notificationsContext.messages.filter(n=>n.unread==true).length>0?
-                        <span className="new-circle">
+                    <Ripple>
+                        <NavLink to={{pathname:"/messages",state:'messages'}} 
+                        activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
+                        style={style} activeStyle={activeStyle} onClick={readAllMessages}>
+                        <div style={{position:'relative'}}>
+                        <Messages/>
+                        {notificationsContext.messages.filter(n=>n.unread==true).length>0?
+                            <span className="new-circle">
 
-                        </span>:null}
-                    </div>
-                        
-                    </NavLink>:null
+                            </span>:null}
+                        </div>
+                            
+                        </NavLink>
+                    </Ripple>:null
                 }
-                
                 <div className="flex-fill center-items"
                 style={style}>
                     <Profile/>
@@ -177,6 +190,7 @@ const mobileNavBarPositioner = theme => css({
 })
 
 const mobileNavBarContainer = theme => css({
+    boxSizing:'border-box',
     borderTop:`2px solid ${theme.borderColor}`,
     height:'100%',
     width:'100%',
@@ -196,68 +210,6 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const [touchCoordinates,setCoordinates] = useState(null)
     let activeStyle={borderTop:'2px solid #2397f3'};
 
-    function handleSendToTop(){
-        if(window.scrollY > 0){
-            try{
-                // safari browsers crash here
-                window.scrollTo({top:0,behavior:'smooth'})
-            }catch(e){
-                window.scroll(0,0)
-            }
-        }
-    }
-
-    function listenForNavTouches(e){
-        let x = e.changedTouches[0].clientX;
-        let y = e.changedTouches[0].clientY
-        let coordinates = {
-            x:x,
-            y:y
-        }
-        // 
-        // 
-        // 
-        setCoordinates({...coordinates})
-    }
-
-    useEffect(()=>{
-
-        if(touchCoordinates && touchCoordinates.y > window.innerHeight - navRef.current.clientHeight){
-            let homeRect = homeRef.current.getBoundingClientRect();
-            let messRect = null;
-            let notRect = null;
-            if(messRef.current && notRef.current){
-                messRect = messRef.current.getBoundingClientRect();
-                notRect = notRef.current.getBoundingClientRect();
-            }
-           
-            let searchRect = searchRef.current.getBoundingClientRect();
-            let profRect = profRef.current.getBoundingClientRect();
-
-            /*if(touchCoordinates.x >= homeRect.left && touchCoordinates.x <= homeRect.right){
-                //history.push(homeRef.current.parentElement.getAttribute("href"))
-            }
-            if(messRef.current){
-                if(touchCoordinates.x >= messRect.left && touchCoordinates.x <=messRect.right){
-                    history.push(messRef.current.parentElement.getAttribute("href"))
-                }
-            }
-            
-            if(notRef.current){
-                if(touchCoordinates.x >= notRect.left && touchCoordinates.x <=notRect.right){
-                    history.push(notRef.current.parentElement.getAttribute("href"))
-                }
-            }
-            
-            if(touchCoordinates.x >= searchRect.left && touchCoordinates.x <=searchRect.right){
-                history.push(searchRef.current.parentElement.getAttribute("href"))
-            }
-            if(touchCoordinates.x >= profRect.left && touchCoordinates.x <=profRect.right){
-                //history.push(profRef.current.parentElement.getAttribute("href"))
-                setDrawerOpen(true);
-            }*/
-        }
-    },[touchCoordinates]);
 
     function handleSendToTop(){
         if(location.pathname==='/'){
@@ -272,52 +224,60 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
 
     return(
         <div ref={navRef} className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
-            <div style={{width:'100%',height:'100%',paddingBottom:2}} onClick={handleSendToTop}>
-                <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
-                activeClassName="active-tab-route"
-                activeStyle={activeStyle}
+            <div style={{width:'100%',height:'100%'}} onClick={handleSendToTop}>
+                <Ripple>
+                    <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
+                    activeClassName="active-tab-route"
+                    activeStyle={activeStyle}
+                    css={theme=>mobileNavBarContainer(theme)}>
+                        <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                            <Home/>
+                        </div>
+                    </NavLink>
+                </Ripple>
+            </div>
+            <Ripple>
+                <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill center-items"
+                activeClassName="active-tab-route" activeStyle={activeStyle}
                 css={theme=>mobileNavBarContainer(theme)}>
-                    <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                        <Home/>
+                    <div ref={searchRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                        <SearchSvg/>
                     </div>
                 </NavLink>
-            </div>
-            <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill center-items"
-            activeClassName="active-tab-route" activeStyle={activeStyle}
-            css={theme=>mobileNavBarContainer(theme)}>
-                <div ref={searchRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                    <SearchSvg/>
-                </div>
-            </NavLink>
+            </Ripple>
             {context.isAuth?
-                <NavLink to={{pathname:"/notifications",state:'notifications'}}
-                className="flex-fill center-items"
-                activeClassName="active-tab-route"
-                activeStyle={activeStyle}
-                css={theme=>mobileNavBarContainer(theme)} 
-                onClick={readAllNotifications}>
-                    <div ref={notRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                        <NotificationsContainer inBox/>
-                    </div>
-                </NavLink>:null
+                <Ripple>
+                    <NavLink to={{pathname:"/notifications",state:'notifications'}}
+                    className="flex-fill center-items"
+                    activeClassName="active-tab-route"
+                    activeStyle={activeStyle}
+                    css={theme=>mobileNavBarContainer(theme)} 
+                    onClick={readAllNotifications}>
+                        <div ref={notRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                            <NotificationsContainer inBox/>
+                        </div>
+                    </NavLink>
+                </Ripple>:null
             }
 
             {context.isAuth?
-                <NavLink to={{pathname:"/messages",state:'messages'}}
-                activeClassName="active-tab-route"
-                className="flex-fill center-items"
-                activeStyle={activeStyle}
-                css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
-                    <div ref={messRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                        <div style={{position:'relative'}}>
-                            <Messages/>
-                            {notificationsContext.messages.filter(n=>n.unread==true).length>0?
-                            <span className="new-circle">
+                <Ripple>
+                    <NavLink to={{pathname:"/messages",state:'messages'}}
+                    activeClassName="active-tab-route"
+                    className="flex-fill center-items"
+                    activeStyle={activeStyle}
+                    css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
+                        <div ref={messRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                            <div style={{position:'relative'}}>
+                                <Messages/>
+                                {notificationsContext.messages.filter(n=>n.unread==true).length>0?
+                                <span className="new-circle">
 
-                            </span>:null}
+                                </span>:null}
+                            </div>
                         </div>
-                    </div>
-                </NavLink>:null
+                    </NavLink>
+                </Ripple>:null
             }
 
             <SideDrawer open={drawerOpen} setOpen={setDrawerOpen}>
@@ -416,8 +376,9 @@ function Profile(){
     };
 
     return(
-        <div ref={ref} style={{position:'relative',cursor:'pointer'}}>
-            <div onClick={handleClick} className="round-picture" style={{
+        <div ref={ref} style={{position:'relative',cursor:'pointer'}} className="flex-fill center-items" 
+        onClick={handleClick}>
+            <div className="round-picture" style={{
                 width:32,
                 height:32,
                 backgroundImage:`url(${imageUrl})`}}>

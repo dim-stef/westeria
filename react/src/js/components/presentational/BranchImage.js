@@ -1,4 +1,5 @@
 import React, {Component} from "react";
+import history from "../../history"
 import { useTheme } from 'emotion-theming'
 import {UserContext} from '../container/ContextContainer'
 import axios from 'axios'
@@ -195,8 +196,13 @@ export class BranchImageEditMenu extends Component{
 export function BranchImage({branch,className}){
     const theme = useTheme();
     let bottom = branch.description ? -170 : -80;
+
+    function handleClick(){
+        history.push(`/${branch.uri}`)
+    }
+
     return(
-        <img src={branch.branch_image} className={className} 
-        style={{bottom:bottom,border:`5px solid ${theme.backgroundColor}`}}></img>
+        <img src={branch.branch_image} className={className} onClick={handleClick}
+        style={{bottom:bottom,border:`5px solid ${theme.backgroundColor}`,cursor:'pointer'}}></img>
     )
 }

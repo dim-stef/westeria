@@ -34,6 +34,7 @@ const Modal = ({ children ,onClick}) => {
 };
 
 const mobileNavBarContainer = emotionTheme => css({
+    boxSizing:'border-box',
     borderTop:`2px solid ${emotionTheme.borderColor}`,
     height:'100%',
     width:'100%',

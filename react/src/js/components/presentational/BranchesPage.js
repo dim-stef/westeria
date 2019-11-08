@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useState, useRef,useLayoutEffect} from "re
 import {Helmet} from 'react-helmet'
 import {useMediaQuery} from "react-responsive";
 import {useTheme} from "emotion-theming";
+import {css} from "@emotion/core";
 import {ChildBranch} from "./Branch"
 import {NavLink, Route, Switch} from 'react-router-dom'
 import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
@@ -17,6 +18,9 @@ function ownsBranch(branches,target){
     })
 }
 
+const add = theme =>css({
+    border:`1px solid ${theme.borderColor}`
+})
 
 export function BranchesPageRoutes(props){
     return(
@@ -246,7 +250,7 @@ export function AddBranch({branch,type='children'}){
 
     return(
         !requestStatus?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10,cursor:'pointer'}}
+        <div className="branch-add-button branch-container flex-fill" style={{padding:10,cursor:'pointer'}} css={theme=>add(theme)}
             role="button" onClick={onClick}>  
             <AddBranchSvg width={100} height={100}/>
             <h1 className="branch-add-text">{text}</h1>
@@ -267,7 +271,7 @@ export function AddBranch({branch,type='children'}){
 function RequestOnHold({status}){
     return(
         status=='on hold'?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10}} role="button">
+        <div className="branch-add-button branch-container flex-fill" style={{padding:10}} role="button" css={theme=>add(theme)}> 
             <p style={{fontSize:'2rem',color:'#7a8c9c'}}>Request has been sent. Waiting for approval</p>
         </div>:null
     )
@@ -276,7 +280,7 @@ function RequestOnHold({status}){
 function RequestDeclined({status}){
     return(
         status=='declined'?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10}}>
+        <div className="branch-add-button branch-container flex-fill" style={{padding:10}} css={theme=>add(theme)}>
             <p style={{fontSize:'2rem',color:'#7a8c9c'}}>Request has been declined.</p>
         </div>:null
     )

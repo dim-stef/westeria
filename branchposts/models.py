@@ -111,9 +111,9 @@ class Post(models.Model):
     def clean(self):
         super().clean()
         if not self.text:
-            print("None")
+            pass
         if not self.images.exists():
-            print("not exists")
+            pass
         if not self.text and not self.images.exists():
             raise ValidationError('Field1 or field2 are both None')
 
@@ -134,15 +134,21 @@ class PostImage(models.Model):
             self.original_image = self.image
 
         im = Image.open(self.image)
-        im.load()
-        rbg_img = im.convert('RGB')
-        rbg_img.load()
-        # create a BytesIO object
-        im_io = BytesIO()
-        # save image to BytesIO object
-        rbg_img.save(im_io, 'JPEG', quality=75)
-        self.image = InMemoryUploadedFile(im_io,'ImageField', "%s.jpg" %self.image.name.split('.')[0],
-                                          'image/jpeg', im_io.getbuffer().nbytes, None)
+
+        def convert_image():
+            im.load()
+            rbg_img = im.convert('RGB')
+            rbg_img.load()
+            im_io = BytesIO()
+            rbg_img.save(im_io, 'JPEG', quality=75)
+            self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
+                                              'image/jpeg', im_io.getbuffer().nbytes, None)
+
+        try:
+            if not im.is_animated:
+                convert_image()
+        except Exception:
+            convert_image()
         super().save(*args, **kwargs)
 
 

@@ -868,6 +868,7 @@ div.top-spread-list{
     -o-transform:translateX(-50%); /* Opera */
     position: absolute;
     left: 50%;
+    top: 40px;
 }
 
 .notification{
@@ -990,6 +991,12 @@ div.top-spread-list{
 
 .infinite-scroll-component > div > div{
     outline: none;
+}
+
+.react-ripples{
+    width: 100%;
+    height: 100%;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .opacity-animation{

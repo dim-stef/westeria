@@ -349,6 +349,7 @@ def create_message(instance):
                 'author': str(instance.author.id),
                 'created': str(instance.created),
                 'message': instance.message,
+                'message_id':instance.id,
                 'images': json_images,
                 'videos': json_videos
             }
