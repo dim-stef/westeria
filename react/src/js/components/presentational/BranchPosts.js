@@ -236,6 +236,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                 }}>
                 { ({ width }) =>
                 <List
+                containerStyle={{pointerEvents:'auto'}}
                 autoHeight
                 width={width}
                 height={height}

@@ -70,7 +70,7 @@ class BranchChat(models.Model):
         im_io = BytesIO()
         rbg_img.save(im_io, 'JPEG', quality=75)
         self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
-                                          'image/jpeg', im_io.getbuffer().nbytes, None)
+                                              'image/jpeg', im_io.getbuffer().nbytes, None)
 
         '''try:
             icon,im_io = JPEGSaveWithTargetSize(self.image,"%s_icon.jpg" % self.image.name,3000)
@@ -130,13 +130,21 @@ class ChatImage(models.Model):
 
     def save(self, *args, **kwargs):
         im = Image.open(self.image)
-        im.load()
-        rbg_img = im.convert('RGB')
-        rbg_img.load()
-        im_io = BytesIO()
-        rbg_img.save(im_io, 'JPEG', quality=75)
-        self.image = InMemoryUploadedFile(im_io,'ImageField', "%s.jpg" %self.image.name.split('.')[0],
-                                          'image/jpeg', im_io.getbuffer().nbytes, None)
+
+        def convert_image():
+            im.load()
+            rbg_img = im.convert('RGB')
+            rbg_img.load()
+            im_io = BytesIO()
+            rbg_img.save(im_io, 'JPEG', quality=75)
+            self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
+                                              'image/jpeg', im_io.getbuffer().nbytes, None)
+        try:
+            if not im.is_animated:
+                convert_image()
+        except Exception:
+            # Exception happens in file is image instead of gif
+            convert_image()
         super().save(*args, **kwargs)
 
 class ChatVideo(models.Model):

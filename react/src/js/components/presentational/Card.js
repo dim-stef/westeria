@@ -1,6 +1,8 @@
 import React, {useContext, useEffect, useState} from "react";
+import { createPortal } from 'react-dom';
 import { css } from "@emotion/core";
 import { useTheme } from 'emotion-theming'
+import {useMediaQuery} from 'react-responsive'
 import {UserContext} from "../container/ContextContainer"
 import {Link} from 'react-router-dom'
 import Linkify from 'linkifyjs/react';
@@ -217,7 +219,7 @@ const cardNumber = theme => css({
     color:theme.textLightColor,fontWeight:600
 })
 
-import {useMediaQuery} from 'react-responsive'
+
 
 
 export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
@@ -226,10 +228,15 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
     })
 
     const [showCard,setShowCard] = useState(false);
+    const [mousePosition,setMousePosition] = useState(null);
     let setTimeoutConst;
     let setTimeoutConst2;
 
-    function handleMouseEnter(){
+    function handleMouseEnter(e){
+        if(!mousePosition){
+            setMousePosition([e.clientX,e.clientY])
+        }
+        
         clearTimeout(setTimeoutConst2)
 
         setTimeoutConst = setTimeout(()=>{
@@ -251,12 +258,17 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
     }
 
     return(
-        <div style={{position:'relative',zIndex:1000}}>
+        <>
         {React.Children.map(children, (child, i) => {
             return React.cloneElement(child, { onMouseEnter:isMobile || !hoverable?null:handleMouseEnter,
             onMouseLeave:isMobile || !hoverable?null:handleMouseLeave })
         })}
-        {showCard?<div css={theme=>smallCardContainer(theme,containerWidth)} onClick={onClick}
+        
+        
+        {showCard?
+            createPortal(
+            <div style={{position:'fixed',zIndex:211110,left:mousePosition?mousePosition[0]-20:0,top:mousePosition?mousePosition[1]-20:0}} 
+            css={theme=>smallCardContainer(theme,containerWidth)} onClick={onClick}
         onMouseEnter={isMobile || !hoverable?null:handleMouseEnter} onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}>
             <div
                 style={{position:'relative'}} className="noselect small-branch-container flex-fill">
@@ -287,8 +299,10 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
                     <span css={theme=>cardNumber(theme)}>{branch.branch_count?branch.branch_count:0}</span>
                 </div>
             </div>
-        </div>:null}
+        </div>,document.getElementById('hoverable-element-root')):null}
         
-        </div>
+        
+        
+        </>
     )
 }

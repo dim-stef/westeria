@@ -303,12 +303,12 @@ function StyledPostWrapper({post,down,viewAs,index,isSingular,children}){
     }
 }
 
-function LinkedPost({history,dataIndex,down=0,id,to,children}){
+function LinkedPost({history,dataIndex,down=null,id,to,children}){
 
     const ref = useRef(null);
 
     function handleClick(e){
-        if(down==ref.current.getBoundingClientRect().y){
+        if(down == null || down == 0 || down==ref.current.getBoundingClientRect().y){
             history.push(to);
         }
     }
@@ -342,9 +342,10 @@ function ShownBranch({branch,date,dimensions=48}){
     }
 
     return(
-        <SmallCard branch={branch}>
-            <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
-            display:'inline-flex',position:'relative'}} >
+        
+        <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
+        display:'inline-flex',position:'relative'}} >
+            <SmallCard branch={branch}>
                 <PostPicture picture={branch.branch_image} 
                 style={{width:dimensions,height:dimensions}}
                 uri={branch.uri}/>
@@ -358,8 +359,8 @@ function ShownBranch({branch,date,dimensions=48}){
                     </div> :null}
                     
                 </div>
-            </div>
-        </SmallCard>
+            </SmallCard>
+        </div>
     )
 }
 

@@ -3,11 +3,10 @@ import { createPortal } from 'react-dom';
 import {Link} from "react-router-dom"
 import history from "../../history"
 import { useSpring, useTransition, animated, interpolate } from 'react-spring/web.cjs'
-import Tappable from 'react-tappable';
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
 import {css} from "@emotion/core";
-import {useTheme} from "emotion-theming";
+import {useMediaQuery} from 'react-responsive'
 import LinesEllipsis from 'react-lines-ellipsis'
 import {Images, PreviewPostMedia} from './PostImageGallery'
 import {Post} from "./SingularPost"
@@ -17,9 +16,9 @@ import {SingularPostContext,UserContext} from "../container/ContextContainer"
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
 
-const MyRipples = createRipples({
-    color: 'purple',
-    during: 2200,
+const Ripple = createRipples({
+    color: 'rgba(0, 0, 0, .3)',
+    during: 600,
 })
 
 const postCss = theme =>css({
@@ -28,7 +27,8 @@ const postCss = theme =>css({
     height:'100%',
     position:'relative',
     borderRadius:15,
-    overflow:'hidden'
+    overflow:'hidden',
+    cursor:'pointer'
 })
 
 const text = (theme,textPosition,size) =>css({
@@ -43,7 +43,7 @@ const text = (theme,textPosition,size) =>css({
 const postedToImage = (size) =>css({
     position:'absolute',
     margin:'5px',
-    zIndex:33,
+    zIndex:330,
     width:size=='xsmall' || size=='small'?20:40,
     height:size=='xsmall' || size=='small'?20:40,
     '&:hover':{
@@ -115,6 +115,9 @@ export function PreviewPost({post,viewAs,size}){
     const images = post.images;
     const videos = post.videos;
 
+    const isLaptopOrDesktop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
 
     useEffect(()=>{
         if(ref.current){
@@ -137,6 +140,7 @@ export function PreviewPost({post,viewAs,size}){
             }
         }
     },[postShown])
+
 
     useLayoutEffect(()=>{
         if(imageRef.current){
@@ -165,6 +169,7 @@ export function PreviewPost({post,viewAs,size}){
 
     const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
     const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
+    const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1, rot: -10 + Math.random() * 20 })
 
     const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
     const [props, set, stop] = useSpring(()=>({from:from(),to:to(),
@@ -191,42 +196,48 @@ export function PreviewPost({post,viewAs,size}){
 
     function preventDefault(e){
         e.preventDefault();
-    }
-
-    function disableScroll(){
-        document.body.addEventListener('touchmove', preventDefault, { passive: false });
-    }
-    function enableScroll(){
-        document.body.removeEventListener('touchmove', preventDefault);
+        return false;
     }
 
     useEffect(()=>{
         set(()=>to())
 
-        try{
-            let scrollableContainer = document.getElementById('mobile-content-container');
-            if(postShown){
-                //scrollableContainer.style.overflow = 'hidden';
-            }else{
-                //scrollableContainer.style.overflow = 'auto';
-            }
-        }catch(e){
-            let scrollableContainer = document.getElementById('body');
-            if(postShown){
-                //scrollableContainer.style.overflow = 'hidden';
-            }else{
-                //scrollableContainer.style.overflow = 'auto';
-            }
+        if(preventScrollRef.current){
+            preventScrollRef.current.addEventListener('touchmove',preventDefault, { passive: false })
         }
-
+        
         return()=>{
-            enableScroll();
             try{
                 let scrollableContainer = document.getElementById('mobile-content-container');
                 scrollableContainer.style.overflow = 'auto';
             }catch(e){
 
             }
+
+            if(preventScrollRef.current){
+                preventScrollRef.current.removeEventListener('touchmove',preventDefault)
+            }
+        }
+    },[postShown])
+
+    
+    function detectOutSideClick(e){
+        const containerBounds = previewPostRef.current.getBoundingClientRect();
+        const inContainer = e.pageX > containerBounds.left && e.pageX < containerBounds.right &&
+        e.pageY > containerBounds.bottom && e.pageX < containerBounds.bottom
+        if(!document.getElementById('leaf-preview-root').contains(e.target) && !inContainer &&
+        e.target != document.getElementById('body')){
+            set(()=>off())
+        }
+    }
+
+    useEffect(()=>{
+        if(postShown){
+            document.getElementById('page').addEventListener('click',detectOutSideClick);
+        }
+        
+        return ()=>{
+            document.getElementById('page').removeEventListener('click',detectOutSideClick);
         }
     },[postShown])
 
@@ -237,20 +248,19 @@ export function PreviewPost({post,viewAs,size}){
         const dir = yDir < 0 ? -1 : 1 // Direction should either point left or right
         try{
             if (down && my!=0){
+                if(isLaptopOrDesktop){
+                    document.body.classList.add('noselect')
+                }
+                
                 previewPostRef.current.style.pointerEvents = 'none';
             }else{
+                if(isLaptopOrDesktop){
+                    document.body.classList.remove('noselect')
+                }
                 previewPostRef.current.style.pointerEvents = null;
             }
         }catch(e){
 
-        }
-        
-        if (down){
-            disableScroll();
-            document.body.classList.add('noselect');
-        }else{
-            enableScroll();
-            document.body.classList.remove('noselect');
         }
 
         if (!down && trigger && dir==-1) shotUp.current = true// If button/finger's up and trigger velocity is reached, we flag the card ready to fly out
@@ -272,17 +282,21 @@ export function PreviewPost({post,viewAs,size}){
         
         set(() => {
           const isGone = shotUp.current || shotDown.current
-          let y = down ? my + (lastDockedPosition.current || 0) : 20;
+          let y = down ? my + (lastDockedPosition.current || 0) : lastDockedPosition.current || 20;
 
           if(shotUp.current){
             if(dir==-1){
                 if(commentsActive.current && trigger){
+                    // reset post to original position
                     y = 20;
                 }else{
+                    // shoot post to top outside of screen
                     y = (250 + window.innerHeight) * dir
                 }
                 commentsActive.current = false;
             }else{
+
+                // shoot to bottom so the comments are shown
                 y = (window.innerHeight - 200) * dir
             }
 
@@ -299,63 +313,11 @@ export function PreviewPost({post,viewAs,size}){
           return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? 200 : 500 }}
         })
     })
-
-    // Sometimes after mobile scroll taps are not registered on the corresponding elements
-    // Click on document works though so we have to manually create a 'click' event
-    // and compare mouse positions to element positions
-    function handleDocumentClick(e){
-        try{
-            let postRect = ref.current.getBoundingClientRect();
-            let navigationRect = null;
-            try{
-                navigationRect = document.getElementById('mobile-nav-bar').getBoundingClientRect();
-            }catch(e){
-
-            }
-
-            let inNavigation = false;
-            if(e.pageX >= navigationRect.left && e.pageX <= navigationRect.right &&
-                e.pageY >= navigationRect.top && e.pageY <= navigationRect.bottom){
-                inNavigation = true;
-            }
-
-            if(document.getElementById('leaf-preview-root').childElementCount == 0 &&
-            document.getElementsByName('tooltip').length == 0 && !inNavigation){
-                if(e.pageX >= postRect.left && e.pageX <= postRect.right &&
-                e.pageY >= postRect.top && e.pageY <= postRect.bottom){
-                    handleClick();
-                }
-            }
-        }catch(e){
-
-        }
-        
-    }
-    useEffect(()=>{
-        document.addEventListener('click',handleDocumentClick)
-
-        return ()=>{
-            document.removeEventListener('click',handleDocumentClick)
-        }
-    },[])
-
-    useEffect(()=>{
-        if(previewPostRef.current){
-            previewPostRef.current.addEventListener('touchstart',preventDefault)
-        }
-
-        return()=>{
-            if(previewPostRef.current){
-                previewPostRef.current.removeEventListener('touchstart',preventDefault)
-            }
-        }
-    },[previewPostRef])
-
     
     return (
         <>
         <div css={theme=>postCss(theme)} ref={ref}>
-            <SmallCard branch={post.posted_to[0]} containerWidth={ref.current?ref.current.clientWidth:null}>
+            <SmallCard branch={post.posted_to[0]} containerWidth={null}>
                 <img className="post-profile-picture round-picture double-border noselect" 
                 src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
                     onClick={(e)=>{
@@ -377,10 +339,10 @@ export function PreviewPost({post,viewAs,size}){
                 postShown?<div>
                     {commentsShown?
                     <AnimatedCommentBox post={post} offset={200}/>:null}
-                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef} id="preview-post" 
+                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef} 
+                        id="preview-post" 
                         {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
-                            <div ref={preventScrollRef}
-                            style={{touchAction:'none'}} touchAction="none">
+                            <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
                                 <Post post={post} postsContext={postsContext} down={initTo}
                                 activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
                             </div>

@@ -103,9 +103,27 @@ export function Grid({posts,activeBranch,measure,postsContext}){
         }
     }
 
-    const [isShown,setShown] = useState(false);
     const [height,setHeight] = useState(0);
     const ref = useRef(null);
+
+    function isFlat(post){
+        if(post.videos.length>0){
+            if(post.videos[0].width>post.videos[0].height){
+                return true
+            }else{
+                return false
+            }
+        }else if(post.images.length>0){
+            if(post.images[0].width>post.images[0].height){
+                return true
+            }else{
+                return false
+            }
+        }else{
+            return Math.random() >= 0.5
+        }
+
+    }
 
     function getOrder(){
         let orderedPosts = [...posts];
@@ -117,7 +135,7 @@ export function Grid({posts,activeBranch,measure,postsContext}){
                 post:orderedPosts[0],
                 size:sizes.large,
                 order:getRandomInt(2),
-                isFlat:false
+                isFlat:orderedPosts[0]?isFlat(orderedPosts[0]):false
             },
             {
                 post:orderedPosts[1],
@@ -129,7 +147,7 @@ export function Grid({posts,activeBranch,measure,postsContext}){
                 post:orderedPosts[2],
                 size:sizes.small,
                 order:getRandomInt(3)-1,
-                isFlat:false
+                isFlat:orderedPosts[2]?isFlat(orderedPosts[2]):false
             },
             {
                 post:orderedPosts[3],
