@@ -50,47 +50,38 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
     const [pages,setPages] = useState(getPages())
     const [shownPages,setShownPages] = useState(pages.slice(0,3));
     const movX = useRef(null);
-    const shouldOpen = useRef(null);
-    const shouldUpdate = useRef(null);
-    shouldOpen.current = true;
+    const shouldOpen = useRef(true);
+    const shouldUpdate = useRef(false);
 
-    const index = useRef(0)
+    const index = useRef(0);
+    const pageIndex = useRef(0);
 
     const [props ,set, stop] = useSprings(3, i=>({
         x: i * width - i * 50,
         scale: 1,
         display: 'block',
         config:{ mass: 1, tension: 500, friction: 35 },
-        onRest:(f)=>{
-            /*if(shouldUpdate.current){
-                setShownPages(pages.slice(index.current, index.current + 3))
-            }
-            shouldUpdate.current = false;*/
-            
-        },
         onFrame:(f)=>{
-            //console.log(f,f.x,Math.abs(f.x))
             if((f.x + 0.5 > 0 && f.x < 0)
             || (Math.abs(f.x) + 0.5 > width && Math.abs(f.x) < width)
             || (Math.abs(f.x) + 0.5 > 2 * width && Math.abs(f.x) < 2 * width)){
                 if(shouldUpdate.current){
-                    console.log(i,shownPages,pages.slice(index.current, index.current + 3))
-                    console.log(movX.current)
                     if(movX.current > 0){
-                        setShownPages(pages.slice(index.current, index.current + 3))
+                        pageIndex.current +=1
                     }else{
-                        setShownPages(pages.slice(index.current - 1, index.current + 2))
+                        if(pageIndex.current !=0){
+                            pageIndex.current -=1
+                        }
                     }
+                    //console.log(i,shownPages,pageIndex,pages.slice(pageIndex.current, pageIndex.current + 3))
+                    setShownPages(pages.slice(pageIndex.current, pageIndex.current + 3))
                 }
-                
-                //console.log(Math.abs(f.x) + 0.5,i * width,i)
             }
         }
     }))
 
     useEffect(()=>{
         if(shouldUpdate.current){
-            console.log(index.current)
             index.current = 2;
             shouldUpdate.current = false;
         }
@@ -101,6 +92,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
     // Create a gesture, we're interested in down-state, delta (current-pos - click-pos), direction and velocity
     const bind = useDrag(({ down, movement: [mx], direction: [xDir], distance, cancel }) => {
         movX.current = mx;
+        //console.log(mx)
         if(down){
             if(Math.abs(mx)>10) {
                 shouldOpen.current = false;
@@ -112,14 +104,15 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
             //shouldOpen.current = true;
             document.body.classList.remove('noselect');
         }
+
         if (down && distance > width / 2){
-          cancel((index.current = clamp(index.current + (xDir > 0 ? -1 : 1), 0, pages.length - 1)))
+          //cancel((index.current = clamp(index.current + (xDir > 0 ? -1 : 1), 0, pages.length - 1)))
+          cancel((index.current = (xDir > 0 ? -1 : 1)))
           shouldUpdate.current = true;
           //setShownPages(pages.slice(index.current, index.current + 3))
         }
         set(i => {
-          if (i < index.current - 1 || i > index.current + 1) return { display: 'none' }
-          const x = (i - index.current) * width + (down ? mx : 0)
+          const x = (i) * width + (down ? mx : 0)
           const scale = down ? 1 - distance / width / 2 : 1
           return { x, scale, display: 'block' }
         })
@@ -127,15 +120,16 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
 
     return (
         <div style={{position:'relative',width:width}}>
-            {props.map(({ x, display, scale }, i) => (
-            <animated.div {...bind()} key={i} style={{transform: interpolate([x], transX),position:'absolute',zIndex:i}}>
+            {props.map(({ x, display, scale }, i) => {
+
+            return <animated.div {...bind(i)} key={i} style={{transform: interpolate([x], transX),position:'absolute',zIndex:i}}>
                 <animated.div className="noselect">
                     <Page index={i} page={shownPages[i]} posts={posts} activeBranch={activeBranch} postsContext={postsContext}
                         shouldOpen={shouldOpen}
                     />
                 </animated.div>
             </animated.div>
-            ))}
+            })}
 
         </div>
     )
