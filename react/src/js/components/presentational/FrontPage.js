@@ -70,7 +70,7 @@ function FrontPageList(){
 
     return(
         <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
-        top:isDesktopOrLaptop?52:0,zIndex:4}} ref={ref}>
+        top:0,zIndex:4}} ref={ref}>
             {userContext.isAuth?
             <NavLink to={{pathname:"/",state:'front'}} exact 
             activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">

@@ -97,7 +97,7 @@ const bubbleBox = (theme,height=100) =>css({
 document.addEventListener('gesturestart', e => e.preventDefault())
 document.addEventListener('gesturechange', e => e.preventDefault())
 
-export function PreviewPost({post,viewAs,size}){
+export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
     const ref = useRef(null);
@@ -149,7 +149,13 @@ export function PreviewPost({post,viewAs,size}){
     },[imageRef])
 
     function handleClick(){
-        setPostShown(true)
+        if(shouldOpen===null){
+            setPostShown(true)
+        }else{
+            if(shouldOpen.current){
+                setPostShown(true)
+            }
+        }
     }
 
     useEffect(()=>{

@@ -157,6 +157,7 @@
 }
 
 .post-list{
+    overflow:hidden;
     flex-basis: 56%;
     -webkit-flex-basis: 56%;
     width: 100%;
