@@ -29,6 +29,7 @@ import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
 import {SwipeablePostGrid} from "./SwipeablePostGrid";
+import {SuperBar} from "./SuperBar"
 import {useMediaQuery} from 'react-responsive'
 
 axiosRetry(axios, 
@@ -94,6 +95,7 @@ function DisplayPosts({isFeed,posts,setPosts,
         resetPostsContext={resetPostsContext} fetchData={fetchData}/>
         <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
         postedId={postedId} key={postedId} isFeed={isFeed}/>
+        <SuperBar postsContext={postsContext}/>
         {posts.length>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}/>
         :
@@ -526,8 +528,6 @@ export function BranchPosts(props){
 export function GenericBranchPosts(props){
     let context = props.postsContext;
 
-     
-
     const branchPostsContext = useContext(BranchPostsContext);
     const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
     const branchTreePostsContext = useContext(BranchTreePostsContext);
@@ -731,13 +731,6 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
 
     function handleOutsideClick(e){
         if(ref.current){
-            /*let childNodes = [...ref.current.childNodes]
-            if(childNodes.every(c=>{
-                return e.target!=c 
-            }) && e.target !=ref.current){
-                 
-                setOpen(false);
-            }*/
             if(!ref.current.contains(e.target)){
                 setOpen(false);
             }

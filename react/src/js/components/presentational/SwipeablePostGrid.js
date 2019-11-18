@@ -5,19 +5,30 @@ import { useSpring,useSprings,useTransition, animated, interpolate } from 'react
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 
-const gridContainer = () =>css({
+const gridContainer = (theme,rows,cols) =>css({
     height:600,
     display:'grid',
-    gridTemplateColumns: 'repeat(4,1fr)',
+    gridTemplateColumns: `repeat(${cols},1fr)`,
+    gridTemplateRows: `repeat(${rows},1fr)`,
+    gridAutoRows:'1fr',
+    gridAutoColumns:'1fr',
     gridGap:10,
-    gridAutoFlow:'dense'
+    gridAutoFlow:'dense',
 })
 
-const cell = () =>css({
-    gridColumn:`span ${Math.ceil(Math.random()*4)}`,
-    gridRow:`span ${Math.ceil(Math.random()*4)}`,
-    order:1//Math.ceil(Math.random()*20)
+const cell = (size) =>css({
+    gridColumn:`span ${size[0]}`,
+    gridRow:`span ${size[1]}`,
+    order:Math.ceil(Math.random()*20)
 })
+
+const animatedDiv = (theme) =>css({
+    boxShadow:'rgb(0,0,0) 10px -12px 10px -7px',
+    padding:5,
+    boxSizing:'border-box',
+    backgroundColor:theme.backgroundColor
+})
+
 
 const to = (x) => ({ x: x,scale: 1,display: 'block'})
 const from = (x) => ({ x: x||0,scale: 1,display: 'block'})
@@ -29,9 +40,47 @@ const transX = (x) => `translateX(${x}px)`
 
 export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
 
-    let width = 640;
+    let width = 660;
+    let offset = 25;
+    let height = window.innerHeight;
+    let containerHeight = 860;
+    let columnCount = 4;
+    let rowCount = Math.round(4 * containerHeight / width)
+    let itemCount;
+    let pageType;
+    if(height<=640){
+        itemCount = 5;
+        pageType={
+            type:'mobile',
+            size:5,
+            bigItemCount:1,
+            mediumItemCount:1,
+            responsiveItemCount:1,
+            smallItemCount:2
+        }
+    }else if(height <= 760){
+        itemCount = 8;
+        pageType={
+            type:'largeMobile',
+            size:8,
+            bigItemCount:2,
+            mediumItemCount:1,
+            responsiveItemCount:2,
+            smallItemCount:3
+        }
+    }else{
+        itemCount = 8;
+        pageType={
+            type:'desktop',
+            size:8,
+            bigItemCount:2,
+            mediumItemCount:1,
+            responsiveItemCount:2,
+            smallItemCount:3
+        }
+    }
     function getPages(){
-        var perChunk = 2 // items per chunk    
+        var perChunk = itemCount // items per chunk    
         var result = posts.reduce((resultArray, item, index) => { 
         const chunkIndex = Math.floor(index/perChunk)
 
@@ -47,27 +96,23 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
         return result
     }
 
-    const [page,setPage] = useState(0);
     const [pages,setPages] = useState(getPages())
-    const [shownPages,setShownPages] = useState(pages.slice(0,6));
     const movX = useRef(null);
     const shouldOpen = useRef(true);
     const shouldUpdate = useRef(false);
 
     const isDown = useRef(false);
-    const mainPage = useRef(null);
     const [index,setIndex] = useState(0);
-    const pageIndex = useRef(0);
+
+    // ref is needed to keep track of index in the onFrame function
+    // which does not pick up on rerenders
+    const indexRef = useRef(0);
     const dataIndexChanged = useRef(false);
     const [props, set, stop] = useSpring(()=>({
         from:from(),
         config:{ mass: 1, tension: 500, friction: 35 },
         onRest:()=>{
-            console.log("rest")
             if(dataIndexChanged.current){
-                console.log("in")
-                
-                //stop();
                 dataIndexChanged.current = false;
             }
         },
@@ -75,20 +120,17 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
             if((f.x + 0.5 > 0 && f.x < 0)
             || (Math.abs(f.x) + 0.5 > width && Math.abs(f.x) < width)
             || (Math.abs(f.x) + 0.5 > 2 * width && Math.abs(f.x) < 2 * width)){
-                console.log("in")
-                //stop()
                 if(shouldUpdate.current){
                     dataIndexChanged.current = true;
                     if(movX.current > 0){
-                        //index -=1
-                        
-                        setIndex(index=>index - 1)
+                        if(indexRef.current != 0){
+                            indexRef.current -=1
+                            setIndex(indexRef.current)
+                        }
                     }else{
-                        setIndex(index=>index + 1)
-                        //index +=1
+                        indexRef.current +=1
+                        setIndex(indexRef.current)
                     }
-                    //console.log(i,shownPages,pageIndex,pages.slice(pageindex, pageindex + 3))
-                    //setShownPages(pages.slice(index, index + 6))
                 }
             }
         }
@@ -99,28 +141,25 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
         if(shouldUpdate.current){
             shouldUpdate.current = false;
         }
-    },[shownPages])
+    },[pages])
 
     useEffect(()=>{
+        if(shouldUpdate.current){
+            shouldUpdate.current = false;
+        }
+
         set(()=> ({
             from:ani(0),
             to:ani(0),
             immediate:true,
-            config:{clamp:true}
         }))
-        console.log("indexxx")
-        if(shouldUpdate.current){
-            shouldUpdate.current = false;
-        }
-        //stop();
     },[index])
 
     const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir], distance,cancel }) => {
         isDown.current = down;
-        console.log("innnnnnnn",mx)
         movX.current = mx;
 
-        if(down && Math.abs(mx) < 10){
+        if(down && (Math.abs(mx) < 10)){
             shouldOpen.current = true;
         }else{
             shouldOpen.current = false;
@@ -134,11 +173,17 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
             let x;
             if(isGone){
                 shouldUpdate.current = true
-                //setIndex(index=>index + 1)
+
                 if(xDir < 0){
                     x = -width;
                 }else{
-                    x = width;
+                    // there is no left side here, index goes out of bounds
+                    if(index == 0){
+                        x = 0;
+                        shouldUpdate.current = false;
+                    }else{
+                        x = width;
+                    }
                 }
             }else{
                 if(!down){
@@ -147,7 +192,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
                     x = mx;
                 }
             }
-            console.log(x)
+
             return {
                 to:ani(x),
                 from:ani(0),
@@ -157,38 +202,49 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
         })
     })
 
+    //console.log(index)
+    let pageProps = {
+        posts:posts,
+        activeBranch:activeBranch,
+        postsContext:postsContext,
+        shouldOpen:shouldOpen,
+        width:width,
+        height:window.innerHeight,
+        pageType:pageType,
+        rowCount:rowCount,
+        columnCount:columnCount
+    }
+
     return (
         <div style={{position:'relative',width:width,height:600}}>
-            <animated.div id="page1" key={index - 1} data-index={index - 1}
-            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width:x - width}px)`),
+            <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme)}
+            style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
+            1.5*x - width- offset>0?0:1.5*x-width - offset}px)`),
             width:'100%'}}>
                 <animated.div className="noselect">
-                {shownPages[index - 1]?
-                    <Page index={index-1} page={shownPages[index-1]} 
-                    posts={posts} activeBranch={activeBranch} postsContext={postsContext}
-                    shouldOpen={shouldOpen}
+                {pages[index - 1] && index!=-1?
+                    <Page index={index-1} page={pages[index-1]}
+                    {...pageProps}
                     />:null
                 }
-                    
                 </animated.div>
             </animated.div>
-            <animated.div {...bind()} key={index} id="page2" data-index={index}
+            <animated.div {...bind()} key={index} data-index={index} css={theme=>animatedDiv(theme)}
             style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
-            width:'100%'}} ref={mainPage}>
+            width:'100%',zIndex:1}}>
                 <animated.div className="noselect">
-                    <Page index={index} page={shownPages[index]} 
-                    posts={posts} activeBranch={activeBranch} postsContext={postsContext}
-                    shouldOpen={shouldOpen}
+                    <Page index={index} page={pages[index]}
+                    {...pageProps}
                     />
                 </animated.div>
             </animated.div>
-            <animated.div id="page3" key={index + 1} data-index={index + 1}
-            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width:1.5*x + width}px)`),
-            width:'100%'}}>
+            <animated.div key={index + 1} data-index={index + 1} css={theme=>animatedDiv(theme)}
+            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offset:
+            1.5*x + width + offset<0?0:1.5*x + width + offset}px)`),
+            width:'100%',zIndex:0}}>
                 <animated.div className="noselect">
-                    <Page index={index + 1} page={shownPages[index + 1]} 
-                    posts={posts} activeBranch={activeBranch} postsContext={postsContext}
-                    shouldOpen={shouldOpen}
+                    <Page index={index + 1} page={pages[index + 1]} 
+                    {...pageProps}
                     />
                 </animated.div>
             </animated.div>
@@ -198,7 +254,59 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
     )
 }
 
-function Page({index,page,posts,activeBranch,postsContext,shouldOpen}){
+function Page({page,activeBranch,postsContext,shouldOpen,pageType,height,rowCount,columnCount}){
+    
+    const bigItemTotal = useRef(pageType.bigItemCount);
+    const mediumItemTotal = useRef(pageType.mediumItemCount);
+    const responsiveItemTotal = useRef(pageType.responsiveItemCount);
+    const smallItemTotal = useRef(pageType.smallItemCount);
+
+    let sizes = {
+        small:[1,1],
+        responsive:[1,Math.round(rowCount/2)],
+        medium:[Math.round(rowCount/2),Math.round(rowCount/2)],
+        big:[rowCount,Math.round(rowCount/2)]
+    }
+
+    function getOrder(){
+        let orderedPosts = [...page];
+
+        // sort posts by engagement order
+        orderedPosts.sort((a, b) => (a.engagement < b.engagement) ? 1 : -1)
+        let orderWithSize = []
+        for(let i=0;i<pageType.size;i++){
+            if(bigItemTotal.current!=0){
+                orderWithSize.push({
+                    size:sizes.big,
+                    post:orderedPosts[i]
+                })
+                bigItemTotal.current -=1;
+            }else if(mediumItemTotal.current!=0){
+                orderWithSize.push({
+                    size:sizes.medium,
+                    post:orderedPosts[i]
+                })
+                mediumItemTotal.current -=1;
+            }else if(responsiveItemTotal.current!=0){
+                orderWithSize.push({
+                    size:sizes.responsive,
+                    post:orderedPosts[i]
+                })
+                responsiveItemTotal.current -=1;
+            }else{
+                orderWithSize.push({
+                    size:sizes.small,
+                    post:orderedPosts[i]
+                })
+                smallItemTotal.current -=1;
+            }
+        }
+        console.log(orderWithSize)
+        return orderWithSize;
+    }
+
+    const [order,setOrder] = useState(getOrder())
+
     function getPostProps(post){
         let props = {
             post:post,
@@ -208,58 +316,16 @@ function Page({index,page,posts,activeBranch,postsContext,shouldOpen}){
             postsContext:postsContext,
             index:0
         };
-
         return props;
     }
 
     return(
-        <div className="noselect" css={gridContainer}>
-            {page.map(p=>{
-                return <div css={cell}>
-                    <PreviewPost {...getPostProps(p)} viewAs="post" size="large" shouldOpen={shouldOpen}/>
+        <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount)}>
+            {order.map(o=>{
+                return <div css={()=>cell(o.size)}>
+                    <PreviewPost {...getPostProps(o.post)} viewAs="post" size="large" shouldOpen={shouldOpen}/>
                 </div>
             })}
         </div>
     )
 }
-
-
-/**return (
-        <div style={{position:'relative',width:width,height:600}}>
-            <animated.div id="page1" key={index - 1} data-index={index - 1}
-            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width:x - width}px)`),
-            width:'100%'}}>
-                <animated.div className="noselect">
-                {shownPages[index - 1]?
-                    <Page index={index-1} page={shownPages[index-1]} 
-                    posts={posts} activeBranch={activeBranch} postsContext={postsContext}
-                    shouldOpen={shouldOpen}
-                    />:null
-                }
-                    
-                </animated.div>
-            </animated.div>
-            <animated.div {...bind()} key={index} id="page2" data-index={index}
-            style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
-            width:'100%'}} ref={mainPage}>
-                <animated.div className="noselect">
-                    <Page index={index} page={shownPages[index]} 
-                    posts={posts} activeBranch={activeBranch} postsContext={postsContext}
-                    shouldOpen={shouldOpen}
-                    />
-                </animated.div>
-            </animated.div>
-            <animated.div id="page3" key={index + 1} data-index={index + 1}
-            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width:x + width}px)`),
-            width:'100%'}}>
-                <animated.div className="noselect">
-                    <Page index={index + 1} page={shownPages[index + 1]} 
-                    posts={posts} activeBranch={activeBranch} postsContext={postsContext}
-                    shouldOpen={shouldOpen}
-                    />
-                </animated.div>
-            </animated.div>
-            
-
-        </div>
-    ) */
