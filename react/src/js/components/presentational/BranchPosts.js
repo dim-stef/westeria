@@ -91,10 +91,10 @@ function DisplayPosts({isFeed,posts,setPosts,
         centerSpinner={false}
         spinnerColor="#2196F3"
         >
-        <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
+        {/*<FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
         resetPostsContext={resetPostsContext} fetchData={fetchData}/>
         <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
-        postedId={postedId} key={postedId} isFeed={isFeed}/>
+        postedId={postedId} key={postedId} isFeed={isFeed}/>*/}
         <SuperBar postsContext={postsContext}/>
         {posts.length>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}/>

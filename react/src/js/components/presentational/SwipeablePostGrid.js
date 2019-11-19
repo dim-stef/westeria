@@ -216,7 +216,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
     }
 
     return (
-        <div style={{position:'relative',width:width,height:600}}>
+        <div style={{position:'relative',width:width,height:600,zIndex:-1}}>
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme)}
             style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
             1.5*x - width- offset>0?0:1.5*x-width - offset}px)`),

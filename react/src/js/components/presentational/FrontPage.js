@@ -219,7 +219,7 @@ const FrontPagePostList = React.memo(function FrontPagePostList({page}){
 
     return(
         <div className="post-list" css={theme=>postList(theme,isMobile)}>
-            <FrontPageList/>
+            {/*<FrontPageList/>*/}
             <Switch>
                 <Route exact path="/" render={
                     () => userContext.isAuth?<FrontPageFeed />:

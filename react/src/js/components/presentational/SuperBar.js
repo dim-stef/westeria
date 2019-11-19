@@ -10,27 +10,33 @@ const dropdownList = theme =>css({
 function SuperDropdown({options,onChange,children}){
 
     const [shown,setShown] = useState(false);
+    const [selected,setSelected] = useState(defaultOption)
+    const [childrenShown,setChildrenShown] = useState(false);
 
+    const  list = childrenShown?selected.children:options
     function handleClick(){
         setShown(!shown);
     }
 
-    function handleOptionSelect(option){
-        onChange(option);
-    }
+    useEffect(()=>{
+        onChange(selected)
+    },[selected])
 
     return(
         <div style={{position:'relative'}}>
             { React.cloneElement( children, { onClick: handleClick } ) }
             {shown?
             <div css={dropdownList}>
-                {options.map(o=>{
+                {list.map(o=>{
                     return(
                         <React.Fragment><Option option={o}
                             handleSelect={handleOptionSelect}
+                            setSelected={setSelected}
+                            setChildrenShown={setChildrenShown}
                         /></React.Fragment>
                     )
                 })}
+                
             </div>:null}
         </div>
     )
@@ -71,7 +77,7 @@ function PostListPicker({postsContext}){
     }
 
     return(
-        <SuperDropdown options={options} onChange={onChange} default={defaultOption}>
+        <SuperDropdown options={options} onChange={onChange} default={option}>
             <p>{option.label}</p>
         </SuperDropdown>
     )
@@ -134,15 +140,24 @@ function FilterBar({postsContext,refresh}){
     )
 }
 
-function Option({option,handleSelect}){
+function Option({option,handleSelect,setSelected}){
+
+    function handleClick(){
+        if(option.children){
+            setChildrenShown(true);
+        }else{
+            setSelected(option)
+        }
+    }
+
     return(
         option.action==='link'?
-        <div key={option.value} onClick={()=>handleSelect(option)}>
+        <div key={option.value} onClick={()=>handleClick(option)}>
             <NavLink to={`/${option.value}`} >
                 {option.label}
             </NavLink>
         </div>:
-        <div key={option.value} onClick={()=>handleSelect(option)}>
+        <div key={option.value} onClick={()=>handleClick(option)}>
             {option.label}
         </div>
     )
@@ -150,6 +165,10 @@ function Option({option,handleSelect}){
 
 export function SuperBar({postsContext,refresh}){
     return(
-        <PostListPicker postsContext={postsContext}/>
+        <div style={{height:50}}>
+            <div style={{height:'100%',backgroundColor:'white',zIndex:3}}>
+                <PostListPicker postsContext={postsContext} refresh={refresh}/>
+            </div>
+        </div>
     )
 }
