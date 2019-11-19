@@ -5,21 +5,29 @@ import { useSpring,useSprings,useTransition, animated, interpolate } from 'react
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 
-const gridContainer = (theme,rows,cols) =>css({
-    height:600,
+
+const gridContainer = (theme,rows,cols,minmax,height) =>css({
+    height:'100%',
     display:'grid',
     gridTemplateColumns: `repeat(${cols},1fr)`,
     gridTemplateRows: `repeat(${rows},1fr)`,
+    gridTemplateColumns:`repeat(auto-fit, minmax(${minmax}px, 1fr))`,
+    gridTemplateRows:`repeat(auto-fit, minmax(${minmax}px, 1fr))`,
     gridAutoRows:'1fr',
     gridAutoColumns:'1fr',
     gridGap:10,
     gridAutoFlow:'dense',
 })
 
-const cell = (size) =>css({
+const cell = (size,isBig,isFlat) =>css({
     gridColumn:`span ${size[0]}`,
     gridRow:`span ${size[1]}`,
-    order:Math.ceil(Math.random()*20)
+    //order:Math.ceil(Math.random()*20)
+})
+
+const bigCell = (isFlat,size) =>css({
+    gridColumn:isFlat?'1 / -1':`span ${size[0]}`,
+    gridRow:isFlat?`span ${size[1]}`:'1 / -1'
 })
 
 const animatedDiv = (theme) =>css({
@@ -38,14 +46,14 @@ const trans = (r, s) => `rotateX(0deg) rotateY(${r / 10}deg) rotateZ(${r}deg) sc
 const transX = (x) => `translateX(${x}px)`
 
 
-export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
+export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,width,height}){
 
-    let width = 660;
+    //let width = 660;
     let offset = 25;
-    let height = window.innerHeight;
+    //let height = window.innerHeight;
     let containerHeight = 860;
     let columnCount = 4;
-    let rowCount = Math.round(4 * containerHeight / width)
+    let rowCount = Math.round(4 * containerHeight / width);
     let itemCount;
     let pageType;
     if(height<=640){
@@ -73,8 +81,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
         pageType={
             type:'desktop',
             size:8,
-            bigItemCount:2,
-            mediumItemCount:1,
+            bigItemCount:1,
+            mediumItemCount:2,
             responsiveItemCount:2,
             smallItemCount:3
         }
@@ -216,12 +224,12 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
     }
 
     return (
-        <div style={{position:'relative',width:width,height:600,zIndex:-1}}>
+        <div style={{position:'relative',width:width,height:height}}>
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme)}
             style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
             1.5*x - width- offset>0?0:1.5*x-width - offset}px)`),
-            width:'100%'}}>
-                <animated.div className="noselect">
+            width:'100%',height:'100%'}}>
+                <animated.div className="noselect" style={{height:'100%'}}>
                 {pages[index - 1] && index!=-1?
                     <Page index={index-1} page={pages[index-1]}
                     {...pageProps}
@@ -231,8 +239,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
             </animated.div>
             <animated.div {...bind()} key={index} data-index={index} css={theme=>animatedDiv(theme)}
             style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
-            width:'100%',zIndex:1}}>
-                <animated.div className="noselect">
+            width:'100%',zIndex:1,height:'100%'}}>
+                <animated.div className="noselect" style={{height:'100%'}}>
                     <Page index={index} page={pages[index]}
                     {...pageProps}
                     />
@@ -241,8 +249,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
             <animated.div key={index + 1} data-index={index + 1} css={theme=>animatedDiv(theme)}
             style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offset:
             1.5*x + width + offset<0?0:1.5*x + width + offset}px)`),
-            width:'100%',zIndex:0}}>
-                <animated.div className="noselect">
+            width:'100%',zIndex:0,height:'100%'}}>
+                <animated.div className="noselect" style={{height:'100%'}}>
                     <Page index={index + 1} page={pages[index + 1]} 
                     {...pageProps}
                     />
@@ -254,6 +262,17 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData}){
     )
 }
 
+function shuffle(a) {
+    var j, x, i;
+    for (i = a.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = a[i];
+        a[i] = a[j];
+        a[j] = x;
+    }
+    return a;
+}
+
 function Page({page,activeBranch,postsContext,shouldOpen,pageType,height,rowCount,columnCount}){
     
     const bigItemTotal = useRef(pageType.bigItemCount);
@@ -261,11 +280,26 @@ function Page({page,activeBranch,postsContext,shouldOpen,pageType,height,rowCoun
     const responsiveItemTotal = useRef(pageType.responsiveItemCount);
     const smallItemTotal = useRef(pageType.smallItemCount);
 
+    const gridGap = 10;
     let sizes = {
-        small:[1,1],
-        responsive:[1,Math.round(rowCount/2)],
-        medium:[Math.round(rowCount/2),Math.round(rowCount/2)],
-        big:[rowCount,Math.round(rowCount/2)]
+        small:{
+            defaultDimensions:[1,1],
+            isFlat:false
+        },
+        //responsive:[2,Math.round(rowCount/2)],
+        responsive:{
+            defaultDimensions:[2,Math.round(rowCount/2)],
+            isFlat:false
+        },
+        medium:{
+            defaultDimensions:[Math.round(rowCount/2),Math.round(rowCount/2)],
+            isFlat:false
+        },
+        big:{
+            defaultDimensions:[columnCount,Math.round(rowCount/2)],
+            isBig:true,
+            isFlat:false
+        }
     }
 
     function getOrder(){
@@ -302,7 +336,7 @@ function Page({page,activeBranch,postsContext,shouldOpen,pageType,height,rowCoun
             }
         }
         console.log(orderWithSize)
-        return orderWithSize;
+        return shuffle(orderWithSize);
     }
 
     const [order,setOrder] = useState(getOrder())
@@ -320,9 +354,10 @@ function Page({page,activeBranch,postsContext,shouldOpen,pageType,height,rowCoun
     }
 
     return(
-        <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount)}>
+        <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount,(height-10*gridGap)/12,height)}>
             {order.map(o=>{
-                return <div css={()=>cell(o.size)}>
+                console.log(o.size)
+                return <div css={()=>o.size.isBig?bigCell(o.size.isFlat,o.size.defaultDimensions):cell(o.size.defaultDimensions)}>
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size="large" shouldOpen={shouldOpen}/>
                 </div>
             })}

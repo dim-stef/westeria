@@ -71,7 +71,24 @@ function DisplayPosts({isFeed,posts,setPosts,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh,target,keyword}){
     
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    const ref = useRef(null);
+
+    const [height,setHeight] = useState(0);
+    const [width,setWidth] = useState(0);
     const theme = useTheme();
+
+    useLayoutEffect(()=>{
+        if(ref.current){
+            setWidth(ref.current.clientWidth);
+            let refRect = ref.current.getBoundingClientRect();
+            setHeight(isMobile?window.innerHeight - refRect.top -
+                document.getElementById('mobile-nav-bar').clientHeight:window.innerHeight - refRect.top)
+        }
+    },[ref])
 
     function shouldPullToRefresh(){
         try{
@@ -80,7 +97,6 @@ function DisplayPosts({isFeed,posts,setPosts,
         }catch(e){
             return true
         }
-        
     }
 
     return(
@@ -91,34 +107,38 @@ function DisplayPosts({isFeed,posts,setPosts,
         centerSpinner={false}
         spinnerColor="#2196F3"
         >
-        {/*<FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
-        resetPostsContext={resetPostsContext} fetchData={fetchData}/>
-        <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
-        postedId={postedId} key={postedId} isFeed={isFeed}/>*/}
-        <SuperBar postsContext={postsContext}/>
-        {posts.length>0?
-        <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}/>
-        :
-            hasMore?[...Array(8)].map((e, i) => 
-            <div key={i} style={{width:'100%',marginTop:10}}>
-                <div style={{padding:'10px'}}>
-                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                        <Skeleton circle={true} width={48} height={48}/>
-                    </SkeletonTheme>
-                    <div style={{marginTop:10,lineHeight:'2em'}}>
+            {/*<FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
+            resetPostsContext={resetPostsContext} fetchData={fetchData}/>
+            <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
+            postedId={postedId} key={postedId} isFeed={isFeed}/>*/}
+            <SuperBar postsContext={postsContext}/>
+            <div style={{width:'100%'}} ref={ref}>
+            {posts.length && width && height>0?
+            <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
+                width={width} height={height}
+            />
+            :
+                hasMore?[...Array(8)].map((e, i) => 
+                <div key={i} style={{width:'100%',marginTop:10}}>
+                    <div style={{padding:'10px'}}>
                         <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={2} width="100%" height={10}/>
+                            <Skeleton circle={true} width={48} height={48}/>
                         </SkeletonTheme>
+                        <div style={{marginTop:10,lineHeight:'2em'}}>
+                            <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
+                                <Skeleton count={2} width="100%" height={10}/>
+                            </SkeletonTheme>
 
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={1} width="30%" height={10}/>
-                        </SkeletonTheme>
+                            <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
+                                <Skeleton count={1} width="30%" height={10}/>
+                            </SkeletonTheme>
+                        </div>
                     </div>
                 </div>
+                ):<p style={{textAlign:'center'}}>
+                    <b style={{fontSize:'2rem'}}>Nothing more to see</b>
+                </p>}
             </div>
-            ):<p style={{textAlign:'center'}}>
-                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-            </p>}
             </Pullable>
     </>
     )

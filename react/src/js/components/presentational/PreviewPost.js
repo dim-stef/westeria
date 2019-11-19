@@ -22,11 +22,12 @@ const Ripple = createRipples({
 })
 
 const postCss = theme =>css({
-    border:`1px solid ${theme.borderColor}`,
+    //border:`1px solid ${theme.borderColor}`,
+    boxShadow:'0px 2px 6px -4px black',
     display:'flex',
     height:'100%',
     position:'relative',
-    borderRadius:15,
+    borderRadius:5,
     overflow:'hidden',
     cursor:'pointer'
 })

@@ -7,7 +7,7 @@ const dropdownList = theme =>css({
     flexFlow:'column'
 })
 
-function SuperDropdown({options,onChange,children}){
+function SuperDropdown({options,onChange,defaultOption,children}){
 
     const [shown,setShown] = useState(false);
     const [selected,setSelected] = useState(defaultOption)
@@ -30,7 +30,6 @@ function SuperDropdown({options,onChange,children}){
                 {list.map(o=>{
                     return(
                         <React.Fragment><Option option={o}
-                            handleSelect={handleOptionSelect}
                             setSelected={setSelected}
                             setChildrenShown={setChildrenShown}
                         /></React.Fragment>
@@ -77,7 +76,7 @@ function PostListPicker({postsContext}){
     }
 
     return(
-        <SuperDropdown options={options} onChange={onChange} default={option}>
+        <SuperDropdown options={options} onChange={onChange} defaultOption={option}>
             <p>{option.label}</p>
         </SuperDropdown>
     )
