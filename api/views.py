@@ -48,7 +48,7 @@ class BranchChatMessagePagination(CursorPagination):
     page_size = 30
 
 class BranchPostPagination(CursorPagination):
-    page_size = 30
+    page_size = 16
 
 class TrendingPagination(PageNumberPagination):
     page_size = 10

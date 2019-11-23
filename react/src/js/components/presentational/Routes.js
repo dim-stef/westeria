@@ -27,10 +27,7 @@ import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import {ChatRoomSettings} from "./ChatRoomSettings"
 import {CreateNewChat} from "./CreateNewChat"
 import {GenericBranchPosts} from "./BranchPosts"
-import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
-import {BranchesPageRoutes} from "./BranchesPage"
-import {BranchNavigation} from "./BranchNavigation"
 import {TrendingContainer, TrendingWithWrapper as Trending} from "../container/TrendingContainer"
 import Card from "./Card"
 import Responsive from 'react-responsive';
@@ -43,10 +40,12 @@ import {BranchPagePostList} from "./BranchPagePostList"
 import {CSSTransition,TransitionGroup,Transition} from "react-transition-group";
 import MyBranchesColumnContainer from "./MyBranchesColumn"
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
-import {MobileBranchPageWrapper} from "./MobileParentBranch"
+import {MobileBranchPageWrapper, MobileParentBranch2} from "./MobileParentBranch"
 import {BranchLinks,PostLinks} from "./GoogleLinks"
 import {FeedbackPage} from "./FeedbackPage";
 import {DiscoverBranchesPage} from "./NavigateBranchesPage"
+import {DesktopProfile} from "./ProfileViewer"
+import {FollowPage} from "./FollowPage"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
 import axiosRetry from "axios-retry";
@@ -257,7 +256,7 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
             <AnimatedRoute path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
             <AnimatedRoute exact path='/:page(all|tree)?' render={(props)=><FrontPage {...props}/>}/>
-            <AnimatedRoute path='/search/:uri' render={(props)=><DiscoverBranchesPage {...props}/>} />
+            <AnimatedRoute path='/search/:uri' render={(props)=><DiscoverBranchesPage {...props} endpoint="search"/>} />
             <AnimatedRoute path='/search' component={SearchPage} />
             <AnimatedRoute path='/about' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
@@ -372,14 +371,14 @@ function ResponsiveBranchPage({branch,children}){
                 </DesktopParentBranchWrapper>
             </Desktop>
             <Tablet>
-                <MobileBranchPageWrapper branch={branch}>
+                <MobileParentBranch2 branch={branch}>
                     {children}
-                </MobileBranchPageWrapper>
+                </MobileParentBranch2>
             </Tablet>
             <Mobile>
-                <MobileBranchPageWrapper branch={branch}>
+                <MobileParentBranch2 branch={branch}>
                     {children}
-                </MobileBranchPageWrapper>
+                </MobileParentBranch2>
             </Mobile>    
             </>
     )
@@ -389,25 +388,15 @@ function DesktopParentBranchWrapper(props){
 
     return(
         <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
-            <div style={{flexBasis:'100%',WebkitFlexBasis:'100%'}}>
-                {/*<div>
-                    <ParentBranch
-                        styleName="parent"
-                        style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%'}} 
-                        branch={props.branch}
-                        branchNavigation
-                        editMode={false}
-                    ></ParentBranch>
-                </div>
-                <Card branch={props.branch}/>
-                <BranchNavigation branch={props.branch} refresh={props.refresh}/>*/}
-                {props.children}
+            <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
+              <DesktopProfile branch={props.branch}/>
             </div>
+            {props.children}
+            
         </div>
     )
 }
 
-import {FollowPage} from "./FollowPage"
 
 export const BranchPage = function(props){
 
@@ -419,7 +408,8 @@ export const BranchPage = function(props){
                 <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
             </Helmet>
             <Switch>
-                <Route path={`/${props.match}/branches`} render={() => <BranchesPageRoutes {...props}/>}/>
+                <Route path={`/${props.match}/branches`} render={() => <DiscoverBranchesPage {...props} 
+                showTop={false} endpoint="branches"/>}/>
                 <Route path={`/${props.match}/:keyword(community|tree)?/`} 
                 render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
             </Switch>
@@ -461,23 +451,9 @@ function BranchFrontPage(props){
     return(
         <>
         <Desktop>
-            <div>
+            <div css={{flex:1}}>
                 <div style={{marginTop:10}}>
                     <div className="flex-fill" style={{width:'100%'}}>
-                        <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
-                        {/*userContext.isAuth?
-                            <div style={{backgroundColor:theme.backgroundColor,
-                            padding:'10px 20px',border:`1px solid ${theme.borderColor}`}}>
-                                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
-                                    <img src="https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png"/>
-                                </div>
-                                    <MyBranchesColumnContainer/>
-                            </div>
-                            :<NonAuthenticationColumn/>*/
-
-                        }
-                          <DesktopProfile branch={props.branch}/>
-                        </div>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
                         />:<BranchPosts {...props}
@@ -515,36 +491,6 @@ function BranchFrontPage(props){
         </>
     )
 }
-
-const desktopProfile = (backgroundColor) =>css({
-  height:'100%',width:'100%',padding:'10px 20px',display:'flex',flexFlow:'column',alignItems:'center',boxSizing:'border-box',
-    boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,backgroundColor:backgroundColor
-})
-
-const description = theme =>css({
-  color:theme.textHarshColor,
-  fontSize:'2em',
-  wordBreak:'break-word',
-})
-
-function DesktopProfile({branch}){
-  const theme = useTheme();
-
-  let backgroundColor = theme.dark?'#090a10':null
-  return(
-    <div css={()=>desktopProfile(backgroundColor)}>
-      <img src={branch.branch_image} css={{height:100,width:100,objectFit:'cover',borderRadius:'50%'}}/>
-      <div css={{display:'flex',flexFlow:'column'}}>
-        <span css={{fontSize:'2em',fontWeight:'bold'}}>{branch.name}</span>
-        <span css={theme=>({color:theme.textColor,fontSize:'1.3em'})}>@{branch.uri}</span>
-      </div>
-      <div css={{margin:'20px 0'}}>
-        <span css={theme=>description(theme)}>{branch.description}</span>
-      </div>
-    </div>
-  )
-}
-
 
 const postList = theme => css({
   flexBasis:'56%',

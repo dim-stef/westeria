@@ -179,7 +179,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const shotDown = useRef(null);
     const commentsActive = useRef(null);
     const lastDockedPosition = useRef(null);
-    lastDockedPosition.current = 20;
 
     const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
     const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
@@ -321,6 +320,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
             lastDockedPosition.current = y;
           }
 
+          console.log(lastDockedPosition.current)
           const rot = mx / 100 + (isGone ? dir * 10 * velocity : 0) // How much the card tilts, flicking it harder makes it rotate faster
           const scale = down ? 1 : 1 // Active cards lift up a bit
           return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? 200 : 500 }}

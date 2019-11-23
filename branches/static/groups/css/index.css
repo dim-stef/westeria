@@ -366,6 +366,7 @@
 
 .branch-switcher-preview{
     width: auto;
+    border-radius:50%;
 }
 
 .branch-switcher-preview:hover{

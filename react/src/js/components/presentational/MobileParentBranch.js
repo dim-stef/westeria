@@ -3,8 +3,12 @@ import {Link} from 'react-router-dom'
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {NavLink} from "react-router-dom"
+import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs'
+import { useDrag } from 'react-use-gesture'
 import Linkify from 'linkifyjs/react';
 import {FollowButton} from "./Card"
+import { Profile } from "./SettingsPage";
+
 
 
 function getRandomColor() {
@@ -178,13 +182,58 @@ function NavigationTabs({branch}){
     return(
         <div className="flex-fill" style={{justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',
         WebkitAlignItems:'center',padding:10}}>
-            <NavLink exact to={{pathname:`/${branch.uri}`,state:'branch'}} 
+            <NavLink exact to={{pathname:`/${branch.uri}`,state:'branch'}}
             style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>Posts</NavLink>
-            <NavLink to={{pathname:`/${branch.uri}/branches`,state:'branch'}} 
+            <NavLink to={{pathname:`/${branch.uri}/branches`,state:'branch'}}
             style={{textDecoration:'none',color:theme.textHarshColor,textAlign:'center',fontWeight:'bold',fontSize:'2rem',width:'100%'}}
             activeStyle={{borderBottom:'2px solid #2196f3',color:'#2196f3'}}>
             {branch.branch_count>0?branch.branch_count:0} Branches</NavLink>
         </div>
     )
+}
+
+
+export function MobileParentBranch2({branch,children}){
+
+    return(
+        <div>
+            <ProfileBubble branch={branch}/>
+            {children}
+        </div>
+
+    )
+}
+export function ProfileBubble({branch}){
+    const [show,setShow] = useState(false);
+    const [props, set] = useSpring(() => ({ xy:[20,60], scale: 1 }))
+    const bind = useDrag(({ down, offset: [x, y] }) => {
+        console.log(x,y)
+        set({ xy:[x,y], scale: down ? 1.2 : 1 })
+    })
+
+    return(
+        <animated.div {...bind()} onClick={()=>setShow(true)} style={{position:'fixed',zIndex:34,
+        scale:props.scale.interpolate(s=>s),transform : props.xy.interpolate((x,y)=>`translate(${x}px,${y}px)`)}}>
+            <img src={branch.branch_image} className="round-picture" css={{objectFit:'cover',height:40,width:40,
+            border:'2px solid white',boxShadow:'1px 2px 3px 0px #000000b3'}}/>
+            <ProfileDrawer branch={branch} shown={show} setShown={setShow}/>
+        </animated.div>
+    )
+}
+
+function ProfileDrawer({shown,setShown,branch}){
+    const transitions = useTransition(shown, null, {
+        from: { opacity: 0, transform: 'translate3d(100%,0,0)' },
+        enter: { opacity: 1, transform: 'translate3d(0%,0,0)' },
+        leave: { opacity: 0, transform: 'translate3d(-50%,0,0)' },
+    })
+
+    return (
+        <div style={{height:200,width:200,backgroundColor:'red'}} onClick={()=>setShown(false)}>
+          {transitions.map(({ item, props, key }) => {
+            return <div style={{props}}></div>
+          })}
+        </div>
+      )
 }

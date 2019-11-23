@@ -1,4 +1,5 @@
 import React, {useEffect,useState,useRef} from "react"
+import {Link} from "react-router-dom";
 import {useMediaQuery} from "react-responsive";
 import {MoonLoader} from 'react-spinners';
 import {css} from "@emotion/core"
@@ -73,13 +74,13 @@ const name = theme =>css({
    fontWeight:500
 })
 
-export function DiscoverBranchesPage({match}){
+export function DiscoverBranchesPage({match,branch,endpoint="search",showTop=true}){
     return(
-        <ResponsiveBranchRows uri={match.params.uri}/>
+        <ResponsiveBranchRows uri={match.params?match.params.uri : branch.uri} showTop={showTop} endpoint={endpoint}/>
     )
 }
 
-function ResponsiveBranchRows({uri}){
+function ResponsiveBranchRows({uri,showTop,endpoint}){
     const [branch,setBranch] = useState(null);
     const [siblings,setSiblings] = useState(null);
     const [index,setIndex] = useState(0);
@@ -100,19 +101,21 @@ function ResponsiveBranchRows({uri}){
 
     useEffect(()=>{
         getInitBranch();
-    },[])
+    },[uri])
 
     return(
         <div css={container} className="big-main-column" style={{padding:0}}>
+            {showTop?
             <div css={topRow}>
                 <FadeImage src={branch?branch.branch_image:null} className="round-picture" style={{objectFit:'cover',
                 height:80,width:80}}/>
-            </div>
+            </div>:null}
+            
             <div css={rowContainer}>
                 {branch?<>
-                    <BranchRow type="parents" branch={branch} key="parents"/>
-                    <BranchRow type="siblings" branch={branch} key="siblings"/>
-                    <BranchRow type="children" branch={branch} key="children"/>
+                    <BranchRow type="parents" branch={branch} key="parents" endpoint={endpoint}/>
+                    <BranchRow type="siblings" branch={branch} key="siblings" endpoint={endpoint}/>
+                    <BranchRow type="children" branch={branch} key="children" endpoint={endpoint}/>
                 </>:null}
             </div>
         </div>
@@ -156,7 +159,7 @@ function useBranches(type="children",branch){
 }
 
 
-function BranchRow({type,branch}){
+function BranchRow({type,branch,endpoint}){
     const ref = useRef(null);
     const [branches,next,hasMore,getBranches] = useBranches(type,branch);
     const theme = useTheme();
@@ -188,12 +191,14 @@ function BranchRow({type,branch}){
             <div css={()=>branchRow(isMobile)}>
                 {branches?branches.map(b=>{
                     return(
-                        <div onClick={e=>handleClick(b)} css={imageContainer} key={b.id}>
-                            <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
-                            objectFit:'cover',margin:'10px 20px'}}
-                            src={b.branch_image}/>
-                            <span css={name}>{b.name}</span>
-                        </div>
+                        <Link to={`/${endpoint}/${b.uri}`}>
+                            <div css={imageContainer} key={b.id}>
+                                <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
+                                objectFit:'cover',margin:'10px 20px'}}
+                                src={b.branch_image}/>
+                                <span css={name}>{b.name}</span>
+                            </div>
+                        </Link>
                     )
                 }):null}
                 {hasMore && branches && branches.length != 0?
@@ -208,7 +213,6 @@ function BranchRow({type,branch}){
             </div>
             </InfiniteHorizontalScroll>
             </div>
-            
             </>
             
             
@@ -218,7 +222,7 @@ function BranchRow({type,branch}){
     )
 }
 
-function InfiniteHorizontalScroll({scrollTarget=window,value=null,hasMore,loadMore,dataLength,children}){
+function InfiniteHorizontalScroll({hasMore,loadMore,dataLength,children}){
     const ref = useRef(null);
     const [scroll,setScroll] = useState(0);
     const [itemCount,setItemCount] = useState(0);

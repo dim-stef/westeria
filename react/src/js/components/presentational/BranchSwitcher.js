@@ -5,13 +5,13 @@ import {useMyBranches} from "../container/BranchContainer"
 
 
 export function BranchSwitcher({defaultBranch,setBranch,changeCurrentBranch=false,
-    preview=true,previewClassName,children}){
+    preview=true,previewClassName,showOnTop=false,children}){
     const branches = useMyBranches();
 
     return (
         <DropdownList type="branch" component={BranchItem} label={defaultBranch} name="branch" 
         options={branches} defaultOption={defaultBranch} changeCurrentBranch={changeCurrentBranch} 
-        setBranch={setBranch} preview={preview} previewClassName={previewClassName}> 
+        setBranch={setBranch} preview={preview} previewClassName={previewClassName} showOnTop={showOnTop}> 
             {children}
         </DropdownList>
     )
@@ -22,7 +22,7 @@ export function BranchItem({setSelected,selected,option}){
 
     return(
         <div style={{...style}} 
-        onClick={()=>setSelected(option)}  className="filter-dropdown-item">
+        onClick={()=>setSelected(option)} className="filter-dropdown-item">
             <SmallBranch branch={option} isLink={false} hoverable={false}/>
         </div>
         

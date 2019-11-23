@@ -113,7 +113,7 @@ function DisplayPosts({isFeed,posts,setPosts,
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
         {posts.length && width && height>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
-            width={width} height={height}
+            width={width} height={height} hasMore={hasMore}
         />
         :
             hasMore?[...Array(8)].map((e, i) => 
@@ -721,7 +721,7 @@ const previewCss = theme => css({
 })
 
 export function DropdownList({type="text",component=null,options,defaultOption,name,
-setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',children}){
+setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',showOnTop,children}){
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
       })
@@ -795,7 +795,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                     <div>{children}</div>}
                     
                     {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown" 
-                    style={{backgroundColor:theme.backgroundColor}}>
+                    style={{backgroundColor:theme.backgroundColor,top:showOnTop?0:null}}>
                         {options.map(op=>{
                             let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>
