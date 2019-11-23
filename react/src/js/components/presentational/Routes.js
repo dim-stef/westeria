@@ -2,7 +2,8 @@ import React, {Component, useContext, useEffect, useState} from "react"
 import {Link, Redirect, Route, Switch, withRouter,useParams,useRouteMatch,useLocation } from 'react-router-dom'
 import { Global, css } from "@emotion/core";
 import styled from '@emotion/styled'
-import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming'
+import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming';
+import {useTheme} from "../container/ThemeContainer"
 import {useMediaQuery} from 'react-responsive';
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
@@ -38,6 +39,7 @@ import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
+import {BranchPagePostList} from "./BranchPagePostList"
 import {CSSTransition,TransitionGroup,Transition} from "react-transition-group";
 import MyBranchesColumnContainer from "./MyBranchesColumn"
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
@@ -47,6 +49,7 @@ import {FeedbackPage} from "./FeedbackPage";
 import {DiscoverBranchesPage} from "./NavigateBranchesPage"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
+import axiosRetry from "axios-retry";
 import axios from 'axios';
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
@@ -387,7 +390,7 @@ function DesktopParentBranchWrapper(props){
     return(
         <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
             <div style={{flexBasis:'100%',WebkitFlexBasis:'100%'}}>
-                <div>
+                {/*<div>
                     <ParentBranch
                         styleName="parent"
                         style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%'}} 
@@ -397,7 +400,7 @@ function DesktopParentBranchWrapper(props){
                     ></ParentBranch>
                 </div>
                 <Card branch={props.branch}/>
-                <BranchNavigation branch={props.branch} refresh={props.refresh}/>
+                <BranchNavigation branch={props.branch} refresh={props.refresh}/>*/}
                 {props.children}
             </div>
         </div>
@@ -462,7 +465,7 @@ function BranchFrontPage(props){
                 <div style={{marginTop:10}}>
                     <div className="flex-fill" style={{width:'100%'}}>
                         <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
-                        {userContext.isAuth?
+                        {/*userContext.isAuth?
                             <div style={{backgroundColor:theme.backgroundColor,
                             padding:'10px 20px',border:`1px solid ${theme.borderColor}`}}>
                                 <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
@@ -470,8 +473,10 @@ function BranchFrontPage(props){
                                 </div>
                                     <MyBranchesColumnContainer/>
                             </div>
-                            :<NonAuthenticationColumn/>
+                            :<NonAuthenticationColumn/>*/
+
                         }
+                          <DesktopProfile branch={props.branch}/>
                         </div>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
@@ -482,9 +487,7 @@ function BranchFrontPage(props){
                         activeBranch={props.branch}
                         postedId={props.branch.id}
                         uri={uri}
-                        />}
-                        
-                        <Trending/>
+                        />}                        
                     </div>
                 </div>
             </div>
@@ -513,8 +516,35 @@ function BranchFrontPage(props){
     )
 }
 
-import {BranchPagePostList} from "./BranchPagePostList"
-import axiosRetry from "axios-retry";
+const desktopProfile = (backgroundColor) =>css({
+  height:'100%',width:'100%',padding:'10px 20px',display:'flex',flexFlow:'column',alignItems:'center',boxSizing:'border-box',
+    boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,backgroundColor:backgroundColor
+})
+
+const description = theme =>css({
+  color:theme.textHarshColor,
+  fontSize:'2em',
+  wordBreak:'break-word',
+})
+
+function DesktopProfile({branch}){
+  const theme = useTheme();
+
+  let backgroundColor = theme.dark?'#090a10':null
+  return(
+    <div css={()=>desktopProfile(backgroundColor)}>
+      <img src={branch.branch_image} css={{height:100,width:100,objectFit:'cover',borderRadius:'50%'}}/>
+      <div css={{display:'flex',flexFlow:'column'}}>
+        <span css={{fontSize:'2em',fontWeight:'bold'}}>{branch.name}</span>
+        <span css={theme=>({color:theme.textColor,fontSize:'1.3em'})}>@{branch.uri}</span>
+      </div>
+      <div css={{margin:'20px 0'}}>
+        <span css={theme=>description(theme)}>{branch.description}</span>
+      </div>
+    </div>
+  )
+}
+
 
 const postList = theme => css({
   flexBasis:'56%',
@@ -527,7 +557,7 @@ const postList = theme => css({
 function BranchPosts(props){
   return(
     <div className="post-list" id="post-list" css={theme=>postList(theme)}>
-      <BranchPagePostList branch={props.activeBranch}/>
+      {/*<BranchPagePostList branch={props.activeBranch}/>*/}
       <GenericBranchPosts {...props}/>
     </div>
   )

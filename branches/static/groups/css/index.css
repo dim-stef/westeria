@@ -158,13 +158,14 @@
 
 .post-list{
     overflow:hidden;
-    flex-basis: 56%;
-    -webkit-flex-basis: 56%;
+    -webkit-flex: 1; /* Safari 6.1+ */
+    -ms-flex: 1; /* IE 10 */
+    flex: 1;
     width: 100%;
     padding:0;
     margin:0 10px;
     list-style:none;
-    border: 1px solid rgb(226, 234, 241);
+    border: none !important;
 }
 
 @media all and (max-device-width: 1223px) {

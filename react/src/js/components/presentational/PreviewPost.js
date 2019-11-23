@@ -7,7 +7,7 @@ import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
 import {css} from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
-import LinesEllipsis from 'react-lines-ellipsis'
+import {useTheme} from "../container/ThemeContainer"
 import {Images, PreviewPostMedia} from './PostImageGallery'
 import {Post} from "./SingularPost"
 import {ReplyTree} from './Comments'
@@ -21,7 +21,7 @@ const Ripple = createRipples({
     during: 600,
 })
 
-const postCss = theme =>css({
+const postCss = (theme,backgroundColor) =>css({
     //border:`1px solid ${theme.borderColor}`,
     boxShadow:'0px 2px 6px -4px black',
     display:'flex',
@@ -29,7 +29,8 @@ const postCss = theme =>css({
     position:'relative',
     borderRadius:5,
     overflow:'hidden',
-    cursor:'pointer'
+    cursor:'pointer',
+    backgroundColor:backgroundColor
 })
 
 const text = (theme,textPosition,size) =>css({
@@ -71,7 +72,8 @@ const openPreviewPost = theme =>css({
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
     width:'90%',
     '@media (min-width: 1224px)': {
-        width:'40%'
+        width:'40%',
+        marginLeft:'40%',
     }
 })
 
@@ -90,7 +92,8 @@ const bubbleBox = (theme,height=100) =>css({
     width:'90%',
     height:height,
     '@media (min-width: 1224px)': {
-        width:'40%'
+        width:'40%',
+        marginLeft:'40%',
     }
 })
 
@@ -116,6 +119,10 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const images = post.images;
     const videos = post.videos;
 
+    const theme = useTheme();
+
+    let backgroundColor = theme.dark?'#151827':null
+  
     const isLaptopOrDesktop = useMediaQuery({
         query: '(min-device-width: 1224px)'
     })
@@ -302,7 +309,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
                 }
                 commentsActive.current = false;
             }else{
-
                 // shoot to bottom so the comments are shown
                 y = (window.innerHeight - 200) * dir
             }
@@ -323,7 +329,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     
     return (
         <>
-        <div css={theme=>postCss(theme)} ref={ref}>
+        <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
             <SmallCard branch={post.posted_to[0]} containerWidth={null}>
                 <img className="post-profile-picture round-picture double-border noselect" 
                 src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
@@ -343,11 +349,12 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         
 
         {createPortal(
-                postShown?<div>
+                postShown?<div onTouchMove={()=>console.log("move")}>
                     {commentsShown?
                     <AnimatedCommentBox post={post} offset={200}/>:null}
-                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef} 
-                        id="preview-post" 
+                        
+                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
+                        id="preview-post"
                         {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
                             <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
                                 <Post post={post} postsContext={postsContext} down={initTo}

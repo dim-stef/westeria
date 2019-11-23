@@ -149,7 +149,7 @@ body {
 
 .main-wrapper{
     display: inherit;
-    margin-top: 60px;
+    padding-top: 60px;
 }
 
 .form-succeed-message{
@@ -888,6 +888,7 @@ button[disabled=disabled], button:disabled {
 
     .main-wrapper{
         margin-top: 0;
+        padding-top: 0;
     }
 
     .settings-wrapper{
@@ -902,7 +903,7 @@ button[disabled=disabled], button:disabled {
 }
 
 @media all and (max-device-width: 767px){
-    .avatar-banner-wrapper{
+    .avatar-banner-wrapper {
         height: 80px;
     }
 }
