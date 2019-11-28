@@ -199,9 +199,6 @@ export function ReplyTree({currentPost,topPost,
         borderLeft='3px solid #e2eaf1';
     }
      
-/*{isStatusUpdateActive?<StatusUpdate replyTo={currentPost.id} postsContext={postsContext} currentPost={currentPost} 
-            measure={measure} replyTo={post.id}
-            style={{borderTop:'1px solid rgb(199, 210, 219)',borderBottom:'1px solid rgb(199, 210, 219)'}}/>:null}*/
     return(
         <div ref={didMount} style={{marginTop:10}} key={currentPost.id}>
             

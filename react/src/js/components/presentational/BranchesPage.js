@@ -19,7 +19,9 @@ function ownsBranch(branches,target){
 }
 
 const add = theme =>css({
-    border:`1px solid ${theme.borderColor}`
+    border:`1px solid ${theme.borderColor}`,
+    justifyContent:'center',
+    alignItems:'center'
 })
 
 export function BranchesPageRoutes(props){
@@ -250,15 +252,14 @@ export function AddBranch({branch,type='children'}){
 
     return(
         !requestStatus?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10,cursor:'pointer'}} css={theme=>add(theme)}
-            role="button" onClick={onClick}>  
-            <AddBranchSvg width={100} height={100}/>
+        <div className="flex-fill" 
+        style={{padding:10,cursor:'pointer',borderRadius:'50%',height:80,width:80,margin:20}} 
+        css={theme=>add(theme)}
+        role="button" onClick={onClick}>  
             <h1 className="branch-add-text">{text}</h1>
-            
         </div>
         :sumbitted && requestStatus == 'accepted'?
             <BranchList branches={[context.currentBranch]} ownsBranch={true} viewedBranch={branch} pending={false}/>
-            
             :
             <>
                 <RequestOnHold status={requestStatus}/>

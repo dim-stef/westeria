@@ -73,7 +73,7 @@ const openPreviewPost = theme =>css({
     width:'90%',
     '@media (min-width: 1224px)': {
         width:'40%',
-        marginLeft:'40%',
+        marginLeft:'37%',
     }
 })
 
@@ -93,7 +93,7 @@ const bubbleBox = (theme,height=100) =>css({
     height:height,
     '@media (min-width: 1224px)': {
         width:'40%',
-        marginLeft:'40%',
+        marginLeft:'37%',
     }
 })
 
@@ -181,7 +181,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const lastDockedPosition = useRef(null);
 
     const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
-    const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
+    const from = () => ({ opacity:0, x: 0, rot: 0, scale: 1, y: -(window.innerHeight) })
     const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1, rot: -10 + Math.random() * 20 })
 
     const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
@@ -295,7 +295,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         
         set(() => {
           const isGone = shotUp.current || shotDown.current
-          let y = down ? my + (lastDockedPosition.current || 0) : lastDockedPosition.current || 20;
+          let y = down ? my + (lastDockedPosition.current || 20) : lastDockedPosition.current || 20;
 
           if(shotUp.current){
             if(dir==-1){
@@ -320,7 +320,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
             lastDockedPosition.current = y;
           }
 
-          console.log(lastDockedPosition.current)
           const rot = mx / 100 + (isGone ? dir * 10 * velocity : 0) // How much the card tilts, flicking it harder makes it rotate faster
           const scale = down ? 1 : 1 // Active cards lift up a bit
           return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? 200 : 500 }}
@@ -330,29 +329,26 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     return (
         <>
         <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
-            <SmallCard branch={post.posted_to[0]} containerWidth={null}>
-                <img className="post-profile-picture round-picture double-border noselect" 
-                src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
-                    onClick={(e)=>{
-                        e.stopPropagation();
-                        history.push(`/${post.posted_to[0].uri}`);
-                    }}
-                />
-            </SmallCard>
-                <div css={zoom} ref={zoomRef} onClick={handleClick}>
-                    {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
-                    videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
-                    
-                    {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
-                </div>
+            <img className="post-profile-picture round-picture double-border noselect" 
+            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
+                onClick={(e)=>{
+                    e.stopPropagation();
+                    history.push(`/${post.posted_to[0].uri}`);
+                }}
+            />
+            <div css={zoom} ref={zoomRef} onClick={handleClick}>
+                {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
+                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
+                
+                {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
+            </div>
         </div>
         
 
         {createPortal(
-                postShown?<div onTouchMove={()=>console.log("move")}>
+                postShown?<div>
                     {commentsShown?
                     <AnimatedCommentBox post={post} offset={200}/>:null}
-                        
                         <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
                         id="preview-post"
                         {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>

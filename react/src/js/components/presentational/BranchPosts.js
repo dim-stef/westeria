@@ -79,6 +79,7 @@ function DisplayPosts({isFeed,posts,setPosts,
 
     const [height,setHeight] = useState(0);
     const [width,setWidth] = useState(0);
+    const isSwiping = useRef(false);
     const theme = useTheme();
 
     useLayoutEffect(()=>{
@@ -99,8 +100,7 @@ function DisplayPosts({isFeed,posts,setPosts,
 
     function shouldPullToRefresh(){
         try{
-            return document.getElementById('mobile-content-container').scrollTop <=0 &&
-            document.getElementById("leaf-preview-root").childElementCount == 0
+            return document.getElementById("leaf-preview-root").childElementCount == 0
         }catch(e){
             return true
         }
@@ -109,11 +109,13 @@ function DisplayPosts({isFeed,posts,setPosts,
     return(
         <>
 
-        <SuperBar postsContext={postsContext} refresh={refresh}/>
+        <SuperBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
+            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed}
+        />
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
         {posts.length && width && height>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
-            width={width} height={height} hasMore={hasMore}
+            width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
         />
         :
             hasMore?[...Array(8)].map((e, i) => 
@@ -178,7 +180,6 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     useEffect(()=>{
          
         if(ref){
-            console.log(postsContext.scroll)
             //ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
         }
@@ -782,8 +783,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     return (
         <ToggleContent 
             toggle={show=>(
-                <div ref={ref} onClick={e=>handleClick(e,show)} className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}
-                css={theme=>previewCss(theme)}>
+                <div ref={ref} onClick={e=>handleClick(e,show)}>
                     {preview?
                     <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 

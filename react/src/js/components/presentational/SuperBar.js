@@ -1,8 +1,12 @@
-import React, {useEffect,useRef,useState} from "react"
+import React, {useEffect,useRef,useState,useContext} from "react";
 import {Link,NavLink} from "react-router-dom";
+import history from "../../history";
 import {css} from "@emotion/core";
-import {useMediaQuery} from 'react-responsive'
-import {useTheme} from "../container/ThemeContainer"
+import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs';
+import {useMediaQuery} from 'react-responsive';
+import {UserContext} from "../container/ContextContainer";
+import {useTheme} from "../container/ThemeContainer";
+import {StatusUpdate} from "./StatusUpdate";
 
 const dropdownList = (theme,getTheme) =>css({
     display:'flex',
@@ -13,6 +17,7 @@ const dropdownList = (theme,getTheme) =>css({
     padding:'5px 0',
     boxShadow:'0px 2px 4px -1px #000000',
     minWidth:'100px',
+    borderRadius:5
 })
 
 const optionCss = (theme,isMobile) =>css({
@@ -34,17 +39,16 @@ const optionCss = (theme,isMobile) =>css({
 })
 
 const superBar = () =>css({
-    margin:'10px 0',
     height:50,
-    borderBottom:'2px solid black',
+    marginBottom:5,
     boxSizing:'border-box',
     '@media (max-device-width: 767px)':{
         margin:0
     }
 })
 
-function PostListPicker({postsContext}){
-    let options = [
+function PostListPicker({postsContext,branch}){
+    let options = !postsContext.isProfile?[
         {
             label:'Feed',
             value:'',
@@ -52,22 +56,38 @@ function PostListPicker({postsContext}){
         },
         {
             label:'Tree',
-            value:'tree',
+            value:'/tree',
             action:'link',
         },
         {
             label:'All',
-            value:'all',
+            value:'/all',
+            action:'link',
+        }
+    ]:[
+        {
+            label:'Posts',
+            value:`/${branch.uri}`,
+            action:'link',
+        },
+        {
+            label:'Community',
+            value:`/${branch.uri}/community`,
+            action:'link',
+        },
+        {
+            label:'Tree',
+            value:`/${branch.uri}/tree`,
             action:'link',
         }
     ]
 
     let defaultOption;
-    if(postsContext.content=="feed"){
+    if(postsContext.content=="feed" || postsContext.content=="branch"){
         defaultOption = options[0];
-    }else if(postsContext.content=="all"){
+    }else if(postsContext.content=="all" || postsContext.content=="branch_community"){
         defaultOption = options[2];
-    }else if(postsContext.content=="tree"){
+    }else if(postsContext.content=="tree" || postsContext.content=="branch_tree"){
         defaultOption = options[1];
     }else{
         defaultOption = options[1];
@@ -75,16 +95,19 @@ function PostListPicker({postsContext}){
 
     const [option,setOption] = useState(defaultOption)
 
-    function onChange(newOption){
-        setOption(newOption)
-    }
-
     return(
-        <SuperDropdown2 options={options}>
-            <div role="button" css={theme=>({color:theme.textHarshColor,fontWeight:'bold',
-            fontSize:'2em',cursor:'pointer'})}>
-            {option.label}</div>
-        </SuperDropdown2>
+        
+        branch?<SuperDropDown options={options}>
+            <div role="button" css={{cursor:'pointer',display:'flex',flexFlow:'column',alignItems:'start'}}>
+                <div css={theme=>({color:theme.textColor,fontWeight:'bold',
+                fontSize:'2em',cursor:'pointer',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',width:170})}>
+                {branch.name}</div>
+
+                <div css={theme=>({color:theme.textHarshColor,
+                fontSize:'1.5em',fontWeight:500})}>
+                {option.label}</div>
+            </div>
+        </SuperDropDown>:null
     )
 }
 
@@ -127,38 +150,73 @@ function useFilters(postsContext,refresh){
 
 function Option({option,handleOptionClick,setSelected}){
 
-
-    function handleClick(){
+    function handleClick(e){
+        e.stopPropagation();
         handleOptionClick(option)
     }
 
     return(
         option.action==='link'?
-        <div css={theme=>optionCss(theme)} key={option.value} onClick={()=>handleClick(option)}>
-            <NavLink to={`/${option.value}`} >
+        <div css={theme=>optionCss(theme)} key={option.value} onClick={(e)=>handleClick(e)}>
+            <NavLink to={option.value} >
                 {option.label}
             </NavLink>
         </div>:
-        <div css={theme=>optionCss(theme)} key={option.value} onClick={()=>handleClick(option)}>
+        <div css={theme=>optionCss(theme)} key={option.value} onClick={(e)=>handleClick(e)}>
             {option.label}
         </div>
     )
 }
 
-export function SuperBar({postsContext,refresh}){
+const superBarWrapper = (isDark) =>css({
+    height:'100%',backgroundColor:isDark?'#05060c':'#f7f7f7',zIndex:3,
+    display:'flex',justifyContent:'space-around',alignItems:'center',borderRadius:15,
+    position:'relative',
+    '@media (max-device-width: 767px)':{
+        borderTopRightRadius:0,
+        borderTopLeftRadius:0
+    }
+
+})
+
+import bezier from "bezier-easing"
+
+export function SuperBar({postsContext,refresh,branch,isFeed,updateFeed,postedId}){
     const getTheme = useTheme();
+    const userContext = useContext(UserContext);
 
     return(
         <div css={superBar}>
-            <div css={theme=>({height:'100%',backgroundColor:getTheme.dark?'#05060c':theme.backgroundColor,zIndex:3,
-            display:'flex',justifyContent:'space-around',alignItems:'center'})}>
-                <PostListPicker postsContext={postsContext} refresh={refresh}/>
-                <Filter postsContext={postsContext} refresh={refresh}/>
+            <div css={theme=>superBarWrapper(getTheme.dark)}>
+                <div css={{flex:'1 1 auto',display:'flex',justifyContent:'space-around',height:'100%',alignItems:'center',
+                zIndex:4,backgroundColor:'inherit'}}>
+                    {(isFeed && userContext.isAuth) || !isFeed?
+                    <Branches branch={branch}/>:null}
+                    <PostListPicker postsContext={postsContext} refresh={refresh} branch={branch}/>
+                    <Filter postsContext={postsContext} refresh={refresh}/>
+                </div>
+                {userContext.isAuth?<StatusUpdateButton branch={branch} updateFeed={updateFeed} 
+                postedId={postedId} isFeed={isFeed} postsContext={postsContext}/>:null}
+                
             </div>
         </div>
     )
 }
 
+function Branches({branch}){
+
+    function handleClick(){
+
+        history.push(`/${branch.uri}/branches`);
+    }
+
+    return(
+        <div role="button" onClick={handleClick} css={theme=>({color:theme.textHarshColor,fontWeight:'bold',
+        fontSize:'1.7em',cursor:'pointer'})}>
+            {branch.branch_count?branch.branch_count:null} Branches
+        </div>
+    )
+}
 function Filter({postsContext,refresh}){
 
     const [params,setParams] = useFilters(postsContext,refresh);
@@ -172,10 +230,19 @@ function Filter({postsContext,refresh}){
         refresh();
     }
 
+    function handleOrderingSelect(o){
+        let p = params;
+        p.ordering.label = o.label
+        p.ordering.value = o.value
+        postsContext.params = p;
+        //setParams(p)
+        refresh();
+    }
+
     const options = [
         { 
             value: 'post_type', 
-            label: params.content.label || params.label,
+            label: postsContext.params.content.label,
             onChildSelect:handlePostTypeSelect,
             children:[
                     { value: 'leaves', label: 'Leaves',onSelect:handlePostTypeSelect },
@@ -184,36 +251,24 @@ function Filter({postsContext,refresh}){
                 ]
         },
         { 
-            value: 'post_list', 
-            label: postsContext.content,
+            value: 'ordering', 
+            label: postsContext.params.ordering.label,
+            onChildSelect:handleOrderingSelect,
             children:[
-                {
-                    label:'Feed',
-                    value:'',
-                    action:'link',
-                },
-                {
-                    label:'Tree',
-                    value:'tree',
-                    action:'link',
-                },
-                {
-                    label:'All',
-                    value:'all',
-                    action:'link',
-                }
-            ]
+                    { value: '-hot_score', label: 'Hot',onSelect:handleOrderingSelect },
+                    { value: '-created', label: 'New',onSelect:handleOrderingSelect },
+                ]
         },
     ];
 
     return (
-        <SuperDropdown2 options={options}>
-            <p>click me</p>
-        </SuperDropdown2>
+        <SuperDropDown options={options}>
+            <FilterSvg/>
+        </SuperDropDown>
     )
 }
 
-function SuperDropdown2({options,children}){
+function SuperDropDown({options,children}){
  
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
@@ -223,11 +278,27 @@ function SuperDropdown2({options,children}){
     const [selected,setSelected] = useState(options[0]);
     const [list,setList] = useState(options);
     const getTheme = useTheme();
-    //const list = childrenShown?selected.children:options
+    const easing = bezier(0.25, 0.63, 0.76, 1.01);
+
+    const transitions = useTransition(shown, null, {
+        from: { opacity: 0, transform: 'translateY(-20px)'},
+        enter: { opacity: 1, transform: 'translateY(0)'},
+        leave: { opacity: 0, transform: 'translateY(-50px)' },
+        config: {
+            duration: 100,
+            easing:t=>easing(t)
+        },
+    })
     
     function handleClick(){
         setShown(!shown);
     }
+
+    useEffect(()=>{
+        if(shown){
+            setList(options);
+        }
+    },[shown])
 
     function handleOptionClick(o){
         if(o.children){
@@ -242,8 +313,9 @@ function SuperDropdown2({options,children}){
     return(
         <div style={{position:'relative',zIndex:2}}>
             { React.cloneElement( children, { onClick: handleClick } ) }
-            {shown?
-            <div css={(theme)=>dropdownList(theme,getTheme)}>
+            {transitions.map(({ item, props, key }) => {
+            return item && <animated.div key={key} css={(theme)=>dropdownList(theme,getTheme)}
+            style={props}>
                 {list.map(o=>{
                     return(
                         <React.Fragment key={o.value}><Option option={o}
@@ -253,7 +325,126 @@ function SuperDropdown2({options,children}){
                     )
                 })}
                 
-            </div>:null}
+            </animated.div>})}
         </div>
+    )
+}
+
+
+function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext}){
+    const getTheme = useTheme();
+    const [show,setShow] = useState(false);
+    const transitions = useTransition(show, null, {
+        from: { opacity: 0 },
+        enter: { opacity: 1, transform: 'translateY(50px)'},
+        leave: { opacity: 1, transform: 'translateY(0)' },
+    })
+    
+    function handleClick(){
+        setShow(!show);
+    }
+
+    return(
+        <>
+        <div onClick={handleClick} css={theme=>({width:'10%',display:'flex',justifyContent:'center',height:'100%',alignItems:'center',
+        backgroundColor:getTheme.dark?'#090a10':'#efefef',zIndex:3})}>
+            <PlusSvg/>
+        </div>
+        {transitions.map(({ item, props, key }) => {
+            return (
+                item && <animated.div key={key} css={{width:'100%',height:50,position:'absolute',zIndex:0}}
+                style={props}>
+                    <StatusUpdate activeBranch={branch} postsContext={postsContext} updateFeed={updateFeed} 
+                    postedId={postedId} isFeed={isFeed} redirect/>
+                </animated.div>
+        )})}
+        </>
+    )
+}
+
+const icon = theme =>css({
+    height:20,
+    width:20,
+    borderRadius:'50%',
+    padding:7,
+    borderRadius:'50%',
+    overflow:'visible',
+    fill:theme.textHarshColor,
+    cursor:'pointer',
+    '&:hover':{
+        backgroundColor:theme.embeddedHoverColor
+    }
+})
+
+const FilterSvg = props =>{
+    return(
+        <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+        x="0px"
+        y="0px"
+        viewBox="0 0 971.986 971.986"
+        style={{ enableBackground: "new 0 0 971.986 971.986" }}
+        css={icon}
+        {...props}
+        xmlSpace="preserve"
+        >
+        <g>
+            <path d="M370.216,459.3c10.2,11.1,15.8,25.6,15.8,40.6v442c0,26.601,32.1,40.101,51.1,21.4l123.3-141.3   c16.5-19.8,25.6-29.601,25.6-49.2V500c0-15,5.7-29.5,15.8-40.601L955.615,75.5c26.5-28.8,6.101-75.5-33.1-75.5h-873   c-39.2,0-59.7,46.6-33.1,75.5L370.216,459.3z" />
+        </g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        </svg>
+    )
+}
+
+const PlusSvg = (props)=>{
+    return(
+        <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+        x="0px"
+        y="0px"
+        viewBox="0 0 512 512"
+        style={{ enableBackground: "new 0 0 512 512" }}
+        css={icon}
+        xmlSpace="preserve"
+        >
+        <g>
+            <g>
+            <path d="M492,236H276V20c0-11.046-8.954-20-20-20c-11.046,0-20,8.954-20,20v216H20c-11.046,0-20,8.954-20,20s8.954,20,20,20h216    v216c0,11.046,8.954,20,20,20s20-8.954,20-20V276h216c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z" />
+            </g>
+        </g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        <g></g>
+        </svg>
     )
 }

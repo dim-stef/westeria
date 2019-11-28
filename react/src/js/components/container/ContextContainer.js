@@ -2,6 +2,7 @@ import React from "react";
 
 let frontPagePostList = {
     content:'feed',
+    isProfile:false,
     hasMore:true,
     next:null,
     scroll:0,
@@ -64,6 +65,7 @@ export const SingularPostContext = React.createContext(
     {
         counter:0,
         content:'feed',
+        isProfile:false,
         hasMore:true,
         next:null,
         scroll:0,
@@ -92,15 +94,18 @@ export const TreePostsContext = React.createContext(
 );
 
 export const BranchPostsContext = React.createContext(
-    Object.create({...frontPagePostList,content:'branch'})
+    Object.create({...frontPagePostList,content:'branch',
+    isProfile:true})
 );
 
 export const BranchCommunityPostsContext = React.createContext(
-    Object.create({...frontPagePostList,content:'branch_community'})
+    Object.create({...frontPagePostList,content:'branch_community',
+    isProfile:true})
 );
 
 export const BranchTreePostsContext = React.createContext(
-    Object.create({...frontPagePostList,content:'branch_tree'})
+    Object.create({...frontPagePostList,content:'branch_tree',
+    isProfile:true})
 );
 
 export const ChatRoomsContext = React.createContext({

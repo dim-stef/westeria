@@ -1,7 +1,6 @@
 import React, {Component, useContext, useEffect, useState} from "react"
 import {Link, Redirect, Route, Switch, withRouter,useParams,useRouteMatch,useLocation } from 'react-router-dom'
 import { Global, css } from "@emotion/core";
-import styled from '@emotion/styled'
 import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming';
 import {useTheme} from "../container/ThemeContainer"
 import {useMediaQuery} from 'react-responsive';
@@ -36,9 +35,7 @@ import {NotificationsContainer} from "./Notifications"
 import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
-import {BranchPagePostList} from "./BranchPagePostList"
 import {CSSTransition,TransitionGroup,Transition} from "react-transition-group";
-import MyBranchesColumnContainer from "./MyBranchesColumn"
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
 import {MobileBranchPageWrapper, MobileParentBranch2} from "./MobileParentBranch"
 import {BranchLinks,PostLinks} from "./GoogleLinks"
@@ -304,12 +301,12 @@ function SingularPostWrapper({externalPostId}){
     return(
         <>
             <Desktop>
-                <FrontPageLeftBar/>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
-                    <SingularPost postId={externalPostId} postsContext={singularPostContext}
-                    activeBranch={userContext.currentBranch}
-                /></ul>
-                <Trending/>
+                <DesktopParentBranchWrapper branch={userContext.currentBranch}>
+                  <ul className="post-list" css={theme=>postWrapper(theme)}>
+                      <SingularPost postId={externalPostId} postsContext={singularPostContext}
+                      activeBranch={userContext.currentBranch}
+                  /></ul>
+                </DesktopParentBranchWrapper>
             </Desktop>
 
             <Tablet>
@@ -387,18 +384,17 @@ function ResponsiveBranchPage({branch,children}){
 function DesktopParentBranchWrapper(props){
 
     return(
-        <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
+        <div className="flex-fill" style={{flexFlow:'row',width:'100%'}}>
             <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
               <DesktopProfile branch={props.branch}/>
             </div>
             {props.children}
-            
         </div>
     )
 }
 
 
-export const BranchPage = function(props){
+export const BranchPage = function(props){ 
 
     return(
         <ResponsiveBranchPage branch={props.branch}>
@@ -409,7 +405,7 @@ export const BranchPage = function(props){
             </Helmet>
             <Switch>
                 <Route path={`/${props.match}/branches`} render={() => <DiscoverBranchesPage {...props} 
-                showTop={false} endpoint="branches"/>}/>
+                showTop={false} withHeadline endpoint="branches"/>}/>
                 <Route path={`/${props.match}/:keyword(community|tree)?/`} 
                 render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
             </Switch>

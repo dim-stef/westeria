@@ -1,11 +1,14 @@
-import React, {useEffect,useState,useRef} from "react"
+import React, {useEffect,useState,useRef,useContext} from "react"
 import {Link} from "react-router-dom";
 import {useMediaQuery} from "react-responsive";
 import {MoonLoader} from 'react-spinners';
 import {css} from "@emotion/core"
 import {useTheme} from "emotion-theming";
+import {UserContext} from "../container/ContextContainer"
 import {FadeImage} from "./FadeImage"
 import {CircularSkeletonList} from "./SkeletonBranchList"
+import {AddBranch} from "./BranchesPage"
+import RoutedHeadline from "./RoutedHeadline"
 import history from "../../history";
 import axios from "axios";
 import axiosRetry from "axios-retry"
@@ -17,10 +20,11 @@ axiosRetry(axios,
     });
 
     
-const container = () =>css({
+const container = (theme) =>css({
     height:'100%',
     display:'flex',
-    flexFlow:'column'
+    flexFlow:'column',
+    border:`1px solid ${theme.borderColor}`
 })
 
 const rowContainer = () =>css({
@@ -34,7 +38,10 @@ const branchRow = isMobile => css({
     justifyContent:isMobile?'center':'flex-start',
     alignItems:'center',
     flexFlow:isMobile?'row':'row wrap',
-    padding:'10px 0'
+    padding:'10px 0',
+    a:{
+        textDecoration:'none'
+    }
 })
 
 const skeletonRow = isMobile => css({
@@ -70,17 +77,19 @@ const imageContainer = () =>css({
 
 const name = theme =>css({
    color: theme.textLightColor,
-   fontSize:'1.1rem',
+   fontSize:'1.5rem',
    fontWeight:500
 })
 
-export function DiscoverBranchesPage({match,branch,endpoint="search",showTop=true}){
+export function DiscoverBranchesPage({match,branch,endpoint="search",showTop=true,withHeadline=false}){
     return(
-        <ResponsiveBranchRows uri={match.params?match.params.uri : branch.uri} showTop={showTop} endpoint={endpoint}/>
+        <ResponsiveBranchRows uri={match.params?match.params.uri : branch.uri} showTop={showTop} endpoint={endpoint}
+            withHeadline={withHeadline}
+        />
     )
 }
 
-function ResponsiveBranchRows({uri,showTop,endpoint}){
+function ResponsiveBranchRows({uri,showTop,endpoint,withHeadline}){
     const [branch,setBranch] = useState(null);
     const [siblings,setSiblings] = useState(null);
     const [index,setIndex] = useState(0);
@@ -104,12 +113,13 @@ function ResponsiveBranchRows({uri,showTop,endpoint}){
     },[uri])
 
     return(
-        <div css={container} className="big-main-column" style={{padding:0}}>
+        <div css={theme=>container(theme)} className="big-main-column" style={{padding:0}}>
             {showTop?
             <div css={topRow}>
                 <FadeImage src={branch?branch.branch_image:null} className="round-picture" style={{objectFit:'cover',
                 height:80,width:80}}/>
             </div>:null}
+            {withHeadline?<RoutedHeadline to={`/${branch?branch.uri:null}`}/>:null}
             
             <div css={rowContainer}>
                 {branch?<>
@@ -144,7 +154,6 @@ function useBranches(type="children",branch){
         }else{
             setBranches(branches?[...branches,...response.data.results]:response.data.results)
         }
-
         setPrevBranch(branch);
     }
 
@@ -161,6 +170,7 @@ function useBranches(type="children",branch){
 
 function BranchRow({type,branch,endpoint}){
     const ref = useRef(null);
+    const userContext = useContext(UserContext);
     const [branches,next,hasMore,getBranches] = useBranches(type,branch);
     const theme = useTheme();
 
@@ -183,37 +193,43 @@ function BranchRow({type,branch,endpoint}){
 
     return(
         branches?branches.length>0?<><div>
-            <h1 css={theme=>header(theme)}>{infoText}</h1>
+            <div>
+                <h1 css={theme=>header(theme)}>{infoText}</h1>
+                    
+                <InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
+                next={next} hasMore={hasMore} loadMore={getBranches} dataLength={branches?branches.length:0}>
                 
-            <InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
-            next={next} hasMore={hasMore} loadMore={getBranches} dataLength={branches?branches.length:0}>
-            
-            <div css={()=>branchRow(isMobile)}>
-                {branches?branches.map(b=>{
-                    return(
-                        <Link to={`/${endpoint}/${b.uri}`}>
-                            <div css={imageContainer} key={b.id}>
-                                <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
-                                objectFit:'cover',margin:'10px 20px'}}
-                                src={b.branch_image}/>
-                                <span css={name}>{b.name}</span>
-                            </div>
-                        </Link>
-                    )
-                }):null}
-                {hasMore && branches && branches.length != 0?
-                    <div className="flex-fill load-spinner-wrapper" css={{justifyContent:'center',margin:'0 30px'}}>
-                    <MoonLoader
-                        sizeUnit={"px"}
-                        size={20}
-                        color={theme.textLightColor}
-                        loading={true}
-                    />
-                </div>:null}
+                <div css={()=>branchRow(isMobile)}>
+                    {type=='siblings' || !userContext.isAuth || branch.uri==userContext.currentBranch.uri?null:
+                    <AddBranch branch={branch} type={type}/>}
+                    {branches?branches.map(b=>{
+                        return(
+                            <Link to={endpoint=='branches'?`/${b.uri}/branches`:`/${endpoint}/${b.uri}`}>
+                                <div css={imageContainer} key={b.id}>
+                                    <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
+                                    objectFit:'cover',margin:'10px 20px'}}
+                                    src={b.branch_image}/>
+                                    <span css={name}>{b.name}</span>
+                                </div>
+                            </Link>
+                        )
+                    }):null}
+                    {hasMore && branches && branches.length != 0?
+                        <div className="flex-fill load-spinner-wrapper" css={{justifyContent:'center',margin:'0 30px'}}>
+                        <MoonLoader
+                            sizeUnit={"px"}
+                            size={20}
+                            color={theme.textLightColor}
+                            loading={true}
+                        />
+                    </div>:null}
+                </div>
+                </InfiniteHorizontalScroll>
             </div>
-            </InfiniteHorizontalScroll>
-            </div>
-            </>
+            {hasMore && !isMobile?
+            <button className="load-more" style={{width:100}} onClick={getBranches}>Load more</button>:null}
+        </div>
+        </>
             
             
         :null:<div css={()=>skeletonRow(isMobile)}>

@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
+import history from "../../history"
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
 import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
@@ -38,15 +39,8 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null}){
-    /*const plugins = [
-        SlateReactPlaceholder({
-            placeholder: "placeholder text",
-            when: (editor, node) => {
-              return editor.value.document.text === '';
-            }
-        })
-    ]*/
+export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null,
+    redirect=false}){
 
     function renderNode(props, editor, next) {
         const { node, attributes, children } = props
@@ -159,6 +153,14 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
         padding:'0 10px'
     }
 
+    let placeholder = 'Add a leaf';
+    if(activeBranch){
+        placeholder = `Add a leaf to ${activeBranch.name}`
+    }
+    if(currentPost){
+        placeholder = `Reply to ${currentPost.poster_name}`
+    }
+
     return(
             <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
             justifyContent:'stretch',WebkitJustifyContent:'strech',position:'relative',zIndex:3,...style}}>
@@ -174,7 +176,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     setFiles={setFiles}
                     editorRef={editorRef}
                     onInput={handleChange}
-                    placeholder="Add a leaf"
+                    placeholder={placeholder}
                     className="editor flex-fill text-wrap"
                     value={value}
                     style={{padding:'5px 10px',backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,
@@ -188,7 +190,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
                     postedId={postedId} currentPost={currentPost} isFeed={isFeed} activeBranch={activeBranch}
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
-                        {...postToProps}
+                        redirect={redirect} {...postToProps}
                     />
                     {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
                     {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
@@ -234,7 +236,7 @@ function CodeNode(props) {
 
 
 function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,isFeed=false,replyTo=null,handleImageClick,
-    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch}){
+    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch,redirect}){
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
 
@@ -296,6 +298,9 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
+                if(redirect){
+                    history.push(`/${branch.uri}/leaves/${response.data.id}`)
+                }
                 resetEditor();
                 axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
                     updateFeed(response.data);

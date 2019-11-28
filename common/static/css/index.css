@@ -32,6 +32,7 @@ body {
     margin: 0 10px;
     border: 1px solid #e2eaf1;
     overflow-x: hidden;
+    border-radius:15px;
 }
 
 .big-main-column{
@@ -41,6 +42,7 @@ body {
     margin: 0 10px;
     border: 1px solid #e2eaf1;
     overflow-x: hidden;
+    border-radius:15px;
 }
 
 .full-height{
@@ -777,7 +779,7 @@ button[disabled=disabled], button:disabled {
 .branch-profile-setting{
     height:100%;
     object-fit: cover;
-    border: 1px solid white;
+    border: 1px solid transparent;
 }
 
 .branch-banner-setting{
@@ -1085,8 +1087,6 @@ button[disabled=disabled], button:disabled {
 a,button::-moz-focus-inner { /* removes dotted outline firefox */
     border: 0;
   }
-  
-  
 
 a,button { /* removes outline */
     cursor: pointer;
@@ -1103,4 +1103,8 @@ input,button {
 
 input,textarea{
     background-color:transparent;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent; /* for removing the highlight */
 }
