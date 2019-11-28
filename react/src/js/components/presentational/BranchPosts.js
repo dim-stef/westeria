@@ -1,6 +1,5 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
-import {useLocation} from "react-router-dom"
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import Pullable from 'react-pullable';
@@ -29,6 +28,8 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
+import {SwipeablePostGrid} from "./SwipeablePostGrid";
+import {SuperBar} from "./SuperBar"
 import {useMediaQuery} from 'react-responsive'
 
 axiosRetry(axios, 
@@ -70,66 +71,52 @@ function DisplayPosts({isFeed,posts,setPosts,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh,target,keyword}){
     
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    const ref = useRef(null);
+
+    const [height,setHeight] = useState(0);
+    const [width,setWidth] = useState(0);
+    const isSwiping = useRef(false);
     const theme = useTheme();
+
+    useLayoutEffect(()=>{
+        if(ref.current){
+            let mobileNavBar = null;
+            try{
+                mobileNavBar = document.getElementById('mobile-nav-bar');
+            }catch(e){
+
+            }
+
+            setWidth(ref.current.clientWidth);
+            let refRect = ref.current.getBoundingClientRect();
+            setHeight(isMobile?window.innerHeight - refRect.top -
+                (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
+        }
+    },[ref])
 
     function shouldPullToRefresh(){
         try{
-            return document.getElementById('mobile-content-container').scrollTop <=0 &&
-            document.getElementById("leaf-preview-root").childElementCount == 0
+            return document.getElementById("leaf-preview-root").childElementCount == 0
         }catch(e){
             return true
         }
-        
     }
 
     return(
         <>
-        <Pullable
-        onRefresh={refresh}
-        shouldPullToRefresh={shouldPullToRefresh}
-        centerSpinner={false}
-        spinnerColor="#2196F3"
-        >
-        <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
-        resetPostsContext={resetPostsContext} fetchData={fetchData}/>
-        <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
-        postedId={postedId} key={postedId} isFeed={isFeed}/>
-        {posts.length>0?
-            
-        <InfiniteScroll
-            dataLength={posts.length}
-            next={fetchData}
-            hasMore={hasMore}
-            scrollableTarget={document.getElementById('mobile-content-container')?'mobile-content-container':null}
-            endMessage={
-                <p style={{textAlign: 'center'}}>
-                    <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-                </p>
-            }
 
-            loader={[...Array(3)].map((e, i) => 
-            <div key={i} style={{width:'100%',marginTop:10}}>
-                <div style={{padding:'10px'}}>
-                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                        <Skeleton circle={true} width={48} height={48}/>
-                    </SkeletonTheme>
-                    <div style={{marginTop:10,lineHeight:'2em'}}>
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={2} width="100%" height={10}/>
-                        </SkeletonTheme>
-
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={1} width="30%" height={10}/>
-                        </SkeletonTheme>
-                    </div>
-                </div>
-            </div>
-            )}>
-            <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
-                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts} keyword={keyword} 
-                scrollTarget={document.getElementById('mobile-content-container')?document.getElementById('mobile-content-container'):window}
-            />
-        </InfiniteScroll>
+        <SuperBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
+            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed}
+        />
+        <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
+        {posts.length && width && height>0?
+        <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
+            width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
+        />
         :
             hasMore?[...Array(8)].map((e, i) => 
             <div key={i} style={{width:'100%',marginTop:10}}>
@@ -151,7 +138,7 @@ function DisplayPosts({isFeed,posts,setPosts,
             ):<p style={{textAlign:'center'}}>
                 <b style={{fontSize:'2rem'}}>Nothing more to see</b>
             </p>}
-            </Pullable>
+        </div>
     </>
     )
 }
@@ -193,7 +180,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     useEffect(()=>{
          
         if(ref){
-            ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
+            //ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
             ref.current.scrollToPosition(postsContext.scroll);
         }
     },[keyword])
@@ -207,7 +194,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
     })
 
     function onScroll(scroll){
-         
+        
         postsContext.scroll = scroll.scrollTop;
     }
 
@@ -216,7 +203,7 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
         <WindowScroller
         scrollElement={scrollTarget}
         onScroll={onScroll}>
-            {({ height, isScrolling, onChildScroll, scrollTop }) => (
+            {({ height, scrollTop }) => (
                 <AutoSizer 
                 disableHeight
                 onResize={({ width }) => {
@@ -234,63 +221,97 @@ function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsConte
                         setPreviousWidth(width);
                     }
                 }}>
-                { ({ width }) =>
-                <List
-                containerStyle={{pointerEvents:'auto'}}
-                autoHeight
-                width={width}
-                height={height}
-                isScrolling={isScrolling}
-                onScroll={onChildScroll}
-                scrollTop={scrollTop}
-                rowCount={supportsGrid?Math.ceil(posts.length/5):posts.length}
-                deferredMeasurementCache={usingCache}
-                rowHeight={usingCache.rowHeight}
-                ref={ref}
-                rowRenderer={
-                    ({ index, key, style, parent }) =>{
-                    let post = posts[index];
-                    let isOpen = postsContext.openPosts.some(id=> id == post.id)
-                    let props = {
-                        post:post,
-                        key:[post.id,post.spreaders,postsContext.content],
-                        viewAs:"post",
-                        activeBranch:activeBranch,
-                        postsContext:postsContext
-                        };
-                    return(
-                        <CellMeasurer
-                        ref={cellRef}
-                        key={[post.id,post.spreaders,postsContext.content]}
-                        cache={usingCache}
-                        parent={parent}
-                        width={width}
-                        columnIndex={0}
-                        rowIndex={index}>
-                        {({ measure }) => (
-                            <div
-                            key={key}
-                            style={style}
-                            >
-                                {supportsGrid?
-                                <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
-                                postsContext={postsContext} measure={measure}/>:
-                                <li><Post {...props} index={index} measure={measure}/></li>}
-                                {/*<li><Post {...props} index={index} measure={measure}/></li>*/}
-                            </div>
-                        )}
-                    </CellMeasurer>
-                        
-                    )
-                }}
-                />
-            
-            }</AutoSizer>
+                {({ width }) =>{
+                        let props = {
+                            scrollRef:ref,
+                            width:width,
+                            height:height,
+                            activeBranch:activeBranch,
+                            posts:posts,
+                            postsContext:postsContext,
+                            scrollTop:scrollTop,
+                            usingCache:usingCache
+                        }
+                        return supportsGrid?<GridList {...props}/>:<FlatList {...props}/>
+                    }
+                }
+                </AutoSizer>
         )}
         </WindowScroller>
     )
 }
 
+function GridList({scrollTop,width,scrollRef,activeBranch,posts,postsContext}){
+    return(
+        <List
+        containerStyle={{pointerEvents:'auto'}}        
+        width={width}
+        scrollTop={scrollTop}
+        height={Math.ceil(posts.length/5)*width}
+        rowCount={Math.ceil(posts.length/5)}
+        rowHeight={width}
+        ref={scrollRef}
+        rowRenderer={
+            ({ index, key, style, parent }) =>{
+            return(
+                <div
+                key={key}
+                style={style}
+                >
+                    <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
+                    postsContext={postsContext}/>
+                </div>
+            )
+        }}
+        />
+    )
+}
+
+function FlatList({usingCache,width,height,scrollRef,activeBranch,posts,postsContext}){
+    return(
+        <List
+        containerStyle={{pointerEvents:'auto'}}
+        autoHeight
+        width={width}
+        height={height}
+        scrollTop={scrollTop}
+        rowCount={posts.length}
+        deferredMeasurementCache={usingCache}
+        rowHeight={usingCache.rowHeight}
+        ref={scrollRef}
+        rowRenderer={
+            ({ index, key, style, parent }) =>{
+            let post = posts[index];
+            let props = {
+                post:post,
+                key:[post.id,post.spreaders,postsContext.content],
+                viewAs:"post",
+                activeBranch:activeBranch,
+                postsContext:postsContext
+                };
+            return(
+                <CellMeasurer
+                key={[post.id,post.spreaders,postsContext.content]}
+                cache={usingCache}
+                parent={parent}
+                width={width}
+                columnIndex={0}
+                rowIndex={index}>
+                {({ measure }) => (
+                    <div
+                    key={key}
+                    style={style}
+                    >
+                        <li><Post {...props} index={index} measure={measure}/></li>
+                    </div>
+                )}
+            </CellMeasurer>
+                
+            )
+        }}
+        />
+    )
+}
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React);
@@ -525,8 +546,6 @@ export function BranchPosts(props){
 export function GenericBranchPosts(props){
     let context = props.postsContext;
 
-     
-
     const branchPostsContext = useContext(BranchPostsContext);
     const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
     const branchTreePostsContext = useContext(BranchTreePostsContext);
@@ -703,10 +722,11 @@ const previewCss = theme => css({
 })
 
 export function DropdownList({type="text",component=null,options,defaultOption,name,
-setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',children}){
+setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',showOnTop,children}){
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
       })
+    const didMountRef = useRef(false);
     const [selected,setSelected] = useState(defaultOption)
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
@@ -730,13 +750,6 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
 
     function handleOutsideClick(e){
         if(ref.current){
-            /*let childNodes = [...ref.current.childNodes]
-            if(childNodes.every(c=>{
-                return e.target!=c 
-            }) && e.target !=ref.current){
-                 
-                setOpen(false);
-            }*/
             if(!ref.current.contains(e.target)){
                 setOpen(false);
             }
@@ -744,15 +757,20 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     }
 
     useEffect(()=>{
-        if(type=="text"){
-            setParams({...params,[label]:selected})
-        }else{
-            if(changeCurrentBranch){
-                userContext.changeCurrentBranch(selected);
+        if(didMountRef.current){
+            if(type=="text"){
+                setParams({...params,[label]:selected})
             }else{
-                setBranch(selected)
+                if(changeCurrentBranch){
+                    userContext.changeCurrentBranch(selected);
+                }else{
+                    setBranch(selected)
+                }
             }
+        }else{
+            didMountRef.current = true;
         }
+        
     },[selected])
 
     useEffect(()=>{
@@ -771,8 +789,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     return (
         <ToggleContent 
             toggle={show=>(
-                <div ref={ref} onClick={e=>handleClick(e,show)} className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}
-                css={theme=>previewCss(theme)}>
+                <div ref={ref} onClick={e=>handleClick(e,show)}>
                     {preview?
                     <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 
@@ -784,7 +801,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                     <div>{children}</div>}
                     
                     {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown" 
-                    style={{backgroundColor:theme.backgroundColor}}>
+                    style={{backgroundColor:theme.backgroundColor,top:showOnTop?0:null}}>
                         {options.map(op=>{
                             let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>

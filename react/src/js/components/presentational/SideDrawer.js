@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useRef, useState} from "react"
 import {Link} from "react-router-dom"
 import { css } from "@emotion/core";
 import {useTheme as useEmotionTheme} from "emotion-theming";
+import history from "../../history"
 import {ToggleContent} from './Temporary'
 import {UserContext} from "../container/ContextContainer"
 import {SmallBranch} from "./Branch"
@@ -70,8 +71,12 @@ export function SideDrawer({open,setOpen,children}){
             e.stopPropagation();
         }
         
-        setOpen(true);
-        show();
+        if(userContext.isAuth){
+            history.push(`/${userContext.currentBranch.uri}`)
+        }else{
+            setOpen(true);
+            show();
+        }
     }
 
     return(

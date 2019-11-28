@@ -222,7 +222,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 
 export const Post = React.memo(function Post({post,parentPost=null,down=0,
     measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
-    viewAs="post",isSingular,updateTree=()=>{}}){
+    viewAs="post",isSingular,movement,updateTree=()=>{}}){
     const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
 
     const [ref, inView] = useInView({
@@ -274,7 +274,7 @@ export const Post = React.memo(function Post({post,parentPost=null,down=0,
     }
 
     return(
-        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular} down={down}>
+        <StyledPostWrapper viewAs={viewAs} post={post} isSingular={isSingular} down={down} movement={movement}>
             <div ref={ref} data-visible={inView} key={post.id} data-index={index?index:0}>
                 <StyledPost post={post} viewAs={viewAs} lastComment={lastComment} 
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
@@ -287,7 +287,7 @@ export const Post = React.memo(function Post({post,parentPost=null,down=0,
     )
 })
 
-function StyledPostWrapper({post,down,viewAs,index,isSingular,children}){
+function StyledPostWrapper({post,down,viewAs,index,isSingular,movement,children}){
     if(viewAs=="reply" || isSingular){
         return(
             <div id={post.id}>
@@ -296,19 +296,21 @@ function StyledPostWrapper({post,down,viewAs,index,isSingular,children}){
         )
     }else{
         return(
-            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id} down={down}>
+            <LinkedPostWithRouter to={`/${post.poster}/leaves/${post.id}/`} dataIndex={index} id={post.id} down={down}
+            movement={movement}>
                 {children}
             </LinkedPostWithRouter>
         )
     }
 }
 
-function LinkedPost({history,dataIndex,down=null,id,to,children}){
+function LinkedPost({history,dataIndex,down=null,id,to,movement,children}){
 
     const ref = useRef(null);
 
     function handleClick(e){
-        if(down == null || down == 0 || down==ref.current.getBoundingClientRect().y){
+        if((down == null || down == 0 || down==ref.current.getBoundingClientRect().y) && 
+        (movement?Math.abs(movement.current) < 5:true)){
             history.push(to);
         }
     }
@@ -326,8 +328,6 @@ if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React);
 }
-
-//Post.whyDidYouRender = true;
 
 function ShownBranch({branch,date,dimensions=48}){
     const theme = useTheme();

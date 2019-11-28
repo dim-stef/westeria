@@ -8,6 +8,7 @@ import {NavLink, Route, Switch} from 'react-router-dom'
 import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
 import BranchFooter from "./Temporary"
 import {TooltipChain,Tooltip} from "./Tooltip"
+import {CircularBranch} from "./Branch"
 import {UserContext,TourContext} from '../container/ContextContainer'
 import axios from 'axios';
 
@@ -19,7 +20,9 @@ function ownsBranch(branches,target){
 }
 
 const add = theme =>css({
-    border:`1px solid ${theme.borderColor}`
+    border:`1px solid ${theme.borderColor}`,
+    justifyContent:'center',
+    alignItems:'center'
 })
 
 export function BranchesPageRoutes(props){
@@ -189,7 +192,8 @@ export function BranchList(props){
 
 }
 
-export function AddBranch({branch,type='children'}){
+export function AddBranch({branch,component,type='children'}){
+    const Component = component
     const context = useContext(UserContext)
     const [sumbitted,setSubmitted] = useState(false);
     const [requestStatus,setRequestStatus] = useState(null);
@@ -250,15 +254,14 @@ export function AddBranch({branch,type='children'}){
 
     return(
         !requestStatus?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10,cursor:'pointer'}} css={theme=>add(theme)}
-            role="button" onClick={onClick}>  
-            <AddBranchSvg width={100} height={100}/>
+        <div className="flex-fill" 
+        style={{padding:10,cursor:'pointer',borderRadius:'50%',height:80,width:80,margin:20}} 
+        css={theme=>add(theme)}
+        role="button" onClick={onClick}>  
             <h1 className="branch-add-text">{text}</h1>
-            
         </div>
         :sumbitted && requestStatus == 'accepted'?
-            <BranchList branches={[context.currentBranch]} ownsBranch={true} viewedBranch={branch} pending={false}/>
-            
+            <CircularBranch branch={branch}/>
             :
             <>
                 <RequestOnHold status={requestStatus}/>

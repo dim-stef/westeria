@@ -7,7 +7,7 @@ import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
 import {css} from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
-import LinesEllipsis from 'react-lines-ellipsis'
+import {useTheme} from "../container/ThemeContainer"
 import {Images, PreviewPostMedia} from './PostImageGallery'
 import {Post} from "./SingularPost"
 import {ReplyTree} from './Comments'
@@ -21,14 +21,16 @@ const Ripple = createRipples({
     during: 600,
 })
 
-const postCss = theme =>css({
-    border:`1px solid ${theme.borderColor}`,
+const postCss = (theme,backgroundColor) =>css({
+    //border:`1px solid ${theme.borderColor}`,
+    boxShadow:'0px 2px 6px -4px black',
     display:'flex',
     height:'100%',
     position:'relative',
-    borderRadius:15,
+    borderRadius:5,
     overflow:'hidden',
-    cursor:'pointer'
+    cursor:'pointer',
+    backgroundColor:backgroundColor
 })
 
 const text = (theme,textPosition,size) =>css({
@@ -70,7 +72,8 @@ const openPreviewPost = theme =>css({
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
     width:'90%',
     '@media (min-width: 1224px)': {
-        width:'40%'
+        width:'40%',
+        marginLeft:'37%',
     }
 })
 
@@ -89,7 +92,8 @@ const bubbleBox = (theme,height=100) =>css({
     width:'90%',
     height:height,
     '@media (min-width: 1224px)': {
-        width:'40%'
+        width:'40%',
+        marginLeft:'37%',
     }
 })
 
@@ -97,7 +101,7 @@ const bubbleBox = (theme,height=100) =>css({
 document.addEventListener('gesturestart', e => e.preventDefault())
 document.addEventListener('gesturechange', e => e.preventDefault())
 
-export function PreviewPost({post,viewAs,size}){
+export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
     const ref = useRef(null);
@@ -115,6 +119,10 @@ export function PreviewPost({post,viewAs,size}){
     const images = post.images;
     const videos = post.videos;
 
+    const theme = useTheme();
+
+    let backgroundColor = theme.dark?'#151827':null
+  
     const isLaptopOrDesktop = useMediaQuery({
         query: '(min-device-width: 1224px)'
     })
@@ -149,7 +157,13 @@ export function PreviewPost({post,viewAs,size}){
     },[imageRef])
 
     function handleClick(){
-        setPostShown(true)
+        if(shouldOpen===null){
+            setPostShown(true)
+        }else{
+            if(shouldOpen.current){
+                setPostShown(true)
+            }
+        }
     }
 
     useEffect(()=>{
@@ -165,10 +179,9 @@ export function PreviewPost({post,viewAs,size}){
     const shotDown = useRef(null);
     const commentsActive = useRef(null);
     const lastDockedPosition = useRef(null);
-    lastDockedPosition.current = 20;
 
     const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
-    const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
+    const from = () => ({ opacity:0, x: 0, rot: 0, scale: 1, y: -(window.innerHeight) })
     const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1, rot: -10 + Math.random() * 20 })
 
     const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
@@ -282,7 +295,7 @@ export function PreviewPost({post,viewAs,size}){
         
         set(() => {
           const isGone = shotUp.current || shotDown.current
-          let y = down ? my + (lastDockedPosition.current || 0) : lastDockedPosition.current || 20;
+          let y = down ? my + (lastDockedPosition.current || 20) : lastDockedPosition.current || 20;
 
           if(shotUp.current){
             if(dir==-1){
@@ -295,7 +308,6 @@ export function PreviewPost({post,viewAs,size}){
                 }
                 commentsActive.current = false;
             }else{
-
                 // shoot to bottom so the comments are shown
                 y = (window.innerHeight - 200) * dir
             }
@@ -316,22 +328,20 @@ export function PreviewPost({post,viewAs,size}){
     
     return (
         <>
-        <div css={theme=>postCss(theme)} ref={ref}>
-            <SmallCard branch={post.posted_to[0]} containerWidth={null}>
-                <img className="post-profile-picture round-picture double-border noselect" 
-                src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
-                    onClick={(e)=>{
-                        e.stopPropagation();
-                        history.push(`/${post.posted_to[0].uri}`);
-                    }}
-                />
-            </SmallCard>
-                <div css={zoom} ref={zoomRef} onClick={handleClick}>
-                    {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
-                    videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
-                    
-                    {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
-                </div>
+        <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
+            <img className="post-profile-picture round-picture double-border noselect" 
+            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
+                onClick={(e)=>{
+                    e.stopPropagation();
+                    history.push(`/${post.posted_to[0].uri}`);
+                }}
+            />
+            <div css={zoom} ref={zoomRef} onClick={handleClick}>
+                {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
+                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
+                
+                {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
+            </div>
         </div>
         
 
@@ -339,8 +349,8 @@ export function PreviewPost({post,viewAs,size}){
                 postShown?<div>
                     {commentsShown?
                     <AnimatedCommentBox post={post} offset={200}/>:null}
-                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef} 
-                        id="preview-post" 
+                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
+                        id="preview-post"
                         {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
                             <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
                                 <Post post={post} postsContext={postsContext} down={initTo}

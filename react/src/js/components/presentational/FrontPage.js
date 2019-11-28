@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useState, useRef, useLayoutEffect} from "react"
 import ReactDOM from 'react-dom';
 import { css } from "@emotion/core";
-import {useTheme} from "emotion-theming";
 import {useMediaQuery} from "react-responsive";
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import MyBranchesColumnContainer from "./MyBranchesColumn";
@@ -16,6 +15,7 @@ import {
 import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
 import {TooltipChain,Tooltip} from "./Tooltip"
 import FeedPosts, {AllPosts, TreePosts} from "./BranchPosts"
+import {DesktopProfile} from "./ProfileViewer"
 import {Helmet} from "react-helmet";
 import {Link, NavLink, Redirect, Route, Switch,useLocation} from 'react-router-dom'
 import {Desktop, Mobile, Tablet} from "./Responsive"
@@ -70,7 +70,7 @@ function FrontPageList(){
 
     return(
         <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
-        top:isDesktopOrLaptop?52:0,zIndex:4}} ref={ref}>
+        top:0,zIndex:4}} ref={ref}>
             {userContext.isAuth?
             <NavLink to={{pathname:"/",state:'front'}} exact 
             activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
@@ -195,9 +195,10 @@ export const FrontPage = React.memo(function FrontPage(props){
     return(
         <>
             <Desktop>
-                <FrontPageLeftBar/>
+                <div css={{flexBasis:'22%'}}>
+                    <DesktopProfile branch={userContext.currentBranch}/>
+                </div>
                 <FrontPagePostList/> 
-                <Trending/>
             </Desktop>
 
             <Tablet>
@@ -219,7 +220,7 @@ const FrontPagePostList = React.memo(function FrontPagePostList({page}){
 
     return(
         <div className="post-list" css={theme=>postList(theme,isMobile)}>
-            <FrontPageList/>
+            {/*<FrontPageList/>*/}
             <Switch>
                 <Route exact path="/" render={
                     () => userContext.isAuth?<FrontPageFeed />:

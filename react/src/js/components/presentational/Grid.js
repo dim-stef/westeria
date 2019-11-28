@@ -174,7 +174,7 @@ export function Grid({posts,activeBranch,measure,postsContext}){
 
 
     useLayoutEffect(()=>{
-        if(height!=0){
+        if(height!=0 && measure){
             measure();
         }
     },[height])

@@ -12,6 +12,7 @@ import {NotificationsContext, SingularPostContext, UserContext} from "../contain
 import {FrontPageLeftBar} from "./FrontPage"
 import {Post} from "./SingularPost"
 import {Desktop, Mobile, Tablet} from "./Responsive"
+import {DesktopProfileWrapper} from "./ProfileViewer"
 import axios from 'axios'
 import axiosRetry from 'axios-retry';
 
@@ -220,8 +221,9 @@ function ResponsiveNotifications({children}){
     return(
         <>
         <Desktop>
-            <FrontPageLeftBar/>
-            {children}
+            <DesktopProfileWrapper>
+                {children}
+            </DesktopProfileWrapper>
         </Desktop>
         <Tablet>
             {children}

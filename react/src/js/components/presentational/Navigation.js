@@ -94,6 +94,10 @@ export function ResponsiveNavigationBar(){
 
 const navBarContainer = theme => css({
     borderBottom:`2px solid ${theme.borderColor}`,
+    borderLeft:`2px solid ${theme.borderColor}`,
+    borderRight:`2px solid ${theme.borderColor}`,
+    borderBottomRightRadius:15,
+    borderBottomLeftRadius:15,
     justifyContent:'center',
     height:'100%'
 })
@@ -358,7 +362,11 @@ function Profile(){
     let imageUrl = context.isAuth?context.currentBranch.branch_image:'https://icon-library.net//images/default-user-icon/default-user-icon-8.jpg';
     
     function handleClick(){
-        setFocused(!focused);
+        if(context.isAuth){
+            history.push(`/${context.currentBranch.uri}`)
+        }else{
+            setFocused(!focused);
+        }
     }
 
     useEffect(()=>{

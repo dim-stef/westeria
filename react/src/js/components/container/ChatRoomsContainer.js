@@ -13,6 +13,7 @@ import Linkify from 'linkifyjs/react';
 import {MoonLoader} from 'react-spinners';
 import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
+import {DesktopProfileWrapper} from "../presentational/ProfileViewer"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
 import {useMyBranches} from "./BranchContainer"
@@ -792,8 +793,9 @@ function PageWrapper({children}){
     return(
         <>
             <Desktop>
-                <FrontPageLeftBar/>
-                {children}
+                <DesktopProfileWrapper>
+                    {children}
+                </DesktopProfileWrapper>
             </Desktop>
             <Tablet>
                 {children}

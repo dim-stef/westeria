@@ -572,7 +572,7 @@ function PrivacySettings(){
 function Password({name,placeholder,label}){
     return(
         <div>
-            <Field name={name} type="password" 
+            <Field name={name} type="password"
             placeholder={placeholder}>
                 {({ input, meta }) => (
                     <div>
