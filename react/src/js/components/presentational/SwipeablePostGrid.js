@@ -327,7 +327,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     return (
         <div style={{position:'relative',width:width,height:height}} ref={container}>
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
-            {index>1?<SendToStartArrow jumpToBack={jumpToBack}/>:null}
+            {index>1?<SendToStartArrow jumpToBack={jumpToBack}/>:<Refresh refresh={refresh}/>}
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
             1.5*x - width- offset>0?0:1.5*x-width - offset}px)`),
@@ -401,6 +401,15 @@ function NavigationArrows({index,pages,goToLeft,goToRight,container}){
     )
 }
 
+
+function Refresh({refresh}){
+    return(
+        <div css={{position:'absolute',bottom:15,right:15,zIndex:555}} onClick={refresh}>
+            <RefreshSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
+            fill:'white'}}/>
+        </div>
+    )
+}
 function SendToStartArrow({jumpToBack}){
     return(
         <div css={{position:'absolute',bottom:15,right:15,zIndex:555}} onClick={jumpToBack}>
@@ -575,6 +584,23 @@ const LeftArrowSvg = props =>{
         <g>
             <path d="M145.188,238.575l215.5-215.5c5.3-5.3,5.3-13.8,0-19.1s-13.8-5.3-19.1,0l-225.1,225.1c-5.3,5.3-5.3,13.8,0,19.1l225.1,225   c2.6,2.6,6.1,4,9.5,4s6.9-1.3,9.5-4c5.3-5.3,5.3-13.8,0-19.1L145.188,238.575z" />
         </g>
+        </svg>
+    )
+}
+
+const RefreshSvg = props =>{
+    return(
+        <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+        x="0px"
+        y="0px"
+        viewBox="0 0 260 260"
+        xmlSpace="preserve"
+        {...props}
+        >
+        <path d="M223.7,140.7c-3.8,0-6.8,3-6.8,6.8c0,48.8-39.7,88.6-88.6,88.6s-88.6-39.7-88.6-88.6  c0-48.7,39.5-88.4,88.2-88.5l-20.5,20.5c-2.7,2.7-2.7,7,0,9.6c1.3,1.3,3.1,2,4.8,2c1.7,0,3.5-0.7,4.8-2L149.2,57c1.3-1.3,2-3,2-4.8  c0-1.8-0.7-3.5-2-4.8l-32.1-32.1c-2.7-2.7-7-2.7-9.6,0c-2.7,2.7-2.7,7,0,9.6l20.4,20.4c-56.1,0.2-101.8,46-101.8,102.2  c0,56.3,45.8,102.2,102.2,102.2s102.2-45.8,102.2-102.2C230.5,143.7,227.4,140.7,223.7,140.7z" />
         </svg>
     )
 }
