@@ -8,6 +8,7 @@ import {NavLink, Route, Switch} from 'react-router-dom'
 import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
 import BranchFooter from "./Temporary"
 import {TooltipChain,Tooltip} from "./Tooltip"
+import {CircularBranch} from "./Branch"
 import {UserContext,TourContext} from '../container/ContextContainer'
 import axios from 'axios';
 
@@ -191,7 +192,8 @@ export function BranchList(props){
 
 }
 
-export function AddBranch({branch,type='children'}){
+export function AddBranch({branch,component,type='children'}){
+    const Component = component
     const context = useContext(UserContext)
     const [sumbitted,setSubmitted] = useState(false);
     const [requestStatus,setRequestStatus] = useState(null);
@@ -259,7 +261,7 @@ export function AddBranch({branch,type='children'}){
             <h1 className="branch-add-text">{text}</h1>
         </div>
         :sumbitted && requestStatus == 'accepted'?
-            <BranchList branches={[context.currentBranch]} ownsBranch={true} viewedBranch={branch} pending={false}/>
+            <CircularBranch branch={branch}/>
             :
             <>
                 <RequestOnHold status={requestStatus}/>

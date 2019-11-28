@@ -5,7 +5,33 @@ import {isMobile} from 'react-device-detect';
 import {BranchBanner} from "./BranchBanner"
 import {UserContext} from '../container/ContextContainer'
 import {SmallCard} from "./Card"
+import {FadeImage} from "./FadeImage"
 
+const imageContainer = () =>css({
+    display:'flex',
+    flexFlow:'column',
+    justifyContent:'center',
+    alignItems:'center'
+})
+
+const circularBranchName = theme =>css({
+    color: theme.textLightColor,
+    fontSize:'1.5rem',
+    fontWeight:500
+ })
+
+export function CircularBranch({branch,endpoint}){
+    return(
+        <Link to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
+            <div css={imageContainer} key={branch.id}>
+                <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
+                objectFit:'cover',margin:'10px 20px'}}
+                src={branch.branch_image}/>
+                <span css={circularBranchName}>{branch.name}</span>
+            </div>
+        </Link>
+    )
+}
 
 export function ChildBranch({styleName='', style=null, branch, editMode, children}){
 

@@ -210,6 +210,7 @@ export function ProfileBubble({branch}){
     const [show,setShow] = useState(false);
     const [props, set] = useSpring(() => ({
         from:{ xy:[20,60], scale: 1 },
+        config:{tension:370,friction:27},
         onFrame:(f)=>{
             if(!isDown.current && !show){
                 checkBoundaries(f)

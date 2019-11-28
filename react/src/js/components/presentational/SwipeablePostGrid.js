@@ -101,6 +101,10 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }
 
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
     function getPages(){
         var perChunk = itemCount // items per chunk    
         var result = posts.reduce((resultArray, item, index) => { 
@@ -126,7 +130,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const shouldOpen = useRef(true);
     const shouldUpdate = useRef(false);
     const jumpedToBack = useRef(false);
+    const sentToLeft = useRef(false);
+    const sentToRight = useRef(false);
+    const animatePageSwitch = useRef(false);
     const resetPages = useRef(false);
+    const container = useRef(null);
 
     const isDown = useRef(false);
     const [index,setIndex] = useState(postsContext.lastPage);
@@ -134,8 +142,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // ref is needed to keep track of index in the onFrame function
     // which does not pick up on rerenders
     const indexRef = useRef(postsContext.lastPage);
+    const [hovering,setHovering] = useState(false);
     const dataIndexChanged = useRef(false);
-
 
     const [props, set, stop] = useSpring(()=>({
         from:from(),
@@ -156,16 +164,20 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
                     // Timeout for whatever reason prevents flashing after setIndex
                     setTimeout(()=>{setIndex(0);},5)
-                }else if(shouldUpdate.current){
+                }
+                else if(shouldUpdate.current){
+
                     dataIndexChanged.current = true;
                     shouldUpdate.current = false;
-                    if(movX.current > 0){
+                    if(movX.current > 0 || sentToLeft.current){
                         if(indexRef.current != 0){
+                            sentToLeft.current = false;
                             indexRef.current -=1
                             setIndex(indexRef.current)
                         }
                     }else{
                         if(pagesRef.current[indexRef.current]){
+                            sentToRight.current = false;
                             indexRef.current +=1
                             setIndex(indexRef.current)
                         }
@@ -182,6 +194,30 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         setIndex(1);
     }
 
+    function goToLeft(){
+        sentToLeft.current = true;
+        shouldUpdate.current = true;
+
+        set(()=>({
+            to:ani(width),
+            from:ani(0),
+            immediate:false,
+            config:{ mass: 1, tension: 500, friction: 35 },
+        }))
+    }
+
+    function goToRight(){
+        sentToRight.current = true;
+        shouldUpdate.current = true;
+
+        set(()=>({
+            to:ani(-width),
+            from:ani(0),
+            immediate:false,
+            config:{ mass: 1, tension: 500, friction: 35 },
+        }))
+    }
+
     useLayoutEffect(()=>{
         if(!jumpedToBack.current){
             postsContext.lastPage = indexRef.current;
@@ -191,11 +227,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 to:ani(0),
                 immediate:true,
             }))
-    
-            // if user is on the middle page fetch more pages
-            if(index>=Math.round(pages.length/2)){
-                fetchData();
-            }
+                
         }else{
             set(()=>({
                 to:ani(width),
@@ -203,6 +235,9 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 immediate:false,
                 config:{ mass: 1, tension: 500, friction: 35 },
             }))
+        }
+        if(index>=Math.round(pages.length - 3) && index !=0){
+            fetchData();
         }
         
     },[index])
@@ -274,10 +309,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         })
     })
 
-    // if grid is not supported old posts kick in
-    // in order to not open when the user is dragging the page this is needed
-    const shouldOpenNonGridPost = Math.abs(movX.current) < 5
-    //console.log(index)
     let pageProps = {
         posts:posts,
         activeBranch:activeBranch,
@@ -294,7 +325,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
 
     return (
-        <div style={{position:'relative',width:width,height:height}}>
+        <div style={{position:'relative',width:width,height:height}} ref={container}>
+            <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
             {index>1?<SendToStartArrow jumpToBack={jumpToBack}/>:null}
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
@@ -333,14 +365,70 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     )
 }
 
+function NavigationArrows({index,pages,goToLeft,goToRight,container}){
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+    const [hovering,setHovering] = useState(false);
+
+    function onMouseOver(){
+        setHovering(true);
+    }
+
+    function onMouseOut(){
+        setHovering(false);
+    }
+
+    useEffect(()=>{
+        if(container && container.current){
+            container.current.addEventListener('mouseover',onMouseOver)
+            container.current.addEventListener('mouseleave',onMouseOut)
+        }
+
+        return ()=>{
+            if(container && container.current){
+                container.current.removeEventListener('mouseover',onMouseOver)
+                container.current.removeEventListener('mouseleave',onMouseOut)
+            }
+        }
+    },[container])
+
+    return(
+        <>
+        {!isMobile && hovering && index!=0?<LeftPageArrow goToLeft={goToLeft}/>:null}
+        {!isMobile && hovering && index!=pages.length?<RightPageArrow goToRight={goToRight}/>:null}
+        </>
+    )
+}
+
 function SendToStartArrow({jumpToBack}){
     return(
-        <div css={{height:50,width:50,position:'absolute',bottom:0,right:0,zIndex:555}} onClick={jumpToBack}>
-            <LeftArrowSvg/>
+        <div css={{position:'absolute',bottom:15,right:15,zIndex:555}} onClick={jumpToBack}>
+            <LeftArrowSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
+            fill:'white'}}/>
         </div>
     )
 }
 
+function LeftPageArrow({goToLeft}){
+    return(
+        <div css={{position:'absolute',top:'50%',left:15,zIndex:555}} onClick={goToLeft}>
+            <LeftArrowSvg css={theme=>({height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:theme.hoverColor,opacity:0.9,
+            fill:theme.textLightColor,boxShadow:'0px 1px 3px 0px #0000005e'})}/>
+        </div>
+    )
+}
+
+function RightPageArrow({goToRight}){
+    return(
+        <div css={{position:'absolute',top:'50%',right:15,zIndex:555}} onClick={goToRight}>
+            <LeftArrowSvg css={theme=>({height:15,width:15,padding:10,borderRadius:'50%',
+            backgroundColor:theme.hoverColor,opacity:0.9,
+            fill:theme.textLightColor,
+            boxShadow:'0px 1px 3px 0px #0000005e',transform:'rotate(180deg)'})}/>
+        </div>
+    )
+}
 function shuffle(a) {
     var j, x, i;
     for (i = a.length - 1; i > 0; i--) {
@@ -481,10 +569,8 @@ const LeftArrowSvg = props =>{
         x="0px"
         y="0px"
         viewBox="0 0 477.175 477.175"
-        style={{ enableBackground: "new 0 0 477.175 477.175" }}
-        css={theme=>({height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
-        fill:'white'})}
         xmlSpace="preserve"
+        {...props}
         >
         <g>
             <path d="M145.188,238.575l215.5-215.5c5.3-5.3,5.3-13.8,0-19.1s-13.8-5.3-19.1,0l-225.1,225.1c-5.3,5.3-5.3,13.8,0,19.1l225.1,225   c2.6,2.6,6.1,4,9.5,4s6.9-1.3,9.5-4c5.3-5.3,5.3-13.8,0-19.1L145.188,238.575z" />

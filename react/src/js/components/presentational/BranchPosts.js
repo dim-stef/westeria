@@ -726,6 +726,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
       })
+    const didMountRef = useRef(false);
     const [selected,setSelected] = useState(defaultOption)
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
@@ -756,15 +757,20 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     }
 
     useEffect(()=>{
-        if(type=="text"){
-            setParams({...params,[label]:selected})
-        }else{
-            if(changeCurrentBranch){
-                userContext.changeCurrentBranch(selected);
+        if(didMountRef.current){
+            if(type=="text"){
+                setParams({...params,[label]:selected})
             }else{
-                setBranch(selected)
+                if(changeCurrentBranch){
+                    userContext.changeCurrentBranch(selected);
+                }else{
+                    setBranch(selected)
+                }
             }
+        }else{
+            didMountRef.current = true;
         }
+        
     },[selected])
 
     useEffect(()=>{

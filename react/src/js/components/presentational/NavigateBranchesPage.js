@@ -5,10 +5,10 @@ import {MoonLoader} from 'react-spinners';
 import {css} from "@emotion/core"
 import {useTheme} from "emotion-theming";
 import {UserContext} from "../container/ContextContainer"
-import {FadeImage} from "./FadeImage"
 import {CircularSkeletonList} from "./SkeletonBranchList"
 import {AddBranch} from "./BranchesPage"
 import RoutedHeadline from "./RoutedHeadline"
+import {CircularBranch} from "./Branch"
 import history from "../../history";
 import axios from "axios";
 import axiosRetry from "axios-retry"
@@ -204,14 +204,7 @@ function BranchRow({type,branch,endpoint}){
                     <AddBranch branch={branch} type={type}/>}
                     {branches?branches.map(b=>{
                         return(
-                            <Link to={endpoint=='branches'?`/${b.uri}/branches`:`/${endpoint}/${b.uri}`}>
-                                <div css={imageContainer} key={b.id}>
-                                    <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
-                                    objectFit:'cover',margin:'10px 20px'}}
-                                    src={b.branch_image}/>
-                                    <span css={name}>{b.name}</span>
-                                </div>
-                            </Link>
+                            <CircularBranch branch={b} endpoint={endpoint}/>
                         )
                     }):null}
                     {hasMore && branches && branches.length != 0?
