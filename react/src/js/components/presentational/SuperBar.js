@@ -71,13 +71,13 @@ function PostListPicker({postsContext,branch}){
             action:'link',
         },
         {
-            label:'Community',
-            value:`/${branch.uri}/community`,
+            label:'Tree',
+            value:`/${branch.uri}/tree`,
             action:'link',
         },
         {
-            label:'Tree',
-            value:`/${branch.uri}/tree`,
+            label:'Community',
+            value:`/${branch.uri}/community`,
             action:'link',
         }
     ]
