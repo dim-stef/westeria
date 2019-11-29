@@ -93,18 +93,12 @@ function DisplayPosts({isFeed,posts,setPosts,
 
             setWidth(ref.current.clientWidth);
             let refRect = ref.current.getBoundingClientRect();
-            setHeight(isMobile?window.innerHeight - refRect.top -
+            
+            // 50 for top bar height
+            setHeight(isMobile?window.innerHeight - 50 -
                 (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
         }
     },[ref])
-
-    function shouldPullToRefresh(){
-        try{
-            return document.getElementById("leaf-preview-root").childElementCount == 0
-        }catch(e){
-            return true
-        }
-    }
 
     return(
         <>
