@@ -314,6 +314,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             // if there is no right side stop moving
             if(xDir < 0 && isLastPage){
                 x = 0;
+                shouldUpdate.current = false;
             }
 
             return {
