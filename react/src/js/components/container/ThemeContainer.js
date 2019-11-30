@@ -22,8 +22,8 @@ const darkMode = {
     hoverColor:'#202f3c',
     embeddedHoverColor:'#121b23',
     notificationBranchColor:'#121b23',
-    skeletonColor:'#555f69',
-    skeletonHighlightColor:'#46525f'
+    skeletonColor:'#151827',
+    skeletonHighlightColor:'#0d0f1b'
 }
 
 const lightMode = {
@@ -35,8 +35,8 @@ const lightMode = {
     hoverColor:'#f4f6f9',
     embeddedHoverColor:'#e1e7ef',
     notificationBranchColor:'#e1e7ef',
-    skeletonColor:'#ceddea',
-    skeletonHighlightColor:'#e1eaf3'
+    skeletonColor:'#f0f3f5',
+    skeletonHighlightColor:'#e2e7ea'
 }
 
 const theme = mode => (mode=='dark'?darkMode:lightMode)

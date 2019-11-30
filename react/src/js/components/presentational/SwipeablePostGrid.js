@@ -4,6 +4,7 @@ import { useSpring,useSprings,useTransition, animated, interpolate } from 'react
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
+import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
 import axios from "axios";
 
@@ -70,7 +71,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let itemCount;
     let pageType;
     if(height<=640){
-        itemCount = 5;
+        /*itemCount = 5;
         pageType={
             type:'mobile',
             size:5,
@@ -78,6 +79,15 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             mediumItemCount:1,
             responsiveItemCount:1,
             smallItemCount:2
+        }*/
+        itemCount = 8;
+        pageType={
+            type:'mobile',
+            size:8,
+            bigItemCount:1,
+            mediumItemCount:1,
+            responsiveItemCount:2,
+            smallItemCount:4
         }
     }else if(height <= 760){
         itemCount = 8;
@@ -250,6 +260,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
     const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir], distance,cancel,canceled }) => {
         if(previewPostContainer.childElementCount>0) cancel();
+        const isLastPage = index==pages.length
         isDown.current = down;
         movX.current = mx;
 
@@ -300,6 +311,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 }
             }
 
+            // if there is no right side stop moving
+            if(xDir < 0 && isLastPage){
+                x = 0;
+            }
+
             return {
                 to:ani(x),
                 from:ani(0),
@@ -347,7 +363,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                     {pages[index]?
                         <Page index={index} page={pages[index]} 
                         {...pageProps}
-                    />:hasMore?<p>Loading</p>:<p>Seen everything</p>}
+                    />:hasMore?<SkeletonFixedGrid/>:<div css={{width:'100%',display:'flex',justifyContent:'center',marginTop:50}}>
+                    <p css={{fontSize:'1.5rem',fontWeight:'bold'}}>Seen everything</p></div>}
                 </animated.div>
             </animated.div>
             <animated.div key={index + 1} data-index={index + 1} css={theme=>animatedDiv(theme,supportsGrid)}
@@ -358,7 +375,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                     {pages[index + 1]?
                         <Page index={index + 1} page={pages[index + 1]} 
                         {...pageProps}
-                    />:hasMore?<p>Loading</p>:<p>Seen everything</p>}
+                    />:hasMore?<SkeletonFixedGrid/>:<div css={{width:'100%',display:'flex',justifyContent:'center',marginTop:50}}>
+                    <p css={{fontSize:'1.5rem',fontWeight:'bold'}}>Seen everything</p></div>}
                 </animated.div>
             </animated.div>
         </div>

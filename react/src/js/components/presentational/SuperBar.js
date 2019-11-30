@@ -30,6 +30,7 @@ const optionCss = (theme,isMobile) =>css({
     'a':{
         color:theme.textHarshColor,
         textDecoration:'none',
+        display:'block'
     },
     '@media (min-device-width: 767px)':{
         '&:hover':{
@@ -352,7 +353,7 @@ function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext}){
         </div>
         {transitions.map(({ item, props, key }) => {
             return (
-                item && <animated.div key={key} css={{width:'100%',height:50,position:'absolute',zIndex:0}}
+                item && <animated.div key={key} css={{width:'100%',height:50,position:'absolute',zIndex:0,left:0}}
                 style={props}>
                     <StatusUpdate activeBranch={branch} postsContext={postsContext} updateFeed={updateFeed} 
                     postedId={postedId} isFeed={isFeed} redirect/>
