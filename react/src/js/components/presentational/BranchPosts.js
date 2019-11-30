@@ -30,6 +30,7 @@ import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
 import {SwipeablePostGrid} from "./SwipeablePostGrid";
 import {SuperBar} from "./SuperBar"
+import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
 
 axiosRetry(axios, 
@@ -80,7 +81,6 @@ function DisplayPosts({isFeed,posts,setPosts,
     const [height,setHeight] = useState(0);
     const [width,setWidth] = useState(0);
     const isSwiping = useRef(false);
-    const theme = useTheme();
 
     useLayoutEffect(()=>{
         if(ref.current){
@@ -112,7 +112,21 @@ function DisplayPosts({isFeed,posts,setPosts,
             width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
         />
         :
-            hasMore?[...Array(8)].map((e, i) => 
+            hasMore?<ResponsiveSkeleton height={height}/>:<p style={{textAlign:'center'}}>
+                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
+            </p>}
+        </div>
+    </>
+    )
+}
+
+function ResponsiveSkeleton({height}){
+    let supportsGrid = cssPropertyValueSupported('display', 'grid');
+    const theme = useTheme();
+
+    return(
+        supportsGrid?<div style={{height:height}}><SkeletonFixedGrid/></div>:
+        [...Array(8)].map((e, i) => 
             <div key={i} style={{width:'100%',marginTop:10}}>
                 <div style={{padding:'10px'}}>
                     <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
@@ -122,6 +136,7 @@ function DisplayPosts({isFeed,posts,setPosts,
                         <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                             <Skeleton count={2} width="100%" height={10}/>
                         </SkeletonTheme>
+                        
 
                         <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
                             <Skeleton count={1} width="30%" height={10}/>
@@ -129,11 +144,7 @@ function DisplayPosts({isFeed,posts,setPosts,
                     </div>
                 </div>
             </div>
-            ):<p style={{textAlign:'center'}}>
-                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-            </p>}
-        </div>
-    </>
+        )
     )
 }
 

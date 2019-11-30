@@ -5,6 +5,7 @@ import {MoonLoader} from 'react-spinners';
 import {css} from "@emotion/core"
 import {useTheme} from "emotion-theming";
 import {UserContext} from "../container/ContextContainer"
+import {FadeImage} from "./FadeImage"
 import {CircularSkeletonList} from "./SkeletonBranchList"
 import {AddBranch} from "./BranchesPage"
 import RoutedHeadline from "./RoutedHeadline"
