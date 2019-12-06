@@ -111,10 +111,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }
 
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
-    })
-
     function getPages(){
         var perChunk = itemCount // items per chunk    
         var result = posts.reduce((resultArray, item, index) => { 
@@ -133,17 +129,23 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     }
 
     const pages = getPages();
+
+    // this ref is need in order to keep track of "pages" state inside the "onFrame" function
     const pagesRef = useRef();
     pagesRef.current = pages;
  
     const movX = useRef(null);
     const shouldOpen = useRef(true);
+
+    // index state is only changed after animation ends in order to virtually
+    // render infinite pages
+    // this ref is needed to change the index state on the "onFrame" function after animation ends
     const shouldUpdate = useRef(false);
     const jumpedToBack = useRef(false);
+    const didRefresh = useRef(false);
     const sentToLeft = useRef(false);
     const sentToRight = useRef(false);
-    const animatePageSwitch = useRef(false);
-    const resetPages = useRef(false);
+    const shouldCaptureWheel = useRef(true);
     const container = useRef(null);
 
     const isDown = useRef(false);
@@ -152,9 +154,14 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // ref is needed to keep track of index in the onFrame function
     // which does not pick up on rerenders
     const indexRef = useRef(postsContext.lastPage);
-    const [hovering,setHovering] = useState(false);
+
+    // ref to capture render end after index change
+    // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
 
+
+    // the functions inside spring are not aware of state changes so multiple refs
+    // are used to keep track of state changes
     const [props, set, stop] = useSpring(()=>({
         from:from(),
         config:{ mass: 1, tension: 500, friction: 35 },
@@ -164,10 +171,23 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             }
         },
         onFrame:(f)=>{
-            if((f.x + 10 > 0 && f.x < 0)
-            || (Math.abs(f.x) + 10 > width && Math.abs(f.x) < width)
-            || (Math.abs(f.x) + 10 > 2 * width && Math.abs(f.x) < 2 * width)){
-                //stop();
+            if(f.x!=0){
+                shouldCaptureWheel.current = false;
+            }
+
+            // When user is rapid swiping or switching pages animations would not play
+            // for whatever reason this stop fixes this
+            stop();
+
+            if((Math.abs(f.x) + 10 > width && Math.abs(f.x) < width)){
+
+                if(didRefresh.current){
+                    didRefresh.current = false
+                    indexRef.current = 0;
+                    setIndex(0);
+                    refresh();
+                }
+
                 if(jumpedToBack.current){
                     jumpedToBack.current = false;
                     indexRef.current = 0;
@@ -198,37 +218,47 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     }))
 
     function jumpToBack(){
-        jumpedToBack.current = true;
-        // jump to 1st index
-        // then capture index change on effect and play animation to index 0
-        setIndex(1);
+        if(indexRef.current == 1){
+            goToLeft();
+        }else{
+            jumpedToBack.current = true;
+            // jump to 1st index
+            // then capture index change on effect and play animation to index 0
+            indexRef.current = 1;
+            setIndex(1);
+        }
     }
 
     function goToLeft(){
-        sentToLeft.current = true;
-        shouldUpdate.current = true;
-
-        set(()=>({
-            to:ani(width),
-            from:ani(0),
-            immediate:false,
-            config:{ mass: 1, tension: 500, friction: 35 },
-        }))
+        if(indexRef.current != 0){
+            sentToLeft.current = true;
+            shouldUpdate.current = true;
+    
+            set(()=>({
+                to:ani(width),
+                from:ani(0),
+                immediate:false,
+                config:{ mass: 1, tension: 500, friction: 35 },
+            }))
+        }
     }
 
     function goToRight(){
-        sentToRight.current = true;
-        shouldUpdate.current = true;
-
-        set(()=>({
-            to:ani(-width),
-            from:ani(0),
-            immediate:false,
-            config:{ mass: 1, tension: 500, friction: 35 },
-        }))
+        if(indexRef.current!=pages.length){
+            sentToRight.current = true;
+            shouldUpdate.current = true;
+    
+            set(()=>({
+                to:ani(-width),
+                from:ani(0),
+                immediate:false,
+                config:{ mass: 1, tension: 500, friction: 35 },
+            }))
+        }
     }
 
     useLayoutEffect(()=>{
+        shouldCaptureWheel.current = true;
         if(!jumpedToBack.current){
             postsContext.lastPage = indexRef.current;
 
@@ -252,11 +282,44 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         
     },[index])
 
+    function wheelEvent(e){
+        e.preventDefault();
+
+        if(shouldCaptureWheel.current){
+            // check horizontal movement first
+            // if there isn't fall back to vertical movement
+            if(e.wheelDeltaX != 0){
+                if(e.wheelDeltaX < 0){
+                    goToRight();
+                }else{
+                    goToLeft();
+                }
+            }else{
+                if(e.wheelDelta > 0){
+                    goToRight();
+                }else if(e.wheelDelta <0){
+                    goToLeft();
+                }
+            }
+        }
+    }
+
+    useEffect(()=>{
+        if(container.current){
+            container.current.addEventListener('wheel',wheelEvent)
+        }
+
+        return () =>{
+            if(container.current){
+                container.current.removeEventListener('wheel',wheelEvent)
+            }
+        }
+    },[index,container])
+
     let previewPostContainer = document.getElementById('leaf-preview-root');
 
     const mxRef = useRef(0);
     const velocityTrigger = useRef(false);
-    const mxTrigger = useRef(false);
 
     const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir], distance,cancel,canceled }) => {
         if(previewPostContainer.childElementCount>0) cancel();
@@ -275,7 +338,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             velocityTrigger.current = true;
         }
 
-        const isGone = (!down && Math.abs(mx)>20 || (Math.abs(mx)>200));
+        const isGone = (!down && trigger || (Math.abs(mx)>200));
 
         mxRef.current = mx;
         if(isGone) cancel();
@@ -344,41 +407,41 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     return (
         <div style={{position:'relative',width:width,height:height}} ref={container}>
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
-            {index>1?<SendToStartArrow jumpToBack={jumpToBack}/>:<Refresh refresh={refresh}/>}
+            {index>0?<SendToStartArrow jumpToBack={jumpToBack}/>:<Refresh refresh={refresh}/>}
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
             1.5*x - width- offset>0?0:1.5*x-width - offset}px)`),
             width:'100%',height:'100%'}}>
-                <animated.div className="noselect" style={{height:'100%'}}>
+                <div className="noselect" style={{height:'100%'}}>
                 {pages[index - 1] && index!=-1?
                     <Page index={index-1} page={pages[index-1]}
                     {...pageProps}
                     />:null
                 }
-                </animated.div>
+                </div>
             </animated.div>
             <animated.div {...bind()} key={index} data-index={index} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
             width:'100%',zIndex:1,height:'100%'}}>
-                <animated.div className="noselect" style={{height:'100%'}}>
+                <div className="noselect" style={{height:'100%'}}>
                     {pages[index]?
                         <Page index={index} page={pages[index]} 
                         {...pageProps}
                     />:hasMore?<SkeletonFixedGrid/>:<div css={{width:'100%',display:'flex',justifyContent:'center',marginTop:50}}>
                     <p css={{fontSize:'1.5rem',fontWeight:'bold'}}>Seen everything</p></div>}
-                </animated.div>
+                </div>
             </animated.div>
             <animated.div key={index + 1} data-index={index + 1} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offset:
             1.5*x + width + offset<0?0:1.5*x + width + offset}px)`),
             width:'100%',zIndex:0,height:'100%'}}>
-                <animated.div className="noselect" style={{height:'100%'}}>
+                <div className="noselect" style={{height:'100%'}}>
                     {pages[index + 1]?
                         <Page index={index + 1} page={pages[index + 1]} 
                         {...pageProps}
                     />:hasMore?<SkeletonFixedGrid/>:<div css={{width:'100%',display:'flex',justifyContent:'center',marginTop:50}}>
                     <p css={{fontSize:'1.5rem',fontWeight:'bold'}}>Seen everything</p></div>}
-                </animated.div>
+                </div>
             </animated.div>
         </div>
     )
