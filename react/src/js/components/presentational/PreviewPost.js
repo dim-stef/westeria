@@ -97,10 +97,6 @@ const bubbleBox = (theme,height=100) =>css({
     }
 })
 
-
-document.addEventListener('gesturestart', e => e.preventDefault())
-document.addEventListener('gesturechange', e => e.preventDefault())
-
 export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
@@ -113,9 +109,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const [textPosition,setTextPosition] = useState(0);
     const [postShown,setPostShown] = useState(false);
     const [commentsShown,setCommentsShown] = useState(false);
-    const isSwiping = useRef(null);
-    const showInterval = useRef(null);
-    const showInterval2 = useRef(null);
     const images = post.images;
     const videos = post.videos;
 
@@ -205,7 +198,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
             }
         }
     }))
-
 
     function preventDefault(e){
         e.preventDefault();
@@ -343,7 +335,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
                 {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
             </div>
         </div>
-        
 
         {createPortal(
                 postShown?<div>
