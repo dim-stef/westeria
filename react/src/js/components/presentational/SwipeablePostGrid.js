@@ -546,22 +546,26 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
     let sizes = {
         small:{
             defaultDimensions:[3,3],
+            flatDimensions:[3,3],
             label:'xsmall',
             isFlat:false
         },
         //responsive:[2,Math.round(rowCount/2)],
         responsive:{
             defaultDimensions:[!isMobile?3:3,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?3:3],
             label:'small',
             isFlat:false
         },
         medium:{
             defaultDimensions:[!isMobile?6:6,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?6:6],
             label:'medium',
             isFlat:false
         },
         big:{
-            defaultDimensions:[!isMobile?6:12,!isMobile?8:6],
+            defaultDimensions:[!isMobile?8:12,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?12:10],
             label:'large',
             isBig:true,
             isFlat:false
@@ -631,11 +635,25 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
         return props;
     }
     
+    function isFlat(post){
+        if(post.images.length > 0){
+            if(post.images[0].height < post.images[0].width){
+                return true
+            }
+        }else if(post.videos.length > 0){
+            if(post.videos[0].height < post.videos[0].width){
+                return true
+            }
+        }
+
+        return false
+    }
+
     return(
         supportsGrid?
         <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount,implicitRowCount,height)}>
             {order.map(o=>{
-                return <div css={()=>cell(o.size.defaultDimensions,isMobile)}>
+                return <div css={()=>cell(isFlat(o.post)?o.size.flatDimensions:o.size.defaultDimensions,isMobile)}>
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
