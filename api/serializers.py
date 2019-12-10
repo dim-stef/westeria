@@ -369,6 +369,7 @@ def create_message(instance):
             }
         )
 
+
 class NewMessageSerializer(serializers.ModelSerializer):
     images = ChatImageSerializer(many=True,required=False)
     videos = ChatVideoSerializer(many=True,required=False)
@@ -415,6 +416,7 @@ class NewMessageSerializer(serializers.ModelSerializer):
         model = BranchMessage
         fields = '__all__'
         read_only_fields = ('id','author_name','author_url')
+
 
 class NewPostSerializer(serializers.ModelSerializer):
     replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
@@ -468,6 +470,7 @@ class NewPostSerializer(serializers.ModelSerializer):
 
 
 class BranchPostSerializer(serializers.ModelSerializer):
+    poster_full = serializers.SerializerMethodField()
     poster = serializers.StringRelatedField()
     posted = serializers.StringRelatedField()
     posted_to = serializers.SerializerMethodField()
@@ -491,6 +494,9 @@ class BranchPostSerializer(serializers.ModelSerializer):
     spreads_count = serializers.SerializerMethodField()
     matches = serializers.SerializerMethodField()
     engagement = serializers.SerializerMethodField()
+
+    def get_poster_full(self, post):
+        return BranchSerializer(post.poster).data
 
     def get_posted_to_uri(self,post):
         uri_list = []
@@ -556,7 +562,6 @@ class BranchPostSerializer(serializers.ModelSerializer):
         return post.spreads.aggregate(Sum('times'))['times__sum']
 
     def get_images(self,post):
-        #return [i.image.url for i in post.images.all()]
         return PostImageSerializer(post.images.all(), many=True).data
 
     def get_videos(self,post):
@@ -612,7 +617,6 @@ class BranchPostSerializer(serializers.ModelSerializer):
     def get_engagement(self, post):
         difference = post.reacts.filter(type="star").count() - post.reacts.filter(type="dislike").count()
         react_sum = post.reacts.filter(type="star").count() + post.reacts.filter(type="dislike").count()
-        print(post.reacts.all())
         if difference <= 0:
             ratio = -1
         else:
@@ -621,20 +625,18 @@ class BranchPostSerializer(serializers.ModelSerializer):
         # add 1 in case of difference being 1
         like_score_selector = difference + 1
 
-        print("react",react_sum)
         if ratio == 1:
             like_score = math.log(max(react_sum + 1, 1) * 10, 10)
         else:
             like_score = math.log(max(react_sum + 1, 1) * 20, 20)
 
-        print(like_score)
         comment_score = math.log(max(post.replies.count(), 3), 3) * like_score
         order = comment_score
         return order
 
     class Meta:
         model = Post
-        fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
+        fields = ('spreaders','id','posted','posted_id','posted_name','poster_full','poster','poster_id','poster_name',
                   'poster_description','posted_to','text','type',
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner','description',

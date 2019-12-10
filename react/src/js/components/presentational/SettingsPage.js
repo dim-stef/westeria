@@ -10,7 +10,6 @@ import {CachedBranchesContext, UserContext} from "../container/ContextContainer"
 import {BranchSwitcher} from "./BranchSwitcher"
 import RoutedHeadline from "./RoutedHeadline"
 import axios from 'axios'
-
 import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
 import "react-toggle/style.css"
@@ -236,7 +235,7 @@ function Setting({children}){
 }
 
 
-function UpdateBranch({branch}){
+export function UpdateBranch({branch,isSimple=false}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
 
@@ -303,6 +302,8 @@ function UpdateBranch({branch}){
     }
 
     return(
+        isSimple?<SimpleBranchForm onSubmit={onSubmit} initialValues={initialValues}
+        branch={branch}/>:
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
             branch={branch}
         />
@@ -361,19 +362,118 @@ function CreateNewBranch(){
     )
 }
 
+export function SimpleBranchForm({onSubmit,initialValues,branch}){
+    const theme = useTheme();
+    return(
+        <Form onSubmit={onSubmit} initialValues={initialValues}
+            render={({handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors })=>{
+                return(
+                    <form id="branchForm" onSubmit={handleSubmit}>
+                        <GenericProfile branch={branch}/>
+                        <div style={{margin:'5px 0'}}>
+                            <UriField branch={branch}/>                       
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <DescriptionField initialValues={initialValues}/>  
+                        </div>
+                    </form>
+                )
+            }}
+        />
+    )
+}
+
 function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
     const theme = useTheme();
     const profileRef = useRef(null);
     const bannerRef = useRef(null);
     const wrapperRef = useRef(null);
-    const [remainingCharacters,setRemainingCharecters] = 
-    useState(initialValues.description?140 - initialValues.description.length:140)
 
     let isDefaultSwitchDisabled = false;
     if(!createNew && branch.default){
         isDefaultSwitchDisabled = true;
     }
 
+    return(
+        <Form onSubmit={onSubmit}
+            initialValues={initialValues}
+            render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
+                return (
+                    <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
+                        <div>
+                            <label css={theme=>settingLabel(theme)}>Name</label>
+                            <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <UriField branch={branch}/>                       
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <DescriptionField initialValues={initialValues}/>  
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image And Banner</label>
+                            <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
+                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+                                <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
+                            </div>
+                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
+                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
+                        </div>
+                        <div style={{margin:'5px 0'}}>
+                            <Field name="default" type="checkbox">
+                                {({ input, meta }) => (
+                                    <div>
+                                        <label css={theme=>settingLabel(theme)}>Default</label>
+                                        <Toggle checked={input.value} {...input} disabled={isDefaultSwitchDisabled} 
+                                        icons={false} className="toggle-switch"/>
+                                    </div>
+                                )}
+                            </Field>
+                        </div>
+                        {submitSucceeded?<p className="form-succeed-message">{createNew?
+                        'Successfully created branch':'Successfully saved changes'}</p>:null}
+                        {submitFailed?<p className="form-error-message">An error occured</p>:null}
+                        <Save submitting={submitting} submitSucceeded={submitSucceeded} pristine={pristine} invalid={invalid}/>
+                    </form>
+                )}
+            }>
+        </Form>
+    )
+}
+
+export function DescriptionField({initialValues}){
+    const [remainingCharacters,setRemainingCharecters] = 
+    useState(initialValues.description?140 - initialValues.description.length:140)
+
+    function validateRemainingCharacters(){
+        let textarea = document.getElementById('description')
+        if(textarea.value>140){
+            return `Too many characters (${textarea.value}). Maximum length is 140 characters`;
+        }
+        setRemainingCharecters(140 - textarea.value.length)
+    }
+    return(
+        <Field name="description"
+        validate={validateRemainingCharacters}>
+            {({ input, meta }) => (
+            <div>
+                <label css={theme=>settingLabel(theme)}>Description</label>
+                <textarea {...input} css={theme=>settingInput(theme)}
+                style={{resize:'none',maxHeight:400,minHeight:100,width:'90%'}} 
+                placeholder="Type something that describes your branch" id="description" maxLength="140" />
+                <span className="setting-info">{remainingCharacters} characters left.</span>
+                {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
+            </div>
+            )}
+        </Field>   
+    )
+}
+
+export function UriField({branch=null}){
     const simpleMemoize = fn => {
         let lastArg;
         let lastResult;
@@ -407,7 +507,6 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
              
         }
 
-
         return undefined;
       });
 
@@ -419,90 +518,27 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
         }
     }
 
-    function validateRemainingCharacters(){
-        let textarea = document.getElementById('description')
-        if(textarea.value>140){
-            return `Too many characters (${textarea.value}). Maximum length is 140 characters`;
-        }
-        setRemainingCharecters(140 - textarea.value.length)
-    }
-
     return(
-        <Form onSubmit={onSubmit}
-            initialValues={initialValues}
-            render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
-                return (
-                    <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
-                        <div>
-                            <label css={theme=>settingLabel(theme)}>Name</label>
-                            <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
-                        </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <Field name="uri"
-                            validate={usernameAvailable}>
-                                {({ input, meta }) => (
-                                <div>
-                                    <label css={theme=>settingLabel(theme)}>Username</label>
-                                    <input {...input} css={theme=>settingInput(theme)} type="text" placeholder="Username" maxLength="60" />
-                                    {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
-                                    {/*{meta.validating && <p>loading</p>}*/}
-                                    <span className="setting-info">Maximum of 60 characters</span>
-                                </div>
-                                )}
-                            </Field>
-                            <Error name="uri"/>
-                            <OnChange name="uri">
-                                {(value, previous) => {
-                                    cancelSearch(value,previous);
-                                }}
-                            </OnChange>                        
-                        </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <Field name="description"
-                            validate={validateRemainingCharacters}>
-                                {({ input, meta }) => (
-                                <div>
-                                    <label css={theme=>settingLabel(theme)}>Description</label>
-                                    <textarea {...input} css={theme=>settingInput(theme)}
-                                    style={{resize:'none',maxHeight:400,minHeight:100,width:'90%'}} 
-                                    placeholder="Type something that describes your branch" id="description" maxLength="140" />
-                                    <span className="setting-info">{remainingCharacters} characters left.</span>
-                                    {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
-                                </div>
-                                )}
-                            </Field>             
-                        </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image And Banner</label>
-                            <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
-                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
-                                <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
-                            </div>
-                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
-                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
-                        </div>
-                        <div style={{margin:'5px 0'}}>
-                            <Field name="default" type="checkbox">
-                                {({ input, meta }) => (
-                                    <div>
-                                        <label css={theme=>settingLabel(theme)}>Default</label>
-                                        <Toggle checked={input.value} {...input} disabled={isDefaultSwitchDisabled} 
-                                        icons={false} className="toggle-switch"/>
-                                    </div>
-                                )}
-                            </Field>
-                        </div>
-                        {submitSucceeded?<p className="form-succeed-message">{createNew?
-                        'Successfully created branch':'Successfully saved changes'}</p>:null}
-                        {submitFailed?<p className="form-error-message">An error occured</p>:null}
-                        <Save submitting={submitting} submitSucceeded={submitSucceeded} pristine={pristine} invalid={invalid}/>
-                    </form>
-                )}
-            }>
-        </Form>
+        <>
+        <Field name="uri"
+        validate={usernameAvailable}>
+            {({ input, meta }) => (
+            <div>
+                <label css={theme=>settingLabel(theme)}>Username</label>
+                <input {...input} css={theme=>settingInput(theme)} type="text" placeholder="Username" maxLength="60" />
+                {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
+                {/*{meta.validating && <p>loading</p>}*/}
+                <span className="setting-info">Maximum of 60 characters</span>
+            </div>
+            )}
+        </Field>
+        <Error name="uri"/>
+        <OnChange name="uri">
+            {(value, previous) => {
+                cancelSearch(value,previous);
+            }}
+        </OnChange>
+        </>
     )
 }
 
@@ -606,6 +642,19 @@ const Error = ({ name }) => (
     />
   );
 
+
+
+export function GenericProfile({branch=null,createNew,className=""}){
+    const wrapperRef=useRef(null);
+    const profileRef=useRef(null);
+
+    return(
+        <div className={`flex-fill avatar-banner-wrapper ${className}`} ref={wrapperRef}>
+            <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+        </div>
+    )
+}
+
 export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_image",showError=false}){
     const theme = useTheme();
     function onInput(){
@@ -680,7 +729,7 @@ function Banner({branch,wrapperRef,bannerRef,createNew}){
     )
 }
 
-function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt,extraStyle}){
+function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt,extraStyle={}}){
     const [source,setSource] = useState(src);
     const [width,setWidth] = useState(0);
     const [lineHeight,setLineHeight] = useState(0);

@@ -187,7 +187,6 @@ const postList = (theme,isMobile) => css({
 export const FrontPage = React.memo(function FrontPage(props){
     const actionContext = useContext(UserActionsContext);
     const userContext = useContext(UserContext);
-     
 
     useEffect(()=>{
         actionContext.lastPostListType = 'front'

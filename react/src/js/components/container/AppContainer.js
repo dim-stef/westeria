@@ -15,6 +15,7 @@ class App extends Component {
             branches:null,
             currentBranch:null,
             startedLoading:false,
+            justRegistered:false,
             updateUserData:this.getUserBranches,
             changeCurrentBranch:this.getNewCurrentBranch,
             getNewCurrentBranch:this.getNewCurrentBranch

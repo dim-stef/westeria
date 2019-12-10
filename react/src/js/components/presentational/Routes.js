@@ -9,6 +9,7 @@ import {Page} from '../Page'
 import Login from "./Login"
 import Logout from "./Logout"
 import Register from "./Register"
+import PostRegister from "./PostRegister"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
 import EmailConfirm from "./EmailConfirm"
@@ -94,6 +95,7 @@ const Routes = () =>{
           <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
           <Route exact path='/login' component={(props) => <Login {...props} />} />
           <Route exact path='/register' component={(props) => <Register {...props} />} />
+          <Route exact path='/register/edit' component={(props) => <PostRegister {...props} />} />
           <Route exact path='/password/reset' component={PasswordReset} />
           <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
           <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />

@@ -13,6 +13,7 @@ import {BranchSwitcher} from './BranchSwitcher'
 //import EmojiPicker from 'emoji-picker-react';
 import {MediaPreview} from './EditorMediaPreview'
 import {MoonLoader} from 'react-spinners';
+import {TagSelector} from "./TagSelector";
 import axios from 'axios'
 
 const schema  = {
@@ -184,9 +185,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     alignItems:'center',backgroundColor:theme.backgroundColor,
                     WebkitAlignItems:'center',display:'block'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                    {minimized?
-                    null:
-                    <>
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
                     postedId={postedId} currentPost={currentPost} isFeed={isFeed} activeBranch={activeBranch}
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
@@ -194,8 +192,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     />
                     {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
                     {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
-                    </>
-                    }
                 </div>
             </div>
     )
@@ -387,6 +383,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
+                    <TagSelector/>
                 </div>
                 <button style={{marginRight:10}} className="editor-btn"
                 onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
