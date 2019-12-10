@@ -564,8 +564,8 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
             isFlat:false
         },
         big:{
-            defaultDimensions:[!isMobile?8:12,!isMobile?6:6],
-            flatDimensions:[!isMobile?6:6,!isMobile?12:10],
+            defaultDimensions:[!isMobile?6:6,!isMobile?12:10],
+            flatDimensions:[!isMobile?9:12,!isMobile?6:6],
             label:'large',
             isBig:true,
             isFlat:false
@@ -645,7 +645,6 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                 return true
             }
         }
-
         return false
     }
 

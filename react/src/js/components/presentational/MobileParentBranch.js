@@ -237,15 +237,20 @@ export function ProfileBubble({branch}){
         }
     }
 
-    const bind = useDrag(({ down, xy: [x, y] }) => {
+    const bind = useDrag(({ down, xy: [x, y] ,velocity,distance}) => {
         isDown.current = down;
+
+        // sometimes click is not captured so fire this instead
+        if(velocity < 0.5 && distance == 0 && !down){
+            setShow(true);
+        }
         set({ xy:[x,y], scale: down ? 1.2 : 1 })
     })
 
     function handleClick(e){
-        e.stopPropagation();
         setShow(true)
     }
+
 
     useEffect(()=>{
         if(show){
@@ -267,34 +272,52 @@ export function ProfileBubble({branch}){
     )
 }
 
+const to = (x) => ({ x: x })
+
 function ProfileDrawer({shown,setShown,branch}){
-    
-    const transitions = useTransition(shown, null, {
-        from: { opacity: 0, transform: 'translate3d(-100%,0,0)' },
-        enter: { opacity: 1, transform: 'translate3d(0%,0,0)' },
-        leave: { opacity: 0, transform: 'translate3d(-100%,0,0)' },
+
+    const [props, set] = useSpring(() => ({
+        from:{ x:-window.innerWidth, scale: 1 },
+        config:{tension:370,friction:27},
+    }))
+
+    const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
+        const trigger = velocity > 0.2 && xDir < 0;
+        const isGone = trigger && !down
+        const x = isGone ? -window.innerWidth: down?mx:0;
+        if(isGone){
+            setShown(false);
+        }
+        set({ x:x })
     })
 
+    useEffect(()=>{
+        if(shown){
+            set(()=>to(0))
+        }else{
+
+            set(()=>to(-window.innerWidth))
+        }
+    },[shown])
+    
     function handleClick(e){
         e.stopPropagation();
         setShown(false);
     }
 
     return (
-        transitions.map(({ item, props, key }) => {
-          return (
-            item && <animated.div key={key} css={theme=>({zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundColor,
-            position:'fixed',width:'100vw'})} style={props} onClick={e=>e.stopPropagation()}>
-                <div css={theme=>({height:'100%',width:'100%',position:'relative'})}>
+        <animated.div {...bind()}
+            css={theme=>({zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundColor,
+            position:'fixed',width:'100vw'})} style={{transform:props.x.interpolate(x=>`translateX(${x>0?0:x}px)`)}} 
+            onClick={e=>e.stopPropagation()}>
+                <animated.div  css={theme=>({height:'100%',width:'100%',position:'relative'})}>
                     <div css={{position:'absolute',top:20,left:20}} onClick={handleClick}>
                         <ArrowLeftSvg/>
                     </div>
                     <DesktopProfile branch={branch}/>
-                </div>
+                </animated.div>
             </animated.div>
-          )
-        })        
-    )
+        )
 }
 
 const ArrowLeftSvg = props =>{

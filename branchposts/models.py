@@ -8,7 +8,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from push_notifications.models import APNSDevice, GCMDevice
+from taggit.managers import TaggableManager
 from accounts.models import User
+from tags.models import GenericStringTaggedItem
 from notifications.models import Notification
 import uuid
 from datetime import datetime
@@ -88,6 +90,7 @@ class Post(models.Model):
     hot_score = models.DecimalField(max_digits=19,decimal_places=10,default=0.0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    tags = TaggableManager(through=GenericStringTaggedItem,blank=True)
 
     @property
     def description(self):

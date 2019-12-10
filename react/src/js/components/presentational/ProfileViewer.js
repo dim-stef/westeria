@@ -36,6 +36,15 @@ const followCss = theme =>css({
     }
 })
 
+const profilePicture = () =>css({
+    height:100,width:100,objectFit:'cover',borderRadius:'50%',
+    border:'3px solid transparent',
+    boxSizing:'border-box',
+    '&:hover':{
+        boxShadow:'0px 0px 0px 3px #208ce3'
+    }
+})
+
 const icon = theme =>css({
     height:20,
     width:20,
@@ -50,6 +59,14 @@ const icon = theme =>css({
     }
 })
 
+const nameDetails = (theme) =>css({
+    display:'flex',flexFlow:'column',
+    color:theme.textColor,
+    '&:hover':{
+        textDecoration:'underline'
+    }
+})
+
 export function DesktopProfile({branch}){
     const theme = useTheme();
     const userContext = useContext(UserContext);
@@ -60,23 +77,28 @@ export function DesktopProfile({branch}){
     return(
         userContext.isAuth?
         <div css={()=>desktopProfile(backgroundColor)}>
-        <img src={viewedBranch.branch_image} css={{height:100,width:100,objectFit:'cover',borderRadius:'50%'}}/>
-        <div css={{display:'flex',flexFlow:'column'}}>
-            <Name name={viewedBranch.name}/>
-            <Uri uri={viewedBranch.uri}/>
-        </div>
-        <div css={{margin:'20px 0',flex:1,display:'flex',flexFlow:'column',alignItems:'center'}}>
-            <div style={{margin:'10px 0'}}>
-                <span css={theme=>description(theme)}>{viewedBranch.description}</span>
-            </div>
-            <div css={{margin:'10px 0',width:'100%'}}>
-                <FollowInfo branch={viewedBranch}/>
-            </div>
-            <div css={{margin:'10px 0',alignSelf:'center'}}>
-                <FollowButton id={viewedBranch.id} uri={viewedBranch.uri} style={{margin:0}}/>
-            </div>
+            <Link rel="canonical" to={`/${userContext.currentBranch.uri}`}>
+                <img src={viewedBranch.branch_image} css={profilePicture}/>
+            </Link>
+
+            <Link to={`/${userContext.currentBranch.uri}`} style={{textDecoration:'none'}}>
+                <div css={nameDetails}>
+                    <Name name={viewedBranch.name}/>
+                    <Uri uri={viewedBranch.uri}/>
+                </div>
+            </Link>
+            <div css={{margin:'20px 0',flex:1,display:'flex',flexFlow:'column',alignItems:'center'}}>
+                <div style={{margin:'10px 0'}}>
+                    <span css={theme=>description(theme)}>{viewedBranch.description}</span>
+                </div>
+                <div css={{margin:'10px 0',width:'100%'}}>
+                    <FollowInfo branch={viewedBranch}/>
+                </div>
+                <div css={{margin:'10px 0',alignSelf:'center'}}>
+                    <FollowButton id={viewedBranch.id} uri={viewedBranch.uri} style={{margin:0}}/>
+                </div>
            
-        </div>
+            </div>
             <UserSettings branch={viewedBranch}/>
         </div>:
             <div css={()=>desktopProfile(backgroundColor)}>

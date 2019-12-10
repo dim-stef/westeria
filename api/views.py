@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.core.exceptions import PermissionDenied
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from rest_framework import viewsets, views, mixins,generics,filters,permissions
+from rest_framework import viewsets, views, mixins,generics,filters,permissions,status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination, CursorPagination
@@ -305,6 +305,21 @@ class BranchUpdateMixin(viewsets.GenericViewSet,
 class BranchUpdateViewSet(BranchUpdateMixin,):
     serializer_class = serializers.BranchUpdateSerializer
     parser_classes = (MultiPartParser,JSONParser,FileUploadParser,)
+
+    def owns_branch_with_same_name(self,request):
+        try:
+            owns_branch = request.user.owned_groups.filter(uri__iexact=request.data['uri']).exists()
+            branches_with_name = request.user.owned_groups.filter(name=request.data['name']).exists()
+            if owns_branch and branches_with_name:
+                return True
+        except Exception:
+            pass
+    def update(self, request, *args, **kwargs):
+        print(request.data)
+        '''owns_branch_with_same_name = request.user.owned_groups.filter(name__iexact=request.data['name'])
+        if owns_branch_with_same_name.exists():
+            return Response({'name':'You already own a branch with this name'},status=status.HTTP_400_BAD_REQUEST)'''
+        return super(BranchUpdateViewSet, self).update(request,*args,**kwargs)
 
 class CreateNewBranchViewSet(viewsets.GenericViewSet,mixins.CreateModelMixin):
     serializer_class = serializers.CreateNewBranchSerializer

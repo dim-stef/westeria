@@ -5,6 +5,8 @@ from django.core import serializers as ser
 import channels.layers
 from asgiref.sync import async_to_sync
 from rest_framework import serializers
+from rest_framework import viewsets, views, mixins,generics,filters,permissions,status
+from rest_framework.response import Response
 from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
@@ -172,6 +174,11 @@ class BranchSerializer(serializers.ModelSerializer):
         return parents
 
 from branches.utils import generate_unique_uri
+from rest_framework.exceptions import APIException
+
+class APIException400(APIException):
+    status_code = 400
+
 class BranchUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
@@ -179,6 +186,13 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
         if uri and uri != instance.uri:
             validated_uri = generate_unique_uri(uri)
             instance.uri = validated_uri
+
+        name = validated_data.pop('name')
+        if name:
+            if instance.owner.owned_groups.filter(name=name).exists() and instance.name != name:
+                raise APIException400("You already own a branch with this name")
+            else:
+                instance.name = name
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()

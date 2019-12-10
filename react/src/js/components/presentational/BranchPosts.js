@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import Pullable from 'react-pullable';
@@ -148,175 +147,6 @@ function ResponsiveSkeleton({height}){
     )
 }
 
-const genericCache = {
-    fixedWidth: true,
-    minHeight: 25,
-    defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
-}
-
-const cache = new CellMeasurerCache(genericCache)
-const branchPostsCache = new CellMeasurerCache(genericCache)
-const branchTreePostsCache = new CellMeasurerCache(genericCache)
-const branchCommunityPostsCache = new CellMeasurerCache(genericCache)
-const allPostsCache = new CellMeasurerCache(genericCache)
-const treePostsCache = new CellMeasurerCache(genericCache)
-
-function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsContext,activeBranch,showPostedTo}){
-    const ref = useRef(null);
-    const cellRef = useRef(null);
-    const [previousWidth,setPreviousWidth] = useState(0);
-    let usingCache = cache //default;
-    const [listLength,setListLength] = useState(1);
-    let supportsGrid = cssPropertyValueSupported('display', 'grid');
-    if(postsContext.content=="feed"){
-        usingCache = cache;
-    }else if(postsContext.content=="all"){
-        usingCache = allPostsCache;
-    }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
-    }else if(postsContext.content=="branch_community"){
-        usingCache = branchCommunityPostsCache
-    }else if(postsContext.content=="branch_tree"){
-        usingCache = branchTreePostsCache
-    }
-
-    useEffect(()=>{
-         
-        if(ref){
-            //ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
-            ref.current.scrollToPosition(postsContext.scroll);
-        }
-    },[keyword])
-
-    useEffect(()=>{
-        let lists = document.getElementsByClassName("ReactVirtualized__List");
-         
-        if(lists.length != listLength){
-            //setListLength(lists.length)
-        }
-    })
-
-    function onScroll(scroll){
-        
-        postsContext.scroll = scroll.scrollTop;
-    }
-
-    //let lastVisibleIndex = Math.ceil(postsContext.lastVisibleIndex);
-    return(
-        <WindowScroller
-        scrollElement={scrollTarget}
-        onScroll={onScroll}>
-            {({ height, scrollTop }) => (
-                <AutoSizer 
-                disableHeight
-                onResize={({ width }) => {
-                    if(ref){
-                        if(previousWidth!=0){
-                            cache.clearAll();
-                            allPostsCache.clearAll();
-                            treePostsCache.clearAll();
-                            branchPostsCache.clearAll();
-                            branchCommunityPostsCache.clearAll();
-                            branchTreePostsCache.clearAll();
-                            
-                            ref.current.recomputeRowHeights();
-                        }
-                        setPreviousWidth(width);
-                    }
-                }}>
-                {({ width }) =>{
-                        let props = {
-                            scrollRef:ref,
-                            width:width,
-                            height:height,
-                            activeBranch:activeBranch,
-                            posts:posts,
-                            postsContext:postsContext,
-                            scrollTop:scrollTop,
-                            usingCache:usingCache
-                        }
-                        return supportsGrid?<GridList {...props}/>:<FlatList {...props}/>
-                    }
-                }
-                </AutoSizer>
-        )}
-        </WindowScroller>
-    )
-}
-
-function GridList({scrollTop,width,scrollRef,activeBranch,posts,postsContext}){
-    return(
-        <List
-        containerStyle={{pointerEvents:'auto'}}        
-        width={width}
-        scrollTop={scrollTop}
-        height={Math.ceil(posts.length/5)*width}
-        rowCount={Math.ceil(posts.length/5)}
-        rowHeight={width}
-        ref={scrollRef}
-        rowRenderer={
-            ({ index, key, style, parent }) =>{
-            return(
-                <div
-                key={key}
-                style={style}
-                >
-                    <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
-                    postsContext={postsContext}/>
-                </div>
-            )
-        }}
-        />
-    )
-}
-
-function FlatList({usingCache,width,height,scrollRef,activeBranch,posts,postsContext}){
-    return(
-        <List
-        containerStyle={{pointerEvents:'auto'}}
-        autoHeight
-        width={width}
-        height={height}
-        scrollTop={scrollTop}
-        rowCount={posts.length}
-        deferredMeasurementCache={usingCache}
-        rowHeight={usingCache.rowHeight}
-        ref={scrollRef}
-        rowRenderer={
-            ({ index, key, style, parent }) =>{
-            let post = posts[index];
-            let props = {
-                post:post,
-                key:[post.id,post.spreaders,postsContext.content],
-                viewAs:"post",
-                activeBranch:activeBranch,
-                postsContext:postsContext
-                };
-            return(
-                <CellMeasurer
-                key={[post.id,post.spreaders,postsContext.content]}
-                cache={usingCache}
-                parent={parent}
-                width={width}
-                columnIndex={0}
-                rowIndex={index}>
-                {({ measure }) => (
-                    <div
-                    key={key}
-                    style={style}
-                    >
-                        <li><Post {...props} index={index} measure={measure}/></li>
-                    </div>
-                )}
-            </CellMeasurer>
-                
-            )
-        }}
-        />
-    )
-}
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React);
@@ -331,21 +161,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
     })
-    let usingCache = cache //default;
-
-    if(postsContext.content=="feed"){
-        usingCache = cache;
-    }else if(postsContext.content=="all"){
-        usingCache = allPostsCache;
-    }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
-    }else if(postsContext.content=="branch_community"){
-        usingCache = branchCommunityPostsCache
-    }else if(postsContext.content=="branch_tree"){
-        usingCache = branchTreePostsCache
-    }
 
     function buildQuery(baseUri,params){
         if(params){
@@ -436,7 +251,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     },[])
 
     const refresh = useCallback(()=>{
-        usingCache.clearAll();
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
         source = CancelToken.source();
@@ -448,7 +262,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     const updateFeed = useCallback(
         (newPost) => {
             postsContext.loadedPosts = [newPost,...postsContext.loadedPosts];
-            usingCache.clearAll();
             setPosts([newPost,...posts])
         },
         [posts],

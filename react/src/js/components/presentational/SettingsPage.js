@@ -248,26 +248,23 @@ function UpdateBranch({branch}){
     }
 
     function updateContext(contextBranches,data){
+
         var index = contextBranches.findIndex(b => b.uri==branch.uri);
         contextBranches[index] = {
             ...contextBranches[index],
             ...data
         }
+
+        userContext.updateBranches(contextBranches,data)
     }
 
-    function resetDefaultBranch(){
-        // there can only be one default branch so when the default branch
-        // changes the others need to be notified to get turned off
-
-        // if there are two default branches we find the intersection between
-        // the two contexts
-        let defaultBranch = userContext.branches.find(b=>b.default)
-        let intersection = cachedBranches.owned.find(b=>b.uri==defaultBranch.uri);
-
-        // we turn off the other defaults
-        cachedBranches.owned.filter(b=>b.uri!=intersection.uri).forEach(b=>{
-            b.default = false;
-        })
+    function resetDefaultBranch(branch){
+        if(branch.default){
+            userContext.branches.filter(b=>b.uri != branch.uri).forEach(b=>{
+                b.default = false
+            })
+            cachedBranches.owned = userContext.branches
+        }
     }
 
     async function onSubmit(values){
@@ -278,7 +275,6 @@ function UpdateBranch({branch}){
         var formData = new FormData(form)
         let url = `/api/branches/update/${branch.uri}/`;
          
-
         try{
             let response = await axios.patch(
                 url,
@@ -291,15 +287,18 @@ function UpdateBranch({branch}){
                 })
             
             let updatedBranchResponse = await axios.get(`/api/branches/${response.data.uri}/`);
-        
-            //updateContext(userContext.branches,updatedBranchResponse.data);
-            userContext.updateBranch(branch,updatedBranchResponse.data)
+
+            // only one branch can be default so disable all others if default has changed
+            resetDefaultBranch(updatedBranchResponse.data);
+
+            // update userContext
+            updateContext(userContext.branches,updatedBranchResponse.data);
+
+            // update cached branches
             updateContext(cachedBranches.owned,updatedBranchResponse.data);
-            resetDefaultBranch();
-        }catch(err){
-            
+        }catch(e){
+
         }
-        
         return errors;
     }
 
@@ -341,7 +340,6 @@ function CreateNewBranch(){
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                 })
-             
             let updatedResponse = await axios.get(`/api/branches/${response.data.uri}/`)
             if(updatedResponse.status == 200){
                 userContext.branches.push(updatedResponse.data);
@@ -350,7 +348,7 @@ function CreateNewBranch(){
                 history.push('/')
             }
         }catch(e){
-             
+            errors = e.response.data
         }
         
         return errors;

@@ -6,12 +6,14 @@ from django.core.exceptions import ValidationError,SuspiciousOperation
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from push_notifications.models import APNSDevice, GCMDevice
+from taggit.managers import TaggableManager
 from io import BytesIO
 from PIL import Image
 from accounts.models import User
 from branchchat.models import BranchChat
 from branchposts.models import Post
 from notifications.models import Notification
+from tags.models import GenericStringTaggedItem
 from core.utils import JPEGSaveWithTargetSize
 from .utils import generate_unique_uri
 import uuid
@@ -56,6 +58,16 @@ class Branch(models.Model):
         (INVITE_ONLY, 'Invite only'),
     )
 
+    USER = 'US'
+    COMMUNITY = 'CM'
+    HUB = 'HB'
+
+    TYPE = (
+        (USER,'User'),
+        (COMMUNITY,'Community'),
+        (HUB,'Hub')
+    )
+
     branch_image = models.ImageField(upload_to='images/group_images/profile',
                                     default='images/group_images/profile/default.jpeg',
                                     blank=False)
@@ -67,6 +79,7 @@ class Branch(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
+    branch_type = models.CharField(default=USER, choices=TYPE, max_length=2)
     parents = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="children")
     follows = models.ManyToManyField('self', blank=True, null=True, symmetrical=False, related_name='followed_by')
     name = models.CharField(blank=False, null=False, default='unnamed', max_length=30)
@@ -77,6 +90,13 @@ class Branch(models.Model):
     default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     trending_score = models.DecimalField(max_digits=14,decimal_places=5,default=0.0)
+    tags = TaggableManager(through=GenericStringTaggedItem,blank=True)
+    is_branchable = models.BooleanField(default=False)
+
+    # Whether the branch can "host" tags
+    # By default all posts tagged with "example_tag" will appear in the branches which contain
+    # the tag "example_tag"
+    is_hostable = models.BooleanField(default=True)
 
     def __str__(self):
         return self.uri
@@ -119,8 +139,9 @@ class Branch(models.Model):
         if self.pk:
             self.full_clean()
 
+        self.tags.add(self.uri,self.name)
         self.branch_image = self.encode_image(self.branch_image)
-        self.branch_banner = self.encode_image(self.branch_banner)
+        print(self.branch_image.name)
         super().save(*args, **kwargs)
 
     objects = BranchQuerySet.as_manager()

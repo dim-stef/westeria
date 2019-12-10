@@ -171,12 +171,11 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
                         </NavLink>
                     </Ripple>:null
                 }
+                {!context.isAuth?
                 <div className="flex-fill center-items"
                 style={style}>
                     <Profile/>
-                </div>
-                
-   
+                </div>:null}
             </div>
         </div>
     )
@@ -283,12 +282,12 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                     </NavLink>
                 </Ripple>:null
             }
-
+            {!context.isAuth?
             <SideDrawer open={drawerOpen} setOpen={setDrawerOpen}>
                 <div ref={profRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
                     <Profile/>
                 </div>
-            </SideDrawer>
+            </SideDrawer>:null}
         </div>
     )  
 }

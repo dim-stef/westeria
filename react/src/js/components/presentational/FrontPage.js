@@ -16,6 +16,7 @@ import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
 import {TooltipChain,Tooltip} from "./Tooltip"
 import FeedPosts, {AllPosts, TreePosts} from "./BranchPosts"
 import {DesktopProfile} from "./ProfileViewer"
+import {MobileParentBranch2} from "./MobileParentBranch"
 import {Helmet} from "react-helmet";
 import {Link, NavLink, Redirect, Route, Switch,useLocation} from 'react-router-dom'
 import {Desktop, Mobile, Tablet} from "./Responsive"
@@ -202,11 +203,15 @@ export const FrontPage = React.memo(function FrontPage(props){
             </Desktop>
 
             <Tablet>
-                <FrontPagePostList/> 
+                <MobileParentBranch2 branch={userContext.currentBranch}>
+                    <FrontPagePostList/> 
+                </MobileParentBranch2>
             </Tablet>
 
             <Mobile>
-                <FrontPagePostList/>       
+                <MobileParentBranch2 branch={userContext.currentBranch}>
+                    <FrontPagePostList/>
+                </MobileParentBranch2>
             </Mobile>
         </>
     )

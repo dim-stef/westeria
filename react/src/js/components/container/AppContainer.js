@@ -23,17 +23,8 @@ class App extends Component {
         this.getNewCurrentBranch = this.getNewCurrentBranch.bind(this);
         this.getUserData=this.getUserData.bind(this);
         this.getUserBranches=this.getUserBranches.bind(this);
-        this.updateBranch=this.updateBranch.bind(this);
-
+        this.updateBranches=this.updateBranches.bind(this);
         this.unlisten = this.props.history.listen((location, action) => {
-            /*if(location.pathname === "/login"){
-                this.setState({
-                    isAuth:null,
-                    branches:null,
-                    currentBranch:null,
-                    startedLoading:false,
-                })
-            }*/
         });
 
     }
@@ -82,18 +73,14 @@ class App extends Component {
         })
     }
 
-    updateBranch(oldBranch,newBranchData){
-        let index = this.state.branches.findIndex(b => b.uri==oldBranch.uri);
-        let newBranches = this.state.branches.slice();
-        newBranches[index] = {
-            ...newBranches[index],
-            ...newBranchData
-        }
+    updateBranches(branches,newBranchData = null){
 
         this.setState({
-            branches:newBranches
+            branches:branches
         },()=>{
-            this.getNewCurrentBranch(newBranchData)
+            if(newBranchData){
+                this.getNewCurrentBranch(newBranchData)
+            }
         })
     }
 
@@ -112,12 +99,12 @@ class App extends Component {
     }
 
     componentDidUpdate(previousProps, previousState){
+        //if is auth and state different
+        //to switch accounts
+
         if(localStorage.getItem("token") && !this.state.isAuth){
             this.getUserData();
         }
-
-        //if is auth and state different
-        //to switch accounts
     }
 
     render() {
@@ -127,7 +114,7 @@ class App extends Component {
 
         let updateHandler = {updateUserData:this.getUserBranches}
         let changeBranchHandler = {changeCurrentBranch:this.getNewCurrentBranch}
-        let updateBranchHandler = {updateBranch:this.updateBranch}
+        let updateBranchHandler = {updateBranches:this.updateBranches}
         let value = {...this.state,...updateHandler, ...changeBranchHandler,
             ...updateBranchHandler}
         return (
