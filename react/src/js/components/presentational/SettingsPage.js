@@ -9,6 +9,7 @@ import {useMyBranches} from "../container/BranchContainer"
 import {CachedBranchesContext, UserContext} from "../container/ContextContainer";
 import {BranchSwitcher} from "./BranchSwitcher"
 import RoutedHeadline from "./RoutedHeadline"
+import {ArrowSvg} from "./Svgs"
 import axios from 'axios'
 import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
@@ -235,7 +236,7 @@ function Setting({children}){
 }
 
 
-export function UpdateBranch({branch,isSimple=false}){
+export function UpdateBranch({branch,postRegister=false,children}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
 
@@ -302,8 +303,8 @@ export function UpdateBranch({branch,isSimple=false}){
     }
 
     return(
-        isSimple?<SimpleBranchForm onSubmit={onSubmit} initialValues={initialValues}
-        branch={branch}/>:
+        postRegister?<PostRegisterForm onSubmit={onSubmit} initialValues={initialValues}
+        branch={branch}></PostRegisterForm>:
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
             branch={branch}
         />
@@ -362,14 +363,20 @@ function CreateNewBranch(){
     )
 }
 
-export function SimpleBranchForm({onSubmit,initialValues,branch}){
+export function PostRegisterForm({onSubmit,initialValues,branch}){
     const theme = useTheme();
+
     return(
         <Form onSubmit={onSubmit} initialValues={initialValues}
             render={({handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors })=>{
                 return(
-                    <form id="branchForm" onSubmit={handleSubmit}>
-                        <GenericProfile branch={branch}/>
+                    <form id="branchForm" style={{width:'100%'}} onSubmit={handleSubmit}>
+                        <h1 style={{margin:'20px 0'}}>Customize your profile before you go in</h1>
+
+                        <div style={{margin:'5px 0'}}>
+                            <GenericProfile branch={branch}/>
+                        </div>
+
                         <div style={{margin:'5px 0'}}>
                             <UriField branch={branch}/>                       
                         </div>
@@ -377,6 +384,18 @@ export function SimpleBranchForm({onSubmit,initialValues,branch}){
                         <div style={{margin:'5px 0'}}>
                             <DescriptionField initialValues={initialValues}/>  
                         </div>
+                        <div css={{display:'flex',justifyContent:'flex-end'}}>
+                            <Link to="/" css={theme=>({borderRadius:25,border:`1px solid ${theme.borderColor}`,
+                            padding:10,backgroundColor:'transparent',fontWeight:'bold',color:theme.textLightColor,
+                            margin:'0 10px',fontSize:'1.3rem'})}>
+                                Not now
+                            </Link>
+                            <div role="button" onClick={handleSubmit}>                   
+                                <ArrowSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
+                                fill:'white',transform:'rotate(180deg)'}}/>
+                            </div>
+                        </div>
+
                     </form>
                 )
             }}
@@ -649,9 +668,13 @@ export function GenericProfile({branch=null,createNew,className=""}){
     const profileRef=useRef(null);
 
     return(
+        <>
+        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
         <div className={`flex-fill avatar-banner-wrapper ${className}`} ref={wrapperRef}>
-            <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+            <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} 
+            profileRef={profileRef} createNew={createNew}/>
         </div>
+        </>
     )
 }
 

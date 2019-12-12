@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.files.images import ImageFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Sum, Count
 from django.core import serializers as ser
 import channels.layers
@@ -11,8 +12,11 @@ from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
-from notifications.models import Notification
-from datetime import datetime, timedelta
+from tags.models import GenericStringTaggedItem
+from taggit_serializer.serializers import (TagListSerializerField,
+                                           TaggitSerializer)
+from io import BytesIO
+from PIL import Image
 from moviepy.editor import VideoFileClip
 import os
 from random import uniform
@@ -32,15 +36,35 @@ def generate_thumbnail(file):
         clip = VideoFileClip(f.name)
         thumbnail = os.path.join('%s.png' % path)
         clip.save_frame(thumbnail, t=uniform(0.1, clip.duration))
-        #img = Image.open(thumbnail)
-        #img.thumbnail((220, 130), Image.ANTIALIAS)
-        #output = BytesIO()
-        #img.save(output,format='PNG', quality=85)
-
         image_file = ImageFile(open(thumbnail, 'rb'))
         image_file.name = "%s.png" % str(_id)
         clip.close()
         return image_file
+
+
+def encode_image(image):
+    try:
+        if image:
+            im = Image.open(image)
+            im.load()
+            rbg_img = im.convert('RGB')
+            rbg_img.load()
+            # create a BytesIO object
+            im_io = BytesIO()
+            # save image to BytesIO object
+            rbg_img.save(im_io, 'JPEG', quality=75)
+            return InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % image.name.split('.')[0],
+                                        'image/jpeg', im_io.getbuffer().nbytes, None)
+        return None
+    except OSError as e:
+        return None
+
+
+class GenericStringTaggedItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GenericStringTaggedItem
+        fields="__all__"
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -87,7 +111,8 @@ class OwnedBranchesSerializer(serializers.ModelSerializer):
         fields = ['uri','id']
         read_only_fields = ['uri','id']
 
-class BranchSerializer(serializers.ModelSerializer):
+class BranchSerializer(TaggitSerializer,serializers.ModelSerializer):
+
     class Meta:
         model = Branch
         fields = ['id', 'owner', 'parents',
@@ -96,14 +121,14 @@ class BranchSerializer(serializers.ModelSerializer):
                   'children_uri_field','follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner','default',
-                  'post_context','spread_count','last_day_spread_count']
+                  'post_context','spread_count','last_day_spread_count','tags','tags_with_dummy']
         read_only_fields = ['id', 'owner', 'parents',
                   'parent_uri_field','followers_count','following_count',
                   'children', 'name', 'uri','sibling_count','children_count','parent_count',
                   'children_uri_field', 'follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner', 'default','spread_count'
-                  ,'last_day_spread_count']
+                  ,'last_day_spread_count','tags']
 
     follows = serializers.StringRelatedField(many=True)
     followed_by = serializers.StringRelatedField(many=True)
@@ -118,6 +143,13 @@ class BranchSerializer(serializers.ModelSerializer):
     parent_uri_field = serializers.SerializerMethodField('parents_uri')
     post_context = serializers.SerializerMethodField()
     spread_count = serializers.SerializerMethodField()
+    tags = TagListSerializerField()
+
+    tags_with_dummy = serializers.SerializerMethodField()
+
+    def get_tags_with_dummy(self,branch):
+        for tag in branch.tags.all():
+            return None
 
     def get_post_context(self,branch):
         if 'post' in self.context:
@@ -133,9 +165,6 @@ class BranchSerializer(serializers.ModelSerializer):
 
     def get_last_day_spread_count(self,branch):
         last_day = datetime.today() - timedelta(days=1)
-        '''branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day,
-                                         posts__spreads__updated__gte=last_day) \
-            .aggregate(Sum('posts_from_all__spreads__times'))'''
         dd = branch.posts_from_all.filter(spreads__updated__gte=last_day).aggregate(Sum('spreads__times'))['spreads__times__sum']
         return dd
 
@@ -182,17 +211,29 @@ class APIException400(APIException):
 class BranchUpdateSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
-        uri = validated_data.pop('uri')
-        if uri and uri != instance.uri:
-            validated_uri = generate_unique_uri(uri)
-            instance.uri = validated_uri
+        try:
+            uri = validated_data.pop('uri')
+            if uri and uri != instance.uri:
+                validated_uri = generate_unique_uri(uri)
+                instance.uri = validated_uri
+        except KeyError:
+            pass
 
-        name = validated_data.pop('name')
-        if name:
-            if instance.owner.owned_groups.filter(name=name).exists() and instance.name != name:
-                raise APIException400("You already own a branch with this name")
-            else:
-                instance.name = name
+        try:
+            image = validated_data.pop('branch_image')
+            instance.branch_image = encode_image(image)
+        except KeyError:
+            pass
+
+        try:
+            name = validated_data.pop('name')
+            if name:
+                if instance.owner.owned_groups.filter(name=name).exists() and instance.name != name:
+                    raise APIException400("You already own a branch with this name")
+                else:
+                    instance.name = name
+        except KeyError:
+            pass
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -331,7 +372,6 @@ class PostVideoSerializer(serializers.ModelSerializer):
         model=PostVideo
         fields='__all__'
         read_only_fields = ['post']
-
 
 
 def create_message(instance):

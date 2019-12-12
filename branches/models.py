@@ -17,8 +17,21 @@ from tags.models import GenericStringTaggedItem
 from core.utils import JPEGSaveWithTargetSize
 from .utils import generate_unique_uri
 import uuid
+import hashlib
 import datetime
 
+def generate_sha(file):
+    sha = hashlib.sha1()
+    file.seek(0)
+    while True:
+        buf = file.read(104857600)
+        if not buf:
+            break
+        sha.update(buf)
+    sha1 = sha.hexdigest()
+    file.seek(0)
+
+    return sha1
 
 def uuid_int():
     uid = uuid.uuid4()
@@ -29,10 +42,6 @@ def calculate_trending_score(posts):
     spread_count = 0
     for post in posts:
         spread_count+=post.spreads.count()
-    '''if posts.count()==0:
-        avg = 0
-    else:
-        avg = spread_count/posts.count()'''
     return spread_count
 
 def deEmojify(inputString):
@@ -71,6 +80,7 @@ class Branch(models.Model):
     branch_image = models.ImageField(upload_to='images/group_images/profile',
                                     default='images/group_images/profile/default.jpeg',
                                     blank=False)
+    #branch_image_sha1 = models.CharField(max_length=40)
     branch_banner = models.ImageField(upload_to='images/group_images/banner',
                                      default='images/group_images/banner/default.png',
                                      blank=False)
@@ -140,7 +150,7 @@ class Branch(models.Model):
             self.full_clean()
 
         self.tags.add(self.uri,self.name)
-        self.branch_image = self.encode_image(self.branch_image)
+        #self.branch_image = self.encode_image(self.branch_image)
         print(self.branch_image.name)
         super().save(*args, **kwargs)
 

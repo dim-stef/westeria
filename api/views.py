@@ -13,6 +13,7 @@ from branches.models import Branch, BranchRequest
 from branchchat.models import BranchChat, BranchMessage, ChatRequest
 from branchposts.models import Post,React,Spread
 from notifications.models import Notification
+from tags.models import GenericStringTaggedItem
 from . import permissions as api_permissions
 from . import serializers
 from itertools import chain
@@ -94,6 +95,16 @@ class IsOwnerOfChat(permissions.BasePermission):
         return False
 
 
+class TagViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = serializers.GenericStringTaggedItemSerializer
+    queryset = GenericStringTaggedItem.objects.all()
+
+    '''def get_queryset(self):
+        queryset = GenericStringTaggedItem.objects.filter(tag__name=self.kwargs['pk'])
+        print(queryset)
+        return queryset'''
+
 class LargeBranchViewSet(mixins.ListModelMixin,viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
     queryset = Branch.objects.all()
@@ -113,10 +124,6 @@ class UserViewSet(# mixins.DestroyModelMixin,
     def get_serializer_class(self):
         user = self.request.user
         return serializers.UserSerializer
-        '''if user.is_superuser:
-            return serializers.UserAdminSerializer
-        else:
-            return serializers.UserSerializer'''
 
     def get_queryset(self):
         user = self.request.user

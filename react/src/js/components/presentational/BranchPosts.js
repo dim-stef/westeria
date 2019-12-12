@@ -628,7 +628,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                 </div>
             )}
             content={hide => (
-            <Modal onClick={handleHide}>
+            <Modal onClick={handleHide} isOpen={isOpen}>
                 <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
                     <MobileModal>
                         {options.map(op=>{
