@@ -176,7 +176,8 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const shotDown = useRef(null);
     const commentsActive = useRef(null);
     const lastDockedPosition = useRef(null);
-    
+    const prevTime = useRef(new Date().getTime());
+    const isResting = useRef(true);
 
     const positions = {
         off:{
@@ -194,7 +195,11 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
 
     const [props, set, stop] = useSpring(()=>({from:from(),to:to(),
 
+        onRest:(f)=>{
+            isResting.current = true;
+        },
         onFrame:(f)=>{
+            isResting.current = false;
             if(shotDown.current){
                 shotDown.current = false;
                 setCommentsShown(true);
@@ -219,35 +224,46 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         return false;
     }
 
+
     function wheelEvent(e){
-        console.log(e)
-        e.preventDefault();
+        var curTime = new Date().getTime();
+        if(typeof prevTime.current !== 'undefined'){
+            var timeDiff = curTime-prevTime.current;
+            if(timeDiff>200 || isResting.current){
+                e.preventDefault();
+                e.stopPropagation();
 
-        console.log(dockedTo.current)
+                if(e.wheelDelta > 0){
+                    // update flags
+                    shotUp.current = true;
+                    if(dockedTo.current == positions.bottom){
+                        // set docking position
+                        dockedTo.current = positions.top;
+                        set(()=>to(positions.top.y))
+                    
+                    // regular mouse sends it off
+                    // trackpads shouldnt send the post off because the wheel event continues on the swipeable grid
+                    // if wheelDeltaY is 120 then its probably a regular mouse
+                    }else if(Math.abs(e.wheelDeltaY==120)){
+                        // set docking position
+                        dockedTo.current = positions.off;
+                        // update flags
+                        commentsActive.current = false;
+                        set(()=>to(positions.off.y))
+                    }
+                }else if(e.wheelDelta <0){
+                    // set docking position
+                    dockedTo.current = positions.bottom;
 
-        if(e.wheelDelta > 0){
-            // update flags
-            shotUp.current = true;
-            if(dockedTo.current == positions.bottom){
-                // set docking position
-                dockedTo.current = positions.top;
-                set(()=>to(positions.top.y))
-            }else{
-                // set docking position
-                dockedTo.current = positions.off;
-                // update flags
-                commentsActive.current = false;
-                set(()=>to(positions.off.y))
+                    // update flags
+                    shotDown.current = true;
+                    commentsActive.current = true;
+                    set(()=>to(positions.bottom.y))
+                }
             }
-        }else if(e.wheelDelta <0){
-            // set docking position
-            dockedTo.current = positions.bottom;
-
-            // update flags
-            shotDown.current = true;
-            commentsActive.current = true;
-            set(()=>to(positions.bottom.y))
         }
+        prevTime.current = curTime;
+        
     }
 
     useEffect(()=>{
