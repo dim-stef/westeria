@@ -95,15 +95,13 @@ class IsOwnerOfChat(permissions.BasePermission):
         return False
 
 
-class TagViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+class TagViewSet(viewsets.GenericViewSet,mixins.RetrieveModelMixin):
     permission_classes = (permissions.AllowAny,)
     serializer_class = serializers.GenericStringTaggedItemSerializer
-    queryset = GenericStringTaggedItem.objects.all()
 
-    '''def get_queryset(self):
-        queryset = GenericStringTaggedItem.objects.filter(tag__name=self.kwargs['pk'])
-        print(queryset)
-        return queryset'''
+    def get_object(self):
+            obj = GenericStringTaggedItem.objects.filter(tag__name=self.kwargs['pk']).first()
+            return obj
 
 class LargeBranchViewSet(mixins.ListModelMixin,viewsets.GenericViewSet):
     permission_classes = (permissions.AllowAny,)
@@ -117,8 +115,7 @@ class LargePostViewSet(mixins.ListModelMixin,viewsets.GenericViewSet):
     serializer_class = serializers.BranchPostSerializer
     pagination_class = LargeLinkPagination
 
-class UserViewSet(# mixins.DestroyModelMixin,
-                  mixins.ListModelMixin,
+class UserViewSet(mixins.ListModelMixin,
                   viewsets.GenericViewSet):
     permission_classes = (permissions.IsAuthenticated,)
     def get_serializer_class(self):

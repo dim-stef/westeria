@@ -198,10 +198,11 @@ function NavigationTabs({branch}){
 export function MobileParentBranch2({branch,children}){
 
     return(
+        branch?
         <div style={{height:'100%'}}>
             <ProfileBubble branch={branch}/>
             {children}
-        </div>
+        </div>:<div>{children}</div>
 
     )
 }

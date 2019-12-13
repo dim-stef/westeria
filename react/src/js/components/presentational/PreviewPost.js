@@ -97,6 +97,11 @@ const bubbleBox = (theme,height=100) =>css({
     }
 })
 
+const to = (y) => ({ opacity:1, x: 0, y: y||20, scale: 1 })
+const from = () => ({ opacity:0, x: 0, rot: 0, scale: 1, y: -(window.innerHeight) })
+const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1})
+const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
+
 export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
@@ -167,18 +172,28 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         }
     },[postShown])
 
-    //const [{ xy }, set] = useSpring(() => ({ xy: [0, 0] }))
     const shotUp = useRef(null);
     const shotDown = useRef(null);
     const commentsActive = useRef(null);
     const lastDockedPosition = useRef(null);
+    
 
-    const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
-    const from = () => ({ opacity:0, x: 0, rot: 0, scale: 1, y: -(window.innerHeight) })
-    const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1, rot: -10 + Math.random() * 20 })
+    const positions = {
+        off:{
+            y:(250 + window.innerHeight)*-1
+        },
+        top:{
+            y:20
+        },
+        bottom:{
+            y:window.innerHeight - 200
+        }
+    }
 
-    const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
+    const dockedTo = useRef(positions.top);
+
     const [props, set, stop] = useSpring(()=>({from:from(),to:to(),
+
         onFrame:(f)=>{
             if(shotDown.current){
                 shotDown.current = false;
@@ -204,6 +219,37 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         return false;
     }
 
+    function wheelEvent(e){
+        console.log(e)
+        e.preventDefault();
+
+        console.log(dockedTo.current)
+
+        if(e.wheelDelta > 0){
+            // update flags
+            shotUp.current = true;
+            if(dockedTo.current == positions.bottom){
+                // set docking position
+                dockedTo.current = positions.top;
+                set(()=>to(positions.top.y))
+            }else{
+                // set docking position
+                dockedTo.current = positions.off;
+                // update flags
+                commentsActive.current = false;
+                set(()=>to(positions.off.y))
+            }
+        }else if(e.wheelDelta <0){
+            // set docking position
+            dockedTo.current = positions.bottom;
+
+            // update flags
+            shotDown.current = true;
+            commentsActive.current = true;
+            set(()=>to(positions.bottom.y))
+        }
+    }
+
     useEffect(()=>{
         set(()=>to())
 
@@ -227,28 +273,33 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
 
     
     function detectOutSideClick(e){
-        const containerBounds = previewPostRef.current.getBoundingClientRect();
-        const inContainer = e.pageX > containerBounds.left && e.pageX < containerBounds.right &&
-        e.pageY > containerBounds.bottom && e.pageX < containerBounds.bottom
-        if(!document.getElementById('leaf-preview-root').contains(e.target) && !inContainer &&
-        e.target != document.getElementById('body')){
+        let previewPostContainer = document.getElementById('preview-post-container');
+        if(e.target == previewPostContainer){
             set(()=>off())
         }
     }
 
     useEffect(()=>{
         if(postShown){
-            document.getElementById('page').addEventListener('click',detectOutSideClick);
+            document.getElementById('preview-post-container').addEventListener('click',detectOutSideClick);
+            document.getElementById('preview-post-container').addEventListener('wheel',wheelEvent);
+            previewPostRef.current.addEventListener('wheel',wheelEvent);
         }
         
         return ()=>{
-            document.getElementById('page').removeEventListener('click',detectOutSideClick);
+            try{
+                document.getElementById('preview-post-container').removeEventListener('click',detectOutSideClick);
+                document.getElementById('preview-post-container').removeEventListener('wheel',wheelEvent);
+                previewPostRef.current.removeEventListener('wheel',wheelEvent);
+            }catch(e){
+
+            }
         }
     },[postShown])
 
     const initTo = to().y
     // 1. Define the gesture
-    const bind = useDrag(({ down,initial, movement: [mx,my], direction: [xDir,yDir], velocity}) => {
+    const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity}) => {
         const trigger = velocity > 0.2 && (Math.abs(my) > 60 || Math.abs(xDir) < 0.5) // If you flick hard enough it should trigger the card to fly out
         const dir = yDir < 0 ? -1 : 1 // Direction should either point left or right
         try{
@@ -293,14 +344,17 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
             if(dir==-1){
                 if(commentsActive.current && trigger){
                     // reset post to original position
+                    dockedTo.current = positions.top;
                     y = 20;
                 }else{
                     // shoot post to top outside of screen
+                    dockedTo.current = positions.off;
                     y = (250 + window.innerHeight) * dir
                 }
                 commentsActive.current = false;
             }else{
                 // shoot to bottom so the comments are shown
+                dockedTo.current = positions.bottom;
                 y = (window.innerHeight - 200) * dir
             }
 
@@ -308,6 +362,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
           }
 
           if(shotDown.current){
+            dockedTo.current = positions.bottom;
             y = (window.innerHeight - 200) * dir;
             lastDockedPosition.current = y;
           }
@@ -337,18 +392,24 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         </div>
 
         {createPortal(
-                postShown?<div>
-                    {commentsShown?
-                    <AnimatedCommentBox post={post} offset={200}/>:null}
-                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
-                        id="preview-post"
-                        {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
-                            <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
-                                <Post post={post} postsContext={postsContext} down={initTo}
-                                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
-                            </div>
-                        </animated.div>
-                    </div>:null
+                postShown?
+                <>
+                <div id="preview-post-container" css={{width:'100%',height:'100vh',position:'fixed',top:0,
+                zIndex:1000}}>
+                     
+                </div>
+                <div css={{zIndex:1001}}>
+                {commentsShown?<AnimatedCommentBox post={post} offset={200}/>:null}
+                <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
+                id="preview-post"
+                {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
+                    <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
+                        <Post post={post} postsContext={postsContext} down={initTo}
+                        activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
+                    </div>
+                </animated.div>
+            </div>
+            </>:null
             ,document.getElementById("leaf-preview-root"))
         }
         </>

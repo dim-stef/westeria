@@ -259,9 +259,12 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute path='/search' component={SearchPage} />
             <AnimatedRoute path='/about' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/create_conversation' 
+            render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' 
+            render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute path='/messages/:roomName?' 
+            render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
               
             <AnimatedRoute exact path='/:uri/leaves/:externalId' render={({match}) => 
             
