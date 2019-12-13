@@ -307,25 +307,25 @@ function SingularPostWrapper({externalPostId}){
         <>
             <Desktop>
                 <DesktopParentBranchWrapper branch={userContext.currentBranch}>
-                  <ul className="post-list" css={theme=>postWrapper(theme)}>
+                  <div className="post-list" css={theme=>postWrapper(theme)}>
                       <SingularPost postId={externalPostId} postsContext={singularPostContext}
                       activeBranch={userContext.currentBranch}
-                  /></ul>
+                  /></div>
                 </DesktopParentBranchWrapper>
             </Desktop>
 
             <Tablet>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
+                <div className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
-                /></ul>
+                /></div>
             </Tablet>
 
             <Mobile>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
+                <div className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
-                /></ul>
+                /></div>
             </Mobile>
             
         </>

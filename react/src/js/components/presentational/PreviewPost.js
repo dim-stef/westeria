@@ -463,9 +463,23 @@ function useReplies(post){
 function CommentBox({post,postsContext,activeBranch,parentRef}){
     const [hasMore,replyTrees,fetchData] = useReplies(post);
 
+    useEffect(()=>{
+        try{
+            let scrollableTarget = document.getElementById('comment-scroller');
+
+            // in order for infinite scrolling to occur there has to be scrolling
+            // if initial data are not enough to trigger overflow-y get more data
+            if(replyTrees.length > 0 && scrollableTarget.scrollHeight == scrollableTarget.clientHeight && hasMore){
+                fetchData();
+            }
+        }catch(e){
+
+        }
+    },[hasMore,replyTrees])
+
     return(
         <InfiniteScroll
-        scrollableTarget='comment-box'
+        scrollableTarget='comment-scroller'
         dataLength={replyTrees.length}
         next={()=>fetchData(post)}
         hasMore={hasMore}
@@ -512,34 +526,18 @@ function AnimatedCommentBox({post,offset}){
         }
     }))
 
-    const bindComments = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity }) => {
-        if(down){
-            hasPressed.current = true; // capture first pressed motion, this prevents glitchy behavior on mount
-        }
-        
-        const trigger = velocity > 0.2 && Math.abs(xDir) < 0.5
-        const dir = yDir < 0 ? -1 : 1
-        if (!down && trigger && dir==-1) shotUp.current = true
-
-        set(() => {
-          const isGone = shotUp.current;
-          const y = isGone ? (commentRef.current.getBoundingClientRect().height) * dir : 20
-          const rot = mx / 100 + (dir * 10 * velocity)
-          const scale = down ? 1 : 1
-          return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : 1 ? 200 : 500 } }
-        })
-    })
-
     return(
         <div
         ref={commentRef}
         id="comment-box"
         css={theme=>bubbleBox(theme,height)}
         style={{transform: interpolate([commentProps.rot, commentProps.scale, commentProps.y], trans)}}>
-            <CommentBox post={post} postsContext={postsContext}
-            activeBranch={userContext?userContext.currentBranch:post.poster}
-            parentRef={commentRef}
-            />
+            <div id="comment-scroller" css={{height:height,overflow:'auto'}}>
+                <CommentBox post={post} postsContext={postsContext}
+                activeBranch={userContext?userContext.currentBranch:post.poster}
+                parentRef={commentRef}
+                />
+            </div>
         </div>
     )
 }
