@@ -197,39 +197,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
     )
 }
 
-/*function CustomEditor({onInput,placeholder,className,style}){
-    const ref = useRef(null);
-
-    function handleInput(e){
-
-        if (e.target.innerText) {
-			e.target.dataset.divPlaceholderContent = 'true';
-		}
-		else {
-			delete(e.target.dataset.divPlaceholderContent);
-		}
-        onInput(e);
-    }
-
-    return(
-        <div
-        contentEditable
-        className={className}
-        ref={ref}
-        onInput={handleInput}
-        data-placeholder={placeholder}
-        style={style}/>
-    )
-}*/
-
-function CodeNode(props) {
-    return (
-        <pre {...props.attributes}>
-            <code>{props.children}</code>
-        </pre>
-    )
-}
-
 
 function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,isFeed=false,replyTo=null,handleImageClick,
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch,redirect}){
@@ -375,6 +342,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         }
     },[inputRef])
 
+    const [tags,setTags] = useState([]);
     return(
         <ToggleContent 
             toggle={show=>(
@@ -383,7 +351,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
-                    <TagSelector/>
+                    <TagSelector tags={tags} setTags={setTags}/>
                 </div>
                 <button style={{marginRight:10}} className="editor-btn"
                 onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>

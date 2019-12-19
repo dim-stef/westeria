@@ -56,6 +56,7 @@ class BranchQuerySet(models.QuerySet):
             .distinct()
         return siblings
 
+
 class Branch(models.Model):
     class Meta:
         unique_together = ('owner', 'name')
@@ -72,9 +73,9 @@ class Branch(models.Model):
     HUB = 'HB'
 
     TYPE = (
-        (USER,'User'),
-        (COMMUNITY,'Community'),
-        (HUB,'Hub')
+        (USER, 'User'),
+        (COMMUNITY, 'Community'),
+        (HUB, 'Hub')
     )
 
     branch_image = models.ImageField(upload_to='images/group_images/profile',
@@ -96,11 +97,11 @@ class Branch(models.Model):
     accessibility = models.CharField(default=PUBLIC, choices=ACCESSIBILITY, max_length=2)
     description = models.TextField(blank=True, null=True, max_length=140)
     over_18 = models.BooleanField(default=False)
-    uri = models.CharField(blank=False, null=False, default=uuid.uuid4,unique=True, max_length=60)
+    uri = models.CharField(blank=False, null=False, default=uuid.uuid4, unique=True, max_length=60, db_index=True)
     default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    trending_score = models.DecimalField(max_digits=14,decimal_places=5,default=0.0)
-    tags = TaggableManager(through=GenericStringTaggedItem,blank=True)
+    trending_score = models.DecimalField(max_digits=14, decimal_places=5,default=0.0)
+    tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
     is_branchable = models.BooleanField(default=False)
 
     # Whether the branch can "host" tags
@@ -111,7 +112,6 @@ class Branch(models.Model):
     def __str__(self):
         return self.uri
 
-
     def clean(self, *args, **kwargs):
         self.uri = deEmojify(self.uri)
         owned_branches = self.owner.owned_groups.exclude(pk=self.pk)
@@ -119,7 +119,6 @@ class Branch(models.Model):
             for branch in owned_branches:
                 branch.default = False
                 branch.save()
-
 
     def encode_image(self,image):
         try:
@@ -138,7 +137,6 @@ class Branch(models.Model):
         except OSError as e:
             return None
 
-
     def save(self, *args, **kwargs):
         if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
             self.uri = generate_unique_uri(self.name)
@@ -149,16 +147,23 @@ class Branch(models.Model):
         if self.pk:
             self.full_clean()
 
-        self.tags.add(self.uri,self.name)
-        #self.branch_image = self.encode_image(self.branch_image)
-        print(self.branch_image.name)
         super().save(*args, **kwargs)
 
     objects = BranchQuerySet.as_manager()
 
+# Remove previous uri and name from tags in case they changes
+@receiver(pre_save, sender=Branch)
+def remove_old_tags(sender, instance, **kwargs):
+    instance.tags.remove(instance.uri)
+    instance.tags.remove(instance.name)
+
+# Add the new uri and name to tags in case they changes
+@receiver(post_save, sender=Branch)
+def add_new_tags(sender, instance, **kwargs):
+    instance.tags.add(instance.uri, instance.name)
+
 
 def validate_manytomany(self,instance,target):
-    #self.delete()
     if instance == target:
         raise ValidationError('Cannot branch to the same branch')
 
@@ -255,9 +260,6 @@ from asgiref.sync import async_to_sync
 from django.core import serializers
 
 # assuming obj is a model instance
-
-
-
 @receiver(post_save, sender=BranchRequest)
 def create_notification(sender, instance, created, **kwargs):
     if created and instance.request_from is not instance.request_to:

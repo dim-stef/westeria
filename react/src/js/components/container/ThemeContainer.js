@@ -21,7 +21,7 @@ const darkMode = {
     textLightColor:COLORS.lightGray,
     textHarshColor:COLORS.lightWhite,
     borderColor:COLORS.darkBlue,
-    hoverColor:'#202f3c',
+    hoverColor:'#090a10',
     embeddedHoverColor:'#121b23',
     notificationBranchColor:'#121b23',
     skeletonColor:'#151827',

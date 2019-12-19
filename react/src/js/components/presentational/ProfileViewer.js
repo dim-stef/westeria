@@ -77,11 +77,11 @@ export function DesktopProfile({branch}){
     return(
         userContext.isAuth?
         <div css={()=>desktopProfile(backgroundColor)}>
-            <Link rel="canonical" to={`/${userContext.currentBranch.uri}`}>
+            <Link rel="canonical" to={`/${viewedBranch.uri}`}>
                 <img src={viewedBranch.branch_image} css={profilePicture}/>
             </Link>
 
-            <Link to={`/${userContext.currentBranch.uri}`} style={{textDecoration:'none'}}>
+            <Link to={`/${viewedBranch.uri}`} style={{textDecoration:'none'}}>
                 <div css={nameDetails}>
                     <Name name={viewedBranch.name}/>
                     <Uri uri={viewedBranch.uri}/>

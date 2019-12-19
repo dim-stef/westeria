@@ -59,8 +59,8 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
 }
 
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-#DEFAULT_FILE_STORAGE = 'subranch.storage_backends.MediaStorage'
+#DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+DEFAULT_FILE_STORAGE = 'subranch.storage_backends.MediaStorage'
 GS_BUCKET_NAME = 'subranch_bucket_test'
 
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
@@ -135,6 +135,7 @@ INSTALLED_APPS = [
     'branchchat',
     'branchsettings',
     'branchposts',
+    'tags',
     'feedback',
     'settings',
     'notifications',
@@ -144,6 +145,8 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'rest_auth',
     'rest_auth.registration',
+    'taggit',
+    'taggit_serializer',
     'webpack_loader',
     'allauth',
     'accounts',
@@ -153,6 +156,7 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 2
+TAGGIT_CASE_INSENSITIVE = True
 
 MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
@@ -167,12 +171,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'subranch.urls'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+'''
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'mail.privateemail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'contact@subranch.com'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER'''
 
 
 TEMPLATES = [

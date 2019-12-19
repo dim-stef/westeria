@@ -266,7 +266,7 @@ export function ProfileBubble({branch}){
         <animated.div {...bind()} onClick={handleClick} style={{position:'fixed',zIndex:1002,
         scale:props.scale.interpolate(s=>s),transform : props.xy.interpolate((x,y)=>`translate(${x}px,${y}px)`)}}>
             <img src={branch.branch_image} className="round-picture" css={{objectFit:'cover',height:40,width:40,
-            border:'2px solid white',boxShadow:'1px 2px 3px 0px #000000b3'}} onClick={handleClick}/>
+            border:'2px solid white',boxShadow:'1px 2px 3px 0px #000000b3',willChange:'transform'}} onClick={handleClick}/>
         </animated.div>
         <ProfileDrawer branch={branch} shown={show} setShown={setShow}/>
         </>
@@ -296,7 +296,6 @@ function ProfileDrawer({shown,setShown,branch}){
         if(shown){
             set(()=>to(0))
         }else{
-
             set(()=>to(-window.innerWidth))
         }
     },[shown])
@@ -309,9 +308,10 @@ function ProfileDrawer({shown,setShown,branch}){
     return (
         <animated.div {...bind()}
             css={theme=>({zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundColor,
-            position:'fixed',width:'100vw'})} style={{transform:props.x.interpolate(x=>`translateX(${x>0?0:x}px)`)}} 
+            position:'fixed',width:'100vw',willChange:'transform'})} 
+            style={{transform:props.x.interpolate(x=>`translateX(${x>0?0:x}px)`)}} 
             onClick={e=>e.stopPropagation()}>
-                <animated.div  css={theme=>({height:'100%',width:'100%',position:'relative'})}>
+                <animated.div css={theme=>({height:'100%',width:'100%',position:'relative'})}>
                     <div css={{position:'absolute',top:20,left:20}} onClick={handleClick}>
                         <ArrowLeftSvg/>
                     </div>

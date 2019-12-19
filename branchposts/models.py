@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from push_notifications.models import APNSDevice, GCMDevice
 from taggit.managers import TaggableManager
 from accounts.models import User
-from tags.models import GenericStringTaggedItem
+from tags.models import GenericBigIntTaggedItem
 from notifications.models import Notification
 import uuid
 from datetime import datetime
@@ -21,15 +21,19 @@ import shutil
 
 epoch = datetime(1970, 1, 1)
 
+
 def sigmoid(x):
-  return 1 / (1 + exp(-log(max(x*0.1,1),20)))
+    return 1 / (1 + exp(-log(max(x*0.1,1),20)))
+
 
 def epoch_seconds(date):
     td = date - epoch
     return td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000)
 
+
 def score(ups, downs):
     return ups - downs
+
 
 def hot(ups, downs, spreads, date):
     s = score(ups, downs)
@@ -49,6 +53,7 @@ def calculate_score(votes,spreads, item_hour_age, gravity=1.8):
     vote_points = log(max(votes,1),10)
     weight = spread_points + vote_points
     return weight / pow((item_hour_age+2), gravity)
+
 
 def uuid_int():
     uid = uuid.uuid4()
@@ -90,7 +95,7 @@ class Post(models.Model):
     hot_score = models.DecimalField(max_digits=19,decimal_places=10,default=0.0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    tags = TaggableManager(through=GenericStringTaggedItem,blank=True)
+    tags = TaggableManager(through=GenericBigIntTaggedItem, blank=True)
 
     @property
     def description(self):

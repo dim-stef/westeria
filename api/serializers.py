@@ -111,7 +111,8 @@ class OwnedBranchesSerializer(serializers.ModelSerializer):
         fields = ['uri','id']
         read_only_fields = ['uri','id']
 
-class BranchSerializer(TaggitSerializer,serializers.ModelSerializer):
+
+class BranchSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Branch
@@ -205,10 +206,29 @@ class BranchSerializer(TaggitSerializer,serializers.ModelSerializer):
 from branches.utils import generate_unique_uri
 from rest_framework.exceptions import APIException
 
+
 class APIException400(APIException):
     status_code = 400
 
-class BranchUpdateSerializer(serializers.ModelSerializer):
+import six
+class NewTagListSerializerField(TagListSerializerField):
+    def to_internal_value(self, value):
+        if isinstance(value, six.string_types):
+            value = value.split(',')
+
+        if not isinstance(value, list):
+            self.fail('not_a_list', input_type=type(value).__name__)
+
+        for s in value:
+            if not isinstance(s, six.string_types):
+                self.fail('not_a_str')
+
+            self.child.run_validation(s)
+        return value
+
+
+class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
+    tags = NewTagListSerializerField()
 
     def update(self, instance, validated_data):
         try:
@@ -222,6 +242,12 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
         try:
             image = validated_data.pop('branch_image')
             instance.branch_image = encode_image(image)
+        except KeyError:
+            pass
+
+        try:
+            new_tags = validated_data.pop('tags')
+            instance.tags.add(*new_tags)
         except KeyError:
             pass
 
@@ -242,7 +268,8 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = ('branch_image', 'branch_banner', 'parents',
-                  'name', 'uri', 'accessibility', 'description', 'over_18','default')
+                  'name', 'uri', 'accessibility', 'description', 'over_18', 'default','tags')
+
 
 class CreateNewBranchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -250,6 +277,7 @@ class CreateNewBranchSerializer(serializers.ModelSerializer):
         fields = ('owner','branch_image', 'branch_banner',
                   'name', 'uri', 'accessibility', 'description', 'default')
         read_only_fields = ('owner','accessibility',)
+
 
 class BranchAddFollowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -262,6 +290,7 @@ class BranchAddFollowSerializer(serializers.ModelSerializer):
             instance.follows.add(*new_follow)
         return super().update(instance, validated_data)
 
+
 class BranchRemoveFollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -272,6 +301,7 @@ class BranchRemoveFollowSerializer(serializers.ModelSerializer):
             new_follow = validated_data.pop('follows',None)
             instance.follows.remove(*new_follow)
         return super().update(instance, validated_data)
+
 
 class AddReplySerializer(serializers.ModelSerializer):
     class Meta:
@@ -284,6 +314,7 @@ class AddReplySerializer(serializers.ModelSerializer):
             instance.replies.add(*new_reply)
         return super().update(instance, validated_data)
 
+
 class RemoveReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
@@ -294,6 +325,7 @@ class RemoveReplySerializer(serializers.ModelSerializer):
             new_reply = validated_data.pop('replies',None)
             instance.replies.remove(*new_reply)
         return super().update(instance, validated_data)
+
 
 class ChatImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -421,7 +453,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
 
     def get_author_url(self,message):
         return message.author.uri
-
 
     def create(self, validated_data):
         request = self.context['request']

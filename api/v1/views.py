@@ -9,6 +9,7 @@ from branches.models import Branch
 from branchchat.models import ChatRequest
 from feedback.models import Feedback
 
+
 class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
@@ -26,7 +27,8 @@ class FollowingBranchesViewSet(viewsets.GenericViewSet,
     serializer_class = serializers_v0.BranchSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+        branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                 self.kwargs['branch_uri']))
         return branch.follows.all()
 
 
@@ -36,7 +38,8 @@ class MutualFollowsViewSet(viewsets.GenericViewSet,
     serializer_class = serializers_v0.BranchSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri__iexact=self.kwargs['branch__uri'])
+        branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                 self.kwargs['branch_uri']))
         return branch.follows.filter(follows__in=branch.followed_by.all()).exclude(pk=branch.pk).distinct()
 
 
@@ -47,7 +50,8 @@ class CreateConversationViewSet(viewsets.GenericViewSet,
     parser_classes = (MultiPartParser, JSONParser, FileUploadParser,)
 
     def create(self, request, *args, **kwargs):
-        owner = Branch.objects.get(uri=self.kwargs['branch__uri'])
+        owner = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                self.kwargs['branch_uri']))
         serializer = self.serializer_class(data=request.data,
                                            context={'owner': owner})
         if serializer.is_valid():
@@ -65,7 +69,8 @@ class ConversationInvitationsViewSet(viewsets.GenericViewSet,
     serializer_class = serializers_v0.ChatRequestWithRoomSerializer
 
     def get_queryset(self):
-        branch = Branch.objects.get(uri=self.kwargs['branch__uri'])
+        branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                 self.kwargs['branch_uri']))
         return ChatRequest.objects.filter(request_to=branch)
 
     def partial_update(self, request, *args, **kwargs):
@@ -79,6 +84,7 @@ class ConversationInvitationsViewSet(viewsets.GenericViewSet,
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
 
 class FeedbackViewSet(viewsets.GenericViewSet,
                       mixins.CreateModelMixin):
@@ -108,7 +114,29 @@ class FeedbackViewSet(viewsets.GenericViewSet,
 class GetPathsViewSet(viewsets.GenericViewSet,
                       mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    serializer_class = serializers.BranchSerializer
+    serializer_class = serializers.BranchPathSerializer
 
     def get_queryset(self):
         return Branch.objects.filter(uri__iexact=self.request.GET['to'])
+
+
+class GetNodesBeneathViewSet(viewsets.GenericViewSet,
+                             mixins.ListModelMixin):
+    lookup_field = 'branch'
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchNodesBeneathSerializer
+
+    def get_queryset(self):
+        return Branch.objects.filter(uri__iexact=self.kwargs['branch'])
+
+
+class TopLevelBranchesViewSet(viewsets.GenericViewSet,
+                              mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers_v0.BranchSerializer
+
+    def get_queryset(self):
+        try:
+            return Branch.objects.filter(uri__iexact='root').first().children.all()
+        except Exception:
+            return Branch.objects.none()

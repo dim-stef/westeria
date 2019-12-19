@@ -4,6 +4,7 @@ import {Link} from "react-router-dom";
 import {useGetAllPaths} from "../container/PathContainer";
 import {HoverableTooltip} from "./Tooltip"
 import {SmallCard} from "./Card"
+import LazyLoad from 'react-lazy-load';
 import axios from 'axios';
 
 
@@ -49,13 +50,14 @@ export function Path({from,to,id,postsContext}){
         e.stopPropagation();
         e.preventDefault();
     }
+    console.log(paths)
 
     return (
         <div css={imgWrapper}>
             <HoverableTooltip position={{left:0,top:70}} text={compassText}>
                 <CompassSvg/>
             </HoverableTooltip>
-            {paths?
+            {paths && paths.length > 0?
                 paths[0].map((b,i)=>{
                 let className;
                 if(b.uri==from || b.uri==to){

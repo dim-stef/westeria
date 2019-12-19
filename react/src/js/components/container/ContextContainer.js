@@ -59,7 +59,8 @@ export const CachedBranchesContext = React.createContext({
     mutualFollows:[],
     owned:[],
     trending:[],
-    foreign:[]
+    foreign:[],
+    topLevel:[]
 });
 export const SingularPostContext = React.createContext(
     {
@@ -124,3 +125,5 @@ export const RouteTransitionContext = React.createContext({
 })
 
 export const PathContext = React.createContext([])
+
+export const SwipeablePostGridContext = React.createContext({})

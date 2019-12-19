@@ -193,7 +193,7 @@ function BranchRow({type,branch,endpoint}){
     }
 
     return(
-        branches?branches.length>0?<><div>
+        branches?branches.length>0 || type!='siblings'?<><div>
             <div>
                 <h1 css={theme=>header(theme)}>{infoText}</h1>
                     

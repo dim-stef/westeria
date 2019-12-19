@@ -5,7 +5,7 @@ import history from "../../history"
 import { useSpring, useTransition, animated, interpolate } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
-import {css} from "@emotion/core";
+import {css,keyframes } from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import {useTheme} from "../container/ThemeContainer"
 import {Images, PreviewPostMedia} from './PostImageGallery'
@@ -33,13 +33,16 @@ const postCss = (theme,backgroundColor) =>css({
     backgroundColor:backgroundColor
 })
 
-const text = (theme,textPosition,size) =>css({
+const text = (theme,textPosition,size,hasMedia) =>css({
     position:'absolute',
     top:textPosition,
     fontSize:size=='xsmall' || size=='small' ? '1.1rem' : '2rem',
     margin:5,
-    color:theme.textColor,
-    wordBreak:'break-word'
+    padding:hasMedia?5:0,
+    color:'white',
+    backgroundColor:hasMedia?'#00000075':null,
+    wordBreak:'break-word',
+    display:'inline'
 })
 
 const postedToImage = (size) =>css({
@@ -71,6 +74,8 @@ const openPreviewPost = theme =>css({
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
     width:'90%',
+    willChange:'transform',
+    animation: `${scaleUp} 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
     '@media (min-width: 1224px)': {
         width:'40%',
         marginLeft:'37%',
@@ -80,7 +85,7 @@ const openPreviewPost = theme =>css({
 const bubbleBox = (theme,height=100) =>css({
     zIndex:23122,
     position:'fixed',
-    top:20,
+    top:0,
     left:0,
     right:0,
     marginLeft:'auto',
@@ -97,8 +102,22 @@ const bubbleBox = (theme,height=100) =>css({
     }
 })
 
+const scaleUp = keyframes`
+  0%{
+    transform: scale(0) translate(0px, 20px)
+  }
+
+  80%{
+    transform: scale(1.01) translate(0px, 20px)
+  }
+
+  100%{
+    transform: scale(1) translate(0px, 20px)
+  }
+`
+
 const to = (y) => ({ opacity:1, x: 0, y: y||20, scale: 1 })
-const from = () => ({ opacity:0, x: 0, rot: 0, scale: 1, y: -(window.innerHeight) })
+const from = () => ({ opacity:0, x: 0, rot: 0, scale: 0, y: -(window.innerHeight) })
 const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1})
 const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
@@ -389,6 +408,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         })
     })
     
+    let hasMedia = post.videos.length>0 || post.images.length > 0
     return (
         <>
         <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
@@ -403,7 +423,18 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
                 {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
                 videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
                 
-                {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
+                {post.text?
+                <>
+                {size=='xsmall' || size=='small'?
+                <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
+                    <div css={{display:'inline-block',width:30,height:23}}></div>
+                    {post.text}
+                </div>:
+                <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
+                    {post.text}
+                </div>}
+                
+                </>:null}
             </div>
         </div>
 

@@ -13,6 +13,7 @@ import {ArrowSvg} from "./Svgs"
 import axios from 'axios'
 import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
+import {CreateableTagSelector} from "./TagSelector";
 import "react-toggle/style.css"
 
 axiosRetry(axios, 
@@ -32,6 +33,14 @@ const settingLabel = theme =>css({
     fontSize:'1.5em',
     padding:'20px 0 5px',
     color:theme.textLightColor
+})
+
+const info = theme =>css({
+    fontSize:'1.3rem',
+    color:theme.textLightColor,
+    marginBottom:10,
+    display:'block',
+    maxWidth:'80%'
 })
 
 const settingInput = theme =>css({
@@ -239,12 +248,14 @@ function Setting({children}){
 export function UpdateBranch({branch,postRegister=false,children}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
-
+    const [tags,setTags] = useState(branch.tags.map(tag=>{return {label:tag,value:tag}}));
+    
     let initialValues={
         name:branch.name,
         uri:branch.uri,
         description:branch.description,
-        default:branch.default
+        default:branch.default,
+        tags:tags
     }
 
     function updateContext(contextBranches,data){
@@ -306,7 +317,7 @@ export function UpdateBranch({branch,postRegister=false,children}){
         postRegister?<PostRegisterForm onSubmit={onSubmit} initialValues={initialValues}
         branch={branch}></PostRegisterForm>:
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
-            branch={branch}
+            branch={branch} tags={tags} setTags={setTags}
         />
     )
 }
@@ -314,12 +325,14 @@ export function UpdateBranch({branch,postRegister=false,children}){
 function CreateNewBranch(){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
+    const [tags,setTags] = useState(null);
 
     let initialValues={
         name:'',
         uri:'',
         description:'',
-        default:false
+        default:false,
+        tags:[]
     }
 
     async function onSubmit(values){
@@ -358,7 +371,7 @@ function CreateNewBranch(){
 
     return(
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
-            createNew
+            createNew tags={tags} setTags={setTags}
         />
     )
 }
@@ -403,7 +416,7 @@ export function PostRegisterForm({onSubmit,initialValues,branch}){
     )
 }
 
-function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
+function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null}){
     const theme = useTheme();
     const profileRef = useRef(null);
     const bannerRef = useRef(null);
@@ -414,12 +427,24 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
         isDefaultSwitchDisabled = true;
     }
 
+    function handleChange(values){
+        setTags(values);
+    }
+
     return(
         <Form onSubmit={onSubmit}
             initialValues={initialValues}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
                     <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
+                        <div style={{margin:'5px 0'}}>
+                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
+                            <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
+                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+                            </div>
+                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
+                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
+                        </div>
                         <div>
                             <label css={theme=>settingLabel(theme)}>Name</label>
                             <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
@@ -432,26 +457,27 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
                         <div style={{margin:'5px 0'}}>
                             <DescriptionField initialValues={initialValues}/>  
                         </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image And Banner</label>
-                            <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
-                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
-                                <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
-                            </div>
-                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
-                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
-                        </div>
+                        
                         <div style={{margin:'5px 0'}}>
                             <Field name="default" type="checkbox">
                                 {({ input, meta }) => (
                                     <div>
                                         <label css={theme=>settingLabel(theme)}>Default</label>
+                                        <span css={info}>Enable this if you want to log in as this branch 
+                                        each time you load westeria</span>
                                         <Toggle checked={input.value} {...input} disabled={isDefaultSwitchDisabled} 
                                         icons={false} className="toggle-switch"/>
                                     </div>
                                 )}
                             </Field>
+                        </div>
+                        <div style={{margin:'5px 0'}}>
+                            <div>
+                                <label css={theme=>settingLabel(theme)}>Tags</label>
+                                <span css={info}>Tags are used to identify your community.
+                                Your community members will be able to create content with these selected tags</span>
+                                <CreateableTagSelector tags={tags} setTags={setTags} onChange={handleChange}/>
+                            </div>
                         </div>
                         {submitSucceeded?<p className="form-succeed-message">{createNew?
                         'Successfully created branch':'Successfully saved changes'}</p>:null}

@@ -15,7 +15,8 @@ import {
     RefreshContext,
     TreePostsContext,
     UserContext,
-    RouteTransitionContext
+    RouteTransitionContext,
+    SwipeablePostGridContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
 import {Tooltip, TooltipChain} from "./Tooltip";
@@ -28,7 +29,7 @@ import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
 import {SwipeablePostGrid} from "./SwipeablePostGrid";
-import {SuperBar} from "./SuperBar"
+import {SuperBar, SwipeableBar} from "./SuperBar"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
 
@@ -81,7 +82,7 @@ function DisplayPosts({isFeed,posts,setPosts,
     const [width,setWidth] = useState(0);
     const isSwiping = useRef(false);
 
-    useLayoutEffect(()=>{
+    function handleWidth(){
         if(ref.current){
             let mobileNavBar = null;
             try{
@@ -97,23 +98,32 @@ function DisplayPosts({isFeed,posts,setPosts,
             setHeight(isMobile?window.innerHeight - 50 -
                 (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
         }
+    }
+
+    useLayoutEffect(()=>{
+        handleWidth();
     },[ref])
+
+    useEffect(()=>{
+        window.addEventListener('resize',handleWidth);
+
+        return ()=>{
+            window.removeEventListener('resize',handleWidth);
+        }
+    },[])
 
     return(
         <>
 
-        <SuperBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
-            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed}
+        <SwipeableBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
+            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed} width={width}
         />
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
-        {posts.length && width && height>0?
+        {width && height>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
             width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
         />
-        :
-            hasMore?<ResponsiveSkeleton height={height}/>:<p style={{textAlign:'center'}}>
-                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-            </p>}
+        :null}
         </div>
     </>
     )
@@ -154,6 +164,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+    const swipeablePostGridContext = useContext(SwipeablePostGridContext)
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
@@ -219,45 +230,31 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
 
     useEffect(()=>{
         if(postsContext.loadedPosts.length==0 || postsContext.branchUri != branch){
+            source.cancel('Operation canceled by the user.');
+            CancelToken = axios.CancelToken;
+            source = CancelToken.source();
             resetPostsContext();
             setPosts([])
             fetchData();
         }
-
-        if(isFeed){
-            refreshContext.feedRefresh = () =>{
-                source.cancel('Operation canceled by the user.');
-                CancelToken = axios.CancelToken;
-                source = CancelToken.source();
-                resetPostsContext(branch);
-                fetchData();
-                setPosts([]);
-            };
-        }else{
-            refreshContext.branchPostsRefresh = function(){
-                source.cancel('Operation canceled by the user.');
-                CancelToken = axios.CancelToken;
-                source = CancelToken.source();
-                resetPostsContext(branch);
-                fetchData();
-                setPosts([]);
-                //branchPostsCache.clearAll()
-            };
-        }
-    },[branch,keyword])
+    },[postsContext,branch,keyword])
 
     useEffect(()=>{
         refreshContext.page = isFeed?'feed':'branch';
     },[])
 
     const refresh = useCallback(()=>{
+        if(swipeablePostGridContext.setIndex){
+            swipeablePostGridContext.setIndex(0);
+        }
+
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
         source = CancelToken.source();
         resetPostsContext(branch);
         setPosts([]);
         fetchData();
-    },[postsContext]);
+    },[postsContext,branch,keyword]);
 
     const updateFeed = useCallback(
         (newPost) => {
@@ -266,11 +263,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
         },
         [posts],
     );
-    // 
-
-    useEffect(()=>{
-        // 
-    },[scrollableTarget])
 
     refreshContext.refresh = refresh;
 

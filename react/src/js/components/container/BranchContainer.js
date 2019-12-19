@@ -163,3 +163,45 @@ export function useMyBranches(){
 
     return branches
 }
+
+export function useFollowingBranches(){
+    const cachedBranches = useContext(CachedBranchesContext);
+    const context = useContext(UserContext);
+    const branches = useGenericBranchRequest(cachedBranches.following,
+        `/api/v1/branches/${context.currentBranch.uri}/follows/`)
+
+    return branches
+}
+
+export function useTopLevelBranches(){
+    const cachedBranches = useContext(CachedBranchesContext);
+    const branches = useGenericBranchRequest(cachedBranches.topLevel,
+        `/api/v1/top_level_branches/`)
+    return branches
+}
+
+function useGenericBranchRequest(cache,uri){
+    const [gotData,setGotData] = useState(false);
+    const [branches,setBranches] = useState(cache)
+
+    async function getBranches(){
+        let response = await axios.get(uri);
+        let data = await response.data;
+        cache = data;
+        setGotData(true);
+        return data
+    }
+
+    async function populateBranches(){
+        let branches = await getBranches();
+        setBranches(branches);
+    }
+
+    useEffect(()=>{
+        if(branches.length == 0 && !gotData){
+            populateBranches();
+        }
+    },[])
+
+    return branches
+}
