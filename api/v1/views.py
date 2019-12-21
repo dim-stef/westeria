@@ -9,7 +9,7 @@ from api import permissions as api_permissions
 from . import serializers
 from branches.models import Branch
 from branchchat.models import ChatRequest
-from branches.utils import get_tags_above
+from branches.utils import get_tags_above,get_tags_beneath
 
 
 class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
@@ -153,6 +153,17 @@ class TagsAboveViewSet(viewsets.GenericViewSet,
         branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
                                                  self.kwargs['branch_uri']))
         return get_tags_above(branch)
+
+
+class TagsBeneathViewSet(viewsets.GenericViewSet,
+                         mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers_v0.GenericStringTaggedItemSerializer
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                 self.kwargs['branch_uri']))
+        return get_tags_beneath(branch)
 
 
 class BranchesByTags(generics.ListAPIView):

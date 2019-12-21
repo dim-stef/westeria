@@ -109,15 +109,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
         setFiles([]);
     }
     
-    const onBlur = (event, editor, next) => {
-        next();
-        setTimeout(() => setMinimized(true), 0);
-    };
-
-    const onFocus = (event, editor, next) => {
-        next();
-        setTimeout(() => setMinimized(false), 0);
-    };
 
     function handleClickOutside(event) {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)
@@ -350,7 +341,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
-                    <TagSelector tags={tags} setTags={setTags}/>
+                    <TagSelector tags={tags} setTags={setTags} branch={branch}/>
                 </div>
                 <button style={{marginRight:10}} className="editor-btn"
                 onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>

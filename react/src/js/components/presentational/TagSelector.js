@@ -1,7 +1,10 @@
 import React, {useState,useEffect} from "react"
 import Select from 'react-select';
+import Async from "react-select/async";
 import CreatableSelect from 'react-select/creatable';
+import AsyncCreatableSelect from 'react-select/async-creatable';
 import {useTheme} from "emotion-theming";
+import axios from "axios";
 
 const options = [
     {value:'tag1',label:'Tag1',icon:'cccc'},
@@ -70,18 +73,28 @@ function transformTags(tags){
     return tagsWithAttrs;
 }
 
-export function TagSelector({tags,setTags}){
+export function TagSelector(props){
 
+    const [options,setOptions] = useState([]);
+
+    console.log(props)
     const theme = useTheme();
 
     function handleChange(values){
         props.setTags(values);
     }
 
+    async function loadOptions(str,input){
+        console.log(str,input)
+        let response = await axios.get(`/api/v1/branches/${props.branch.uri}/tags_above/`);
+        console.log(response);
+    }
+
     return (
-        <Select
+        <Async
             styles={customStyles(theme)}
-            options={options}
+            loadOptions={loadOptions}
+            defaultOptions
             closeMenuOnSelect={false}
             isMulti
             onChange={handleChange}
@@ -97,9 +110,14 @@ export function CreateableTagSelector(props){
         props.setTags(values);
     }
 
+    async function loadOptions(){
+
+    }
+
     return (
-        <CreatableSelect
+        <AsyncCreatableSelect
             {...props}
+            loadOptions={loadOptions}
             value={props.tags}
             styles={customStyles(theme)}
             options={options}

@@ -9,6 +9,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import APIException
 from rest_framework import viewsets, views, mixins,generics,filters,permissions,status
 from rest_framework.response import Response
+from django_filters.rest_framework import FilterSet, filters
 from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
@@ -797,9 +798,19 @@ class UpdateSpreadSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','branch','post','created','updated')
 
 
+class TagsFilterSet(FilterSet):
+    tags = filters.CharFilter(distinct=True, method='filter_tags')
+
+    class Meta:
+        model = Branch
+        fields = ['tags']
+
+    def filter_tags(self, queryset, name, value):
+        return queryset.filter(tags__name=name)
+
+
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
-        print(value)
         if isinstance(value, Branch):
             serializer = BranchSerializer(value)
         elif isinstance(value, BranchRequest):

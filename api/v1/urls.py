@@ -22,6 +22,7 @@ branch_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
 branch_router.register(r'follows', views.FollowingBranchesViewSet,base_name='following_branches')
 branch_router.register(r'mutual_follows', views.MutualFollowsViewSet,base_name='mutual_follows')
 branch_router.register(r'tags_above', views.TagsAboveViewSet,base_name='tags_above')
+branch_router.register(r'tags_beneath', views.TagsBeneathViewSet,base_name='tags_beneath')
 
 
 branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
