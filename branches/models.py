@@ -49,7 +49,7 @@ def deEmojify(inputString):
 
 
 class BranchQuerySet(models.QuerySet):
-    def siblings(self,uri):
+    def siblings(self, uri):
         parents = Branch.objects.get(uri__iexact=uri).parents.all()
         siblings = Branch.objects.filter(parents__in=parents) \
             .exclude(uri__iexact=uri) \

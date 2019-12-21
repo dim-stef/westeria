@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.db import models
 from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters.rest_framework import FilterSet, filters
+from django_filters.widgets import CSVWidget
+import ast
 from branchchat.models import ChatRequest,BranchChat
 from branches.models import Branch
 from feedback.models import Feedback
@@ -38,10 +41,12 @@ class NewChatRoomSerializer(serializers.ModelSerializer):
                                                request_to=member)
         return new_room
 
+
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ['subject','details','email']
+
 
 class FeedbackWithUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,7 +57,6 @@ class FeedbackWithUserSerializer(serializers.ModelSerializer):
 
 class PathSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        print(data)
         iterable = data.all() if isinstance(data, models.Manager) else data
 
         return {
@@ -61,7 +65,6 @@ class PathSerializer(serializers.ListSerializer):
         }
 
 import itertools,random
-from collections import OrderedDict
 
 
 class BranchPathSerializer(serializers.ModelSerializer):
@@ -217,3 +220,25 @@ class BranchNodesBeneathSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = ('uri', 'name', 'nodes',)
+
+
+class BranchesByTagsSerializer(serializers.Serializer):
+    tags = serializers.ListField(child=serializers.CharField())
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+
+class BranchByTagsFilterSet(FilterSet):
+    tags = filters.CharFilter(distinct=True, widget=CSVWidget, method='filter_tags')
+
+    class Meta:
+        model = Branch
+        fields = ['tags']
+
+    def filter_tags(self, queryset, name, value):
+        data = ast.literal_eval(value)
+        return queryset.filter(tags__name__in=data)

@@ -507,7 +507,7 @@ function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext,cont
         from: { opacity: 0 },
         enter: { opacity: 1},
         leave: { opacity: 0},
-        config:{duration:300}
+        config:{duration:200}
     })
     
     function handleClick(){
@@ -522,16 +522,16 @@ function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext,cont
         backgroundColor:getTheme.dark?'#090a10':'#efefef',zIndex:3})}>
             <PlusSvg/>
         </div>
-        {transitions.map(({ item, props, key }) => {
+        {ReactDOM.createPortal(transitions.map(({ item, props, key }) => {
             return (
-                item && ReactDOM.createPortal(
+                item && 
                 <animated.div key={key} css={{width:width,position:'fixed',zIndex:0,left:rect.left,top:rect.y + 50}}
                     style={props}>
                         <StatusUpdate activeBranch={branch} postsContext={postsContext} updateFeed={updateFeed} 
                         postedId={postedId} isFeed={isFeed} redirect/>
                 </animated.div>
-                ,document.getElementById('hoverable-element-root'))
-        )})}
+                
+        )}),document.getElementById('hoverable-element-root'))}
         </>
     )
 }

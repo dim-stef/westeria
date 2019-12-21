@@ -6,15 +6,18 @@ from django.core import serializers as ser
 import channels.layers
 from asgiref.sync import async_to_sync
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 from rest_framework import viewsets, views, mixins,generics,filters,permissions,status
 from rest_framework.response import Response
 from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
-from tags.models import GenericStringTaggedItem
+from tags.models import GenericStringTaggedItem, GenericBigIntTaggedItem
+
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
+from branches.utils import generate_unique_uri
 from io import BytesIO
 from PIL import Image
 from moviepy.editor import VideoFileClip
@@ -24,6 +27,7 @@ from uuid import uuid4
 import json
 from datetime import datetime, timedelta
 import math
+import six
 
 
 temp_path = os.path.join(os.path.expanduser('~'), 'temp_thumbnails')
@@ -61,10 +65,25 @@ def encode_image(image):
 
 
 class GenericStringTaggedItemSerializer(serializers.ModelSerializer):
+    tag = serializers.SerializerMethodField()
+
+    def get_tag(self, generic_tag):
+        return {
+            'name':generic_tag.tag.name,
+            'slug':generic_tag.tag.slug
+        }
 
     class Meta:
         model = GenericStringTaggedItem
-        fields="__all__"
+        fields = ['dummy', 'tag']
+
+
+class GenericBigIntTaggedItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GenericBigIntTaggedItem
+        fields = "__all__"
+
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -93,10 +112,12 @@ class UserAdminSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = '__all__'
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = '__all__'
+
 
 class BranchPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -203,14 +224,11 @@ class BranchSerializer(TaggitSerializer, serializers.ModelSerializer):
             parents.append(parent.uri)
         return parents
 
-from branches.utils import generate_unique_uri
-from rest_framework.exceptions import APIException
-
 
 class APIException400(APIException):
     status_code = 400
 
-import six
+
 class NewTagListSerializerField(TagListSerializerField):
     def to_internal_value(self, value):
         if isinstance(value, six.string_types):

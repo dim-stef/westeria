@@ -2,12 +2,14 @@ from rest_framework import viewsets, views, mixins,generics,filters,permissions
 from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser
+from rest_framework import status
+from django_filters.rest_framework import DjangoFilterBackend
 from api import serializers as serializers_v0
 from api import permissions as api_permissions
 from . import serializers
 from branches.models import Branch
 from branchchat.models import ChatRequest
-from feedback.models import Feedback
+from branches.utils import get_tags_above
 
 
 class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
@@ -140,3 +142,24 @@ class TopLevelBranchesViewSet(viewsets.GenericViewSet,
             return Branch.objects.filter(uri__iexact='root').first().children.all()
         except Exception:
             return Branch.objects.none()
+
+
+class TagsAboveViewSet(viewsets.GenericViewSet,
+                       mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers_v0.GenericStringTaggedItemSerializer
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                 self.kwargs['branch_uri']))
+        return get_tags_above(branch)
+
+
+class BranchesByTags(generics.ListAPIView):
+    queryset = Branch.objects.all()
+    serializer_class = serializers_v0.BranchSerializer
+
+    permission_classes = [permissions.AllowAny, ]
+
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = serializers.BranchByTagsFilterSet

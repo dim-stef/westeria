@@ -321,7 +321,6 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         renderChildren = <SkeletonBranchList/>
     }
 
-
     function handleOpenModal(e,show){
         e.stopPropagation();
         show();

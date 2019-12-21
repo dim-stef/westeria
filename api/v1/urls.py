@@ -16,10 +16,13 @@ router.register(r'get_paths', views.GetPathsViewSet, base_name="get_paths")
 router.register(r'get_nodes_beneath/(?P<branch>.+)', views.GetNodesBeneathViewSet, base_name="get_nodes_beneath")
 router.register(r'owned_branches', views.OwnedBranchesViewSet, base_name="owned_branches")
 router.register(r'branches', views_v0.BranchViewSet, base_name='branch')
+#router.register(r'branches_by_tag', views.BranchesByTagViewSet.as_view(), base_name="branches_by_tag")
 
 branch_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
 branch_router.register(r'follows', views.FollowingBranchesViewSet,base_name='following_branches')
 branch_router.register(r'mutual_follows', views.MutualFollowsViewSet,base_name='mutual_follows')
+branch_router.register(r'tags_above', views.TagsAboveViewSet,base_name='tags_above')
+
 
 branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
 branchchat_router.register(r'create_conversation', views.CreateConversationViewSet,base_name='create_conversation')
@@ -30,5 +33,6 @@ urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^', include(branch_router.urls)),
     url(r'^', include(branchchat_router.urls)),
-    path('', include('api.urls'))
+    path('', include('api.urls')),
+    path('branches_by_tags/', views.BranchesByTags.as_view())
 ]
