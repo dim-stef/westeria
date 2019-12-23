@@ -1,15 +1,53 @@
-from rest_framework import viewsets, views, mixins,generics,filters,permissions
+from rest_framework import viewsets, views, mixins,generics,permissions
 from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser
 from rest_framework import status
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import FilterSet, filters, DjangoFilterBackend
+from taggit.models import Tag
 from api import serializers as serializers_v0
 from api import permissions as api_permissions
 from . import serializers
 from branches.models import Branch
 from branchchat.models import ChatRequest
-from branches.utils import get_tags_above,get_tags_beneath
+from branches.utils import get_tags_above, get_tags_beneath, get_all_related_tags
+from django_filters.widgets import CSVWidget
+from tags.models import GenericStringTaggedItem
+import ast
+
+
+class AllTagsFilterSet(FilterSet):
+    name = filters.CharFilter(distinct=True, method='filter_tags')
+
+    class Meta:
+        model = Tag
+        fields = ['name']
+
+    def filter_tags(self, queryset, name, value):
+        return queryset.filter(name__contains=value).distinct()
+
+
+class BranchByTagsFilterSet(FilterSet):
+    tags = filters.CharFilter(distinct=True, widget=CSVWidget, method='filter_tags')
+
+    class Meta:
+        model = Branch
+        fields = ['tags']
+
+    def filter_tags(self, queryset, name, value):
+        data = ast.literal_eval(value)
+        return queryset.filter(tags__name__in=data).distinct()
+
+
+class TagsFilterSet(FilterSet):
+    tag = filters.CharFilter(distinct=True, method='filter_tags')
+
+    class Meta:
+        model = GenericStringTaggedItem
+        fields = ['tag']
+
+    def filter_tags(self, queryset, name, value):
+        return queryset.filter(tag__name__contains=value).distinct()
 
 
 class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
@@ -144,6 +182,14 @@ class TopLevelBranchesViewSet(viewsets.GenericViewSet,
             return Branch.objects.none()
 
 
+class TagViewSet(viewsets.GenericViewSet,mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.TagSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = AllTagsFilterSet
+    queryset = Tag.objects.all()
+
+
 class TagsAboveViewSet(viewsets.GenericViewSet,
                        mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -166,6 +212,20 @@ class TagsBeneathViewSet(viewsets.GenericViewSet,
         return get_tags_beneath(branch)
 
 
+class RelatedTagsViewSet(viewsets.GenericViewSet,
+                         mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers_v0.GenericStringTaggedItemSerializer
+
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = TagsFilterSet
+
+    def get_queryset(self):
+        branch = Branch.objects.get(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                                 self.kwargs['branch_uri']))
+        return get_all_related_tags(branch)
+
+
 class BranchesByTags(generics.ListAPIView):
     queryset = Branch.objects.all()
     serializer_class = serializers_v0.BranchSerializer
@@ -173,4 +233,6 @@ class BranchesByTags(generics.ListAPIView):
     permission_classes = [permissions.AllowAny, ]
 
     filter_backends = (DjangoFilterBackend,)
-    filter_class = serializers.BranchByTagsFilterSet
+    filter_class = BranchByTagsFilterSet
+
+

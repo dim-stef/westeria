@@ -146,7 +146,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const sentToRight = useRef(false);
     const shouldCaptureWheel = useRef(true);
     const container = useRef(null);
-    let offsetLeft = 10;
+    let offsetLeft = 15;
 
     const isDown = useRef(false);
     const [index,setIndex] = useState(postsContext.lastPage);

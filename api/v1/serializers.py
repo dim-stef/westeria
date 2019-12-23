@@ -4,12 +4,14 @@ from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
 from django_filters.rest_framework import FilterSet, filters
 from django_filters.widgets import CSVWidget
-import ast
+from taggit.models import Tag
 from branchchat.models import ChatRequest,BranchChat
 from branches.models import Branch
 from feedback.models import Feedback
+from tags.models import GenericStringTaggedItem
 from api import serializers as serializers_v0
 from notifications.models import Notification
+import ast
 
 
 class ChatRequestSerializer(serializers.ModelSerializer):
@@ -232,13 +234,7 @@ class BranchesByTagsSerializer(serializers.Serializer):
         pass
 
 
-class BranchByTagsFilterSet(FilterSet):
-    tags = filters.CharFilter(distinct=True, widget=CSVWidget, method='filter_tags')
-
+class TagSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Branch
-        fields = ['tags']
-
-    def filter_tags(self, queryset, name, value):
-        data = ast.literal_eval(value)
-        return queryset.filter(tags__name__in=data)
+        model = Tag
+        fields = ['name','slug']

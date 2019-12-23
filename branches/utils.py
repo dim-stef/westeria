@@ -53,7 +53,7 @@ def get_tags_beneath(branch):
     tags = GenericStringTaggedItem.objects.none()
     for node in beneath_branches:
         tags |= GenericStringTaggedItem.objects.filter(tag__in=node.tags.all())
-    return tags.distinct()
+    return tags
 
 
 def get_tags_above(branch):
@@ -62,9 +62,9 @@ def get_tags_above(branch):
     tags = GenericStringTaggedItem.objects.none()
     for node in above_branches:
         tags |= GenericStringTaggedItem.objects.filter(tag__in=node.tags.all())
-    return tags.distinct()
+    return tags
 
 
 def get_all_related_tags(branch):
-    tags = get_tags_above(branch).union()
+    tags = get_tags_above(branch) | get_tags_beneath(branch)
     return tags

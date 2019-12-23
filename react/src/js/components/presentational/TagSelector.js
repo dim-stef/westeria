@@ -77,17 +77,30 @@ export function TagSelector(props){
 
     const [options,setOptions] = useState([]);
 
-    console.log(props)
     const theme = useTheme();
 
     function handleChange(values){
         props.setTags(values);
     }
 
-    async function loadOptions(str,input){
-        console.log(str,input)
-        let response = await axios.get(`/api/v1/branches/${props.branch.uri}/tags_above/`);
-        console.log(response);
+    async function loadOptions(str){
+        let response;
+        if(str==''){
+            response = await axios.get(`/api/v1/branches/${props.branch.uri}/tags_above/`);
+
+        }else{
+            str = str.replace(/\s\s+/g, '%20');
+            response = await axios.get(`/api/v1/branches/${props.branch.uri}/related_tags/?tag=${str}`);
+        }
+        
+        let data = response.data.map(tag=>{
+            return {
+                label:tag.tag.name,
+                value:tag.tag.name
+            }
+        })
+
+        return data;
     }
 
     return (
@@ -110,8 +123,18 @@ export function CreateableTagSelector(props){
         props.setTags(values);
     }
 
-    async function loadOptions(){
+    async function loadOptions(str){
+        str = str.replace(/\s\s+/g, '%20');
+        let response = await axios.get(`/api/v1/tags/?name=${str}`);
+        
+        let data = response.data.map(tag=>{
+            return {
+                label:tag.name,
+                value:tag.name
+            }
+        })
 
+        return data;
     }
 
     return (
@@ -120,7 +143,6 @@ export function CreateableTagSelector(props){
             loadOptions={loadOptions}
             value={props.tags}
             styles={customStyles(theme)}
-            options={options}
             closeMenuOnSelect={false}
             isMulti
             onChange={handleChange}

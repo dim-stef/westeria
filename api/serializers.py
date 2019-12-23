@@ -798,17 +798,6 @@ class UpdateSpreadSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','branch','post','created','updated')
 
 
-class TagsFilterSet(FilterSet):
-    tags = filters.CharFilter(distinct=True, method='filter_tags')
-
-    class Meta:
-        model = Branch
-        fields = ['tags']
-
-    def filter_tags(self, queryset, name, value):
-        return queryset.filter(tags__name=name)
-
-
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
         if isinstance(value, Branch):

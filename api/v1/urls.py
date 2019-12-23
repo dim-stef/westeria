@@ -10,6 +10,7 @@ from . import views
 router = routers.DefaultRouter()
 router.register(r'device/apns', APNSDeviceAuthorizedViewSet)
 router.register(r'device/gcm', GCMDeviceAuthorizedViewSet)
+router.register(r'tags', views.TagViewSet, base_name='tag')
 router.register(r'feedback/new', views.FeedbackViewSet, base_name="new_feedback")
 router.register(r'top_level_branches', views.TopLevelBranchesViewSet, base_name="top_level_branches")
 router.register(r'get_paths', views.GetPathsViewSet, base_name="get_paths")
@@ -23,6 +24,7 @@ branch_router.register(r'follows', views.FollowingBranchesViewSet,base_name='fol
 branch_router.register(r'mutual_follows', views.MutualFollowsViewSet,base_name='mutual_follows')
 branch_router.register(r'tags_above', views.TagsAboveViewSet,base_name='tags_above')
 branch_router.register(r'tags_beneath', views.TagsBeneathViewSet,base_name='tags_beneath')
+branch_router.register(r'related_tags', views.RelatedTagsViewSet,base_name='related_tags')
 
 
 branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')
