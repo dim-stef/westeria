@@ -245,15 +245,11 @@ function Setting({children}){
 }
 
 
-export function UpdateBranch({branch,postRegister=false,children}){
+export function UpdateBranch({branch,postRegister=false,children,postSubmitAction=()=>{}}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
     const [tags,setTags] = useState(branch.tags.map(tag=>{return {label:tag,value:tag}}));
     const initTags = useRef(tags);
-
-    useEffect(()=>{
-        console.log(tags)
-    },[tags])
 
     let initialValues={
         name:branch.name,
@@ -314,6 +310,7 @@ export function UpdateBranch({branch,postRegister=false,children}){
 
             // update cached branches
             updateContext(cachedBranches.owned,updatedBranchResponse.data);
+            postSubmitAction();
         }catch(e){
 
         }

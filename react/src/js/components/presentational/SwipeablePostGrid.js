@@ -81,6 +81,16 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let rowCount = Math.round(4 * containerHeight / width);
     let itemCount = 8;
     let pageType;
+    if(width/height < 0.6){
+        pageType={
+            type:'mobile',
+            size:8,
+            bigItemCount:1,
+            mediumItemCount:2,
+            responsiveItemCount:2,
+            smallItemCount:3
+        }
+    }
     if(height<=640){
         pageType={
             type:'mobile',
@@ -94,9 +104,9 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         pageType={
             type:'largeMobile',
             size:8,
-            bigItemCount:0,
-            mediumItemCount:1,
-            responsiveItemCount:3,
+            bigItemCount:1,
+            mediumItemCount:2,
+            responsiveItemCount:1,
             smallItemCount:4
         }
     }else{
