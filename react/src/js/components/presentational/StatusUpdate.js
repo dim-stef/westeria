@@ -193,6 +193,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch,redirect}){
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
+    const [tags,setTags] = useState([]);
 
     const inputRef = useRef(null)
     const handleClick = (e)=>{
@@ -224,10 +225,6 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         for(var id of postedTo){
             formData.append('posted_to',id);
         }
-
-        //if(postedTo.length>0){
-        //    formData.append('posted_to',postedTo);
-        //}
         
         formData.append('type',type);
         formData.append('text',post);
@@ -239,6 +236,9 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
 
         formData.append('posted_to',branch.id); // add self
         formData.append('posted',branch.id);  // add self
+
+        let newTags = tags.join(", ");
+        formData.append('tags',newTags)
 
         let uri = `/api/branches/${branch.uri}/posts/new/`
         setLoading(true);
@@ -332,7 +332,6 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         }
     },[inputRef])
 
-    const [tags,setTags] = useState([]);
     return(
         <ToggleContent 
             toggle={show=>(

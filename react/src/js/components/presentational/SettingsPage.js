@@ -249,13 +249,18 @@ export function UpdateBranch({branch,postRegister=false,children}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
     const [tags,setTags] = useState(branch.tags.map(tag=>{return {label:tag,value:tag}}));
-    
+    const initTags = useRef(tags);
+
+    useEffect(()=>{
+        console.log(tags)
+    },[tags])
+
     let initialValues={
         name:branch.name,
         uri:branch.uri,
         description:branch.description,
         default:branch.default,
-        tags:tags
+        tags:initTags.current
     }
 
     function updateContext(contextBranches,data){
@@ -284,6 +289,8 @@ export function UpdateBranch({branch,postRegister=false,children}){
         let description = document.getElementById('description');
         description.value = description.value.replace(/(\r\n|\n|\r)/gm, "")
         var formData = new FormData(form)
+        let newTags = tags.map(t=>t.label).join(", ");
+        formData.append('tags',newTags)
         let url = `/api/branches/update/${branch.uri}/`;
          
         try{
@@ -341,6 +348,8 @@ function CreateNewBranch(){
         let description = document.getElementById('description');
         description.value = description.value.replace(/(\r\n|\n|\r)/gm, "")
         var formData = new FormData(form);
+        let newTags = tags.map(t=>t.label).join(", ");
+        formData.append('tags',newTags)
         let errors = {};
         let url = `/api/branches/new/`;
 
@@ -472,12 +481,18 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                             </Field>
                         </div>
                         <div style={{margin:'5px 0'}}>
-                            <div>
-                                <label css={theme=>settingLabel(theme)}>Tags</label>
-                                <span css={info}>Tags are used to identify your community.
-                                Your community members will be able to create content with these selected tags</span>
-                                <CreateableTagSelector tags={tags} setTags={setTags} onChange={handleChange}/>
-                            </div>
+                            <Field
+                            name="tags">
+                            {({ input, ...rest  }) => {
+                                return <div>
+                                    <label css={theme=>settingLabel(theme)}>Tags</label>
+                                    <span css={info}>Tags are used to identify your community.
+                                    Your community members will be able to create content with these selected tags</span>
+                                    <CreateableTagSelector tags={tags} setTags={setTags} onChange={handleChange} 
+                                    {...input} {...rest}/>
+                                </div>
+                            }}
+                            </Field>
                         </div>
                         {submitSucceeded?<p className="form-succeed-message">{createNew?
                         'Successfully created branch':'Successfully saved changes'}</p>:null}
@@ -669,7 +684,7 @@ function Password({name,placeholder,label}){
 
 function Save({submitting,pristine,invalid,submitSucceeded}){
     return(
-        <button className="form-save-button" type="submit" disabled={submitting || pristine || invalid}>
+        <button className="form-save-button" type="submit" disabled={submitting || invalid}>
             Save
         </button>
     )

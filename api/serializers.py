@@ -7,9 +7,6 @@ import channels.layers
 from asgiref.sync import async_to_sync
 from rest_framework import serializers
 from rest_framework.exceptions import APIException
-from rest_framework import viewsets, views, mixins,generics,filters,permissions,status
-from rest_framework.response import Response
-from django_filters.rest_framework import FilterSet, filters
 from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
@@ -18,6 +15,7 @@ from tags.models import GenericStringTaggedItem, GenericBigIntTaggedItem
 
 from taggit_serializer.serializers import (TagListSerializerField,
                                            TaggitSerializer)
+from taggit.models import Tag
 from branches.utils import generate_unique_uri
 from io import BytesIO
 from PIL import Image
@@ -247,7 +245,7 @@ class NewTagListSerializerField(TagListSerializerField):
 
 
 class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
-    tags = NewTagListSerializerField()
+    tags = NewTagListSerializerField(required=False)
 
     def update(self, instance, validated_data):
         try:
@@ -266,7 +264,7 @@ class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
 
         try:
             new_tags = validated_data.pop('tags')
-            instance.tags.add(*new_tags)
+            instance.tags.set(*new_tags)
         except KeyError:
             pass
 
@@ -413,15 +411,15 @@ class BranchMessageSerializer(serializers.ModelSerializer):
 
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model=PostImage
-        fields='__all__'
+        model = PostImage
+        fields = '__all__'
         read_only_fields = ['post']
 
 
 class PostVideoSerializer(serializers.ModelSerializer):
     class Meta:
-        model=PostVideo
-        fields='__all__'
+        model = PostVideo
+        fields ='__all__'
         read_only_fields = ['post']
 
 
@@ -480,8 +478,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Not member of chat')
 
         # files are not accessible in validated data, use request.FILES instead
-        '''validated_data.pop('images')
-        validated_data.pop('videos')'''
 
         if not validated_data['message'] and not request.FILES:
             raise serializers.ValidationError('message and media are None')
@@ -489,12 +485,10 @@ class NewMessageSerializer(serializers.ModelSerializer):
 
         if 'images' in request.FILES:
             for image_data in request.FILES.getlist('images'):
-                print(image_data)
                 ChatImage.objects.create(branch_message=message,image=image_data)
 
         if 'videos' in request.FILES:
             for video_data in request.FILES.getlist('videos'):
-                print(video_data)
                 thumbnail = generate_thumbnail(video_data)
                 ChatVideo.objects.create(branch_message=message, video=video_data, thumbnail=thumbnail)
 
@@ -508,26 +502,31 @@ class NewMessageSerializer(serializers.ModelSerializer):
         read_only_fields = ('id','author_name','author_url')
 
 
-class NewPostSerializer(serializers.ModelSerializer):
-    replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
-    images = PostImageSerializer(many=True,required=False)
-    videos = PostVideoSerializer(many=True,required=False)
+class NewPostSerializer(TaggitSerializer,serializers.ModelSerializer):
+    tags = NewTagListSerializerField(required=False)
+    replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), required=False)
+    images = PostImageSerializer(many=True, required=False)
+    videos = PostVideoSerializer(many=True, required=False)
 
     def create(self, validated_data):
-        print("got this fat")
         request = self.context['request']
         branch_uri = self.context['branch_uri']
         required_posted_to = request.user.owned_groups.get(uri=branch_uri)
         posted_to = validated_data.pop('posted_to')
+        new_tags = Tag.objects.none()
+
+        try:
+            new_tags = validated_data.pop('tags')
+        except KeyError:
+            pass
 
         # files are not accessible in validated data, use request.FILES instead
-        '''validated_data.pop('images')
-        validated_data.pop('videos')'''
 
         if not validated_data['text'] and not validated_data['text'].isspace() and not request.FILES:
             raise serializers.ValidationError('text and media are None')
 
         post = Post.objects.create(**validated_data)
+        post.tags.set(*new_tags)
 
         if post.replied_to:
             level = post.replied_to.level + 1
@@ -539,15 +538,12 @@ class NewPostSerializer(serializers.ModelSerializer):
 
         post.posted_to.add(required_posted_to)
 
-        print("files",type(request.FILES))
         if 'images' in request.FILES:
             for image_data in request.FILES.getlist('images'):
-                print(image_data)
                 PostImage.objects.create(post=post, image=image_data)
 
         if 'videos' in request.FILES:
             for video_data in request.FILES.getlist('videos'):
-                print(video_data)
                 thumbnail = generate_thumbnail(video_data)
                 PostVideo.objects.create(post=post, video=video_data, thumbnail=thumbnail)
 
@@ -555,7 +551,7 @@ class NewPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id','type','poster','posted','posted_to','replied_to','text','level','images','videos')
+        fields = ('id','type','poster','posted','posted_to','replied_to','text','level','images','videos','tags')
         read_only_fields = ('id','poster','level')
 
 
