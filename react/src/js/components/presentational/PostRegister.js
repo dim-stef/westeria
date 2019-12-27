@@ -1,6 +1,6 @@
 import React, {useContext,useRef,useEffect,useState,useLayoutEffect} from "react";
 import {css} from "@emotion/core";
-import {useSprings,animated} from "react-spring/web.cjs";
+import {useSprings,useChain,animated} from "react-spring/web.cjs";
 import {useDrag} from "react-use-gesture";
 import {MoonLoader} from 'react-spinners';
 import {UserContext} from "../container/ContextContainer";
@@ -76,7 +76,7 @@ export default function PostRegister(){
     return(
         userContext.isAuth?
         <div css={container} ref={containerRef}>
-            <div css={simpleForm} ref={boxRef} style={{height:formHeight}}>
+            <div css={simpleForm} ref={boxRef} style={{height:'80vh'}}>
                 {width!=0?<PageSlider width={width} formHeight={formHeight} setFormHeight={setFormHeight}/>:null}
             </div>
         </div>:null
@@ -85,22 +85,19 @@ export default function PostRegister(){
 
 function PageSlider({width,formHeight,setFormHeight}){
     const index = useRef(0);
+    const [indexState,setIndex] = useState(0);
+    const submittionFunc = useRef(()=>{});
     const userContext = useContext(UserContext);
     const editorPageRef = useRef(null);
 
     const [props,set] = useSprings(2, i=>({
-        from:{x:i*width}
+        from:{x:i*width},
     }))
 
     function postRegisterAction(){
-        console.log("in")
         index.current = 1;
         set((i)=>to((i - index.current) * width))
     }
-
-    useEffect(()=>{
-        console.log("innnn")
-    },[])
 
     const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir],delta:[xDelta],cancel }) => {
         if(Math.abs(yDir) > 0.7){
@@ -130,12 +127,12 @@ function PageSlider({width,formHeight,setFormHeight}){
             // we need to grab the first "pages" height in order to adjust parent accordingly
             return (
                 <animated.div ref={i==0?editorPageRef:null} key={i} {...bind()} 
-                style={{width:'100%',height:formHeight==0?'auto':formHeight
+                style={{width:'100%',height:'80vh'
                 ,position:'absolute',padding:'inherit',boxSizing:'border-box',left:0,top:0,overflow:'auto',
                 transform:x.interpolate(x=>`translateX(${x}px)`)}}>
                     {i==0?<UpdateBranch branch={userContext.currentBranch} postRegister
-                        postRegisterAction={postRegisterAction}
-                    />:<InitialRecommendations/>}
+                        postRegisterAction={postRegisterAction} submittionFunc={submittionFunc}
+                    />:<InitialRecommendations submittionFunc={submittionFunc}/>}
                 </animated.div>
             )
         })
@@ -143,7 +140,7 @@ function PageSlider({width,formHeight,setFormHeight}){
     )
 }
 
-function InitialRecommendations(){
+function InitialRecommendations({submittionFunc}){
     const [topLevelBranches,setTopLevelBranches] = useState([]);
     const [followingBranches,setFollowing] = useState([]);
     const [loading,setLoading] = useState(false);
@@ -165,6 +162,8 @@ function InitialRecommendations(){
 
         setLoading(true);
 
+        submittionFunc.current();
+        
         let url = `/api/branches/add_follow/${userContext.currentBranch.uri}/`;
 
         let ids = followingBranches.map(b=>b.id)
@@ -193,14 +192,18 @@ function InitialRecommendations(){
             <h1>Follow some topics before you proceed</h1>
             {topLevelBranches.map(branch=>{
                 return (
-                    <div key={branch.uri} css={{display:'flex',flexFlow:'column'}}>
+                    <div key={branch.uri} css={{display:'flex',flexFlow:'column',margin:'20px 0'}}>
                         <TopLevelBranch branch={branch} followingBranches={followingBranches}
                             setFollowing={setFollowing}
                         />
                     </div>
                 )
             })}
-            <div css={{alignSelf:'center',marginTop:10}}>
+            <div css={{alignSelf:'center',marginTop:10,width:'100%',display:'flex'}}>
+                <div css={{display:'flex',flex:1}}>
+                    <ArrowSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
+                    fill:'white',}}/>
+                </div>
                 {loading?
                 <MoonLoader
                 sizeUnit={"px"}
@@ -216,33 +219,41 @@ function InitialRecommendations(){
 
 function TopLevelBranch({branch,followingBranches,setFollowing}){
     const [nodes,setNodes] = useState([]);
+    const [clicked,setClicked] = useSuggestionClicked(branch,followingBranches,setFollowing);
 
     async function getNodesBeneath(){
         let response = await axios.get(`/api/v1/branches/${branch.uri}/nodes_beneath/`);
         setNodes(response.data[0].nodes);
     }
 
+    function handleClick(){
+        setClicked(!clicked);
+    }
+    
     useEffect(()=>{
         getNodesBeneath();
     },[])
 
     return(
         <div style={{width:'100%'}}>
-            <div css={{width:'100%',height:200,position:'relative'}}>
-                <img src={branch.branch_image} css={{width:'100%',height:'100%',objectFit:'cover'}}/>
+            <div css={{width:'100%',height:200,position:'relative',borderRadius:clicked?20:10,transition:'0.2s ease',
+            overflow:'hidden'}} onClick={handleClick}>
+                <img src={branch.branch_image} css={{width:'100%',height:'100%',objectFit:'cover'
+                ,transform:clicked?'scale(1.3)':'scale(1)',transition:'0.2s ease'}}/>
                 <div css={imageOverlay}>
                     <span css={{fontSize:'3rem',fontWeight:'bold',color:'white'
                     ,wordBreak:'break-word',textAlign:'center'}}>{branch.name}</span>
                 </div>
+                {clicked?<CheckBoxSvg/>:null}
             </div>
             <div css={{display:'flex',justifyContent:'center',flexFlow:'row wrap'}}>
-                {nodes.map(node=>{
+                {clicked?nodes.map(node=>{
                     return (
                         <React.Fragment key={node.uri}><SuggestedBranch branch={node}
                             followingBranches={followingBranches} setFollowing={setFollowing}
                         /></React.Fragment>
                     )
-                })}
+                }):null}
             </div>
         </div>
     )

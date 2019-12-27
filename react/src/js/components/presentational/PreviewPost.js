@@ -104,7 +104,7 @@ const bubbleBox = (theme,height=100) =>css({
 
 const scaleUp = keyframes`
   0%{
-    transform: scale(0.4) translate(0px, 20px);
+    transform: scale(0.7) translate(0px, 20px);
     opacity:0;
   }
 

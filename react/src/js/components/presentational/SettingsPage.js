@@ -245,7 +245,7 @@ function Setting({children}){
 }
 
 
-export function UpdateBranch({branch,postRegister=false,children,postRegisterAction=()=>{}}){
+export function UpdateBranch({branch,postRegister=false,children,postRegisterAction=()=>{},submittionFunc}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
     const [tags,setTags] = useState(branch.tags.map(tag=>{return {label:tag,value:tag}}));
@@ -280,7 +280,6 @@ export function UpdateBranch({branch,postRegister=false,children,postRegisterAct
     }
 
     async function onSubmit(values){
-        postRegisterAction();
 
         let errors = {};
         let form = document.getElementById("branchForm");
@@ -320,7 +319,7 @@ export function UpdateBranch({branch,postRegister=false,children,postRegisterAct
 
     return(
         postRegister?<PostRegisterForm onSubmit={onSubmit} initialValues={initialValues}
-        branch={branch}></PostRegisterForm>:
+        branch={branch} submittionFunc={submittionFunc} postRegisterAction={postRegisterAction}></PostRegisterForm>:
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
             branch={branch} tags={tags} setTags={setTags}
         />
@@ -383,12 +382,15 @@ function CreateNewBranch(){
     )
 }
 
-export function PostRegisterForm({onSubmit,initialValues,branch}){
+export function PostRegisterForm({onSubmit,initialValues,branch,submittionFunc,postRegisterAction}){
     const theme = useTheme();
 
     return(
         <Form onSubmit={onSubmit} initialValues={initialValues}
             render={({handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors })=>{
+
+                submittionFunc.current = handleSubmit;
+
                 return(
                     <form id="branchForm" style={{width:'100%'}} onSubmit={handleSubmit}>
                         <h1 style={{margin:'20px 0'}}>Customize your profile before you go in</h1>
@@ -410,7 +412,7 @@ export function PostRegisterForm({onSubmit,initialValues,branch}){
                             margin:'0 10px',fontSize:'1.3rem'})}>
                                 Not now
                             </Link>
-                            <div role="button" onClick={handleSubmit}>                   
+                            <div role="button" onClick={postRegisterAction}>                   
                                 <ArrowSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
                                 fill:'white',transform:'rotate(180deg)'}}/>
                             </div>
