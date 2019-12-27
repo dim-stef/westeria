@@ -160,14 +160,14 @@ class GetPathsViewSet(viewsets.GenericViewSet,
         return Branch.objects.filter(uri__iexact=self.request.GET['to'])
 
 
-class GetNodesBeneathViewSet(viewsets.GenericViewSet,
-                             mixins.ListModelMixin):
-    lookup_field = 'branch'
+class NodesBeneathViewSet(viewsets.GenericViewSet,
+                          mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     serializer_class = serializers.BranchNodesBeneathSerializer
 
     def get_queryset(self):
-        return Branch.objects.filter(uri__iexact=self.kwargs['branch'])
+        return Branch.objects.filter(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                     self.kwargs['branch_uri']))
 
 
 class TopLevelBranchesViewSet(viewsets.GenericViewSet,

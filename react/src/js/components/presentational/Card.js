@@ -220,8 +220,6 @@ const cardNumber = theme => css({
 })
 
 
-
-
 export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
@@ -300,8 +298,6 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
                 </div>
             </div>
         </div>,document.getElementById('hoverable-element-root')):null}
-        
-        
         
         </>
     )

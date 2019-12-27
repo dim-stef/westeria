@@ -27,6 +27,7 @@ body {
 }
 
 .main-column{
+    height: auto;
     flex-basis: 56%;
     -webkit-flex-basis: 56%;
     margin: 0 10px;
@@ -36,6 +37,7 @@ body {
 }
 
 .big-main-column{
+    height: auto;
     flex: 1 1 auto;
     -webkit-flex: 1 1 auto;
     -ms-flex: 1 1 auto;
@@ -779,7 +781,7 @@ button[disabled=disabled], button:disabled {
 .branch-profile-setting{
     height:100%;
     object-fit: cover;
-    border: 1px solid transparent;
+    border: 1px solid transparent !important;
 }
 
 .branch-banner-setting{

@@ -72,8 +72,8 @@ function DisplayPosts({isFeed,posts,setPosts,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh,target,keyword}){
     
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
+    const isMobileOrTablet = useMediaQuery({
+        query: '(max-device-width: 1223px)'
     })
 
     const ref = useRef(null);
@@ -95,7 +95,7 @@ function DisplayPosts({isFeed,posts,setPosts,
             let refRect = ref.current.getBoundingClientRect();
             
             // 50 for top bar height
-            setHeight(isMobile?window.innerHeight - 50 -
+            setHeight(isMobileOrTablet?window.innerHeight - 50 -
                 (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
         }
     }

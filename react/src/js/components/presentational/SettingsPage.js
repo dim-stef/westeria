@@ -245,7 +245,7 @@ function Setting({children}){
 }
 
 
-export function UpdateBranch({branch,postRegister=false,children,postSubmitAction=()=>{}}){
+export function UpdateBranch({branch,postRegister=false,children,postRegisterAction=()=>{}}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
     const [tags,setTags] = useState(branch.tags.map(tag=>{return {label:tag,value:tag}}));
@@ -280,6 +280,8 @@ export function UpdateBranch({branch,postRegister=false,children,postSubmitActio
     }
 
     async function onSubmit(values){
+        postRegisterAction();
+
         let errors = {};
         let form = document.getElementById("branchForm");
         let description = document.getElementById('description');
@@ -310,7 +312,6 @@ export function UpdateBranch({branch,postRegister=false,children,postSubmitActio
 
             // update cached branches
             updateContext(cachedBranches.owned,updatedBranchResponse.data);
-            postSubmitAction();
         }catch(e){
 
         }
@@ -329,7 +330,7 @@ export function UpdateBranch({branch,postRegister=false,children,postSubmitActio
 function CreateNewBranch(){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
-    const [tags,setTags] = useState(null);
+    const [tags,setTags] = useState([]);
 
     let initialValues={
         name:'',
@@ -414,7 +415,6 @@ export function PostRegisterForm({onSubmit,initialValues,branch}){
                                 fill:'white',transform:'rotate(180deg)'}}/>
                             </div>
                         </div>
-
                     </form>
                 )
             }}
@@ -738,7 +738,8 @@ export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_i
             <div>
                 <label style={{height:'100%',padding:0}} css={theme=>settingLabel(theme)} htmlFor="branch-image">
                     <ImageInput key="profile" src={src?src:null} wrapperRef={wrapperRef} nodeRef={profileRef} 
-                    getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"
+                    getWidth={width=>width} className="round-picture" 
+                    css={theme=>({height:'100%',objectFit:'cover',border:`1px solid ${theme.borderColor}`})} alt="Profile"
                     extraStyle={{border:`1px solid ${theme.borderColor}`}}
                     />
                 </label>

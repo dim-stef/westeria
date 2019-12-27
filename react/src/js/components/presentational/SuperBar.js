@@ -46,8 +46,6 @@ const optionCss = (theme,isMobile) =>css({
 })
 
 const superBar = () =>css({
-    height:50,
-    marginBottom:5,
     boxSizing:'border-box',
     overflow:'hidden',
     '@media (max-device-width: 767px)':{

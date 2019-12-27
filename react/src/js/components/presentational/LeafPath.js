@@ -50,7 +50,6 @@ export function Path({from,to,id,postsContext}){
         e.stopPropagation();
         e.preventDefault();
     }
-    console.log(paths)
 
     return (
         <div css={imgWrapper}>

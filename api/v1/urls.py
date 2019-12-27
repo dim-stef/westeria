@@ -14,7 +14,6 @@ router.register(r'tags', views.TagViewSet, base_name='tag')
 router.register(r'feedback/new', views.FeedbackViewSet, base_name="new_feedback")
 router.register(r'top_level_branches', views.TopLevelBranchesViewSet, base_name="top_level_branches")
 router.register(r'get_paths', views.GetPathsViewSet, base_name="get_paths")
-router.register(r'get_nodes_beneath/(?P<branch>.+)', views.GetNodesBeneathViewSet, base_name="get_nodes_beneath")
 router.register(r'owned_branches', views.OwnedBranchesViewSet, base_name="owned_branches")
 router.register(r'branches', views_v0.BranchViewSet, base_name='branch')
 #router.register(r'branches_by_tag', views.BranchesByTagViewSet.as_view(), base_name="branches_by_tag")
@@ -25,6 +24,7 @@ branch_router.register(r'mutual_follows', views.MutualFollowsViewSet,base_name='
 branch_router.register(r'tags_above', views.TagsAboveViewSet,base_name='tags_above')
 branch_router.register(r'tags_beneath', views.TagsBeneathViewSet,base_name='tags_beneath')
 branch_router.register(r'related_tags', views.RelatedTagsViewSet,base_name='related_tags')
+branch_router.register(r'nodes_beneath', views.NodesBeneathViewSet, base_name="nodes_beneath")
 
 
 branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')

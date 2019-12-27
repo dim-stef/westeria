@@ -214,7 +214,7 @@ class BranchNodesBeneathSerializer(serializers.ModelSerializer):
                     find_nodes_beneath(node, searched_nodes)
             return searched_nodes
 
-        nodes = find_nodes_beneath(branch)
+        nodes = find_nodes_beneath(branch)[0:30]
         nodes = sorted(nodes, key=lambda node: node.followed_by.count(), reverse=True)
         data = serializers_v0.BranchSerializer(nodes, many=True).data
         return data

@@ -22,7 +22,6 @@ axiosRetry(axios,
 
     
 const container = (theme) =>css({
-    height:'100%',
     display:'flex',
     flexFlow:'column',
     border:`1px solid ${theme.borderColor}`

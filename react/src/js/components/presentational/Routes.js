@@ -95,7 +95,7 @@ const Routes = () =>{
           <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
           <Route exact path='/login' component={(props) => <Login {...props} />} />
           <Route exact path='/register' component={(props) => <Register {...props} />} />
-          <Route exact path='/register/edit' component={(props) => <PostRegister {...props} />} />
+          <Route exact path='/register/edit' render={(props) => <PostRegister {...props} />} />
           <Route exact path='/password/reset' component={PasswordReset} />
           <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
           <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
@@ -135,8 +135,8 @@ const RoutesWrapper = (props) =>{
 
 
 const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeout, children }){
-  const isMobile = useMediaQuery({
-    query: '(max-device-width: 767px)'
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
   })
 
   const location = useLocation();
@@ -173,7 +173,7 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   }, [location]);
 
   return(
-    isMobile?<TransitionGroup component={null}>
+    isMobileOrTablet?<TransitionGroup component={null}>
       <CSSTransition
         key={key}
         timeout={animationTimeout}
@@ -197,11 +197,11 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
 });
 
 const AnimatedRoute = (props) => {
-  const isMobile = useMediaQuery({
-    query: '(max-device-width: 767px)'
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
   })
 
-  let mobileCss = isMobile?{
+  let mobileCss = isMobileOrTablet?{
       position:'absolute',
       top:0,
       bottom:0,
@@ -209,14 +209,15 @@ const AnimatedRoute = (props) => {
       right:0,
   }:{}
   return (
-  <div id="transition-container" className={isMobile?"mobile-transition-container":''} css={{
+  <div id="transition-container" className={isMobileOrTablet?"mobile-transition-container":''} css={{
       ...mobileCss,
-      display:isMobile?'block':'flex',
+      display:isMobileOrTablet?'block':'flex',
       width:'100%',
     }}>
       <Route {...props} />
     </div>
 )};
+
 export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
