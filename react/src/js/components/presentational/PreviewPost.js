@@ -39,7 +39,7 @@ const text = (theme,textPosition,size,hasMedia) =>css({
     fontSize:size=='xsmall' || size=='small' ? '1.1rem' : '2rem',
     margin:5,
     padding:hasMedia?5:0,
-    color:'white',
+    color:hasMedia?'white':theme.textColor,
     backgroundColor:hasMedia?'#00000075':null,
     wordBreak:'break-word',
     display:'inline'
