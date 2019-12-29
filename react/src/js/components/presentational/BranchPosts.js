@@ -65,6 +65,7 @@ function resetPostListContext(postsContext,props){
     postsContext.uniqueCached.length = 0;
     postsContext.branchUri = props.branch;
     postsContext.paths.length = 0;
+    postsContext.lastPage = 0
 }
 
 function DisplayPosts({isFeed,posts,setPosts,

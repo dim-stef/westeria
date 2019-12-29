@@ -73,8 +73,8 @@ const openPreviewPost = theme =>css({
     borderRadius:30,
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
-    width:'90%',
-    willChange:'transform',
+    width:'95%',
+    willChange:'transform opacity',
     animation: `${scaleUp} 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
     '@media (min-width: 1224px)': {
         width:'40%',
@@ -83,6 +83,7 @@ const openPreviewPost = theme =>css({
 })
 
 const bubbleBox = (theme,height=100) =>css({
+    marginTop:10,
     zIndex:23122,
     position:'fixed',
     top:0,
@@ -94,7 +95,7 @@ const bubbleBox = (theme,height=100) =>css({
     borderRadius:30,
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
-    width:'90%',
+    width:'95%',
     height:height,
     '@media (min-width: 1224px)': {
         width:'40%',
@@ -546,7 +547,7 @@ function AnimatedCommentBox({post,offset}){
     const commentRef = useRef(null);
     const hasPressed = useRef(null);
     const shotUp = useRef(null);
-    const [height,setHeight] = useState(window.innerHeight - offset - 40);
+    const [height,setHeight] = useState(window.innerHeight - offset - 20);
     const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
     const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
     const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`

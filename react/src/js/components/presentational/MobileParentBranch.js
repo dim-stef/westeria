@@ -158,7 +158,7 @@ function Identifiers({branch}){
                 <Name name={branch.name}/>
                 <Uri uri={branch.uri}/>
             </div>
-            <FollowButton id={branch.id} uri={branch.uri} style={{width:'auto'}}/>
+            <FollowButton branch={branch} style={{width:'auto'}}/>
         </div>
         
     )
@@ -199,7 +199,7 @@ export function MobileParentBranch2({branch,children}){
 
     return(
         branch?
-        <div style={{height:'100%'}}>
+        <div style={{height:'100%',overflowY:'hidden'}}>
             <ProfileBubble branch={branch}/>
             {children}
         </div>:<div>{children}</div>

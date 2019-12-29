@@ -60,7 +60,7 @@ function Identifiers({branch}){
         <div style={{position:'absolute',left:270,width:672}}>
             <div className="flex-fill" style={{paddingTop:10,alignItems:'flex-end',WebkitAlignItems:'flex-end'}}>
                 <Name name={branch.name}/>
-                <FollowButton id={branch.id} uri={branch.uri}/>
+                <FollowButton branch={branch}/>
             </div>
             <Uri uri={branch.uri}/>
             {
@@ -101,31 +101,29 @@ let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
 
 
-export function FollowButton({id,uri,style=null}){
-
+export function FollowButton({branch,style=null}){
     const context = useContext(UserContext);
 
-    let clsName;
+    let className;
     let initFollowing;
-    if(context.isAuth && context.currentBranch.follows.includes(uri)){
-        clsName = 'following-secondary'
+    if(context.isAuth && context.currentFollowing.some(b=>b.uri==branch.uri)){
+        className = 'following-secondary'
         initFollowing= true
     }
     else{
-        clsName = 'following-main'
+        className = 'following-main'
         initFollowing= false
     }
-    const [className,setClassName] = useState(clsName);
     const [following,setFollowing] = useState(initFollowing);
     const [isDisabled,setDisabled] = useState(false);
 
     useEffect(()=>{
-        if(context.isAuth && context.currentBranch.follows.includes(uri)){
-            setClassName('following-secondary')
+        if(context.isAuth && context.currentFollowing.some(b=>b.uri==branch.uri)){
+            className = 'following-secondary'
             setFollowing(true)
         }
         else{
-            setClassName('following-main')
+            className = 'following-main'
             setFollowing(false)
         }
     },[uri])
@@ -133,12 +131,12 @@ export function FollowButton({id,uri,style=null}){
     function followSetter(){
         setDisabled(true);
         if(following){
-            context.currentBranch.follows.splice(context.currentBranch.follows.indexOf(uri),1);
-            setClassName('following-main');
+            context.currentFollowing.splice(context.currentFollowing.findIndex(b=>b.uri==branch.uri),1);
+            className = 'following-main';
             setFollowing(false);
         }else{
-            context.currentBranch.follows.push(uri)
-            setClassName('following-secondary');
+            context.currentFollowing.push(branch)
+            className = 'following-secondary';
             setFollowing(true);
         }
     }
@@ -157,7 +155,7 @@ export function FollowButton({id,uri,style=null}){
         }
 
         var data = {
-            follows:[id]
+            follows:[branch.id]
         }
         axios.patch(
             url,
@@ -279,7 +277,7 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
                         <span css={theme=>uri(theme)}>@{branch.uri}</span>
                     </div>
                 </Link>
-                <FollowButton id={branch.id} uri={branch.uri}/>
+                <FollowButton branch={branch}/>
             </div>
             <p className="text-wrap" css={theme=>description(theme)}>{branch.description}</p>
             <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between',

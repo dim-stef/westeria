@@ -340,7 +340,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
-                    <TagSelector tags={tags} setTags={setTags} branch={branch}/>
+                    {/*<TagSelector tags={tags} setTags={setTags} branch={branch}/>*/}
                 </div>
                 <button style={{marginRight:10}} className="editor-btn"
                 onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>

@@ -209,7 +209,7 @@ export function SuperBar({postsContext,refresh,branch,isFeed,updateFeed,postedId
 }
 
 const swipeableBarWrapper = theme =>css({
-    padding:'6px 0',
+    paddingTop:'10px',
     boxSizing:'border-box',
     height:'inherit',
     display:'flex',
@@ -523,7 +523,7 @@ function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext,cont
         {ReactDOM.createPortal(transitions.map(({ item, props, key }) => {
             return (
                 item && 
-                <animated.div key={key} css={{width:width,position:'fixed',zIndex:0,left:rect.left,top:rect.y + 50}}
+                <animated.div key={key} css={{width:width,position:'fixed',zIndex:0,left:rect.left,top:rect.y + 60}}
                     style={props}>
                         <StatusUpdate activeBranch={branch} postsContext={postsContext} updateFeed={updateFeed} 
                         postedId={postedId} isFeed={isFeed} redirect/>

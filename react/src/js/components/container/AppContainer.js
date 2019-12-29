@@ -14,6 +14,7 @@ class App extends Component {
             isAuth:null,
             branches:null,
             currentBranch:null,
+            currentFollowing:[],
             startedLoading:false,
             justRegistered:false,
             updateUserData:this.getUserBranches,
@@ -37,6 +38,7 @@ class App extends Component {
             user:null,
             branches:null,
             currentBranch:null,
+            currentFollowing:[],
             startedLoading:false,
         })
     }
@@ -55,6 +57,7 @@ class App extends Component {
             user:userData,
             branches:r.data,
             currentBranch:currBranch.data,
+            currentFollowing:[],
             startedLoading:true,
             seenTour:userData.profile.has_seen_tour
         })

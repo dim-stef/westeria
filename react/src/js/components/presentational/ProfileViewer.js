@@ -95,7 +95,7 @@ export function DesktopProfile({branch}){
                     <FollowInfo branch={viewedBranch}/>
                 </div>
                 <div css={{margin:'10px 0',alignSelf:'center'}}>
-                    <FollowButton id={viewedBranch.id} uri={viewedBranch.uri} style={{margin:0}}/>
+                    <FollowButton branch={viewedBranch} style={{margin:0}}/>
                 </div>
            
             </div>

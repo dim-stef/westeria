@@ -86,19 +86,21 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             type:'mobile',
             size:8,
             bigItemCount:1,
-            mediumItemCount:2,
-            responsiveItemCount:2,
+            mediumItemCount:1,
+            responsiveItemCount:3,
             smallItemCount:3
         }
     }
+
     if(height<=640){
+        itemCount = 8;
         pageType={
             type:'mobile',
             size:8,
             bigItemCount:1,
-            mediumItemCount:2,
+            mediumItemCount:1,
             responsiveItemCount:2,
-            smallItemCount:3
+            smallItemCount:4
         }
     }else if(height <= 760){
         pageType={
@@ -247,6 +249,12 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
     swipeablePostGridContext.setIndex = changeIndex;
 
+    useEffect(()=>{
+        if(postsContext.content=='branch' && postsContext.lastPage!=index){
+            indexRef.current = 0;
+            setIndex(0);
+        }
+    },[activeBranch])
 
     function goToLeft(){
         if(indexRef.current != 0){
@@ -584,8 +592,8 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
             isFlat:false
         },
         big:{
-            defaultDimensions:[!isMobile?6:6,!isMobile?12:10],
-            flatDimensions:[!isMobile?9:12,!isMobile?6:6],
+            defaultDimensions:[!isMobile?8:12,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?12:10],
             label:'large',
             isBig:true,
             isFlat:false
@@ -631,7 +639,7 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                 smallItemTotal -=1;
             }
         }
-        return shuffle(orderWithSize);
+        return orderWithSize //shuffle(orderWithSize);
     }
 
     const [order,setOrder] = useState(getOrder())
@@ -672,7 +680,8 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
         supportsGrid?
         <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount,implicitRowCount,height)}>
             {order.map(o=>{
-                return <div css={()=>cell(isFlat(o.post)?o.size.flatDimensions:o.size.defaultDimensions,isMobile)}>
+                return <div key={o.post.id} 
+                css={()=>cell(isFlat(o.post)?o.size.flatDimensions:o.size.defaultDimensions,isMobile)}>
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
@@ -680,7 +689,9 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
         :
         <div css={{display:'flex',flexFlow:'column'}}>
             {order.map(o=>{
-                return <Post {...getPostProps(o.post)} movement={movX}/>
+                return <React.Fragment key={o.post.id}>
+                    <Post {...getPostProps(o.post)} movement={movX}/>
+                </React.Fragment>
             })}
         </div>
         

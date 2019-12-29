@@ -59,10 +59,11 @@ export default class Register extends Component{
             })
             .then(function (response) {
                 localStorage.setItem("token",response.data.token);
-                this.context.justRegirestered = true;
+                localStorage.setItem("justRegistered",'true');
                 self.setState({success:true})
             })
             .catch(function (err) {
+                console.log(err);
                 let errors = [];
                 let email = err.response.data.email;
                 let password1 = err.response.data.password1;

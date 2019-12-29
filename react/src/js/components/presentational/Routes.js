@@ -73,12 +73,6 @@ function RouteTransition({location,children}){
                             </TransitionGroup>*/
 const Routes = () =>{
 
-  /*function beforeUnload(e){
-    localStorage.setItem('has_seen_tour',true)
-  }
-
-  useBeforeunload(beforeUnload)*/
-
   function updateTour(){
     localStorage.setItem('has_seen_tour',true)
   }
@@ -454,7 +448,7 @@ function BranchFrontPage(props){
         <>
         <Desktop>
             <div css={{flex:1}}>
-                <div style={{marginTop:10}}>
+                <div>
                     <div className="flex-fill" style={{width:'100%'}}>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}

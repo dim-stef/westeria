@@ -60,7 +60,7 @@ function getPostedTo(post,activeBranch,context){
 function authorizedGetPostedTo(post,activeBranch,context){
     var intersection = post.posted_to.find(b=>{
         // if user follows branch and is not current active branch
-        return context.currentBranch.follows.includes(b.uri) && b.uri!==context.currentBranch.uri
+        return context.currentFollowing.some(branch=>branch.uri==b.uri) && b.uri!==context.currentBranch.uri
         && b.uri!==activeBranch.uri && b.uri!==post.poster;
     })
 
@@ -542,7 +542,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
                     {branches.map(b=>{
                         return <div key={b.id}>
                         <SmallBranch branch={b}>
-                            <FollowButton uri={b.uri} id={b.id}/>
+                            <FollowButton branch={b}/>
                         </SmallBranch>
                         </div>
                     })}

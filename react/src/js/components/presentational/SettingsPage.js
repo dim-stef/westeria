@@ -407,11 +407,6 @@ export function PostRegisterForm({onSubmit,initialValues,branch,submittionFunc,p
                             <DescriptionField initialValues={initialValues}/>  
                         </div>
                         <div css={{display:'flex',justifyContent:'flex-end'}}>
-                            <Link to="/" css={theme=>({borderRadius:25,border:`1px solid ${theme.borderColor}`,
-                            padding:10,backgroundColor:'transparent',fontWeight:'bold',color:theme.textLightColor,
-                            margin:'0 10px',fontSize:'1.3rem'})}>
-                                Not now
-                            </Link>
                             <div role="button" onClick={postRegisterAction}>                   
                                 <ArrowSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
                                 fill:'white',transform:'rotate(180deg)'}}/>

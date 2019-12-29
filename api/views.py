@@ -349,7 +349,6 @@ class BranchUpdateViewSet(BranchUpdateMixin,):
             pass
 
     def update(self, request, *args, **kwargs):
-        print(request.data)
         '''owns_branch_with_same_name = request.user.owned_groups.filter(name__iexact=request.data['name'])
         if owns_branch_with_same_name.exists():
             return Response({'name':'You already own a branch with this name'},status=status.HTTP_400_BAD_REQUEST)'''
