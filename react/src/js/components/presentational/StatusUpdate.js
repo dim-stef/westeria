@@ -13,6 +13,7 @@ import {BranchSwitcher} from './BranchSwitcher'
 //import EmojiPicker from 'emoji-picker-react';
 import {MediaPreview} from './EditorMediaPreview'
 import {MoonLoader} from 'react-spinners';
+import {TagSelector} from "./TagSelector";
 import axios from 'axios'
 
 const schema  = {
@@ -108,15 +109,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
         setFiles([]);
     }
     
-    const onBlur = (event, editor, next) => {
-        next();
-        setTimeout(() => setMinimized(true), 0);
-    };
-
-    const onFocus = (event, editor, next) => {
-        next();
-        setTimeout(() => setMinimized(false), 0);
-    };
 
     function handleClickOutside(event) {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)
@@ -184,9 +176,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     alignItems:'center',backgroundColor:theme.backgroundColor,
                     WebkitAlignItems:'center',display:'block'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                    {minimized?
-                    null:
-                    <>
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
                     postedId={postedId} currentPost={currentPost} isFeed={isFeed} activeBranch={activeBranch}
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
@@ -194,43 +183,8 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     />
                     {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
                     {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
-                    </>
-                    }
                 </div>
             </div>
-    )
-}
-
-/*function CustomEditor({onInput,placeholder,className,style}){
-    const ref = useRef(null);
-
-    function handleInput(e){
-
-        if (e.target.innerText) {
-			e.target.dataset.divPlaceholderContent = 'true';
-		}
-		else {
-			delete(e.target.dataset.divPlaceholderContent);
-		}
-        onInput(e);
-    }
-
-    return(
-        <div
-        contentEditable
-        className={className}
-        ref={ref}
-        onInput={handleInput}
-        data-placeholder={placeholder}
-        style={style}/>
-    )
-}*/
-
-function CodeNode(props) {
-    return (
-        <pre {...props.attributes}>
-            <code>{props.children}</code>
-        </pre>
     )
 }
 
@@ -239,6 +193,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
     parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch,redirect}){
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
+    const [tags,setTags] = useState([]);
 
     const inputRef = useRef(null)
     const handleClick = (e)=>{
@@ -270,10 +225,6 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         for(var id of postedTo){
             formData.append('posted_to',id);
         }
-
-        //if(postedTo.length>0){
-        //    formData.append('posted_to',postedTo);
-        //}
         
         formData.append('type',type);
         formData.append('text',post);
@@ -285,6 +236,9 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
 
         formData.append('posted_to',branch.id); // add self
         formData.append('posted',branch.id);  // add self
+
+        let newTags = tags.join(", ");
+        formData.append('tags',newTags)
 
         let uri = `/api/branches/${branch.uri}/posts/new/`
         setLoading(true);
@@ -358,7 +312,6 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
         renderChildren = <SkeletonBranchList/>
     }
 
-
     function handleOpenModal(e,show){
         e.stopPropagation();
         show();
@@ -387,6 +340,7 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
+                    {/*<TagSelector tags={tags} setTags={setTags} branch={branch}/>*/}
                 </div>
                 <button style={{marginRight:10}} className="editor-btn"
                 onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
@@ -546,6 +500,21 @@ const MediaSvg = props => {
       />
     </svg>
 };
+
+const TagSvg = props =>{
+    return(
+        <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+        viewBox="0 0 59.998 59.998"
+        style={{ enableBackground: "new 0 0 59.998 59.998" }}
+        xmlSpace="preserve"
+        >
+        <path d="M59.206,0.293c-0.391-0.391-1.023-0.391-1.414,0L54.085,4H30.802L1.532,33.511c-0.666,0.666-1.033,1.553-1.033,2.495  s0.367,1.829,1.033,2.495l20.466,20.466c0.687,0.687,1.588,1.031,2.491,1.031c0.907,0,1.814-0.347,2.509-1.041l28.501-29.271V5.414  l3.707-3.707C59.597,1.316,59.597,0.684,59.206,0.293z M53.499,28.874L25.574,57.553c-0.596,0.596-1.566,0.596-2.162,0L2.946,37.087  c-0.596-0.596-0.596-1.566,0.003-2.165L31.636,6h20.449l-4.833,4.833C46.461,10.309,45.516,10,44.499,10c-2.757,0-5,2.243-5,5  s2.243,5,5,5s5-2.243,5-5c0-1.017-0.309-1.962-0.833-2.753l4.833-4.833V28.874z M47.499,15c0,1.654-1.346,3-3,3s-3-1.346-3-3  s1.346-3,3-3c0.462,0,0.894,0.114,1.285,0.301l-1.992,1.992c-0.391,0.391-0.391,1.023,0,1.414C43.987,15.902,44.243,16,44.499,16  s0.512-0.098,0.707-0.293l1.992-1.992C47.386,14.106,47.499,14.538,47.499,15z" />
+        </svg>
+    )
+}
 
 const Modal = ({ children ,onClick}) => (
     ReactDOM.createPortal(

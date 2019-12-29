@@ -17,7 +17,6 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
     useEffect(()=>{
          
         if(!inCache){
-             
             measure();
         }
 
@@ -37,10 +36,6 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
         };
 
         // try to find post in cached posts
-        
-
-         
-
         if(inCache.length>0){
             setComments(inCache)
         }else{
@@ -148,26 +143,19 @@ export function ReplyTree({currentPost,topPost,
     };
 
     useEffect(()=>{
-         
         if(!inCache){
-             
             measure();
         }
-
-         
 
         if(inCache.length>0){
             //setComments(inCache)
         }else{
-             
-             
             fetchData();
         }
     },[])
 
     useEffect(()=>{
         if(justGotCached){
-             
             measure()
             setGotCached(false);
         }
@@ -175,7 +163,6 @@ export function ReplyTree({currentPost,topPost,
 
     useEffect(()=>{
         if(viewAll && next != null){
-             
             fetchData();
         }
     },[comments,viewAll])

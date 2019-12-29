@@ -1,12 +1,12 @@
-import React, {useState,useRef,useEffect,useLayoutEffect,useCallback} from "react";
+import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
 import {css} from "@emotion/core";
 import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
+import {SwipeablePostGridContext} from "../container/ContextContainer";
 import {useMediaQuery} from 'react-responsive'
-import axios from "axios";
 
 function cssPropertyValueSupported(prop, value) {
     var d = document.createElement('div');
@@ -55,31 +55,44 @@ const animatedDiv = (theme,supportsGrid) =>css({
 const to = (x) => ({ x: x,scale: 1,display: 'block'})
 const from = (x) => ({ x: x||0,scale: 1,display: 'block'})
 const ani = (x) => ({ x: x,scale: 1,display: 'block'})
-// This is being used down there in the view, it interpolates rotation and scale into a css transform
-const trans = (r, s) => `rotateX(0deg) rotateY(${r / 10}deg) rotateZ(${r}deg) scale(${s})`
-const transX = (x) => `translateX(${x}px)`
 
+/*
+bigItemCount:0,
+mediumItemCount:1,
+responsiveItemCount:3,
+smallItemCount:4 
+
+bigItemCount:1,
+mediumItemCount:1,
+responsiveItemCount:3,
+smallItemCount:3
+
+bigItemCount:1,
+mediumItemCount:1,
+responsiveItemCount:4,
+smallItemCount:2
+*/
 
 export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,hasMore,width,height,refresh}){
 
-    //let width = 660;
-    let offset = 25;
-    //let height = window.innerHeight;
+    const swipeablePostGridContext = useContext(SwipeablePostGridContext);
     let containerHeight = 860;
     let columnCount = 4;
     let rowCount = Math.round(4 * containerHeight / width);
-    let itemCount;
+    let itemCount = 8;
     let pageType;
-    if(height<=640){
-        /*itemCount = 5;
+    if(width/height < 0.6){
         pageType={
             type:'mobile',
-            size:5,
+            size:8,
             bigItemCount:1,
             mediumItemCount:1,
-            responsiveItemCount:1,
-            smallItemCount:2
-        }*/
+            responsiveItemCount:3,
+            smallItemCount:3
+        }
+    }
+
+    if(height<=640){
         itemCount = 8;
         pageType={
             type:'mobile',
@@ -90,23 +103,21 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             smallItemCount:4
         }
     }else if(height <= 760){
-        itemCount = 8;
         pageType={
             type:'largeMobile',
             size:8,
             bigItemCount:1,
-            mediumItemCount:1,
-            responsiveItemCount:2,
+            mediumItemCount:2,
+            responsiveItemCount:1,
             smallItemCount:4
         }
     }else{
-        itemCount = 8;
         pageType={
             type:'desktop',
             size:8,
-            bigItemCount:1,
+            bigItemCount:0,
             mediumItemCount:1,
-            responsiveItemCount:2,
+            responsiveItemCount:3,
             smallItemCount:4
         }
     }
@@ -147,6 +158,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const sentToRight = useRef(false);
     const shouldCaptureWheel = useRef(true);
     const container = useRef(null);
+    let offsetLeft = 15;
 
     const isDown = useRef(false);
     const [index,setIndex] = useState(postsContext.lastPage);
@@ -154,7 +166,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // ref is needed to keep track of index in the onFrame function
     // which does not pick up on rerenders
     const indexRef = useRef(postsContext.lastPage);
-
+    const widthRef = useRef(width);
+    widthRef.current = width;
     // ref to capture render end after index change
     // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
@@ -179,8 +192,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             // for whatever reason this stop fixes this
             stop();
 
-            if((Math.abs(f.x) + 10 > width && Math.abs(f.x) < width)){
-
+            if((Math.abs(f.x) - offsetLeft > widthRef.current && Math.abs(f.x) - offsetLeft - 1 < widthRef.current)
+            || (Math.abs(f.x) > widthRef.current && Math.abs(f.x) - 1 < widthRef.current)){
                 if(didRefresh.current){
                     didRefresh.current = false
                     indexRef.current = 0;
@@ -196,10 +209,10 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                     setTimeout(()=>{setIndex(0);},5)
                 }
                 else if(shouldUpdate.current){
-
                     dataIndexChanged.current = true;
                     shouldUpdate.current = false;
                     if(movX.current > 0 || sentToLeft.current){
+                        movX.current = 0;
                         if(indexRef.current != 0){
                             sentToLeft.current = false;
                             indexRef.current -=1
@@ -229,6 +242,20 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }
 
+    function changeIndex(i){
+        indexRef.current = i;
+        setTimeout(()=>{setIndex(i);},5)
+    }
+
+    swipeablePostGridContext.setIndex = changeIndex;
+
+    useEffect(()=>{
+        if(postsContext.content=='branch' && postsContext.lastPage!=index){
+            indexRef.current = 0;
+            setIndex(0);
+        }
+    },[activeBranch])
+
     function goToLeft(){
         if(indexRef.current != 0){
             sentToLeft.current = true;
@@ -249,7 +276,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             shouldUpdate.current = true;
     
             set(()=>({
-                to:ani(-width),
+                to:ani(-width - offsetLeft),
                 from:ani(0),
                 immediate:false,
                 config:{ mass: 1, tension: 500, friction: 35 },
@@ -321,7 +348,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const mxRef = useRef(0);
     const velocityTrigger = useRef(false);
 
-    const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir], distance,cancel,canceled }) => {
+    const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir],cancel }) => {
+
         if(previewPostContainer.childElementCount>0) cancel();
         const isLastPage = index==pages.length
         isDown.current = down;
@@ -350,7 +378,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 shouldUpdate.current = true
 
                 if(xDir < 0){
-                    x = -width;
+                    x = -width - offsetLeft;
                 }else{
                     // there is no left side here, index goes out of bounds
                     if(index == 0){
@@ -409,8 +437,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
             {index>0?<SendToStartArrow jumpToBack={jumpToBack}/>:<Refresh refresh={refresh}/>}
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
-            style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offset:
-            1.5*x - width- offset>0?0:1.5*x-width - offset}px)`),
+            style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offsetLeft:
+            1.5*x - width- offsetLeft>0?0:1.5*x-width - offsetLeft}px)`),
             width:'100%',height:'100%'}}>
                 <div className="noselect" style={{height:'100%'}}>
                 {pages[index - 1] && index!=-1?
@@ -432,8 +460,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 </div>
             </animated.div>
             <animated.div key={index + 1} data-index={index + 1} css={theme=>animatedDiv(theme,supportsGrid)}
-            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offset:
-            1.5*x + width + offset<0?0:1.5*x + width + offset}px)`),
+            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offsetLeft:
+            1.5*x + width + offsetLeft<0?0:1.5*x + width + offsetLeft}px)`),
             width:'100%',zIndex:0,height:'100%'}}>
                 <div className="noselect" style={{height:'100%'}}>
                     {pages[index + 1]?
@@ -546,22 +574,26 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
     let sizes = {
         small:{
             defaultDimensions:[3,3],
+            flatDimensions:[3,3],
             label:'xsmall',
             isFlat:false
         },
         //responsive:[2,Math.round(rowCount/2)],
         responsive:{
             defaultDimensions:[!isMobile?3:3,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?3:3],
             label:'small',
             isFlat:false
         },
         medium:{
             defaultDimensions:[!isMobile?6:6,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?6:6],
             label:'medium',
             isFlat:false
         },
         big:{
-            defaultDimensions:[!isMobile?6:12,!isMobile?8:6],
+            defaultDimensions:[!isMobile?8:12,!isMobile?6:6],
+            flatDimensions:[!isMobile?6:6,!isMobile?12:10],
             label:'large',
             isBig:true,
             isFlat:false
@@ -607,7 +639,7 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                 smallItemTotal -=1;
             }
         }
-        return shuffle(orderWithSize);
+        return orderWithSize //shuffle(orderWithSize);
     }
 
     const [order,setOrder] = useState(getOrder())
@@ -631,11 +663,25 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
         return props;
     }
     
+    function isFlat(post){
+        if(post.images.length > 0){
+            if(post.images[0].height < post.images[0].width){
+                return true
+            }
+        }else if(post.videos.length > 0){
+            if(post.videos[0].height < post.videos[0].width){
+                return true
+            }
+        }
+        return false
+    }
+
     return(
         supportsGrid?
         <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount,implicitRowCount,height)}>
             {order.map(o=>{
-                return <div css={()=>cell(o.size.defaultDimensions,isMobile)}>
+                return <div key={o.post.id} 
+                css={()=>cell(isFlat(o.post)?o.size.flatDimensions:o.size.defaultDimensions,isMobile)}>
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
@@ -643,7 +689,9 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
         :
         <div css={{display:'flex',flexFlow:'column'}}>
             {order.map(o=>{
-                return <Post {...getPostProps(o.post)} movement={movX}/>
+                return <React.Fragment key={o.post.id}>
+                    <Post {...getPostProps(o.post)} movement={movX}/>
+                </React.Fragment>
             })}
         </div>
         

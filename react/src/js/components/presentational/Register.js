@@ -59,11 +59,11 @@ export default class Register extends Component{
             })
             .then(function (response) {
                 localStorage.setItem("token",response.data.token);
+                localStorage.setItem("justRegistered",'true');
                 self.setState({success:true})
-                 
             })
             .catch(function (err) {
-                 
+                console.log(err);
                 let errors = [];
                 let email = err.response.data.email;
                 let password1 = err.response.data.password1;
@@ -95,7 +95,7 @@ export default class Register extends Component{
     render(){
         if(this.state.success || this.context.isAuth){
             return(
-                <Redirect to="/"/>
+                <Redirect to="/register/edit"/>
             )
         }
 

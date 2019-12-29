@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import Pullable from 'react-pullable';
@@ -16,7 +15,8 @@ import {
     RefreshContext,
     TreePostsContext,
     UserContext,
-    RouteTransitionContext
+    RouteTransitionContext,
+    SwipeablePostGridContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
 import {Tooltip, TooltipChain} from "./Tooltip";
@@ -29,7 +29,7 @@ import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
 import {SwipeablePostGrid} from "./SwipeablePostGrid";
-import {SuperBar} from "./SuperBar"
+import {SuperBar, SwipeableBar} from "./SuperBar"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
 
@@ -65,6 +65,7 @@ function resetPostListContext(postsContext,props){
     postsContext.uniqueCached.length = 0;
     postsContext.branchUri = props.branch;
     postsContext.paths.length = 0;
+    postsContext.lastPage = 0
 }
 
 function DisplayPosts({isFeed,posts,setPosts,
@@ -72,8 +73,8 @@ function DisplayPosts({isFeed,posts,setPosts,
     updateFeed,postedId,fetchData,hasMore,
     showPostedTo,activeBranch,refresh,target,keyword}){
     
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
+    const isMobileOrTablet = useMediaQuery({
+        query: '(max-device-width: 1223px)'
     })
 
     const ref = useRef(null);
@@ -82,7 +83,7 @@ function DisplayPosts({isFeed,posts,setPosts,
     const [width,setWidth] = useState(0);
     const isSwiping = useRef(false);
 
-    useLayoutEffect(()=>{
+    function handleWidth(){
         if(ref.current){
             let mobileNavBar = null;
             try{
@@ -95,26 +96,35 @@ function DisplayPosts({isFeed,posts,setPosts,
             let refRect = ref.current.getBoundingClientRect();
             
             // 50 for top bar height
-            setHeight(isMobile?window.innerHeight - 50 -
+            setHeight(isMobileOrTablet?window.innerHeight - 50 -
                 (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
         }
+    }
+
+    useLayoutEffect(()=>{
+        handleWidth();
     },[ref])
+
+    useEffect(()=>{
+        window.addEventListener('resize',handleWidth);
+
+        return ()=>{
+            window.removeEventListener('resize',handleWidth);
+        }
+    },[])
 
     return(
         <>
 
-        <SuperBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
-            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed}
+        <SwipeableBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
+            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed} width={width}
         />
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
-        {posts.length && width && height>0?
+        {width && height>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
             width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
         />
-        :
-            hasMore?<ResponsiveSkeleton height={height}/>:<p style={{textAlign:'center'}}>
-                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-            </p>}
+        :null}
         </div>
     </>
     )
@@ -148,175 +158,6 @@ function ResponsiveSkeleton({height}){
     )
 }
 
-const genericCache = {
-    fixedWidth: true,
-    minHeight: 25,
-    defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
-}
-
-const cache = new CellMeasurerCache(genericCache)
-const branchPostsCache = new CellMeasurerCache(genericCache)
-const branchTreePostsCache = new CellMeasurerCache(genericCache)
-const branchCommunityPostsCache = new CellMeasurerCache(genericCache)
-const allPostsCache = new CellMeasurerCache(genericCache)
-const treePostsCache = new CellMeasurerCache(genericCache)
-
-function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsContext,activeBranch,showPostedTo}){
-    const ref = useRef(null);
-    const cellRef = useRef(null);
-    const [previousWidth,setPreviousWidth] = useState(0);
-    let usingCache = cache //default;
-    const [listLength,setListLength] = useState(1);
-    let supportsGrid = cssPropertyValueSupported('display', 'grid');
-    if(postsContext.content=="feed"){
-        usingCache = cache;
-    }else if(postsContext.content=="all"){
-        usingCache = allPostsCache;
-    }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
-    }else if(postsContext.content=="branch_community"){
-        usingCache = branchCommunityPostsCache
-    }else if(postsContext.content=="branch_tree"){
-        usingCache = branchTreePostsCache
-    }
-
-    useEffect(()=>{
-         
-        if(ref){
-            //ref.current.scrollToRow(supportsGrid?Math.ceil(postsContext.lastVisibleIndex/5):postsContext.lastVisibleIndex);
-            ref.current.scrollToPosition(postsContext.scroll);
-        }
-    },[keyword])
-
-    useEffect(()=>{
-        let lists = document.getElementsByClassName("ReactVirtualized__List");
-         
-        if(lists.length != listLength){
-            //setListLength(lists.length)
-        }
-    })
-
-    function onScroll(scroll){
-        
-        postsContext.scroll = scroll.scrollTop;
-    }
-
-    //let lastVisibleIndex = Math.ceil(postsContext.lastVisibleIndex);
-    return(
-        <WindowScroller
-        scrollElement={scrollTarget}
-        onScroll={onScroll}>
-            {({ height, scrollTop }) => (
-                <AutoSizer 
-                disableHeight
-                onResize={({ width }) => {
-                    if(ref){
-                        if(previousWidth!=0){
-                            cache.clearAll();
-                            allPostsCache.clearAll();
-                            treePostsCache.clearAll();
-                            branchPostsCache.clearAll();
-                            branchCommunityPostsCache.clearAll();
-                            branchTreePostsCache.clearAll();
-                            
-                            ref.current.recomputeRowHeights();
-                        }
-                        setPreviousWidth(width);
-                    }
-                }}>
-                {({ width }) =>{
-                        let props = {
-                            scrollRef:ref,
-                            width:width,
-                            height:height,
-                            activeBranch:activeBranch,
-                            posts:posts,
-                            postsContext:postsContext,
-                            scrollTop:scrollTop,
-                            usingCache:usingCache
-                        }
-                        return supportsGrid?<GridList {...props}/>:<FlatList {...props}/>
-                    }
-                }
-                </AutoSizer>
-        )}
-        </WindowScroller>
-    )
-}
-
-function GridList({scrollTop,width,scrollRef,activeBranch,posts,postsContext}){
-    return(
-        <List
-        containerStyle={{pointerEvents:'auto'}}        
-        width={width}
-        scrollTop={scrollTop}
-        height={Math.ceil(posts.length/5)*width}
-        rowCount={Math.ceil(posts.length/5)}
-        rowHeight={width}
-        ref={scrollRef}
-        rowRenderer={
-            ({ index, key, style, parent }) =>{
-            return(
-                <div
-                key={key}
-                style={style}
-                >
-                    <Grid posts={posts.slice(index*5,(index + 1)*5)} activeBranch={activeBranch} 
-                    postsContext={postsContext}/>
-                </div>
-            )
-        }}
-        />
-    )
-}
-
-function FlatList({usingCache,width,height,scrollRef,activeBranch,posts,postsContext}){
-    return(
-        <List
-        containerStyle={{pointerEvents:'auto'}}
-        autoHeight
-        width={width}
-        height={height}
-        scrollTop={scrollTop}
-        rowCount={posts.length}
-        deferredMeasurementCache={usingCache}
-        rowHeight={usingCache.rowHeight}
-        ref={scrollRef}
-        rowRenderer={
-            ({ index, key, style, parent }) =>{
-            let post = posts[index];
-            let props = {
-                post:post,
-                key:[post.id,post.spreaders,postsContext.content],
-                viewAs:"post",
-                activeBranch:activeBranch,
-                postsContext:postsContext
-                };
-            return(
-                <CellMeasurer
-                key={[post.id,post.spreaders,postsContext.content]}
-                cache={usingCache}
-                parent={parent}
-                width={width}
-                columnIndex={0}
-                rowIndex={index}>
-                {({ measure }) => (
-                    <div
-                    key={key}
-                    style={style}
-                    >
-                        <li><Post {...props} index={index} measure={measure}/></li>
-                    </div>
-                )}
-            </CellMeasurer>
-                
-            )
-        }}
-        />
-    )
-}
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
     whyDidYouRender(React);
@@ -324,6 +165,7 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+    const swipeablePostGridContext = useContext(SwipeablePostGridContext)
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
@@ -331,21 +173,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
     })
-    let usingCache = cache //default;
-
-    if(postsContext.content=="feed"){
-        usingCache = cache;
-    }else if(postsContext.content=="all"){
-        usingCache = allPostsCache;
-    }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
-    }else if(postsContext.content=="branch_community"){
-        usingCache = branchCommunityPostsCache
-    }else if(postsContext.content=="branch_tree"){
-        usingCache = branchTreePostsCache
-    }
 
     function buildQuery(baseUri,params){
         if(params){
@@ -404,60 +231,39 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
 
     useEffect(()=>{
         if(postsContext.loadedPosts.length==0 || postsContext.branchUri != branch){
+            source.cancel('Operation canceled by the user.');
+            CancelToken = axios.CancelToken;
+            source = CancelToken.source();
             resetPostsContext();
             setPosts([])
             fetchData();
         }
-
-        if(isFeed){
-            refreshContext.feedRefresh = () =>{
-                source.cancel('Operation canceled by the user.');
-                CancelToken = axios.CancelToken;
-                source = CancelToken.source();
-                resetPostsContext(branch);
-                fetchData();
-                setPosts([]);
-            };
-        }else{
-            refreshContext.branchPostsRefresh = function(){
-                source.cancel('Operation canceled by the user.');
-                CancelToken = axios.CancelToken;
-                source = CancelToken.source();
-                resetPostsContext(branch);
-                fetchData();
-                setPosts([]);
-                //branchPostsCache.clearAll()
-            };
-        }
-    },[branch,keyword])
+    },[postsContext,branch,keyword])
 
     useEffect(()=>{
         refreshContext.page = isFeed?'feed':'branch';
     },[])
 
     const refresh = useCallback(()=>{
-        usingCache.clearAll();
+        if(swipeablePostGridContext.setIndex){
+            swipeablePostGridContext.setIndex(0);
+        }
+
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
         source = CancelToken.source();
         resetPostsContext(branch);
         setPosts([]);
         fetchData();
-    },[postsContext]);
+    },[postsContext,branch,keyword]);
 
     const updateFeed = useCallback(
         (newPost) => {
             postsContext.loadedPosts = [newPost,...postsContext.loadedPosts];
-            usingCache.clearAll();
             setPosts([newPost,...posts])
         },
         [posts],
     );
-    // 
-
-    useEffect(()=>{
-        // 
-    },[scrollableTarget])
 
     refreshContext.refresh = refresh;
 
@@ -815,7 +621,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                 </div>
             )}
             content={hide => (
-            <Modal onClick={handleHide}>
+            <Modal onClick={handleHide} isOpen={isOpen}>
                 <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
                     <MobileModal>
                         {options.map(op=>{

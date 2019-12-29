@@ -5,7 +5,7 @@ import history from "../../history"
 import { useSpring, useTransition, animated, interpolate } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
-import {css} from "@emotion/core";
+import {css,keyframes } from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import {useTheme} from "../container/ThemeContainer"
 import {Images, PreviewPostMedia} from './PostImageGallery'
@@ -33,13 +33,16 @@ const postCss = (theme,backgroundColor) =>css({
     backgroundColor:backgroundColor
 })
 
-const text = (theme,textPosition,size) =>css({
+const text = (theme,textPosition,size,hasMedia) =>css({
     position:'absolute',
     top:textPosition,
     fontSize:size=='xsmall' || size=='small' ? '1.1rem' : '2rem',
     margin:5,
-    color:theme.textColor,
-    wordBreak:'break-word'
+    padding:hasMedia?5:0,
+    color:'white',
+    backgroundColor:hasMedia?'#00000075':null,
+    wordBreak:'break-word',
+    display:'inline'
 })
 
 const postedToImage = (size) =>css({
@@ -70,7 +73,9 @@ const openPreviewPost = theme =>css({
     borderRadius:30,
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
-    width:'90%',
+    width:'95%',
+    willChange:'transform opacity',
+    animation: `${scaleUp} 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
     '@media (min-width: 1224px)': {
         width:'40%',
         marginLeft:'37%',
@@ -78,9 +83,10 @@ const openPreviewPost = theme =>css({
 })
 
 const bubbleBox = (theme,height=100) =>css({
+    marginTop:10,
     zIndex:23122,
     position:'fixed',
-    top:20,
+    top:0,
     left:0,
     right:0,
     marginLeft:'auto',
@@ -89,13 +95,35 @@ const bubbleBox = (theme,height=100) =>css({
     borderRadius:30,
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
-    width:'90%',
+    width:'95%',
     height:height,
     '@media (min-width: 1224px)': {
         width:'40%',
         marginLeft:'37%',
     }
 })
+
+const scaleUp = keyframes`
+  0%{
+    transform: scale(0.7) translate(0px, 20px);
+    opacity:0;
+  }
+
+  80%{
+    transform: scale(1.01) translate(0px, 20px);
+    opacity:1;
+  }
+
+  100%{
+    transform: scale(1) translate(0px, 20px);
+    opacity:1;
+  }
+`
+
+const to = (y) => ({ opacity:1, x: 0, y: y||20, scale: 1 })
+const from = () => ({ opacity:0, x: 0, rot: 0, scale: 0, y: -(window.innerHeight) })
+const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1})
+const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
 export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     const postsContext = useContext(SingularPostContext);
@@ -167,19 +195,34 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         }
     },[postShown])
 
-    //const [{ xy }, set] = useSpring(() => ({ xy: [0, 0] }))
     const shotUp = useRef(null);
     const shotDown = useRef(null);
     const commentsActive = useRef(null);
     const lastDockedPosition = useRef(null);
+    const prevTime = useRef(new Date().getTime());
+    const isResting = useRef(true);
 
-    const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
-    const from = () => ({ opacity:0, x: 0, rot: 0, scale: 1, y: -(window.innerHeight) })
-    const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1, rot: -10 + Math.random() * 20 })
+    const positions = {
+        off:{
+            y:(250 + window.innerHeight)*-1
+        },
+        top:{
+            y:20
+        },
+        bottom:{
+            y:window.innerHeight - 200
+        }
+    }
 
-    const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
+    const dockedTo = useRef(positions.top);
+
     const [props, set, stop] = useSpring(()=>({from:from(),to:to(),
+
+        onRest:(f)=>{
+            isResting.current = true;
+        },
         onFrame:(f)=>{
+            isResting.current = false;
             if(shotDown.current){
                 shotDown.current = false;
                 setCommentsShown(true);
@@ -202,6 +245,48 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     function preventDefault(e){
         e.preventDefault();
         return false;
+    }
+
+
+    function wheelEvent(e){
+        var curTime = new Date().getTime();
+        if(typeof prevTime.current !== 'undefined'){
+            var timeDiff = curTime-prevTime.current;
+            if(timeDiff>200 || isResting.current){
+                e.preventDefault();
+                e.stopPropagation();
+
+                if(e.wheelDelta > 0){
+                    // update flags
+                    shotUp.current = true;
+                    if(dockedTo.current == positions.bottom){
+                        // set docking position
+                        dockedTo.current = positions.top;
+                        set(()=>to(positions.top.y))
+                    
+                    // regular mouse sends it off
+                    // trackpads shouldnt send the post off because the wheel event continues on the swipeable grid
+                    // if wheelDeltaY is 120 then its probably a regular mouse
+                    }else if(Math.abs(e.wheelDeltaY==120)){
+                        // set docking position
+                        dockedTo.current = positions.off;
+                        // update flags
+                        commentsActive.current = false;
+                        set(()=>to(positions.off.y))
+                    }
+                }else if(e.wheelDelta <0){
+                    // set docking position
+                    dockedTo.current = positions.bottom;
+
+                    // update flags
+                    shotDown.current = true;
+                    commentsActive.current = true;
+                    set(()=>to(positions.bottom.y))
+                }
+            }
+        }
+        prevTime.current = curTime;
+        
     }
 
     useEffect(()=>{
@@ -227,28 +312,33 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
 
     
     function detectOutSideClick(e){
-        const containerBounds = previewPostRef.current.getBoundingClientRect();
-        const inContainer = e.pageX > containerBounds.left && e.pageX < containerBounds.right &&
-        e.pageY > containerBounds.bottom && e.pageX < containerBounds.bottom
-        if(!document.getElementById('leaf-preview-root').contains(e.target) && !inContainer &&
-        e.target != document.getElementById('body')){
+        let previewPostContainer = document.getElementById('preview-post-container');
+        if(e.target == previewPostContainer){
             set(()=>off())
         }
     }
 
     useEffect(()=>{
         if(postShown){
-            document.getElementById('page').addEventListener('click',detectOutSideClick);
+            document.getElementById('preview-post-container').addEventListener('click',detectOutSideClick);
+            document.getElementById('preview-post-container').addEventListener('wheel',wheelEvent);
+            previewPostRef.current.addEventListener('wheel',wheelEvent);
         }
         
         return ()=>{
-            document.getElementById('page').removeEventListener('click',detectOutSideClick);
+            try{
+                document.getElementById('preview-post-container').removeEventListener('click',detectOutSideClick);
+                document.getElementById('preview-post-container').removeEventListener('wheel',wheelEvent);
+                previewPostRef.current.removeEventListener('wheel',wheelEvent);
+            }catch(e){
+
+            }
         }
     },[postShown])
 
     const initTo = to().y
     // 1. Define the gesture
-    const bind = useDrag(({ down,initial, movement: [mx,my], direction: [xDir,yDir], velocity}) => {
+    const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity}) => {
         const trigger = velocity > 0.2 && (Math.abs(my) > 60 || Math.abs(xDir) < 0.5) // If you flick hard enough it should trigger the card to fly out
         const dir = yDir < 0 ? -1 : 1 // Direction should either point left or right
         try{
@@ -293,14 +383,17 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
             if(dir==-1){
                 if(commentsActive.current && trigger){
                     // reset post to original position
+                    dockedTo.current = positions.top;
                     y = 20;
                 }else{
                     // shoot post to top outside of screen
+                    dockedTo.current = positions.off;
                     y = (250 + window.innerHeight) * dir
                 }
                 commentsActive.current = false;
             }else{
                 // shoot to bottom so the comments are shown
+                dockedTo.current = positions.bottom;
                 y = (window.innerHeight - 200) * dir
             }
 
@@ -308,6 +401,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
           }
 
           if(shotDown.current){
+            dockedTo.current = positions.bottom;
             y = (window.innerHeight - 200) * dir;
             lastDockedPosition.current = y;
           }
@@ -318,6 +412,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         })
     })
     
+    let hasMedia = post.videos.length>0 || post.images.length > 0
     return (
         <>
         <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
@@ -332,23 +427,40 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
                 {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
                 videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
                 
-                {post.text?<p className="noselect" css={theme=>text(theme,textPosition,size)}>{post.text}</p>:null}
+                {post.text?
+                <>
+                {size=='xsmall' || size=='small'?
+                <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
+                    <div css={{display:'inline-block',width:30,height:23}}></div>
+                    {post.text}
+                </div>:
+                <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
+                    {post.text}
+                </div>}
+                
+                </>:null}
             </div>
         </div>
 
         {createPortal(
-                postShown?<div>
-                    {commentsShown?
-                    <AnimatedCommentBox post={post} offset={200}/>:null}
-                        <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
-                        id="preview-post"
-                        {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
-                            <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
-                                <Post post={post} postsContext={postsContext} down={initTo}
-                                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
-                            </div>
-                        </animated.div>
-                    </div>:null
+                postShown?
+                <>
+                <div id="preview-post-container" css={{width:'100%',height:'100vh',position:'fixed',top:0,
+                zIndex:1000}}>
+                     
+                </div>
+                <div css={{zIndex:1001}}>
+                {commentsShown?<AnimatedCommentBox post={post} offset={200}/>:null}
+                <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
+                id="preview-post"
+                {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
+                    <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
+                        <Post post={post} postsContext={postsContext} down={initTo}
+                        activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
+                    </div>
+                </animated.div>
+            </div>
+            </>:null
             ,document.getElementById("leaf-preview-root"))
         }
         </>
@@ -386,9 +498,23 @@ function useReplies(post){
 function CommentBox({post,postsContext,activeBranch,parentRef}){
     const [hasMore,replyTrees,fetchData] = useReplies(post);
 
+    useEffect(()=>{
+        try{
+            let scrollableTarget = document.getElementById('comment-scroller');
+
+            // in order for infinite scrolling to occur there has to be scrolling
+            // if initial data are not enough to trigger overflow-y get more data
+            if(replyTrees.length > 0 && scrollableTarget.scrollHeight == scrollableTarget.clientHeight && hasMore){
+                fetchData();
+            }
+        }catch(e){
+
+        }
+    },[hasMore,replyTrees])
+
     return(
         <InfiniteScroll
-        scrollableTarget='comment-box'
+        scrollableTarget='comment-scroller'
         dataLength={replyTrees.length}
         next={()=>fetchData(post)}
         hasMore={hasMore}
@@ -421,7 +547,7 @@ function AnimatedCommentBox({post,offset}){
     const commentRef = useRef(null);
     const hasPressed = useRef(null);
     const shotUp = useRef(null);
-    const [height,setHeight] = useState(window.innerHeight - offset - 40);
+    const [height,setHeight] = useState(window.innerHeight - offset - 20);
     const to = () => ({ opacity:1, x: 0, y: 20, scale: 1, rot: -10 + Math.random() * 20 })
     const from = () => ({ opacity:1, x: 0, rot: 0, scale: 1, y: 20 })
     const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
@@ -435,34 +561,18 @@ function AnimatedCommentBox({post,offset}){
         }
     }))
 
-    const bindComments = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity }) => {
-        if(down){
-            hasPressed.current = true; // capture first pressed motion, this prevents glitchy behavior on mount
-        }
-        
-        const trigger = velocity > 0.2 && Math.abs(xDir) < 0.5
-        const dir = yDir < 0 ? -1 : 1
-        if (!down && trigger && dir==-1) shotUp.current = true
-
-        set(() => {
-          const isGone = shotUp.current;
-          const y = isGone ? (commentRef.current.getBoundingClientRect().height) * dir : 20
-          const rot = mx / 100 + (dir * 10 * velocity)
-          const scale = down ? 1 : 1
-          return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : 1 ? 200 : 500 } }
-        })
-    })
-
     return(
         <div
         ref={commentRef}
         id="comment-box"
         css={theme=>bubbleBox(theme,height)}
         style={{transform: interpolate([commentProps.rot, commentProps.scale, commentProps.y], trans)}}>
-            <CommentBox post={post} postsContext={postsContext}
-            activeBranch={userContext?userContext.currentBranch:post.poster}
-            parentRef={commentRef}
-            />
+            <div id="comment-scroller" css={{height:height,overflow:'auto'}}>
+                <CommentBox post={post} postsContext={postsContext}
+                activeBranch={userContext?userContext.currentBranch:post.poster}
+                parentRef={commentRef}
+                />
+            </div>
         </div>
     )
 }

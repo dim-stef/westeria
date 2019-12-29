@@ -1,11 +1,18 @@
 from rest_framework import serializers
 from django.db import models
+from django.db.models import Count
 from django.core.exceptions import ObjectDoesNotExist
+from django_filters.rest_framework import FilterSet, filters
+from django_filters.widgets import CSVWidget
+from taggit.models import Tag
 from branchchat.models import ChatRequest,BranchChat
 from branches.models import Branch
 from feedback.models import Feedback
+from tags.models import GenericStringTaggedItem
 from api import serializers as serializers_v0
 from notifications.models import Notification
+import ast
+
 
 class ChatRequestSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,10 +43,12 @@ class NewChatRoomSerializer(serializers.ModelSerializer):
                                                request_to=member)
         return new_room
 
+
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ['subject','details','email']
+
 
 class FeedbackWithUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,7 +59,6 @@ class FeedbackWithUserSerializer(serializers.ModelSerializer):
 
 class PathSerializer(serializers.ListSerializer):
     def to_representation(self, data):
-        print(data)
         iterable = data.all() if isinstance(data, models.Manager) else data
 
         return {
@@ -59,9 +67,9 @@ class PathSerializer(serializers.ListSerializer):
         }
 
 import itertools,random
-from collections import OrderedDict
 
-class BranchSerializer(serializers.ModelSerializer):
+
+class BranchPathSerializer(serializers.ModelSerializer):
     paths = serializers.SerializerMethodField()
 
     def get_paths(self,branch):
@@ -74,10 +82,9 @@ class BranchSerializer(serializers.ModelSerializer):
             return None
 
         try:
-            branch_from = Branch.objects.get(uri__iexact = branch_from_param)
+            branch_from = Branch.objects.get(uri__iexact=branch_from_param)
         except ObjectDoesNotExist:
             branch_from = Branch.objects.none()
-
 
         def find_parent_paths(start, path=[]):
             '''
@@ -95,7 +102,7 @@ class BranchSerializer(serializers.ModelSerializer):
                     newpaths = find_parent_paths(node, path)
                     for newpath in newpaths:
                         paths.append(newpath)
-            return paths
+            return paths or [path]
 
         def find_children_paths(start, path=[]):
             '''
@@ -113,7 +120,7 @@ class BranchSerializer(serializers.ModelSerializer):
                     newpaths = find_children_paths(node, path)
                     for newpath in newpaths:
                         paths.append(newpath)
-            return paths
+            return paths or [path]
 
         def find_all_paths(start, end, path=[]):
             '''
@@ -132,12 +139,19 @@ class BranchSerializer(serializers.ModelSerializer):
                     newpaths = find_all_paths(node, end, path)
                     for newpath in newpaths:
                         paths.append(newpath)
-            return paths
+            return paths or [path]
+
+        def find_nodes_beneath(start, searched_nodes=[]):
+            for node in start.children.all():
+                if node not in searched_nodes:
+                    searched_nodes.append(node)
+                    find_nodes_beneath(node, searched_nodes)
+            return searched_nodes
 
         try:
             if not branch_from:
                 left = find_parent_paths(branch_to)
-                for i,path in enumerate(left):
+                for i, path in enumerate(left):
                     left[i].reverse()
             else:
                 left = find_all_paths(branch_from,branch_to)
@@ -157,7 +171,7 @@ class BranchSerializer(serializers.ModelSerializer):
                     pass
 
             data = []
-            for l,r in zip(left,right):
+            for l, r in zip(left, right):
                 # exclude first item from the right list
                 # because it is the same as the last item from the left list
 
@@ -174,7 +188,6 @@ class BranchSerializer(serializers.ModelSerializer):
 
             sorted_data = list()
 
-
             for sublist in data:
                 if sublist not in sorted_data:
                     sorted_data.append(sublist)
@@ -185,7 +198,43 @@ class BranchSerializer(serializers.ModelSerializer):
         except RecursionError:
             return None
 
+    class Meta:
+        model = Branch
+        fields = ('uri', 'name', 'paths')
+
+
+class BranchNodesBeneathSerializer(serializers.ModelSerializer):
+    nodes = serializers.SerializerMethodField()
+
+    def get_nodes(self, branch):
+        def find_nodes_beneath(start, searched_nodes=[]):
+            for node in start.children.all():
+                if node not in searched_nodes:
+                    searched_nodes.append(node)
+                    find_nodes_beneath(node, searched_nodes)
+            return searched_nodes
+
+        nodes = find_nodes_beneath(branch)[0:30]
+        nodes = sorted(nodes, key=lambda node: node.followed_by.count(), reverse=True)
+        data = serializers_v0.BranchSerializer(nodes, many=True).data
+        return data
 
     class Meta:
         model = Branch
-        fields = ('uri','name','paths')
+        fields = ('uri', 'name', 'nodes',)
+
+
+class BranchesByTagsSerializer(serializers.Serializer):
+    tags = serializers.ListField(child=serializers.CharField())
+
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+
+class TagSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tag
+        fields = ['name','slug']

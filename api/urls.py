@@ -14,6 +14,7 @@ router.register(r'user', views.UserViewSet, base_name='user')
 router.register(r'user_profile', views.UserProfileViewSet, base_name='user_profile')
 router.register(r'user/following', views.UserFollowViewSet, base_name='user_following')
 router.register(r'search', views.SearchViewSet, base_name='search')
+#router.register(r'tags', views.TagViewSet, base_name='tag')
 router.register(r'notifications', views.NotificationsViewSet, base_name='notifications')
 router.register(r'message_notifications', views.MessageNotificationsViewSet, base_name='message_notifications')
 router.register(r'reacts',views.ReactsViewSet,base_name="reacts")
@@ -67,16 +68,12 @@ branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='bran
 branchchat_router.register(r'chat_rooms', views.BranchChatRoomsViewSet,base_name='chat_rooms')
 branchchat_router.register(r'chat_rooms/update', views.ChatRoomUpdateViewSet,base_name='chat_rooms_update')
 
-
-
 messages_router = routers.NestedSimpleRouter(branchchat_router, r'chat_rooms', lookup='id')
 messages_router.register(r'messages/new', views.NewMessageViewSet, base_name='new_message')
 messages_router.register(r'messages', views.BranchChatMessageViewSet, base_name='messages')
 
 chat_room_invite_router = routers.NestedSimpleRouter(branchchat_router, r'chat_rooms', lookup='id')
 chat_room_invite_router.register(r'invite', views.ChatRoomInviteViewSet,base_name='conversation_invite')
-
-
 
 urlpatterns = [
     url(r'^$', schema_view),

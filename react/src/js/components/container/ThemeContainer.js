@@ -15,11 +15,13 @@ const COLORS = {
 
 const darkMode = {
     backgroundColor:COLORS.black,
+    backgroundLightColor:'#151827',
+    backgroundDarkColor:'#090a10',
     textColor:COLORS.semiWhite,
     textLightColor:COLORS.lightGray,
     textHarshColor:COLORS.lightWhite,
     borderColor:COLORS.darkBlue,
-    hoverColor:'#202f3c',
+    hoverColor:'#090a10',
     embeddedHoverColor:'#121b23',
     notificationBranchColor:'#121b23',
     skeletonColor:'#151827',
@@ -28,6 +30,8 @@ const darkMode = {
 
 const lightMode = {
     backgroundColor:COLORS.white,
+    backgroundLightColor:COLORS.white,
+    backgroundDarkColor:COLORS.white,
     textColor:COLORS.lightBlack,
     textLightColor:COLORS.darkGray,
     textHarshColor:COLORS.black,

@@ -8,6 +8,7 @@ import ReactPlayer from 'react-player'
 import ReactDOM from 'react-dom';
 import SwipeableViews from 'react-swipeable-views';
 import PinchToZoom from 'react-pinch-and-zoom';
+import {FadeImage} from "./FadeImage"
 
 const Modal = ({ children ,onClick}) => (
     ReactDOM.createPortal(
@@ -54,10 +55,11 @@ const mediaContainer = (image=null) =>css({
 
 export function PreviewPostMedia({images,videos}){
     return(
-        <div css={()=>mediaContainer()}>
+        <div css={mediaContainer}>
             {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
                 thumbnail={videos[0].thumbnail}
-            />:<img className="noselect" css={previewImage} src={images[0].image} draggable="false"/>}
+            />:<FadeImage className="noselect" css={previewImage} src={images[0].image} draggable="false"/>
+            }
         </div>
     )
 }
@@ -196,13 +198,19 @@ export function Images(props){
     )
 }
 
+const videoContainer = () =>css({
+    'video':{
+        objectFit:'cover'
+    }
+})
 //disablepictureinpicture controlslist="nodownload"
-function VideoComponent({src,thumbnail}){
+function VideoComponent({src,thumbnail,autoplay=true}){
 
     return(
-        <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container">
+        <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container" css={videoContainer}>
             <ReactPlayer pip={false} 
-             width="100%" height="100%" url={src} volume={0} muted controls playing light={thumbnail}
+             width="100%" height="100%" url={src} volume={0} muted controls playing
+             playsinline light={autoplay?false:thumbnail}
              config={{ file: { attributes: { controlsList: 'nodownload',disablepictureinpicture: 'true' } } }}>
             </ReactPlayer>
         </div>

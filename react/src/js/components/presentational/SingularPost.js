@@ -60,7 +60,7 @@ function getPostedTo(post,activeBranch,context){
 function authorizedGetPostedTo(post,activeBranch,context){
     var intersection = post.posted_to.find(b=>{
         // if user follows branch and is not current active branch
-        return context.currentBranch.follows.includes(b.uri) && b.uri!==context.currentBranch.uri
+        return context.currentFollowing.some(branch=>branch.uri==b.uri) && b.uri!==context.currentBranch.uri
         && b.uri!==activeBranch.uri && b.uri!==post.poster;
     })
 
@@ -103,7 +103,6 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     const [hasMore,setHasMore] = useState(true);
     const [next,setNext] = useState(null);
 
-    
     async function fetchData(data){
         if(!hasMore){
             return;
@@ -120,7 +119,6 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 
         postsContext.cachedPosts = [...postsContext.cachedPosts,...response.data.results];
         postsContext.loadedPosts = [...postsContext.loadedPosts,...response.data.results];
-  
         setReplyTrees([...replyTrees,...response.data.results]);
     }
 
@@ -164,7 +162,9 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     
     return (
         post?
-        <>
+        <div css={theme=>({boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,
+        backgroundColor:theme.backgroundDarkColor,
+        '@media (max-device-width: 1226px)':{boxShadow:'none'}})}>
             <Helmet>
                 <title>{title}</title>
                 <meta name="description" content={description}></meta>
@@ -206,7 +206,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                     })}
                 </InfiniteScroll>
             </div>
-        </>:loaded?<p style={{textAlign: 'center'}}>
+        </div>:loaded?<p style={{textAlign: 'center'}}>
             <b style={{fontSize:'2rem'}}>This leaf was deleted</b>
         </p>:<div className="flex-fill load-spinner-wrapper">
             <MoonLoader
@@ -542,7 +542,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
                     {branches.map(b=>{
                         return <div key={b.id}>
                         <SmallBranch branch={b}>
-                            <FollowButton uri={b.uri} id={b.id}/>
+                            <FollowButton branch={b}/>
                         </SmallBranch>
                         </div>
                     })}

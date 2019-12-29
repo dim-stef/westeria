@@ -1,16 +1,24 @@
 from django.contrib.auth import get_user_model
 from django.core.files.images import ImageFile
+from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.db.models import Sum, Count
 from django.core import serializers as ser
 import channels.layers
 from asgiref.sync import async_to_sync
 from rest_framework import serializers
+from rest_framework.exceptions import APIException
 from accounts.models import User, UserProfile
 from branches.models import Branch, BranchRequest
 from branchchat.models import BranchMessage, BranchChat, ChatImage,ChatVideo,ChatRequest
 from branchposts.models import Post,React,Spread,PostImage,PostVideo
-from notifications.models import Notification
-from datetime import datetime, timedelta
+from tags.models import GenericStringTaggedItem, GenericBigIntTaggedItem
+
+from taggit_serializer.serializers import (TagListSerializerField,
+                                           TaggitSerializer)
+from taggit.models import Tag
+from branches.utils import generate_unique_uri
+from io import BytesIO
+from PIL import Image
 from moviepy.editor import VideoFileClip
 import os
 from random import uniform
@@ -18,6 +26,7 @@ from uuid import uuid4
 import json
 from datetime import datetime, timedelta
 import math
+import six
 
 
 temp_path = os.path.join(os.path.expanduser('~'), 'temp_thumbnails')
@@ -30,15 +39,50 @@ def generate_thumbnail(file):
         clip = VideoFileClip(f.name)
         thumbnail = os.path.join('%s.png' % path)
         clip.save_frame(thumbnail, t=uniform(0.1, clip.duration))
-        #img = Image.open(thumbnail)
-        #img.thumbnail((220, 130), Image.ANTIALIAS)
-        #output = BytesIO()
-        #img.save(output,format='PNG', quality=85)
-
         image_file = ImageFile(open(thumbnail, 'rb'))
         image_file.name = "%s.png" % str(_id)
         clip.close()
         return image_file
+
+
+def encode_image(image):
+    try:
+        if image:
+            im = Image.open(image)
+            im.load()
+            rbg_img = im.convert('RGB')
+            rbg_img.load()
+            # create a BytesIO object
+            im_io = BytesIO()
+            # save image to BytesIO object
+            rbg_img.save(im_io, 'JPEG', quality=75)
+            return InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % image.name.split('.')[0],
+                                        'image/jpeg', im_io.getbuffer().nbytes, None)
+        return None
+    except OSError as e:
+        return None
+
+
+class GenericStringTaggedItemSerializer(serializers.ModelSerializer):
+    tag = serializers.SerializerMethodField()
+
+    def get_tag(self, generic_tag):
+        return {
+            'name':generic_tag.tag.name,
+            'slug':generic_tag.tag.slug
+        }
+
+    class Meta:
+        model = GenericStringTaggedItem
+        fields = ['dummy', 'tag']
+
+
+class GenericBigIntTaggedItemSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GenericBigIntTaggedItem
+        fields = "__all__"
+
 
 class TokenSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -67,10 +111,12 @@ class UserAdminSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = '__all__'
 
+
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = '__all__'
+
 
 class BranchPublicProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -85,7 +131,9 @@ class OwnedBranchesSerializer(serializers.ModelSerializer):
         fields = ['uri','id']
         read_only_fields = ['uri','id']
 
-class BranchSerializer(serializers.ModelSerializer):
+
+class BranchSerializer(TaggitSerializer, serializers.ModelSerializer):
+
     class Meta:
         model = Branch
         fields = ['id', 'owner', 'parents',
@@ -94,14 +142,14 @@ class BranchSerializer(serializers.ModelSerializer):
                   'children_uri_field','follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner','default',
-                  'post_context','spread_count','last_day_spread_count']
+                  'post_context','spread_count','last_day_spread_count','tags','tags_with_dummy']
         read_only_fields = ['id', 'owner', 'parents',
                   'parent_uri_field','followers_count','following_count',
                   'children', 'name', 'uri','sibling_count','children_count','parent_count',
                   'children_uri_field', 'follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner', 'default','spread_count'
-                  ,'last_day_spread_count']
+                  ,'last_day_spread_count','tags']
 
     follows = serializers.StringRelatedField(many=True)
     followed_by = serializers.StringRelatedField(many=True)
@@ -116,6 +164,13 @@ class BranchSerializer(serializers.ModelSerializer):
     parent_uri_field = serializers.SerializerMethodField('parents_uri')
     post_context = serializers.SerializerMethodField()
     spread_count = serializers.SerializerMethodField()
+    tags = TagListSerializerField()
+
+    tags_with_dummy = serializers.SerializerMethodField()
+
+    def get_tags_with_dummy(self,branch):
+        for tag in branch.tags.all():
+            return None
 
     def get_post_context(self,branch):
         if 'post' in self.context:
@@ -131,9 +186,6 @@ class BranchSerializer(serializers.ModelSerializer):
 
     def get_last_day_spread_count(self,branch):
         last_day = datetime.today() - timedelta(days=1)
-        '''branches = Branch.objects.filter(posts_from_all__spreads__updated__gte=last_day,
-                                         posts__spreads__updated__gte=last_day) \
-            .aggregate(Sum('posts_from_all__spreads__times'))'''
         dd = branch.posts_from_all.filter(spreads__updated__gte=last_day).aggregate(Sum('spreads__times'))['spreads__times__sum']
         return dd
 
@@ -171,14 +223,60 @@ class BranchSerializer(serializers.ModelSerializer):
             parents.append(parent.uri)
         return parents
 
-from branches.utils import generate_unique_uri
-class BranchUpdateSerializer(serializers.ModelSerializer):
+
+class APIException400(APIException):
+    status_code = 400
+
+
+class NewTagListSerializerField(TagListSerializerField):
+    def to_internal_value(self, value):
+        if isinstance(value, six.string_types):
+            value = value.split(',')
+
+        if not isinstance(value, list):
+            self.fail('not_a_list', input_type=type(value).__name__)
+
+        for s in value:
+            if not isinstance(s, six.string_types):
+                self.fail('not_a_str')
+
+            self.child.run_validation(s)
+        return value
+
+
+class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
+    tags = NewTagListSerializerField(required=False)
 
     def update(self, instance, validated_data):
-        uri = validated_data.pop('uri')
-        if uri and uri != instance.uri:
-            validated_uri = generate_unique_uri(uri)
-            instance.uri = validated_uri
+        try:
+            uri = validated_data.pop('uri')
+            if uri and uri != instance.uri:
+                validated_uri = generate_unique_uri(uri)
+                instance.uri = validated_uri
+        except KeyError:
+            pass
+
+        try:
+            image = validated_data.pop('branch_image')
+            instance.branch_image = encode_image(image)
+        except KeyError:
+            pass
+
+        try:
+            new_tags = validated_data.pop('tags')
+            instance.tags.set(*new_tags)
+        except KeyError:
+            pass
+
+        try:
+            name = validated_data.pop('name')
+            if name:
+                if instance.owner.owned_groups.filter(name=name).exists() and instance.name != name:
+                    raise APIException400("You already own a branch with this name")
+                else:
+                    instance.name = name
+        except KeyError:
+            pass
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
@@ -187,7 +285,8 @@ class BranchUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
         fields = ('branch_image', 'branch_banner', 'parents',
-                  'name', 'uri', 'accessibility', 'description', 'over_18','default')
+                  'name', 'uri', 'accessibility', 'description', 'over_18', 'default','tags')
+
 
 class CreateNewBranchSerializer(serializers.ModelSerializer):
     class Meta:
@@ -195,6 +294,7 @@ class CreateNewBranchSerializer(serializers.ModelSerializer):
         fields = ('owner','branch_image', 'branch_banner',
                   'name', 'uri', 'accessibility', 'description', 'default')
         read_only_fields = ('owner','accessibility',)
+
 
 class BranchAddFollowSerializer(serializers.ModelSerializer):
     class Meta:
@@ -207,6 +307,7 @@ class BranchAddFollowSerializer(serializers.ModelSerializer):
             instance.follows.add(*new_follow)
         return super().update(instance, validated_data)
 
+
 class BranchRemoveFollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
@@ -217,6 +318,7 @@ class BranchRemoveFollowSerializer(serializers.ModelSerializer):
             new_follow = validated_data.pop('follows',None)
             instance.follows.remove(*new_follow)
         return super().update(instance, validated_data)
+
 
 class AddReplySerializer(serializers.ModelSerializer):
     class Meta:
@@ -229,6 +331,7 @@ class AddReplySerializer(serializers.ModelSerializer):
             instance.replies.add(*new_reply)
         return super().update(instance, validated_data)
 
+
 class RemoveReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
@@ -239,6 +342,7 @@ class RemoveReplySerializer(serializers.ModelSerializer):
             new_reply = validated_data.pop('replies',None)
             instance.replies.remove(*new_reply)
         return super().update(instance, validated_data)
+
 
 class ChatImageSerializer(serializers.ModelSerializer):
     class Meta:
@@ -307,17 +411,16 @@ class BranchMessageSerializer(serializers.ModelSerializer):
 
 class PostImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model=PostImage
-        fields='__all__'
+        model = PostImage
+        fields = '__all__'
         read_only_fields = ['post']
 
 
 class PostVideoSerializer(serializers.ModelSerializer):
     class Meta:
-        model=PostVideo
-        fields='__all__'
+        model = PostVideo
+        fields ='__all__'
         read_only_fields = ['post']
-
 
 
 def create_message(instance):
@@ -355,6 +458,7 @@ def create_message(instance):
             }
         )
 
+
 class NewMessageSerializer(serializers.ModelSerializer):
     images = ChatImageSerializer(many=True,required=False)
     videos = ChatVideoSerializer(many=True,required=False)
@@ -367,7 +471,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
     def get_author_url(self,message):
         return message.author.uri
 
-
     def create(self, validated_data):
         request = self.context['request']
         branch_chat = self.context['branch_chat']
@@ -375,8 +478,6 @@ class NewMessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Not member of chat')
 
         # files are not accessible in validated data, use request.FILES instead
-        '''validated_data.pop('images')
-        validated_data.pop('videos')'''
 
         if not validated_data['message'] and not request.FILES:
             raise serializers.ValidationError('message and media are None')
@@ -384,12 +485,10 @@ class NewMessageSerializer(serializers.ModelSerializer):
 
         if 'images' in request.FILES:
             for image_data in request.FILES.getlist('images'):
-                print(image_data)
                 ChatImage.objects.create(branch_message=message,image=image_data)
 
         if 'videos' in request.FILES:
             for video_data in request.FILES.getlist('videos'):
-                print(video_data)
                 thumbnail = generate_thumbnail(video_data)
                 ChatVideo.objects.create(branch_message=message, video=video_data, thumbnail=thumbnail)
 
@@ -402,26 +501,32 @@ class NewMessageSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id','author_name','author_url')
 
-class NewPostSerializer(serializers.ModelSerializer):
-    replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(),required=False)
-    images = PostImageSerializer(many=True,required=False)
-    videos = PostVideoSerializer(many=True,required=False)
+
+class NewPostSerializer(TaggitSerializer,serializers.ModelSerializer):
+    tags = NewTagListSerializerField(required=False)
+    replied_to = serializers.PrimaryKeyRelatedField(queryset=Post.objects.all(), required=False)
+    images = PostImageSerializer(many=True, required=False)
+    videos = PostVideoSerializer(many=True, required=False)
 
     def create(self, validated_data):
-        print("got this fat")
         request = self.context['request']
         branch_uri = self.context['branch_uri']
         required_posted_to = request.user.owned_groups.get(uri=branch_uri)
         posted_to = validated_data.pop('posted_to')
+        new_tags = Tag.objects.none()
+
+        try:
+            new_tags = validated_data.pop('tags')
+        except KeyError:
+            pass
 
         # files are not accessible in validated data, use request.FILES instead
-        '''validated_data.pop('images')
-        validated_data.pop('videos')'''
 
         if not validated_data['text'] and not validated_data['text'].isspace() and not request.FILES:
             raise serializers.ValidationError('text and media are None')
 
         post = Post.objects.create(**validated_data)
+        post.tags.set(*new_tags)
 
         if post.replied_to:
             level = post.replied_to.level + 1
@@ -433,15 +538,12 @@ class NewPostSerializer(serializers.ModelSerializer):
 
         post.posted_to.add(required_posted_to)
 
-        print("files",type(request.FILES))
         if 'images' in request.FILES:
             for image_data in request.FILES.getlist('images'):
-                print(image_data)
                 PostImage.objects.create(post=post, image=image_data)
 
         if 'videos' in request.FILES:
             for video_data in request.FILES.getlist('videos'):
-                print(video_data)
                 thumbnail = generate_thumbnail(video_data)
                 PostVideo.objects.create(post=post, video=video_data, thumbnail=thumbnail)
 
@@ -449,11 +551,12 @@ class NewPostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('id','type','poster','posted','posted_to','replied_to','text','level','images','videos')
+        fields = ('id','type','poster','posted','posted_to','replied_to','text','level','images','videos','tags')
         read_only_fields = ('id','poster','level')
 
 
 class BranchPostSerializer(serializers.ModelSerializer):
+    poster_full = serializers.SerializerMethodField()
     poster = serializers.StringRelatedField()
     posted = serializers.StringRelatedField()
     posted_to = serializers.SerializerMethodField()
@@ -477,6 +580,9 @@ class BranchPostSerializer(serializers.ModelSerializer):
     spreads_count = serializers.SerializerMethodField()
     matches = serializers.SerializerMethodField()
     engagement = serializers.SerializerMethodField()
+
+    def get_poster_full(self, post):
+        return BranchSerializer(post.poster).data
 
     def get_posted_to_uri(self,post):
         uri_list = []
@@ -542,7 +648,6 @@ class BranchPostSerializer(serializers.ModelSerializer):
         return post.spreads.aggregate(Sum('times'))['times__sum']
 
     def get_images(self,post):
-        #return [i.image.url for i in post.images.all()]
         return PostImageSerializer(post.images.all(), many=True).data
 
     def get_videos(self,post):
@@ -598,7 +703,6 @@ class BranchPostSerializer(serializers.ModelSerializer):
     def get_engagement(self, post):
         difference = post.reacts.filter(type="star").count() - post.reacts.filter(type="dislike").count()
         react_sum = post.reacts.filter(type="star").count() + post.reacts.filter(type="dislike").count()
-        print(post.reacts.all())
         if difference <= 0:
             ratio = -1
         else:
@@ -607,20 +711,18 @@ class BranchPostSerializer(serializers.ModelSerializer):
         # add 1 in case of difference being 1
         like_score_selector = difference + 1
 
-        print("react",react_sum)
         if ratio == 1:
             like_score = math.log(max(react_sum + 1, 1) * 10, 10)
         else:
             like_score = math.log(max(react_sum + 1, 1) * 20, 20)
 
-        print(like_score)
         comment_score = math.log(max(post.replies.count(), 3), 3) * like_score
         order = comment_score
         return order
 
     class Meta:
         model = Post
-        fields = ('spreaders','id','posted','posted_id','posted_name','poster','poster_id','poster_name',
+        fields = ('spreaders','id','posted','posted_id','posted_name','poster_full','poster','poster_id','poster_name',
                   'poster_description','posted_to','text','type',
                   'created','updated','poster_picture','poster_banner',
                   'posted_picture','posted_banner','description',
@@ -694,7 +796,6 @@ class UpdateSpreadSerializer(serializers.ModelSerializer):
 
 class GenericNotificationRelatedField(serializers.RelatedField):
     def to_representation(self, value):
-        print(value)
         if isinstance(value, Branch):
             serializer = BranchSerializer(value)
         elif isinstance(value, BranchRequest):

@@ -22,7 +22,6 @@ axiosRetry(axios,
 
     
 const container = (theme) =>css({
-    height:'100%',
     display:'flex',
     flexFlow:'column',
     border:`1px solid ${theme.borderColor}`
@@ -193,7 +192,7 @@ function BranchRow({type,branch,endpoint}){
     }
 
     return(
-        branches?branches.length>0?<><div>
+        branches?branches.length>0 || type!='siblings'?<><div>
             <div>
                 <h1 css={theme=>header(theme)}>{infoText}</h1>
                     

@@ -5,7 +5,7 @@ import { css } from "@emotion/core";
 
 const headlineContainer = theme =>css({
     padding:'10px',borderBottom:`1px solid ${theme.borderColor}`,
-    backgroundColor:theme.backgroundColor
+    backgroundColor:'transparent'
 })
 
 const leftButtonSvg = theme =>css({

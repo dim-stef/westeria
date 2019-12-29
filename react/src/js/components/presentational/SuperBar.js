@@ -1,14 +1,18 @@
 import React, {useEffect,useRef,useState,useContext} from "react";
+import ReactDOM from "react-dom";
 import {Link,NavLink} from "react-router-dom";
 import history from "../../history";
 import {css} from "@emotion/core";
 import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs';
+import { useDrag } from 'react-use-gesture'
 import {useMediaQuery} from 'react-responsive';
 import {UserContext} from "../container/ContextContainer";
+import {useFollowingBranches,useTopLevelBranches} from "../container/BranchContainer";
 import {useTheme} from "../container/ThemeContainer";
+import {useTheme as useEmotionTheme} from "emotion-theming";
 import {StatusUpdate} from "./StatusUpdate";
 
-const dropdownList = (theme,getTheme) =>css({
+const dropdownList = (theme,getTheme,ref) =>css({
     display:'flex',
     flexFlow:'column',
     position:'absolute',
@@ -17,7 +21,9 @@ const dropdownList = (theme,getTheme) =>css({
     padding:'5px 0',
     boxShadow:'0px 2px 4px -1px #000000',
     minWidth:'100px',
-    borderRadius:5
+    borderRadius:5,
+    top:ref.current.getBoundingClientRect().y + ref.current.clientHeight,
+    left:ref.current.getBoundingClientRect().x - 15
 })
 
 const optionCss = (theme,isMobile) =>css({
@@ -40,9 +46,8 @@ const optionCss = (theme,isMobile) =>css({
 })
 
 const superBar = () =>css({
-    height:50,
-    marginBottom:5,
     boxSizing:'border-box',
+    overflow:'hidden',
     '@media (max-device-width: 767px)':{
         margin:0
     }
@@ -198,22 +203,181 @@ export function SuperBar({postsContext,refresh,branch,isFeed,updateFeed,postedId
                 </div>
                 {userContext.isAuth?<StatusUpdateButton branch={branch} updateFeed={updateFeed} 
                 postedId={postedId} isFeed={isFeed} postsContext={postsContext}/>:null}
-                
             </div>
         </div>
+    )
+}
+
+const swipeableBarWrapper = theme =>css({
+    paddingTop:'10px',
+    boxSizing:'border-box',
+    height:'inherit',
+    display:'flex',
+    width:'fit-content',
+    willChange:'transform'
+})
+
+const bubble = theme =>css({
+    userSelect:'none',
+    userDrag:'none',
+    padding:'5px 15px',
+    fontSize:'1.4rem',
+    fontWeight:'bold',
+    backgroundColor:theme.hoverColor,
+    borderRadius:25,
+    margin:'0 3px',
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    width:'max-content',
+    'a':{
+        color:theme.textColor,
+        textDecoration:'none',
+        width:'max-content',
+        height:'100%',
+        display:'flex',
+        justifyContent:'center',
+        alignItems:'center',
+        userSelect:'none',
+        userDrag:'none',
+    }
+})
+
+export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,postedId,width}){
+    const theme = useEmotionTheme();
+    const userContext = useContext(UserContext);
+    const barRef = useRef(null);
+    const containerRef = useRef(null);
+    const shouldClick = useRef(true);
+    const fillerBranches = userContext.isAuth?useFollowingBranches():useTopLevelBranches();
+
+    const [props, set] = useSpring(() => ({
+        from:{ x:0 },
+        config:{tension:370,friction:27},
+    }))
+
+    const bind = useDrag(({ down,movement:[mx,my], offset: [ox, oy],delta:[dx,dy], velocity,direction:[xDir,yDir],
+        memo = props.x.getValue() }) => {
+        let rect = barRef.current.getBoundingClientRect();
+
+        let x = mx + memo;
+
+        // user is swiping / dragging, should not click
+        if(Math.abs(mx)>5){
+            shouldClick.current = false;
+        }else{
+            shouldClick.current = true;
+        }
+
+        if(!down){
+
+            // if out of bounds on right side, dock to right
+            if(rect.right <= containerRef.current.clientWidth + 10){
+                x = -(rect.width - containerRef.current.clientWidth)
+            }
+
+            // if out of bounds on right side, dock to left
+            if(x > 0){
+                x = 0;
+            }
+        }
+        
+        set({ x:x })
+
+        return memo
+    })
+
+    function onClickCapture(e){
+        if(!shouldClick.current){
+            e.stopPropagation();
+        }
+    }
+
+    return(
+        <div css={superBar} ref={containerRef} style={{width:width}} onClickCapture={onClickCapture}>
+            <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()}
+            style={{transform:props.x.interpolate(x=>`translateX(${x}px)`)}}>
+                {userContext.isAuth?<div css={bubble}><StatusUpdateButton branch={branch} updateFeed={updateFeed} 
+                postedId={postedId} isFeed={isFeed} postsContext={postsContext} width={width} 
+                containerRef={containerRef}
+                /></div>:null}
+                <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
+                {(isFeed && userContext.isAuth) || !isFeed?
+                <div css={bubble}><Branches branch={branch} shouldClick={shouldClick}/></div>:null}
+                {(isFeed && userContext.isAuth)?
+                <>
+                    <BubbleNavLink to="/" label="Feed" shouldClick={shouldClick}/>
+                    <BubbleNavLink to="/tree" label="Tree" shouldClick={shouldClick}/>
+                    <BubbleNavLink to="/all" label="All" shouldClick={shouldClick}/>
+                </>:null}
+                {!isFeed?
+                <>
+                    <BubbleNavLink to={`/${branch.uri}`} label={branch.name} shouldClick={shouldClick}/>
+                    <BubbleNavLink to={`/${branch.uri}/tree`} label="Tree" shouldClick={shouldClick}/>
+                    <BubbleNavLink to={`/${branch.uri}/community`} label="Community" shouldClick={shouldClick}/>
+                </>:null}
+                {fillerBranches && fillerBranches.length > 0?
+                    fillerBranches.map(b=>{
+                        return <React.Fragment key={b.uri}>
+                            <BubbleBranch branch={b}/>
+                        </React.Fragment>
+                    }):null}
+            </animated.div>
+        </div>
+    )
+}
+
+function BubbleBranch({branch}){
+
+    function handleClick(){
+        history.push(`/${branch.uri}`)
+    }
+
+    return <div css={bubble} onClick={handleClick}>
+    <div css={{display:'flex'}}>
+        <img src={branch.branch_image} css={{width:20,height:20,objectFit:'cover',borderRadius:'50%',
+        marginRight:10}}/>
+        <span>{branch.name}</span>
+    </div></div>
+}
+
+function BubbleNavLink({to,label,shouldClick}){
+
+    const ref = useRef(null);
+
+    function shouldPreventDefault(e){
+        if(!shouldClick.current){
+            e.preventDefault();
+        }
+    }
+
+    useEffect(()=>{
+        if(ref.current){
+            ref.current.addEventListener('click',shouldPreventDefault)
+        }
+
+        return ()=>{
+            if(ref.current){
+                ref.current.removeEventListener('click',shouldPreventDefault)
+            }
+        }
+    },[ref])
+
+    return(
+        <div ref={ref} css={bubble}><NavLink to={to} draggable="false"
+        onClick={shouldPreventDefault}>{label}</NavLink></div>
     )
 }
 
 function Branches({branch}){
 
     function handleClick(){
-
         history.push(`/${branch.uri}/branches`);
     }
 
     return(
-        <div role="button" onClick={handleClick} css={theme=>({color:theme.textHarshColor,fontWeight:'bold',
-        fontSize:'1.7em',cursor:'pointer'})}>
+        <div role="button" onClick={handleClick} css={theme=>({
+        cursor:'pointer',width:'max-content'})}>
             {branch.branch_count?branch.branch_count:null} Branches
         </div>
     )
@@ -278,6 +442,7 @@ function SuperDropDown({options,children}){
     const [shown,setShown] = useState(false);
     const [selected,setSelected] = useState(options[0]);
     const [list,setList] = useState(options);
+    const ref = useRef(null);
     const getTheme = useTheme();
     const easing = bezier(0.25, 0.63, 0.76, 1.01);
 
@@ -312,38 +477,42 @@ function SuperDropDown({options,children}){
     }
 
     return(
-        <div style={{position:'relative',zIndex:2}}>
-            { React.cloneElement( children, { onClick: handleClick } ) }
+        <div ref={ref} style={{position:'relative',zIndex:2}} css={{display:'flex'}}>
+        { React.cloneElement( children, { onClick: handleClick } ) }
             {transitions.map(({ item, props, key }) => {
-            return item && <animated.div key={key} css={(theme)=>dropdownList(theme,getTheme)}
-            style={props}>
-                {list.map(o=>{
-                    return(
-                        <React.Fragment key={o.value}><Option option={o}
-                            handleOptionClick={handleOptionClick}
-                            setSelected={list.onChildSelect?list.onChildSelect:()=>{}}
-                        /></React.Fragment>
-                    )
-                })}
+            return item && ReactDOM.createPortal(
+                <animated.div key={key} css={(theme)=>dropdownList(theme,getTheme,ref)}
+                    style={props}>
+                        {list.map(o=>{
+                            return(
+                                <React.Fragment key={o.value}><Option option={o}
+                                    handleOptionClick={handleOptionClick}
+                                    setSelected={list.onChildSelect?list.onChildSelect:()=>{}}
+                                /></React.Fragment>
+                            )
+                        })}
                 
-            </animated.div>})}
+            </animated.div>,document.getElementById('hoverable-element-root')) })}
         </div>
     )
 }
 
 
-function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext}){
+function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext,containerRef,width}){
     const getTheme = useTheme();
     const [show,setShow] = useState(false);
     const transitions = useTransition(show, null, {
         from: { opacity: 0 },
-        enter: { opacity: 1, transform: 'translateY(50px)'},
-        leave: { opacity: 1, transform: 'translateY(0)' },
+        enter: { opacity: 1},
+        leave: { opacity: 0},
+        config:{duration:200}
     })
     
     function handleClick(){
         setShow(!show);
     }
+
+    const rect = containerRef.current?containerRef.current.getBoundingClientRect():{};
 
     return(
         <>
@@ -351,14 +520,16 @@ function StatusUpdateButton({branch,isFeed,updateFeed,postedId,postsContext}){
         backgroundColor:getTheme.dark?'#090a10':'#efefef',zIndex:3})}>
             <PlusSvg/>
         </div>
-        {transitions.map(({ item, props, key }) => {
+        {ReactDOM.createPortal(transitions.map(({ item, props, key }) => {
             return (
-                item && <animated.div key={key} css={{width:'100%',height:50,position:'absolute',zIndex:0,left:0}}
-                style={props}>
-                    <StatusUpdate activeBranch={branch} postsContext={postsContext} updateFeed={updateFeed} 
-                    postedId={postedId} isFeed={isFeed} redirect/>
+                item && 
+                <animated.div key={key} css={{width:width,position:'fixed',zIndex:0,left:rect.left,top:rect.y + 60}}
+                    style={props}>
+                        <StatusUpdate activeBranch={branch} postsContext={postsContext} updateFeed={updateFeed} 
+                        postedId={postedId} isFeed={isFeed} redirect/>
                 </animated.div>
-        )})}
+                
+        )}),document.getElementById('hoverable-element-root'))}
         </>
     )
 }
@@ -372,9 +543,6 @@ const icon = theme =>css({
     overflow:'visible',
     fill:theme.textHarshColor,
     cursor:'pointer',
-    '&:hover':{
-        backgroundColor:theme.embeddedHoverColor
-    }
 })
 
 const FilterSvg = props =>{

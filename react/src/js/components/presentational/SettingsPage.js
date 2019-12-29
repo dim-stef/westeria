@@ -9,10 +9,11 @@ import {useMyBranches} from "../container/BranchContainer"
 import {CachedBranchesContext, UserContext} from "../container/ContextContainer";
 import {BranchSwitcher} from "./BranchSwitcher"
 import RoutedHeadline from "./RoutedHeadline"
+import {ArrowSvg} from "./Svgs"
 import axios from 'axios'
-
 import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
+import {CreateableTagSelector} from "./TagSelector";
 import "react-toggle/style.css"
 
 axiosRetry(axios, 
@@ -32,6 +33,14 @@ const settingLabel = theme =>css({
     fontSize:'1.5em',
     padding:'20px 0 5px',
     color:theme.textLightColor
+})
+
+const info = theme =>css({
+    fontSize:'1.3rem',
+    color:theme.textLightColor,
+    marginBottom:10,
+    display:'block',
+    maxWidth:'80%'
 })
 
 const settingInput = theme =>css({
@@ -236,49 +245,51 @@ function Setting({children}){
 }
 
 
-function UpdateBranch({branch}){
+export function UpdateBranch({branch,postRegister=false,children,postRegisterAction=()=>{},submittionFunc}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
+    const [tags,setTags] = useState(branch.tags.map(tag=>{return {label:tag,value:tag}}));
+    const initTags = useRef(tags);
 
     let initialValues={
         name:branch.name,
         uri:branch.uri,
         description:branch.description,
-        default:branch.default
+        default:branch.default,
+        tags:initTags.current
     }
 
     function updateContext(contextBranches,data){
+
         var index = contextBranches.findIndex(b => b.uri==branch.uri);
         contextBranches[index] = {
             ...contextBranches[index],
             ...data
         }
+
+        userContext.updateBranches(contextBranches,data)
     }
 
-    function resetDefaultBranch(){
-        // there can only be one default branch so when the default branch
-        // changes the others need to be notified to get turned off
-
-        // if there are two default branches we find the intersection between
-        // the two contexts
-        let defaultBranch = userContext.branches.find(b=>b.default)
-        let intersection = cachedBranches.owned.find(b=>b.uri==defaultBranch.uri);
-
-        // we turn off the other defaults
-        cachedBranches.owned.filter(b=>b.uri!=intersection.uri).forEach(b=>{
-            b.default = false;
-        })
+    function resetDefaultBranch(branch){
+        if(branch.default){
+            userContext.branches.filter(b=>b.uri != branch.uri).forEach(b=>{
+                b.default = false
+            })
+            cachedBranches.owned = userContext.branches
+        }
     }
 
     async function onSubmit(values){
+
         let errors = {};
         let form = document.getElementById("branchForm");
         let description = document.getElementById('description');
         description.value = description.value.replace(/(\r\n|\n|\r)/gm, "")
         var formData = new FormData(form)
+        let newTags = tags.map(t=>t.label).join(", ");
+        formData.append('tags',newTags)
         let url = `/api/branches/update/${branch.uri}/`;
          
-
         try{
             let response = await axios.patch(
                 url,
@@ -291,21 +302,26 @@ function UpdateBranch({branch}){
                 })
             
             let updatedBranchResponse = await axios.get(`/api/branches/${response.data.uri}/`);
-        
-            //updateContext(userContext.branches,updatedBranchResponse.data);
-            userContext.updateBranch(branch,updatedBranchResponse.data)
+
+            // only one branch can be default so disable all others if default has changed
+            resetDefaultBranch(updatedBranchResponse.data);
+
+            // update userContext
+            updateContext(userContext.branches,updatedBranchResponse.data);
+
+            // update cached branches
             updateContext(cachedBranches.owned,updatedBranchResponse.data);
-            resetDefaultBranch();
-        }catch(err){
-            
+        }catch(e){
+
         }
-        
         return errors;
     }
 
     return(
+        postRegister?<PostRegisterForm onSubmit={onSubmit} initialValues={initialValues}
+        branch={branch} submittionFunc={submittionFunc} postRegisterAction={postRegisterAction}></PostRegisterForm>:
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
-            branch={branch}
+            branch={branch} tags={tags} setTags={setTags}
         />
     )
 }
@@ -313,12 +329,14 @@ function UpdateBranch({branch}){
 function CreateNewBranch(){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
+    const [tags,setTags] = useState([]);
 
     let initialValues={
         name:'',
         uri:'',
         description:'',
-        default:false
+        default:false,
+        tags:[]
     }
 
     async function onSubmit(values){
@@ -327,6 +345,8 @@ function CreateNewBranch(){
         let description = document.getElementById('description');
         description.value = description.value.replace(/(\r\n|\n|\r)/gm, "")
         var formData = new FormData(form);
+        let newTags = tags.map(t=>t.label).join(", ");
+        formData.append('tags',newTags)
         let errors = {};
         let url = `/api/branches/new/`;
 
@@ -341,7 +361,6 @@ function CreateNewBranch(){
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                 })
-             
             let updatedResponse = await axios.get(`/api/branches/${response.data.uri}/`)
             if(updatedResponse.status == 200){
                 userContext.branches.push(updatedResponse.data);
@@ -350,7 +369,7 @@ function CreateNewBranch(){
                 history.push('/')
             }
         }catch(e){
-             
+            errors = e.response.data
         }
         
         return errors;
@@ -358,24 +377,157 @@ function CreateNewBranch(){
 
     return(
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
-            createNew
+            createNew tags={tags} setTags={setTags}
         />
     )
 }
 
-function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
+export function PostRegisterForm({onSubmit,initialValues,branch,submittionFunc,postRegisterAction}){
+    const theme = useTheme();
+
+    return(
+        <Form onSubmit={onSubmit} initialValues={initialValues}
+            render={({handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors })=>{
+
+                submittionFunc.current = handleSubmit;
+
+                return(
+                    <form id="branchForm" style={{width:'100%'}} onSubmit={handleSubmit}>
+                        <h1 style={{margin:'20px 0'}}>Customize your profile before you go in</h1>
+
+                        <div style={{margin:'5px 0'}}>
+                            <GenericProfile branch={branch}/>
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <UriField branch={branch}/>                       
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <DescriptionField initialValues={initialValues}/>  
+                        </div>
+                        <div css={{display:'flex',justifyContent:'flex-end'}}>
+                            <div role="button" onClick={postRegisterAction}>                   
+                                <ArrowSvg css={{height:15,width:15,padding:10,borderRadius:'50%',backgroundColor:'#2397f3',
+                                fill:'white',transform:'rotate(180deg)'}}/>
+                            </div>
+                        </div>
+                    </form>
+                )
+            }}
+        />
+    )
+}
+
+function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null}){
     const theme = useTheme();
     const profileRef = useRef(null);
     const bannerRef = useRef(null);
     const wrapperRef = useRef(null);
-    const [remainingCharacters,setRemainingCharecters] = 
-    useState(initialValues.description?140 - initialValues.description.length:140)
 
     let isDefaultSwitchDisabled = false;
     if(!createNew && branch.default){
         isDefaultSwitchDisabled = true;
     }
 
+    function handleChange(values){
+        setTags(values);
+    }
+
+    return(
+        <Form onSubmit={onSubmit}
+            initialValues={initialValues}
+            render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
+                return (
+                    <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
+                        <div style={{margin:'5px 0'}}>
+                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
+                            <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
+                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+                            </div>
+                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
+                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
+                        </div>
+                        <div>
+                            <label css={theme=>settingLabel(theme)}>Name</label>
+                            <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <UriField branch={branch}/>                       
+                        </div>
+
+                        <div style={{margin:'5px 0'}}>
+                            <DescriptionField initialValues={initialValues}/>  
+                        </div>
+                        
+                        <div style={{margin:'5px 0'}}>
+                            <Field name="default" type="checkbox">
+                                {({ input, meta }) => (
+                                    <div>
+                                        <label css={theme=>settingLabel(theme)}>Default</label>
+                                        <span css={info}>Enable this if you want to log in as this branch 
+                                        each time you load westeria</span>
+                                        <Toggle checked={input.value} {...input} disabled={isDefaultSwitchDisabled} 
+                                        icons={false} className="toggle-switch"/>
+                                    </div>
+                                )}
+                            </Field>
+                        </div>
+                        <div style={{margin:'5px 0'}}>
+                            <Field
+                            name="tags">
+                            {({ input, ...rest  }) => {
+                                return <div>
+                                    <label css={theme=>settingLabel(theme)}>Tags</label>
+                                    <span css={info}>Tags are used to identify your community.
+                                    Your community members will be able to create content with these selected tags</span>
+                                    <CreateableTagSelector tags={tags} setTags={setTags} onChange={handleChange} 
+                                    {...input} {...rest}/>
+                                </div>
+                            }}
+                            </Field>
+                        </div>
+                        {submitSucceeded?<p className="form-succeed-message">{createNew?
+                        'Successfully created branch':'Successfully saved changes'}</p>:null}
+                        {submitFailed?<p className="form-error-message">An error occured</p>:null}
+                        <Save submitting={submitting} submitSucceeded={submitSucceeded} pristine={pristine} invalid={invalid}/>
+                    </form>
+                )}
+            }>
+        </Form>
+    )
+}
+
+export function DescriptionField({initialValues}){
+    const [remainingCharacters,setRemainingCharecters] = 
+    useState(initialValues.description?140 - initialValues.description.length:140)
+
+    function validateRemainingCharacters(){
+        let textarea = document.getElementById('description')
+        if(textarea.value>140){
+            return `Too many characters (${textarea.value}). Maximum length is 140 characters`;
+        }
+        setRemainingCharecters(140 - textarea.value.length)
+    }
+    return(
+        <Field name="description"
+        validate={validateRemainingCharacters}>
+            {({ input, meta }) => (
+            <div>
+                <label css={theme=>settingLabel(theme)}>Description</label>
+                <textarea {...input} css={theme=>settingInput(theme)}
+                style={{resize:'none',maxHeight:400,minHeight:100,width:'90%'}} 
+                placeholder="Type something that describes your branch" id="description" maxLength="140" />
+                <span className="setting-info">{remainingCharacters} characters left.</span>
+                {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
+            </div>
+            )}
+        </Field>   
+    )
+}
+
+export function UriField({branch=null}){
     const simpleMemoize = fn => {
         let lastArg;
         let lastResult;
@@ -409,7 +561,6 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
              
         }
 
-
         return undefined;
       });
 
@@ -421,90 +572,27 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch}){
         }
     }
 
-    function validateRemainingCharacters(){
-        let textarea = document.getElementById('description')
-        if(textarea.value>140){
-            return `Too many characters (${textarea.value}). Maximum length is 140 characters`;
-        }
-        setRemainingCharecters(140 - textarea.value.length)
-    }
-
     return(
-        <Form onSubmit={onSubmit}
-            initialValues={initialValues}
-            render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
-                return (
-                    <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
-                        <div>
-                            <label css={theme=>settingLabel(theme)}>Name</label>
-                            <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
-                        </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <Field name="uri"
-                            validate={usernameAvailable}>
-                                {({ input, meta }) => (
-                                <div>
-                                    <label css={theme=>settingLabel(theme)}>Username</label>
-                                    <input {...input} css={theme=>settingInput(theme)} type="text" placeholder="Username" maxLength="60" />
-                                    {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
-                                    {/*{meta.validating && <p>loading</p>}*/}
-                                    <span className="setting-info">Maximum of 60 characters</span>
-                                </div>
-                                )}
-                            </Field>
-                            <Error name="uri"/>
-                            <OnChange name="uri">
-                                {(value, previous) => {
-                                    cancelSearch(value,previous);
-                                }}
-                            </OnChange>                        
-                        </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <Field name="description"
-                            validate={validateRemainingCharacters}>
-                                {({ input, meta }) => (
-                                <div>
-                                    <label css={theme=>settingLabel(theme)}>Description</label>
-                                    <textarea {...input} css={theme=>settingInput(theme)}
-                                    style={{resize:'none',maxHeight:400,minHeight:100,width:'90%'}} 
-                                    placeholder="Type something that describes your branch" id="description" maxLength="140" />
-                                    <span className="setting-info">{remainingCharacters} characters left.</span>
-                                    {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
-                                </div>
-                                )}
-                            </Field>             
-                        </div>
-
-                        <div style={{margin:'5px 0'}}>
-                            <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image And Banner</label>
-                            <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
-                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
-                                <Banner branch={branch} wrapperRef={wrapperRef} bannerRef={bannerRef} createNew={createNew}/>
-                            </div>
-                            {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
-                            {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
-                        </div>
-                        <div style={{margin:'5px 0'}}>
-                            <Field name="default" type="checkbox">
-                                {({ input, meta }) => (
-                                    <div>
-                                        <label css={theme=>settingLabel(theme)}>Default</label>
-                                        <Toggle checked={input.value} {...input} disabled={isDefaultSwitchDisabled} 
-                                        icons={false} className="toggle-switch"/>
-                                    </div>
-                                )}
-                            </Field>
-                        </div>
-                        {submitSucceeded?<p className="form-succeed-message">{createNew?
-                        'Successfully created branch':'Successfully saved changes'}</p>:null}
-                        {submitFailed?<p className="form-error-message">An error occured</p>:null}
-                        <Save submitting={submitting} submitSucceeded={submitSucceeded} pristine={pristine} invalid={invalid}/>
-                    </form>
-                )}
-            }>
-        </Form>
+        <>
+        <Field name="uri"
+        validate={usernameAvailable}>
+            {({ input, meta }) => (
+            <div>
+                <label css={theme=>settingLabel(theme)}>Username</label>
+                <input {...input} css={theme=>settingInput(theme)} type="text" placeholder="Username" maxLength="60" />
+                {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
+                {/*{meta.validating && <p>loading</p>}*/}
+                <span className="setting-info">Maximum of 60 characters</span>
+            </div>
+            )}
+        </Field>
+        <Error name="uri"/>
+        <OnChange name="uri">
+            {(value, previous) => {
+                cancelSearch(value,previous);
+            }}
+        </OnChange>
+        </>
     )
 }
 
@@ -590,7 +678,7 @@ function Password({name,placeholder,label}){
 
 function Save({submitting,pristine,invalid,submitSucceeded}){
     return(
-        <button className="form-save-button" type="submit" disabled={submitting || pristine || invalid}>
+        <button className="form-save-button" type="submit" disabled={submitting || invalid}>
             Save
         </button>
     )
@@ -607,6 +695,23 @@ const Error = ({ name }) => (
       }
     />
   );
+
+
+
+export function GenericProfile({branch=null,createNew,className=""}){
+    const wrapperRef=useRef(null);
+    const profileRef=useRef(null);
+
+    return(
+        <>
+        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
+        <div className={`flex-fill avatar-banner-wrapper ${className}`} ref={wrapperRef}>
+            <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} 
+            profileRef={profileRef} createNew={createNew}/>
+        </div>
+        </>
+    )
+}
 
 export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_image",showError=false}){
     const theme = useTheme();
@@ -630,7 +735,8 @@ export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_i
             <div>
                 <label style={{height:'100%',padding:0}} css={theme=>settingLabel(theme)} htmlFor="branch-image">
                     <ImageInput key="profile" src={src?src:null} wrapperRef={wrapperRef} nodeRef={profileRef} 
-                    getWidth={width=>width} className="round-picture branch-profile-setting" alt="Profile"
+                    getWidth={width=>width} className="round-picture" 
+                    css={theme=>({height:'100%',objectFit:'cover',border:`1px solid ${theme.borderColor}`})} alt="Profile"
                     extraStyle={{border:`1px solid ${theme.borderColor}`}}
                     />
                 </label>
@@ -682,7 +788,7 @@ function Banner({branch,wrapperRef,bannerRef,createNew}){
     )
 }
 
-function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt,extraStyle}){
+function ImageInput({src,nodeRef,wrapperRef,getWidth,className,alt,extraStyle={}}){
     const [source,setSource] = useState(src);
     const [width,setWidth] = useState(0);
     const [lineHeight,setLineHeight] = useState(0);

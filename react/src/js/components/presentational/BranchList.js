@@ -20,7 +20,7 @@ export function SmallBranchList({branches}){
                         </div> 
                     </Link>
                 </div>
-                <FollowButton id={b.id} uri={b.uri}/>
+                <FollowButton branch={b}/>
             </div>
         )
     })

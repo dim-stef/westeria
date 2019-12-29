@@ -9,6 +9,7 @@ import {Page} from '../Page'
 import Login from "./Login"
 import Logout from "./Logout"
 import Register from "./Register"
+import PostRegister from "./PostRegister"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
 import EmailConfirm from "./EmailConfirm"
@@ -72,12 +73,6 @@ function RouteTransition({location,children}){
                             </TransitionGroup>*/
 const Routes = () =>{
 
-  /*function beforeUnload(e){
-    localStorage.setItem('has_seen_tour',true)
-  }
-
-  useBeforeunload(beforeUnload)*/
-
   function updateTour(){
     localStorage.setItem('has_seen_tour',true)
   }
@@ -94,6 +89,7 @@ const Routes = () =>{
           <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
           <Route exact path='/login' component={(props) => <Login {...props} />} />
           <Route exact path='/register' component={(props) => <Register {...props} />} />
+          <Route exact path='/register/edit' render={(props) => <PostRegister {...props} />} />
           <Route exact path='/password/reset' component={PasswordReset} />
           <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
           <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
@@ -133,8 +129,8 @@ const RoutesWrapper = (props) =>{
 
 
 const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeout, children }){
-  const isMobile = useMediaQuery({
-    query: '(max-device-width: 767px)'
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
   })
 
   const location = useLocation();
@@ -171,7 +167,7 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   }, [location]);
 
   return(
-    isMobile?<TransitionGroup component={null}>
+    isMobileOrTablet?<TransitionGroup component={null}>
       <CSSTransition
         key={key}
         timeout={animationTimeout}
@@ -195,11 +191,11 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
 });
 
 const AnimatedRoute = (props) => {
-  const isMobile = useMediaQuery({
-    query: '(max-device-width: 767px)'
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
   })
 
-  let mobileCss = isMobile?{
+  let mobileCss = isMobileOrTablet?{
       position:'absolute',
       top:0,
       bottom:0,
@@ -207,14 +203,15 @@ const AnimatedRoute = (props) => {
       right:0,
   }:{}
   return (
-  <div id="transition-container" className={isMobile?"mobile-transition-container":''} css={{
+  <div id="transition-container" className={isMobileOrTablet?"mobile-transition-container":''} css={{
       ...mobileCss,
-      display:isMobile?'block':'flex',
+      display:isMobileOrTablet?'block':'flex',
       width:'100%',
     }}>
       <Route {...props} />
     </div>
 )};
+
 export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
@@ -257,9 +254,12 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute path='/search' component={SearchPage} />
             <AnimatedRoute path='/about' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/create_conversation' 
+            render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' 
+            render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute path='/messages/:roomName?' 
+            render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
               
             <AnimatedRoute exact path='/:uri/leaves/:externalId' render={({match}) => 
             
@@ -302,25 +302,25 @@ function SingularPostWrapper({externalPostId}){
         <>
             <Desktop>
                 <DesktopParentBranchWrapper branch={userContext.currentBranch}>
-                  <ul className="post-list" css={theme=>postWrapper(theme)}>
+                  <div className="post-list" css={theme=>postWrapper(theme)}>
                       <SingularPost postId={externalPostId} postsContext={singularPostContext}
                       activeBranch={userContext.currentBranch}
-                  /></ul>
+                  /></div>
                 </DesktopParentBranchWrapper>
             </Desktop>
 
             <Tablet>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
+                <div className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
-                /></ul>
+                /></div>
             </Tablet>
 
             <Mobile>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
+                <div className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
-                /></ul>
+                /></div>
             </Mobile>
             
         </>
@@ -448,7 +448,7 @@ function BranchFrontPage(props){
         <>
         <Desktop>
             <div css={{flex:1}}>
-                <div style={{marginTop:10}}>
+                <div>
                     <div className="flex-fill" style={{width:'100%'}}>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}

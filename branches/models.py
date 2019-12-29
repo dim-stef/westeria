@@ -6,17 +6,32 @@ from django.core.exceptions import ValidationError,SuspiciousOperation
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from push_notifications.models import APNSDevice, GCMDevice
+from taggit.managers import TaggableManager
 from io import BytesIO
 from PIL import Image
 from accounts.models import User
 from branchchat.models import BranchChat
 from branchposts.models import Post
 from notifications.models import Notification
+from tags.models import GenericStringTaggedItem
 from core.utils import JPEGSaveWithTargetSize
 from .utils import generate_unique_uri
 import uuid
+import hashlib
 import datetime
 
+def generate_sha(file):
+    sha = hashlib.sha1()
+    file.seek(0)
+    while True:
+        buf = file.read(104857600)
+        if not buf:
+            break
+        sha.update(buf)
+    sha1 = sha.hexdigest()
+    file.seek(0)
+
+    return sha1
 
 def uuid_int():
     uid = uuid.uuid4()
@@ -27,10 +42,6 @@ def calculate_trending_score(posts):
     spread_count = 0
     for post in posts:
         spread_count+=post.spreads.count()
-    '''if posts.count()==0:
-        avg = 0
-    else:
-        avg = spread_count/posts.count()'''
     return spread_count
 
 def deEmojify(inputString):
@@ -38,12 +49,13 @@ def deEmojify(inputString):
 
 
 class BranchQuerySet(models.QuerySet):
-    def siblings(self,uri):
+    def siblings(self, uri):
         parents = Branch.objects.get(uri__iexact=uri).parents.all()
         siblings = Branch.objects.filter(parents__in=parents) \
             .exclude(uri__iexact=uri) \
             .distinct()
         return siblings
+
 
 class Branch(models.Model):
     class Meta:
@@ -56,9 +68,20 @@ class Branch(models.Model):
         (INVITE_ONLY, 'Invite only'),
     )
 
+    USER = 'US'
+    COMMUNITY = 'CM'
+    HUB = 'HB'
+
+    TYPE = (
+        (USER, 'User'),
+        (COMMUNITY, 'Community'),
+        (HUB, 'Hub')
+    )
+
     branch_image = models.ImageField(upload_to='images/group_images/profile',
                                     default='images/group_images/profile/default.jpeg',
                                     blank=False)
+    #branch_image_sha1 = models.CharField(max_length=40)
     branch_banner = models.ImageField(upload_to='images/group_images/banner',
                                      default='images/group_images/banner/default.png',
                                      blank=False)
@@ -67,20 +90,27 @@ class Branch(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
+    branch_type = models.CharField(default=USER, choices=TYPE, max_length=2)
     parents = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="children")
     follows = models.ManyToManyField('self', blank=True, null=True, symmetrical=False, related_name='followed_by')
     name = models.CharField(blank=False, null=False, default='unnamed', max_length=30)
     accessibility = models.CharField(default=PUBLIC, choices=ACCESSIBILITY, max_length=2)
     description = models.TextField(blank=True, null=True, max_length=140)
     over_18 = models.BooleanField(default=False)
-    uri = models.CharField(blank=False, null=False, default=uuid.uuid4,unique=True, max_length=60)
+    uri = models.CharField(blank=False, null=False, default=uuid.uuid4, unique=True, max_length=60, db_index=True)
     default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    trending_score = models.DecimalField(max_digits=14,decimal_places=5,default=0.0)
+    trending_score = models.DecimalField(max_digits=14, decimal_places=5,default=0.0)
+    tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
+    is_branchable = models.BooleanField(default=False)
+
+    # Whether the branch can "host" tags
+    # By default all posts tagged with "example_tag" will appear in the branches which contain
+    # the tag "example_tag"
+    is_hostable = models.BooleanField(default=True)
 
     def __str__(self):
         return self.uri
-
 
     def clean(self, *args, **kwargs):
         self.uri = deEmojify(self.uri)
@@ -89,7 +119,6 @@ class Branch(models.Model):
             for branch in owned_branches:
                 branch.default = False
                 branch.save()
-
 
     def encode_image(self,image):
         try:
@@ -108,7 +137,6 @@ class Branch(models.Model):
         except OSError as e:
             return None
 
-
     def save(self, *args, **kwargs):
         if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
             self.uri = generate_unique_uri(self.name)
@@ -119,15 +147,23 @@ class Branch(models.Model):
         if self.pk:
             self.full_clean()
 
-        self.branch_image = self.encode_image(self.branch_image)
-        self.branch_banner = self.encode_image(self.branch_banner)
         super().save(*args, **kwargs)
 
     objects = BranchQuerySet.as_manager()
 
+# Remove previous uri and name from tags in case they changes
+@receiver(pre_save, sender=Branch)
+def remove_old_tags(sender, instance, **kwargs):
+    instance.tags.remove(instance.uri)
+    instance.tags.remove(instance.name)
+
+# Add the new uri and name to tags in case they changes
+@receiver(post_save, sender=Branch)
+def add_new_tags(sender, instance, **kwargs):
+    instance.tags.add(instance.uri, instance.name)
+
 
 def validate_manytomany(self,instance,target):
-    #self.delete()
     if instance == target:
         raise ValidationError('Cannot branch to the same branch')
 
@@ -224,9 +260,6 @@ from asgiref.sync import async_to_sync
 from django.core import serializers
 
 # assuming obj is a model instance
-
-
-
 @receiver(post_save, sender=BranchRequest)
 def create_notification(sender, instance, created, **kwargs):
     if created and instance.request_from is not instance.request_to:
