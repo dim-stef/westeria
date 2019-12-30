@@ -105,7 +105,8 @@ const Routes = () =>{
 const makeGlobalStyles = (theme,isMobileOrTablet) => css`
   html{
     overflow:${isMobileOrTablet?'auto':'unset'};
-  },
+  }
+  
   body {
     background: ${theme.backgroundColor};
     color: ${theme.textColor};

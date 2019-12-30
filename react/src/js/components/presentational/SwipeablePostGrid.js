@@ -177,8 +177,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     safari.pushNotification.toString() === '[object SafariRemoteNotification]';
 
     function isSafariVendor() {
-        if (navigator.vendor.match(/[Aa]+pple/g).length > 0 ) 
-          return true; 
+        if (navigator.vendor.match(/[Aa]+pple/g) && navigator.vendor.match(/[Aa]+pple/g).length > 0 ) 
+          return true;
         return false;
     }
 
