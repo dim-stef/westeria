@@ -102,7 +102,11 @@ const Routes = () =>{
 }
 
 
-const makeGlobalStyles = theme => css`
+const makeGlobalStyles = (theme,isMobileOrTablet) => css`
+  html{
+    overflow:${isMobileOrTablet?'auto':'unset'};
+  }
+  
   body {
     background: ${theme.backgroundColor};
     color: ${theme.textColor};
@@ -110,9 +114,12 @@ const makeGlobalStyles = theme => css`
   }
 `
 
-const GlobalStyles = withTheme(({ theme }) => (
-  <Global styles={makeGlobalStyles(theme)} />
-))
+const GlobalStyles = withTheme(({ theme }) => {
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
+  })
+  return <Global styles={makeGlobalStyles(theme,isMobileOrTablet)} />
+})
 
 const RoutesWrapper = (props) =>{
   const [messages,setMessages] = useState([]);

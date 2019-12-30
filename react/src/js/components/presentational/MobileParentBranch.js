@@ -249,6 +249,7 @@ export function ProfileBubble({branch}){
     })
 
     function handleClick(e){
+        e.stopPropagation();
         setShow(true)
     }
 

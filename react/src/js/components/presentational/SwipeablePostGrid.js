@@ -146,6 +146,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     pagesRef.current = pages;
  
     const movX = useRef(null);
+    const xDirRef = useRef(0);
     const shouldOpen = useRef(true);
 
     // index state is only changed after animation ends in order to virtually
@@ -172,6 +173,14 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
 
+    const isSafariFeature = window['safari'] && safari.pushNotification &&
+    safari.pushNotification.toString() === '[object SafariRemoteNotification]';
+
+    function isSafariVendor() {
+        if (navigator.vendor.match(/[Aa]+pple/g) && navigator.vendor.match(/[Aa]+pple/g).length > 0 ) 
+          return true;
+        return false;
+    }
 
     // the functions inside spring are not aware of state changes so multiple refs
     // are used to keep track of state changes
@@ -211,8 +220,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 else if(shouldUpdate.current){
                     dataIndexChanged.current = true;
                     shouldUpdate.current = false;
-                    if(movX.current > 0 || sentToLeft.current){
-                        movX.current = 0;
+                    if(xDirRef.current > 0 || sentToLeft.current){
+                        xDirRef.current = 0;
                         if(indexRef.current != 0){
                             sentToLeft.current = false;
                             indexRef.current -=1
@@ -348,12 +357,20 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const mxRef = useRef(0);
     const velocityTrigger = useRef(false);
 
-    const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir],cancel }) => {
+    const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir],xy:[x,y],cancel }) => {
+
+        // if browser is safari and user swipes from edge cancel the interaction
+        // let safari handle the native gesture history
+        if((isSafariFeature || isSafariVendor()) && 
+        (x <= 0.05*window.innerWidth || x>= window.innerWidth - 0.05*window.innerWidth)){
+            cancel();
+        }
 
         if(previewPostContainer.childElementCount>0) cancel();
         const isLastPage = index==pages.length
         isDown.current = down;
         movX.current = mx;
+        xDirRef.current = xDir;
 
         if(Math.abs(mx) > 10){
             shouldOpen.current = false;
@@ -368,7 +385,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
         const isGone = (!down && trigger || (Math.abs(mx)>200));
 
-        mxRef.current = mx;
         if(isGone) cancel();
 
         set(()=>{
