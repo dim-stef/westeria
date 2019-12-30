@@ -261,7 +261,7 @@ export function AddBranch({branch,component,type='children'}){
             <h1 className="branch-add-text">{text}</h1>
         </div>
         :sumbitted && requestStatus == 'accepted'?
-            <CircularBranch branch={branch}/>
+            <CircularBranch branch={context.currentBranch}/>
             :
             <>
                 <RequestOnHold status={requestStatus}/>
