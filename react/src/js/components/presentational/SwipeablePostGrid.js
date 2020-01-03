@@ -1,6 +1,6 @@
 import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
 import {css} from "@emotion/core";
-import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs'
+import { useSpring, useSprings, useTransition, useChain, animated, config } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
@@ -721,26 +721,54 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
 
 
 function Menu(){
-    const [show, set] = useState(false)
-    const transitions = useTransition(show, null, {
-        from: { top:'100px' },
-        enter: { top:'-100px' },
-        leave: { top:'100px' },
+    const [open, set] = useState(false)
+    const [xy,setXY] = useState([0,0]);
+
+    let data = ['ads','asd'];
+    const springRef = useRef()
+    const { size, left,bottom,...rest } = useSpring({
+      ref: springRef,
+      config: config.stiff,
+      from: { size:1, },
+      to: { size:1.2, },
+    })
+  
+    const transRef = useRef()
+    const transitions = useTransition(open ? data : [], item => item.name, {
+      ref: transRef,
+      unique: true,
+      trail: 400 / (data.length + 1),
+      from: { opacity: 0, transform: 'scale(0)' },
+      enter: { opacity: 1, transform: 'scale(1)' },
+      leave: { opacity: 0, transform: 'scale(0)' }
     })
 
-    function handleClick(){
-        set(!show)
+    // This will orchestrate the two animations above, comment the last arg and it creates a sequence
+    useChain(open ? [springRef, transRef] : [transRef, springRef], [0, open ? 0.1 : 0.6])
+
+    function handleClick(e){
+        let rect = e.target.getBoundingClientRect();
+        let x = e.clientX - rect.left; //x position within the element.
+        let y = e.clientY - rect.top;  //y position within the element.
+        if(!open){
+            setXY([x,y]);
+        }
+        set(!open)
     }
 
     return(
-        <div css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
-        alignItems:'center',position:'relative',overflow:'hidden'}} onClick={handleClick}>
-            <MenuSvg css={theme=>({height:'27%',fill:theme.textColor})}/>
-            {transitions.map(({ item, key, props }) =>
-                item && <animated.div key={key} style={props} 
-                css={theme=>({position:'absolute',width:'100%',height:100,
-                backgroundColor:theme.backgroundDarkColor})}>✌️</animated.div>
-            )}
+        <div style={{height:'100%',width:'100%',position:'relative'}}>
+            <animated.div style={{ ...rest, scale:size }}
+            css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
+            alignItems:'center',position:'relative'}} onClick={handleClick}>
+                <MenuSvg css={theme=>({height:'27%',fill:theme.textColor})}/>
+            </animated.div>
+            <div css={{position:'absolute',top:0}}>
+                {transitions.map(({item, key, props},index) => (
+                    <animated.div key={key} style={props} css={{padding:10,backgroundColor:'white',
+                    position:'absolute',borderRadius:'50%',boxShadow:'1px 1px 1px 1px',left:xy[0]+ 30*index,top:xy[1] + 30*index}}>{item}</animated.div>
+                ))}
+            </div>
         </div>
     )
 }
