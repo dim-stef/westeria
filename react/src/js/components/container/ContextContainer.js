@@ -125,5 +125,6 @@ export const RouteTransitionContext = React.createContext({
 })
 
 export const PathContext = React.createContext([])
-
 export const SwipeablePostGridContext = React.createContext({})
+export const ParentBranchDrawerContext = React.createContext({})
+export const AppContext = React.createContext({})

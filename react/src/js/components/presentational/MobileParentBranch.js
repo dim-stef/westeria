@@ -1,5 +1,5 @@
-import React, {useLayoutEffect, useRef, useState,useEffect} from "react";
-import {Link} from 'react-router-dom'
+import React, {useLayoutEffect, useRef, useState,useEffect,useContext} from "react";
+import {Link,useLocation} from 'react-router-dom'
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {NavLink} from "react-router-dom"
@@ -9,7 +9,7 @@ import Linkify from 'linkifyjs/react';
 import {FollowButton} from "./Card"
 import { Profile } from "./SettingsPage";
 import {DesktopProfile} from "./ProfileViewer"
-
+import {UserContext,ParentBranchDrawerContext} from "../container/ContextContainer"
 
 function getRandomColor() {
     var letters = '0123456789ABCDEF';
@@ -208,7 +208,13 @@ export function MobileParentBranch2({branch,children}){
 }
 export function ProfileBubble({branch}){
     const isDown = useRef(false);
-    const [show,setShow] = useState(false);
+    const userContext = useContext(UserContext);
+    const parentBranchDrawerContext = useContext(ParentBranchDrawerContext)
+    const location = useLocation();
+    let isShown = userContext.currentBranch.uri==branch.uri && 
+    (location.pathname !='/' || location.pathname !='/tree' || location.pathname !='/all' )
+    const [show,setShow] = useState(!isShown);
+    parentBranchDrawerContext.setShow = setShow;
     const [props, set] = useSpring(() => ({
         from:{ xy:[20,60], scale: 1 },
         config:{tension:370,friction:27},
@@ -264,11 +270,11 @@ export function ProfileBubble({branch}){
 
     return(
         <>
-        <animated.div {...bind()} onClick={handleClick} style={{position:'fixed',zIndex:1002,
+        {/*<animated.div {...bind()} onClick={handleClick} style={{position:'fixed',zIndex:1002,
         scale:props.scale.interpolate(s=>s),transform : props.xy.interpolate((x,y)=>`translate(${x}px,${y}px)`)}}>
             <img src={branch.branch_image} className="round-picture" css={{objectFit:'cover',height:40,width:40,
             border:'2px solid white',boxShadow:'1px 2px 3px 0px #000000b3',willChange:'transform'}} onClick={handleClick}/>
-        </animated.div>
+        </animated.div>*/}
         <ProfileDrawer branch={branch} shown={show} setShown={setShow}/>
         </>
     )
@@ -308,7 +314,7 @@ function ProfileDrawer({shown,setShown,branch}){
 
     return (
         <animated.div {...bind()}
-            css={theme=>({zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundColor,
+            css={theme=>({opacity:0.9,zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundColor,
             position:'fixed',width:'100vw',willChange:'transform'})} 
             style={{transform:props.x.interpolate(x=>`translateX(${x>0?0:x}px)`)}} 
             onClick={e=>e.stopPropagation()}>

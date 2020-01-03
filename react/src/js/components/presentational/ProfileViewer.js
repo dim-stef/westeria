@@ -67,7 +67,7 @@ const nameDetails = (theme) =>css({
     }
 })
 
-export function DesktopProfile({branch}){
+export function DesktopProfile({branch,noSettings=false}){
     const theme = useTheme();
     const userContext = useContext(UserContext);
     const viewedBranch = branch || userContext.currentBranch
@@ -75,7 +75,7 @@ export function DesktopProfile({branch}){
     let backgroundColor = theme.dark?'#090a10':null
     
     return(
-        userContext.isAuth?
+        userContext.isAuth || viewedBranch?
         <div css={()=>desktopProfile(backgroundColor)}>
             <Link rel="canonical" to={`/${viewedBranch.uri}`}>
                 <img src={viewedBranch.branch_image} css={profilePicture}/>
@@ -99,7 +99,7 @@ export function DesktopProfile({branch}){
                 </div>
            
             </div>
-            <UserSettings branch={viewedBranch}/>
+            {noSettings?null:<UserSettings branch={viewedBranch}/>}
         </div>:
             <div css={()=>desktopProfile(backgroundColor)}>
                 <NonAuthenticationColumn/>
@@ -158,7 +158,7 @@ function FollowInfo({branch}){
 export function UserSettings({branch}){
     const userContext = useContext(UserContext);
 
-    const ownsBranch = userContext.branches.some(b=>b.uri===branch.uri);
+    const ownsBranch = userContext.isAuth ? userContext.branches.some(b=>b.uri===branch.uri) : false;
 
     return(
         <>

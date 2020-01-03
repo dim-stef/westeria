@@ -79,9 +79,9 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let containerHeight = 860;
     let columnCount = 4;
     let rowCount = Math.round(4 * containerHeight / width);
-    let itemCount = 8;
+    let itemCount = 7;
     let pageType;
-    if(width/height < 0.6){
+    /*if(width/height < 0.6){
         pageType={
             type:'mobile',
             size:8,
@@ -90,9 +90,9 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             responsiveItemCount:3,
             smallItemCount:3
         }
-    }
+    }*/
 
-    if(height<=640){
+    /*if(height<=640){
         itemCount = 8;
         pageType={
             type:'mobile',
@@ -102,23 +102,24 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             responsiveItemCount:2,
             smallItemCount:4
         }
-    }else if(height <= 760){
+    }else */
+    if(height <= 760){
         pageType={
             type:'largeMobile',
-            size:8,
+            size:7,
             bigItemCount:1,
             mediumItemCount:2,
-            responsiveItemCount:1,
-            smallItemCount:4
+            responsiveItemCount:2,
+            smallItemCount:2
         }
     }else{
         pageType={
             type:'desktop',
-            size:8,
+            size:7,
             bigItemCount:0,
             mediumItemCount:1,
             responsiveItemCount:3,
-            smallItemCount:4
+            smallItemCount:3
         }
     }
 
@@ -701,6 +702,10 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
+            <div css={theme=>({gridColumn:isMobile?'span 6':'span 3',gridRow:'span 3',display:'flex',alignItems:'center',
+            backgroundColor:theme.backgroundDarkColor,boxShadow:'0px 2px 6px -4px black',borderRadius:10})}>
+                <Menu/>
+            </div>
         </div>
         :
         <div css={{display:'flex',flexFlow:'column'}}>
@@ -714,6 +719,31 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
     )
 }
 
+
+function Menu(){
+    const [show, set] = useState(false)
+    const transitions = useTransition(show, null, {
+        from: { top:'100px' },
+        enter: { top:'-100px' },
+        leave: { top:'100px' },
+    })
+
+    function handleClick(){
+        set(!show)
+    }
+
+    return(
+        <div css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
+        alignItems:'center',position:'relative',overflow:'hidden'}} onClick={handleClick}>
+            <MenuSvg css={theme=>({height:'27%',fill:theme.textColor})}/>
+            {transitions.map(({ item, key, props }) =>
+                item && <animated.div key={key} style={props} 
+                css={theme=>({position:'absolute',width:'100%',height:100,
+                backgroundColor:theme.backgroundDarkColor})}>✌️</animated.div>
+            )}
+        </div>
+    )
+}
 
 const LeftArrowSvg = props =>{
     return(
@@ -750,3 +780,18 @@ const RefreshSvg = props =>{
         </svg>
     )
 }
+
+const MenuSvg = props => (
+    <svg
+      x="0px"
+      y="0px"
+      width="276.167px"
+      height="276.167px"
+      viewBox="0 0 276.167 276.167"
+      xmlSpace="preserve"
+      fill="#fff"
+      {...props}
+    >
+      <path d="M33.144 2.471C15.336 2.471.85 16.958.85 34.765s14.48 32.293 32.294 32.293 32.294-14.486 32.294-32.293S50.951 2.471 33.144 2.471zM137.663 2.471c-17.807 0-32.294 14.487-32.294 32.294s14.487 32.293 32.294 32.293c17.808 0 32.297-14.486 32.297-32.293S155.477 2.471 137.663 2.471zM243.873 67.059c17.804 0 32.294-14.486 32.294-32.293S261.689 2.471 243.873 2.471s-32.294 14.487-32.294 32.294 14.489 32.294 32.294 32.294zM32.3 170.539c17.807 0 32.297-14.483 32.297-32.293 0-17.811-14.49-32.297-32.297-32.297S0 120.436 0 138.246c0 17.81 14.493 32.293 32.3 32.293zM136.819 170.539c17.804 0 32.294-14.483 32.294-32.293 0-17.811-14.478-32.297-32.294-32.297-17.813 0-32.294 14.486-32.294 32.297 0 17.81 14.487 32.293 32.294 32.293zM243.038 170.539c17.811 0 32.294-14.483 32.294-32.293 0-17.811-14.483-32.297-32.294-32.297s-32.306 14.486-32.306 32.297c0 17.81 14.49 32.293 32.306 32.293zM33.039 209.108c-17.807 0-32.3 14.483-32.3 32.294 0 17.804 14.493 32.293 32.3 32.293s32.293-14.482 32.293-32.293-14.486-32.294-32.293-32.294zM137.564 209.108c-17.808 0-32.3 14.483-32.3 32.294 0 17.804 14.487 32.293 32.3 32.293 17.804 0 32.293-14.482 32.293-32.293s-14.489-32.294-32.293-32.294zM243.771 209.108c-17.804 0-32.294 14.483-32.294 32.294 0 17.804 14.49 32.293 32.294 32.293 17.811 0 32.294-14.482 32.294-32.293s-14.49-32.294-32.294-32.294z" />
+    </svg>
+  )

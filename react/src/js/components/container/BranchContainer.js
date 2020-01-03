@@ -61,6 +61,7 @@ export function BranchesPageContainer(props){
     }
 }
 
+
 export function usePendingRequests(branch){
     const userContext = useContext(UserContext);
     const [requests,setPendingRequests] = useState([]);
@@ -85,9 +86,8 @@ export function usePendingRequests(branch){
     return requests;
 }
 
-export function BranchContainer(props){
-    const location = useLocation();
-    
+export const BranchContainer = React.memo(function BranchContainer(props){
+
     const actionContext = useContext(UserActionsContext)
     const [branch,setBranch] = useState(null);
     const [loaded,setLoaded] = useState(false);
@@ -116,8 +116,6 @@ export function BranchContainer(props){
         getBranch(branchUri);
     },[branchUri])
 
-    location.state = 'branch';
-
     if(loaded){
         if(branch){
             return <BranchPage externalPostId={props.match.params.externalPostId} branch={branch} match={branchUri}/>
@@ -132,8 +130,13 @@ export function BranchContainer(props){
     }else{
         return null;
     }
-}
+});
 
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
 
 export function useMyBranches(){
     const context = useContext(UserContext);

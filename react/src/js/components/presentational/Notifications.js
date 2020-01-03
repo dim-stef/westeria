@@ -237,6 +237,10 @@ function ResponsiveNotifications({children}){
 
 function NotificationMatcher({notification}){
 
+    if(notification.actor === null){
+        return null;
+    }
+    
     if(notification.verb=="become_child" || notification.verb=="become_parent"){
         return <BranchNotification notification={notification}/>
     }else if(notification.verb=='react' || notification.verb=="add_leaf"){
