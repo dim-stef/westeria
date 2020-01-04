@@ -1,4 +1,4 @@
-import React, {Component, useContext, useEffect, useState} from "react"
+import React, {Component, useContext, useEffect, useState, useRef} from "react"
 import {Link, Redirect, Route, Switch, withRouter,useParams,useRouteMatch,useLocation } from 'react-router-dom'
 import { Global, css } from "@emotion/core";
 import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming';
@@ -53,24 +53,7 @@ const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
 const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
 const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
 
-function RouteTransition({location,children}){
-    return(
-        <CSSTransition key={location.key}
-        timeout={{ enter: 300, exit: 300 }} classNames={'pages'}>
-            {children}
-        </CSSTransition>
-    )
-}
-/*<TransitionGroup style={{display:'inherit',width:'100%',position:'relative'}} className="transition-group">
-                            <CSSTransition
-                            key={location.key}
-                            timeout={{ enter: 300, exit: 300 }} classNames={'pages'}
-                            >
-                                <div className="route-section flex-fill" style={{width:'100%'}}>
 
-</div>
-                                </CSSTransition>
-                            </TransitionGroup>*/
 const Routes = () =>{
 
   function updateTour(){
@@ -104,7 +87,7 @@ const Routes = () =>{
 
 const makeGlobalStyles = (theme,isMobileOrTablet) => css`
   html{
-    overflow:${isMobileOrTablet?'auto':'unset'};
+    overflow:auto;
   }
   
   body {
@@ -141,6 +124,7 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   })
 
   const location = useLocation();
+  const prevPath = useRef(null);
   const transitionContext = useContext(RouteTransitionContext);
   
   // This prevents static routes like "/notifications" to be remounted when clicked from the navigation bar
@@ -174,7 +158,8 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   }, [location]);
 
   return(
-    isMobileOrTablet?<TransitionGroup component={null}>
+    isMobileOrTablet?
+    <TransitionGroup component={null}>
       <CSSTransition
         key={key}
         timeout={animationTimeout}
@@ -196,6 +181,13 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   )
 
 });
+
+if (process.env.NODE_ENV !== 'production') {
+  const whyDidYouRender = require('@welldone-software/why-did-you-render');
+  whyDidYouRender(React);
+}
+
+//AnimatedSwitch.whyDidYouRender = true;
 
 const AnimatedRoute = (props) => {
   const isMobileOrTablet = useMediaQuery({
@@ -249,8 +241,8 @@ function NonAuthenticationRoutes(){
 
     return(
       <>
-      <AnimatedSwitch 
-        animationClassName="pages" 
+      <Switch 
+        animationClassName="pages"
         animationTimeout={{enter: 300, exit: 300}}
       >
             <AnimatedRoute exact path='/google/links/branches/:pageNumber?' component={(props)=><BranchLinks {...props}/>}/>
@@ -275,7 +267,7 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute exact path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
             <AnimatedRoute exact path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
             <AnimatedRoute path="/:uri?" render={(props)=><BranchContainer {...props}/>}/>
-        </AnimatedSwitch>
+        </Switch>
         </>
     )
 }

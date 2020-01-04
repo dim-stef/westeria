@@ -271,7 +271,7 @@ function TopLevelBranch({branch,followingBranches,setFollowing}){
     function handleClick(){
         setClicked(!clicked);
     }
-    
+
     useEffect(()=>{
         getNodesBeneath();
     },[])

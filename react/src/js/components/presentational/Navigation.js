@@ -15,6 +15,29 @@ import {askForPermissionToReceiveNotifications} from '../../push-notification';
 import history from "../../history"
 import axios from 'axios'
 
+function getScrollbarWidth() {
+
+    // Creating invisible container
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll'; // forcing scrollbar to appear
+    outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+    document.body.appendChild(outer);
+  
+    // Creating inner element and placing it in the container
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+  
+    // Calculating difference between container's full width and the child width
+    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+  
+    // Removing temporary elements from the DOM
+    outer.parentNode.removeChild(outer);
+  
+    return scrollbarWidth;
+  
+  }
+
 const Ripple = createRipples({
     color: '#607d8b21',
     during: 600,
@@ -94,10 +117,6 @@ export function ResponsiveNavigationBar(){
 
 const navBarContainer = theme => css({
     borderBottom:`2px solid ${theme.borderColor}`,
-    borderLeft:`2px solid ${theme.borderColor}`,
-    borderRight:`2px solid ${theme.borderColor}`,
-    borderBottomRightRadius:15,
-    borderBottomLeftRadius:15,
     justifyContent:'center',
     height:'100%'
 })
@@ -113,7 +132,8 @@ const navBarPositioner = theme => css({
     left:0,
     right:0,
     marginLeft:'auto',
-    marginRight:'auto'
+    marginRight:'auto',
+    paddingRight:getScrollbarWidth()
 })
 
 
@@ -140,7 +160,8 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
                     </NavLink>
                 </Ripple>
                 <Ripple>
-                    <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
+                    <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" 
+                    activeClassName="active-tab-route"
                     style={style} activeStyle={activeStyle}>
                         <SearchSvg/>
                     </NavLink>

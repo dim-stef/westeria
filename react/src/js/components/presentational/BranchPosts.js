@@ -600,7 +600,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     return (
         <ToggleContent 
             toggle={show=>(
-                <div ref={ref} onClick={e=>handleClick(e,show)}>
+                <div style={{position:'relative'}} ref={ref} onClick={e=>handleClick(e,show)}>
                     {preview?
                     <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 
@@ -612,7 +612,8 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                     <div>{children}</div>}
                     
                     {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown" 
-                    style={{backgroundColor:theme.backgroundColor,top:showOnTop?0:null}}>
+                    style={{backgroundColor:theme.backgroundColor,top:showOnTop?0:null,
+                        bottom:showOnTop?null:0}}>
                         {options.map(op=>{
                             let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>

@@ -1,12 +1,12 @@
 import React, {useEffect,useRef,useState,useContext} from "react";
 import ReactDOM from "react-dom";
-import {Link,NavLink} from "react-router-dom";
+import {Link,NavLink,useLocation} from "react-router-dom";
 import history from "../../history";
 import {css} from "@emotion/core";
 import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs';
 import { useDrag } from 'react-use-gesture'
 import {useMediaQuery} from 'react-responsive';
-import {UserContext} from "../container/ContextContainer";
+import {UserContext,ParentBranchDrawerContext} from "../container/ContextContainer";
 import {useFollowingBranches,useTopLevelBranches} from "../container/BranchContainer";
 import {useTheme} from "../container/ThemeContainer";
 import {useTheme as useEmotionTheme} from "emotion-theming";
@@ -218,6 +218,8 @@ const swipeableBarWrapper = theme =>css({
 })
 
 const bubble = theme =>css({
+    color:theme.textColor,
+    textDecoration:'none',
     userSelect:'none',
     userDrag:'none',
     padding:'5px 15px',
@@ -245,7 +247,10 @@ const bubble = theme =>css({
 
 export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,postedId,width}){
     const theme = useEmotionTheme();
+    const loc = useLocation();
+    const [location,setLocation] = useState(loc)
     const userContext = useContext(UserContext);
+    const parentBranchDrawerContext = useContext(ParentBranchDrawerContext)
     const barRef = useRef(null);
     const containerRef = useRef(null);
     const shouldClick = useRef(true);
@@ -293,6 +298,31 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
         }
     }
 
+    function handleDrawerClick(){
+        try{
+            parentBranchDrawerContext.setShow(true);
+        }catch(e){
+            // no drawer is shown
+            // desktop user goes here
+        }
+        
+    }
+
+    let activeStyle={
+        border:`2px solid #2196f3`,
+        order:-1
+    }
+
+    function handleBubbleClick(){
+        set({x:0})
+    }
+
+    let bubbleProps = {
+        activeStyle:activeStyle,
+        shouldClick:shouldClick,
+        onClick:handleBubbleClick
+    }
+
     return(
         <div css={superBar} ref={containerRef} style={{width:width}} onClickCapture={onClickCapture}>
             <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()}
@@ -301,25 +331,33 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
                 postedId={postedId} isFeed={isFeed} postsContext={postsContext} width={width} 
                 containerRef={containerRef}
                 /></div>:null}
-                <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
+                {branch?
+                <div css={theme=>({...bubble(theme),backgroundColor:theme.backgroundLightColor})}
+                 style={{padding:6,order:-2}} onClick={handleDrawerClick}>
+                    <img css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}} src={branch.branch_image}/>
+                </div>:null}
                 {(isFeed && userContext.isAuth) || !isFeed?
                 <div css={bubble}><Branches branch={branch} shouldClick={shouldClick}/></div>:null}
                 {(isFeed && userContext.isAuth)?
                 <>
-                    <BubbleNavLink to="/" label="Feed" shouldClick={shouldClick}/>
-                    <BubbleNavLink to="/tree" label="Tree" shouldClick={shouldClick}/>
-                    <BubbleNavLink to="/all" label="All" shouldClick={shouldClick}/>
+                    <BubbleNavLink to="/" label="Feed" {...bubbleProps}/>
+                    <BubbleNavLink to="/tree" label="Tree leaves" {...bubbleProps}/>
+                    <BubbleNavLink to="/all" label="All leaves" {...bubbleProps}/>
                 </>:null}
                 {!isFeed?
                 <>
-                    <BubbleNavLink to={`/${branch.uri}`} label={branch.name} shouldClick={shouldClick}/>
-                    <BubbleNavLink to={`/${branch.uri}/tree`} label="Tree" shouldClick={shouldClick}/>
-                    <BubbleNavLink to={`/${branch.uri}/community`} label="Community" shouldClick={shouldClick}/>
+                    <BubbleNavLink to={`/${branch.uri}`} 
+                    {...bubbleProps} label={`${branch.name}'s leaves`}/>
+                    <BubbleNavLink to={`/${branch.uri}/tree`} {...bubbleProps} label="Tree leaves"/>
+                    <BubbleNavLink to={`/${branch.uri}/community`} 
+                    {...bubbleProps} label="Community leaves" />
                 </>:null}
-                {fillerBranches && fillerBranches.length > 0?
-                    fillerBranches.map(b=>{
+                <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
+
+                {fillerBranches && branch && fillerBranches.length > 0?
+                    fillerBranches.filter(b=>b.uri!=branch.uri).map(b=>{
                         return <React.Fragment key={b.uri}>
-                            <BubbleBranch branch={b}/>
+                            <BubbleBranch branch={b} shouldClick={shouldClick}/>
                         </React.Fragment>
                     }):null}
             </animated.div>
@@ -327,27 +365,48 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
     )
 }
 
-function BubbleBranch({branch}){
+function BubbleBranch({branch,shouldClick}){
+    const ref = useRef(null);
+    const shouldPreventDefault = usePreventDragClick(ref,shouldClick);
 
-    function handleClick(){
-        history.push(`/${branch.uri}`)
+    const location = useLocation();
+    let activeStyle={
+        border:`2px solid #2196f3`,
+        order:-1
     }
 
-    return <div css={bubble} onClick={handleClick}>
-    <div css={{display:'flex'}}>
+    const [active,setActive] = useState(false);
+
+    return <div ref={ref} style={{display:'contents'}}><NavLink exact to={{ pathname:`/${branch.uri}`}} css={bubble}
+    activeStyle={activeStyle} onClick={shouldPreventDefault}>
+    <div css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
         <img src={branch.branch_image} css={{width:20,height:20,objectFit:'cover',borderRadius:'50%',
         marginRight:10}}/>
         <span>{branch.name}</span>
-    </div></div>
+    </div></NavLink></div>
 }
 
-function BubbleNavLink({to,label,shouldClick}){
+function BubbleNavLink({to,activeStyle,state=null,label,shouldClick,onClick}){
 
     const ref = useRef(null);
+    const shouldPreventDefault = usePreventDragClick(ref,shouldClick);
 
-    function shouldPreventDefault(e){
+    return(
+        <div ref={ref} style={{display:'contents'}}>
+        <NavLink exact to={{ pathname:to,state:state}} css={bubble} activeStyle={activeStyle} 
+        draggable="false" onClick={(e)=>{shouldPreventDefault(e,onClick);}}>{label}</NavLink></div>
+    )
+}
+
+function usePreventDragClick(ref,shouldClick){
+
+    function shouldPreventDefault(e,func){
         if(!shouldClick.current){
             e.preventDefault();
+        }else{
+            if(func){
+                func();
+            }
         }
     }
 
@@ -363,10 +422,7 @@ function BubbleNavLink({to,label,shouldClick}){
         }
     },[ref])
 
-    return(
-        <div ref={ref} css={bubble}><NavLink to={to} draggable="false"
-        onClick={shouldPreventDefault}>{label}</NavLink></div>
-    )
+    return shouldPreventDefault
 }
 
 function Branches({branch}){

@@ -10,7 +10,8 @@ import {
     TreePostsContext,
     UserActionsContext,
     UserContext,
-    TourContext
+    TourContext,
+    AppContext
 } from "../container/ContextContainer";
 import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
 import {TooltipChain,Tooltip} from "./Tooltip"
@@ -186,10 +187,12 @@ const postList = (theme,isMobile) => css({
 
 export const FrontPage = React.memo(function FrontPage(props){
     const actionContext = useContext(UserActionsContext);
+    const appContext = useContext(AppContext);
     const userContext = useContext(UserContext);
 
     useEffect(()=>{
-        actionContext.lastPostListType = 'front'
+        actionContext.lastPostListType = 'front';
+        appContext.isFeed = true;
     },[])
 
     return(
