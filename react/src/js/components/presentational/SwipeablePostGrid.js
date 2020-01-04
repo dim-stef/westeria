@@ -79,7 +79,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let containerHeight = 860;
     let columnCount = 4;
     let rowCount = Math.round(4 * containerHeight / width);
-    let itemCount = 7;
+    let itemCount = 8;
     let pageType;
     /*if(width/height < 0.6){
         pageType={
@@ -106,20 +106,20 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     if(height <= 760){
         pageType={
             type:'largeMobile',
-            size:7,
+            size:8,
             bigItemCount:1,
             mediumItemCount:2,
-            responsiveItemCount:2,
+            responsiveItemCount:3,
             smallItemCount:2
         }
     }else{
         pageType={
             type:'desktop',
-            size:7,
+            size:8,
             bigItemCount:0,
             mediumItemCount:1,
             responsiveItemCount:3,
-            smallItemCount:3
+            smallItemCount:4
         }
     }
 
@@ -702,10 +702,10 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
-            <div css={theme=>({gridColumn:isMobile?'span 6':'span 3',gridRow:'span 3',display:'flex',alignItems:'center',
+            {/*<div css={theme=>({gridColumn:isMobile?'span 6':'span 3',gridRow:'span 3',display:'flex',alignItems:'center',
             backgroundColor:theme.backgroundDarkColor,boxShadow:'0px 2px 6px -4px black',borderRadius:10})}>
                 <Menu/>
-            </div>
+            </div>*/}
         </div>
         :
         <div css={{display:'flex',flexFlow:'column'}}>

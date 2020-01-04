@@ -299,7 +299,13 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
     }
 
     function handleDrawerClick(){
-        parentBranchDrawerContext.setShow(true);
+        try{
+            parentBranchDrawerContext.setShow(true);
+        }catch(e){
+            // no drawer is shown
+            // desktop user goes here
+        }
+        
     }
 
     let activeStyle={
@@ -325,10 +331,11 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
                 postedId={postedId} isFeed={isFeed} postsContext={postsContext} width={width} 
                 containerRef={containerRef}
                 /></div>:null}
+                {branch?
                 <div css={theme=>({...bubble(theme),backgroundColor:theme.backgroundLightColor})}
                  style={{padding:6,order:-2}} onClick={handleDrawerClick}>
                     <img css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}} src={branch.branch_image}/>
-                </div>
+                </div>:null}
                 {(isFeed && userContext.isAuth) || !isFeed?
                 <div css={bubble}><Branches branch={branch} shouldClick={shouldClick}/></div>:null}
                 {(isFeed && userContext.isAuth)?
@@ -347,7 +354,7 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
                 </>:null}
                 <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
 
-                {fillerBranches && fillerBranches.length > 0?
+                {fillerBranches && branch && fillerBranches.length > 0?
                     fillerBranches.filter(b=>b.uri!=branch.uri).map(b=>{
                         return <React.Fragment key={b.uri}>
                             <BubbleBranch branch={b} shouldClick={shouldClick}/>
@@ -372,7 +379,7 @@ function BubbleBranch({branch,shouldClick}){
 
     return <div ref={ref} style={{display:'contents'}}><NavLink exact to={{ pathname:`/${branch.uri}`}} css={bubble}
     activeStyle={activeStyle} onClick={shouldPreventDefault}>
-    <div css={{display:'flex'}}>
+    <div css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
         <img src={branch.branch_image} css={{width:20,height:20,objectFit:'cover',borderRadius:'50%',
         marginRight:10}}/>
         <span>{branch.name}</span>

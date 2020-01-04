@@ -183,7 +183,7 @@ export function BranchSwitch({defaultBranch}){
     return(
         <div style={{borderRadius:'50%',width:'fit-content'}} >
             <BranchSwitcher defaultBranch={defaultBranch} changeCurrentBranch 
-            preview={false} showOnTop>
+            preview={false}>
                 <BranchSwitchIcon/>
             </BranchSwitcher>
         </div>

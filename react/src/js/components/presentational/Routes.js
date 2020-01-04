@@ -87,7 +87,7 @@ const Routes = () =>{
 
 const makeGlobalStyles = (theme,isMobileOrTablet) => css`
   html{
-    overflow:${isMobileOrTablet?'auto':'unset'};
+    overflow:auto;
   }
   
   body {
@@ -130,7 +130,6 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   // This prevents static routes like "/notifications" to be remounted when clicked from the navigation bar
   // state is defined in each Link
   let key = location.state || location.key;
-  console.log(key)
    
   function onExiting(){
     transitionContext.entered = false;
@@ -158,7 +157,6 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
     }
   }, [location]);
 
-  console.log(location.state)
   return(
     isMobileOrTablet?
     <TransitionGroup component={null}>

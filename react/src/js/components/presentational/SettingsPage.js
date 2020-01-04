@@ -200,7 +200,7 @@ function BranchSettingsWrapper({match,history}){
                 <meta name="description" content="Update branch." />
             </Helmet>
             <RoutedHeadline to="/settings/branches" headline={`${branch.uri} settings`}/>
-            <BranchSwitcher defaultBranch={branch} setBranch={setBranch}/>
+            <BranchSwitcher defaultBranch={branch} setBranch={setBranch} showOnTop/>
             <Setting>
                 <UpdateBranch branch={branch}/>
             </Setting>

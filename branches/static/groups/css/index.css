@@ -485,12 +485,12 @@ div.route-section {
     margin-right: auto;
     background-color: white;
     flex-flow: column;
-    width: max-content;
-    min-width: 100%;
+    min-width: 500px;
+    max-height: 500px;
     box-shadow: 0 2px 8px -4px #585858;
     border-radius: 10px;
     padding: 10px 0;
-    overflow: hidden;
+    overflow: auto;
     z-index: 55;
 }
 
