@@ -73,6 +73,64 @@ function transformTags(tags){
     return tagsWithAttrs;
 }
 
+function MenuPortal(props){
+    return(
+        <div style={{position:'absolute',left:0,right:0,bottom:100}}>
+            {props.children}
+        </div>
+    )
+}
+
+export function SerialTagSelector(props){
+    const [tags,setTags] = useState([]);
+    const [selectedTags,setSelectedTags] = useState([]);
+
+    async function loadInitialTags(){
+        let response = await axios.get(`/api/v1/branches/${props.branch.uri}/related_tags/`);
+        
+        let data = response.data.map(tag=>{
+            return {
+                label:tag.tag.name,
+                value:tag.tag.name
+            }
+        })
+
+        setTags(data);
+    }
+
+    async function handleSearch(e){
+        str = e.value.replace(/\s\s+/g, '%20');
+        let response = await axios.get(
+            str==''?`/api/v1/branches/${props.branch.uri}/related_tags/`
+            :`/api/v1/branches/${props.branch.uri}/related_tags/?tag=${str}`);
+    
+        let data = response.data.map(tag=>{
+            return {
+                label:tag.tag.name,
+                value:tag.tag.name
+            }
+        })
+
+        setTags(data);
+    }
+
+    useEffect(()=>{
+        loadInitialTags();
+    },[])
+
+    return(
+        <div>
+            <input type="text" onChange={handleSearch}/>
+            {tags.map((item,i)=>{
+                console.log(item)
+                return(
+                    <div key={i}>{item.label}</div>
+                )
+            })}
+        </div>
+    )
+}
+
 export function TagSelector(props){
 
     const [options,setOptions] = useState([]);
@@ -109,6 +167,11 @@ export function TagSelector(props){
             loadOptions={loadOptions}
             defaultOptions
             closeMenuOnSelect={false}
+            menuPortalTarget={document.getElementById('modal-root')} // needed to activate portaling
+            components={{
+                MenuPortal
+            }}
+            menuIsOpen
             isMulti
             onChange={handleChange}
         />

@@ -103,13 +103,16 @@ export const ToggleContent = ({ toggle, content }) => {
     );
 };
 
-export function Modal({children ,onClick,isOpen}){
+export function Modal({children ,onClick, isOpen,hide=()=>{}}){
 
     const transitions = useTransition(isOpen, null, {
         from: { opacity: 0 },
         enter: { opacity: 1 },
         leave: { opacity: 0 },
-        config: {duration:200}
+        config: {duration:200},
+        onDestroyed:()=>{
+            hide()
+        }
     })
 
     // prevents background scroll events

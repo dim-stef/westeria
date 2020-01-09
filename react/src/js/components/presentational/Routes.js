@@ -457,6 +457,7 @@ function BranchFrontPage(props){
                         branch={props.match}
                         activeBranch={props.branch}
                         postedId={props.branch.id}
+                        postingTo={props.branch}
                         uri={uri}
                         />}                        
                     </div>
@@ -470,6 +471,7 @@ function BranchFrontPage(props){
             branch={props.match}
             activeBranch={props.branch}
             postedId={props.branch.id}
+            postingTo={props.branch}
             uri={uri}
             />
         </Tablet>
@@ -480,6 +482,7 @@ function BranchFrontPage(props){
             branch={props.match}
             activeBranch={props.branch}
             postedId={props.branch.id}
+            postingTo={props.branch}
             uri={uri}
             />
         </Mobile>

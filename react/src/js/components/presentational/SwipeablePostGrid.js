@@ -1,12 +1,15 @@
 import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
+import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
 import { useSpring, useSprings, useTransition, useChain, animated, config } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
+import StatusUpdate from "./StatusUpdate";
 import {SwipeablePostGridContext} from "../container/ContextContainer";
 import {useMediaQuery} from 'react-responsive'
+import {PlusSvg} from "./Svgs"
 
 function cssPropertyValueSupported(prop, value) {
     var d = document.createElement('div');
@@ -37,7 +40,7 @@ const bigCell = (isFlat,size) =>css({
 
 const animatedDiv = (theme,supportsGrid) =>css({
     overflow:supportsGrid?'hidden':'auto',
-    boxShadow:'rgb(0,0,0) 10px 9px 10px -7px',
+    boxShadow:'rgba(0, 0, 0, 0.32) 9px 7px 10px -7px',
     padding:5,
     boxSizing:'border-box',
     backgroundColor:theme.backgroundColor,
@@ -73,13 +76,14 @@ responsiveItemCount:4,
 smallItemCount:2
 */
 
-export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,hasMore,width,height,refresh}){
+export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,hasMore,width,height,refresh,
+    updateFeed,isFeed}){
 
     const swipeablePostGridContext = useContext(SwipeablePostGridContext);
     let containerHeight = 860;
     let columnCount = 4;
     let rowCount = Math.round(4 * containerHeight / width);
-    let itemCount = 8;
+    let itemCount = 7;
     let pageType;
     /*if(width/height < 0.6){
         pageType={
@@ -92,34 +96,24 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }*/
 
-    /*if(height<=640){
-        itemCount = 8;
-        pageType={
-            type:'mobile',
-            size:8,
-            bigItemCount:1,
-            mediumItemCount:1,
-            responsiveItemCount:2,
-            smallItemCount:4
-        }
-    }else */
     if(height <= 760){
+        itemCount = 6;
         pageType={
             type:'largeMobile',
-            size:8,
+            size:6,
             bigItemCount:1,
             mediumItemCount:2,
             responsiveItemCount:3,
-            smallItemCount:2
+            smallItemCount:0
         }
     }else{
         pageType={
             type:'desktop',
-            size:8,
+            size:7,
             bigItemCount:0,
             mediumItemCount:1,
             responsiveItemCount:3,
-            smallItemCount:4
+            smallItemCount:3
         }
     }
 
@@ -199,7 +193,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             }
 
             // When user is rapid swiping or switching pages animations would not play
-            // for whatever reason this stop fixes this
+            // for whatever reason this stop() fixes this
             stop();
 
             if((Math.abs(f.x) - offsetLeft > widthRef.current && Math.abs(f.x) - offsetLeft - 1 < widthRef.current)
@@ -354,6 +348,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     },[index,container])
 
     let previewPostContainer = document.getElementById('leaf-preview-root');
+    let modal = document.getElementById('modal-root')
 
     const mxRef = useRef(0);
     const velocityTrigger = useRef(false);
@@ -367,7 +362,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             cancel();
         }
 
-        if(previewPostContainer.childElementCount>0) cancel();
+        if(previewPostContainer.childElementCount>0 || modal.childElementCount>0) cancel();
         const isLastPage = index==pages.length
         isDown.current = down;
         movX.current = mx;
@@ -444,20 +439,22 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         pageType:pageType,
         rowCount:rowCount,
         columnCount:columnCount,
-        movX:movX
+        movX:movX,
+        updateFeed:updateFeed,
+        isFeed:isFeed
     }
 
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
 
     return (
-        <div style={{position:'relative',width:width,height:height}} ref={container}>
+        <div style={{position:'relative',width:width,height:height}} ref={container} id="grid-container">
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
             {index>0?<SendToStartArrow jumpToBack={jumpToBack}/>:<Refresh refresh={refresh}/>}
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{position:'absolute',zIndex:2,transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offsetLeft:
             1.5*x - width- offsetLeft>0?0:1.5*x-width - offsetLeft}px)`),
             width:'100%',height:'100%'}}>
-                <div className="noselect" style={{height:'100%'}}>
+                <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
                 {pages[index - 1] && index!=-1?
                     <Page index={index-1} page={pages[index-1]}
                     {...pageProps}
@@ -468,7 +465,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             <animated.div {...bind()} key={index} data-index={index} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
             width:'100%',zIndex:1,height:'100%'}}>
-                <div className="noselect" style={{height:'100%'}}>
+                <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
                     {pages[index]?
                         <Page index={index} page={pages[index]} 
                         {...pageProps}
@@ -480,7 +477,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offsetLeft:
             1.5*x + width + offsetLeft<0?0:1.5*x + width + offsetLeft}px)`),
             width:'100%',zIndex:0,height:'100%'}}>
-                <div className="noselect" style={{height:'100%'}}>
+                <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
                     {pages[index + 1]?
                         <Page index={index + 1} page={pages[index + 1]} 
                         {...pageProps}
@@ -577,7 +574,7 @@ function shuffle(a) {
 }
 
 function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
-    movX,rowCount,columnCount}){
+    movX,rowCount,columnCount,updateFeed,isFeed,width}){
 
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
@@ -693,6 +690,29 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
         return false
     }
 
+    function shouldBeTall(){
+        // if at least 2 of the responsive sized posts are flat
+        // this should be standing
+        return order.slice(Math.max(order.length) - 3).filter(o=>isFlat(o.post)).length >= 2 ||
+               order.slice(Math.max(order.length) - 3).every(o=>!isFlat(o.post));
+    }
+
+    function getMenuDimensions(){
+        let xy;
+        if(isMobile){
+            if(shouldBeTall()){
+                xy = [3,6]
+            }else{
+                xy = [6,3]
+            }
+        }else{
+            xy = [3,3]
+        }
+        return xy
+    }
+
+    let menuDimensions = getMenuDimensions();
+
     return(
         supportsGrid?
         <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount,implicitRowCount,height)}>
@@ -702,10 +722,13 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
-            {/*<div css={theme=>({gridColumn:isMobile?'span 6':'span 3',gridRow:'span 3',display:'flex',alignItems:'center',
+            <div css={theme=>({gridColumn:`span ${menuDimensions[0]}`,gridRow:`span ${menuDimensions[1]}`,
+            display:'flex',alignItems:'center',zIndex:1000,
             backgroundColor:theme.backgroundDarkColor,boxShadow:'0px 2px 6px -4px black',borderRadius:10})}>
-                <Menu/>
-            </div>*/}
+                <Menu branch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
+                    width={width}
+                />
+            </div>
         </div>
         :
         <div css={{display:'flex',flexFlow:'column'}}>
@@ -719,12 +742,87 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
     )
 }
 
+const createTo = (y) => ({ y: y })
 
-function Menu(){
+function Create({activeBranch,postsContext,isFeed,updateFeed}){
+    const ref = useRef(null);
+    const [show,setShow] = useState(false);
+    const [height,setHeight] = useState(0);
+
+    let container = document.getElementById('grid-container');
+    let width = container.clientWidth;
+    let left = container.getBoundingClientRect().left;
+
+    const [props, set] = useSpring(() => ({
+        from:{ y:200 },
+        config:{tension:370,friction:27},
+    }))
+
+    const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
+        const trigger = velocity > 0.2 && xDir < 0;
+        const isGone = trigger && !down
+        const y = my;
+        /*if(isGone){
+            setShown(false);
+        }*/
+        set({ y:y })
+    })
+
+    useEffect(()=>{
+        if(show){
+            set(()=>createTo(0))
+        }
+    },[show])
+    useEffect(()=>{
+        if(ref.current){
+            setHeight(ref.current.clientHeight);
+        }
+    },[ref])
+
+    return( 
+        <div css={theme=>({display:'flex',fontSize:'1.4rem',padding:5,boxSizing:'border-box',
+        backgroundColor:theme.backgroundDarkColor,zIndex:10000,borderRadius:100,alignItems:'center'})}
+        onClick={()=>setShow(true)}>
+            <div css={theme=>({display:'flex',padding:5,margin:'0 5px',backgroundColor:theme.backgroundLightColor,
+            borderRadius:'50%'})}>
+                <PlusSvg css={theme=>({height:20,width:20,fill:theme.textColor})}/>
+            </div>
+            <span css={{margin:'0 10px',fontWeight:'bold'}}>Create a leaf</span>
+            {ReactDOM.createPortal(
+                show?
+                <animated.div {...bind()}  css={{height:'100vh',width:'100vw',position:'fixed',zIndex:1001,
+                backgroundColor:'#000000a1',top:0}}>
+                    <animated.div ref={ref} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
+                     css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left,
+                    }}>
+                        <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
+                        isFeed={isFeed} redirect style={{borderTopRightRadius:25,borderTopLeftRadius:25}}/>
+                    </animated.div>
+                </animated.div>
+                :null
+            ,document.getElementById('modal-root'))}
+        </div>
+    )
+}
+
+function GoToStartOrRefresh(){
+    return <div>Go to start</div>
+}
+
+function Menu({activeBranch,postsContext,updateFeed,isFeed,width}){
     const [open, set] = useState(false)
     const [xy,setXY] = useState([0,0]);
 
-    let data = ['ads','asd'];
+    let data = [
+        {
+            component:<Create activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed}
+                isFeed={isFeed} width={width}
+            />,
+            key:"create"
+        },{
+            component:<GoToStartOrRefresh/>,
+            key:"GoToStartOrRefresh"
+        }];
     const springRef = useRef()
     const { size, left,bottom,...rest } = useSpring({
       ref: springRef,
@@ -734,10 +832,10 @@ function Menu(){
     })
   
     const transRef = useRef()
-    const transitions = useTransition(open ? data : [], item => item.name, {
+    const transitions = useTransition(open ? data : [], item => item.key, {
       ref: transRef,
       unique: true,
-      trail: 400 / (data.length + 1),
+      trail: 400 / (data.length),
       from: { opacity: 0, transform: 'scale(0)' },
       enter: { opacity: 1, transform: 'scale(1)' },
       leave: { opacity: 0, transform: 'scale(0)' }
@@ -763,11 +861,13 @@ function Menu(){
             alignItems:'center',position:'relative'}} onClick={handleClick}>
                 <MenuSvg css={theme=>({height:'27%',fill:theme.textColor})}/>
             </animated.div>
-            <div css={{position:'absolute',top:0}}>
-                {transitions.map(({item, key, props},index) => (
-                    <animated.div key={key} style={props} css={{padding:10,backgroundColor:'white',
-                    position:'absolute',borderRadius:'50%',boxShadow:'1px 1px 1px 1px',left:xy[0]+ 30*index,top:xy[1] + 30*index}}>{item}</animated.div>
-                ))}
+            <div css={{position:'absolute',top:-10,width:'100%'}}>
+                {transitions.map((tr,index) => {
+                    return <animated.div key={tr.key} style={tr.props} css={theme=>({
+                    position:'absolute',borderRadius:'10px',boxSizing:'border-box',
+                    width:'max-content',bottom:50*index,left:0,right:0,marginLeft:'auto',marginRight:'auto'})}>
+                    {tr.item.component}</animated.div>
+                })}
             </div>
         </div>
     )

@@ -27,7 +27,6 @@ const postCss = (theme,backgroundColor) =>css({
     display:'flex',
     height:'100%',
     position:'relative',
-    borderRadius:5,
     overflow:'hidden',
     cursor:'pointer',
     backgroundColor:backgroundColor

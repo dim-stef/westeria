@@ -95,8 +95,7 @@ function DisplayPosts({isFeed,posts,setPosts,
             setWidth(ref.current.clientWidth);
             let refRect = ref.current.getBoundingClientRect();
             
-            // 50 for top bar height
-            setHeight(isMobileOrTablet?window.innerHeight - 50 -
+            setHeight(isMobileOrTablet?window.innerHeight - document.getElementById('super-bar').clientHeight -
                 (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
         }
     }
@@ -123,6 +122,7 @@ function DisplayPosts({isFeed,posts,setPosts,
         {width && height>0?
         <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
             width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
+            updateFeed={updateFeed} isFeed={isFeed}
         />
         :null}
         </div>
@@ -164,7 +164,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,postingTo=null})=>{
     const swipeablePostGridContext = useContext(SwipeablePostGridContext)
     const [posts,setPosts] = useState(postsContext.loadedPosts);
     const refreshContext = useContext(RefreshContext);
@@ -600,7 +600,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     return (
         <ToggleContent 
             toggle={show=>(
-                <div style={{position:'relative'}} ref={ref} onClick={e=>handleClick(e,show)}>
+                <div style={{position:'relative',display:'table'}} ref={ref} onClick={e=>handleClick(e,show)}>
                     {preview?
                     <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 

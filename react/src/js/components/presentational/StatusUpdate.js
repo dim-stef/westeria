@@ -13,7 +13,8 @@ import {BranchSwitcher} from './BranchSwitcher'
 //import EmojiPicker from 'emoji-picker-react';
 import {MediaPreview} from './EditorMediaPreview'
 import {MoonLoader} from 'react-spinners';
-import {TagSelector} from "./TagSelector";
+import {Modal} from "./Temporary"
+import {TagSelector,SerialTagSelector} from "./TagSelector";
 import axios from 'axios'
 
 const schema  = {
@@ -41,18 +42,7 @@ function isFileVideo(file) {
 }
 
 export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null,
-    redirect=false}){
-
-    function renderNode(props, editor, next) {
-        const { node, attributes, children } = props
-      
-        switch (node.type) {
-            case 'emoji':
-                return <p {...attributes}>{children}</p>
-            default:
-            return next()
-        }
-    }
+    redirect=false,postingTo=null}){
 
     const theme = useTheme();
     const [value,setValue] = useState('');
@@ -189,12 +179,16 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
 }
 
 
-function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,isFeed=false,replyTo=null,handleImageClick,
-    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch,redirect}){
+function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,replyTo=null,handleImageClick,
+    activeBranch,redirect}){
+
+    // using branch prop instead of userContext.currentBranch because
+    // the user can switch accounts on the go without fetching new data
+
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
     const [tags,setTags] = useState([]);
-
+    const [showTags,setShowTags] = useState(false);
     const inputRef = useRef(null)
     const handleClick = (e)=>{
         
@@ -214,30 +208,21 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                 
             }
         }
-
-        // if not feed get postedId from props else get from branch switcher
-        if(!isFeed && postedId){
-            formData.append('posted_to',postedId);
-        }
-
-        let postedTo = [ ...checkedBranches];
-        
-        for(var id of postedTo){
-            formData.append('posted_to',id);
-        }
         
         formData.append('type',type);
         formData.append('text',post);
         
         if(replyTo){
-            formData.append('posted_to',branch.id);
             formData.append('replied_to',replyTo)
+            formData.append('posted_to',currentPost.poster_full.id)
+        }else{
+            formData.append('posted_to',activeBranch.id)
         }
 
-        formData.append('posted_to',branch.id); // add self
-        formData.append('posted',branch.id);  // add self
+        formData.append('posted_to',branch.id); // always post to self
+        formData.append('posted',branch.id);  // always post to self
 
-        let newTags = tags.join(", ");
+        let newTags = tags.map(t=>t.label).join(", ");
         formData.append('tags',newTags)
 
         let uri = `/api/branches/${branch.uri}/posts/new/`
@@ -264,59 +249,6 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             setLoading(false);
         })
     }
-    
-    async function onSelect(index,lastIndex,event){
-        let endpoint = "parents";
-        if(index===0){
-            endpoint = "parents";
-        }else if(index===1){
-            endpoint = "siblings";
-        }else if(index===2){
-            endpoint = "children";
-        }
-
-        let target = currentPost?currentPost.poster:activeBranch.uri
-        let response = await axios.get(`/api/branches/${target}/${endpoint}/`)
-        let branches = await response.data.results;
-        if(index===0){
-            setParents(branches);
-        }else if(index===1){
-            setSiblings(branches);
-        }else if(index===2){
-            setChildren(branches);
-        }
-    }
-
-    let renderParents,renderChildren,renderSiblings;
-    if(parents){
-        renderParents = parents.length>0?parents.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
-        </SmallBranch>}):null;
-    }else{
-        renderParents = <SkeletonBranchList/>
-    }
-
-    if(siblings){
-        renderSiblings = siblings.length>0?siblings.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
-        </SmallBranch>}):null;
-    }else{
-        renderSiblings = <SkeletonBranchList/>
-    }
-
-    if(children){
-        renderChildren = children.length>0?children.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
-        </SmallBranch>}):null;
-    }else{
-        renderChildren = <SkeletonBranchList/>
-    }
-
-    function handleOpenModal(e,show){
-        e.stopPropagation();
-        show();
-        onSelect(0);
-    }
 
     useEffect(()=>{
         if(inputRef.current){
@@ -340,10 +272,8 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
-                    {/*<TagSelector tags={tags} setTags={setTags} branch={branch}/>*/}
+                    <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">Add tags</button>
                 </div>
-                <button style={{marginRight:10}} className="editor-btn"
-                onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
                 {isLoading?
                 <div style={{alignSelf:'center',WebkitAlignItems:'center'}}>
                     <MoonLoader
@@ -352,14 +282,16 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                         color={'#123abc'}
                         loading={isLoading}
                     />
-                </div>:<button onClick={handleClick} className="editor-btn">Add</button>}
+                </div>:<button onClick={handleClick} className="editor-btn">Post</button>}
             </div>
         )}
         content={hide => (
-        <Modal>
-            <PostToBranches parents={renderParents} siblings={renderSiblings} children={renderChildren}
-                onSelect={onSelect}
-            />
+        <Modal onClick={()=>setShowTags(false)} hide={hide} isOpen={showTags}>
+            <div style={{position:'fixed',top:0,width:'100vw',height:'100vh',display:'flex'
+            ,justifyContent:'center',alignItems:'center'}}>
+                <SerialTagSelector tags={tags} setTags={setTags} branch={branch}/>
+
+            </div>
         </Modal>    
         )}/>
     )
@@ -515,12 +447,3 @@ const TagSvg = props =>{
         </svg>
     )
 }
-
-const Modal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
-    )
-);

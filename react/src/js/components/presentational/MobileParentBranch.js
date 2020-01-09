@@ -200,7 +200,7 @@ export function MobileParentBranch2({branch,children}){
 
     return(
         branch?
-        <div style={{height:'100%',overflowY:'hidden'}}>
+        <div style={{height:'100%'}}>
             <ProfileBubble branch={branch}/>
             {children}
         </div>:<div>{children}</div>
