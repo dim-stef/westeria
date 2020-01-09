@@ -99,7 +99,7 @@ export function SerialTagSelector(props){
     }
 
     async function handleSearch(e){
-        str = e.value.replace(/\s\s+/g, '%20');
+        let str = e.target.value.replace(/\s\s+/g, '%20');
         let response = await axios.get(
             str==''?`/api/v1/branches/${props.branch.uri}/related_tags/`
             :`/api/v1/branches/${props.branch.uri}/related_tags/?tag=${str}`);
@@ -121,12 +121,15 @@ export function SerialTagSelector(props){
     return(
         <div>
             <input type="text" onChange={handleSearch}/>
-            {tags.map((item,i)=>{
-                console.log(item)
-                return(
-                    <div key={i}>{item.label}</div>
-                )
-            })}
+            <div css={{display:'flex',flexFlow:'row wrap'}}>
+                {tags.map((item,i)=>{
+                    return(
+                        <div key={i} css={theme=>({padding:10,border:`1px solid ${theme.borderColor}`,
+                        borderRadius:25,color:theme.textColor,display:'inline-block',
+                        width:'max-content',fontSize:'2rem',margin:7})}>{item.label}</div>
+                    )
+                })}
+            </div>
         </div>
     )
 }
@@ -167,7 +170,7 @@ export function TagSelector(props){
             loadOptions={loadOptions}
             defaultOptions
             closeMenuOnSelect={false}
-            menuPortalTarget={document.getElementById('modal-root')} // needed to activate portaling
+            menuPortalTarget={document.getElementById('disable-slide-swipe')} // needed to activate portaling
             components={{
                 MenuPortal
             }}

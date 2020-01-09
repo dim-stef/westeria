@@ -103,7 +103,7 @@ export const ToggleContent = ({ toggle, content }) => {
     );
 };
 
-export function Modal({children ,onClick, isOpen,hide=()=>{}}){
+export function Modal({children ,onClick, isOpen,hide=()=>{},portalElement="modal-root"}){
 
     const transitions = useTransition(isOpen, null, {
         from: { opacity: 0 },
@@ -125,7 +125,7 @@ export function Modal({children ,onClick, isOpen,hide=()=>{}}){
                 item && <animated.div className="modal" style={props} key={key} onClick={onClick} onTouchMove={preventScrollEvents}>
                     {children}
                 </animated.div>),
-            document.getElementById('modal-root')   
+            document.getElementById(portalElement)   
     )
 };
 

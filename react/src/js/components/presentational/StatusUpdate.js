@@ -32,6 +32,16 @@ export default function StatusUpdateAuthWrapper(props){
     )
 }
 
+const serialTagSelector = theme =>({
+    backgroundColor:theme.backgroundLightColor,
+    borderRadius:25,
+    padding:25,width:'50%',
+    maxHeight:'70%',
+    overflow:'auto',
+    '@media (max-device-width:767px)':{
+        width:'90%'
+    }
+})
 
 function isFileImage(file) {
     return file && file['type'].split('/')[0] === 'image';
@@ -286,11 +296,12 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             </div>
         )}
         content={hide => (
-        <Modal onClick={()=>setShowTags(false)} hide={hide} isOpen={showTags}>
+        <Modal onClick={()=>setShowTags(false)} hide={hide} isOpen={showTags} portalElement="disable-slide-swipe">
             <div style={{position:'fixed',top:0,width:'100vw',height:'100vh',display:'flex'
             ,justifyContent:'center',alignItems:'center'}}>
-                <SerialTagSelector tags={tags} setTags={setTags} branch={branch}/>
-
+                <div css={serialTagSelector} onClick={e=>e.stopPropagation()}>
+                    <SerialTagSelector tags={tags} setTags={setTags} branch={branch}/>
+                </div>
             </div>
         </Modal>    
         )}/>

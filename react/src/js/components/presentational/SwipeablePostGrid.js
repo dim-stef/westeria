@@ -1,7 +1,7 @@
 import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
 import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
-import { useSpring, useSprings, useTransition, useChain, animated, config } from 'react-spring/web.cjs'
+import { useSpring, useTransition, useChain, animated, config } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
@@ -348,7 +348,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     },[index,container])
 
     let previewPostContainer = document.getElementById('leaf-preview-root');
-    let modal = document.getElementById('modal-root')
+    let modal = document.getElementById('disable-slide-swipe')
 
     const mxRef = useRef(0);
     const velocityTrigger = useRef(false);
@@ -800,7 +800,7 @@ function Create({activeBranch,postsContext,isFeed,updateFeed}){
                     </animated.div>
                 </animated.div>
                 :null
-            ,document.getElementById('modal-root'))}
+            ,document.getElementById('disable-slide-swipe'))}
         </div>
     )
 }
