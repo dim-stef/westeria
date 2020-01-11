@@ -4,6 +4,7 @@ import Async from "react-select/async";
 import CreatableSelect from 'react-select/creatable';
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import {useTheme} from "emotion-theming";
+import {css} from "@emotion/core";
 import axios from "axios";
 
 const options = [
@@ -65,6 +66,17 @@ const customStyles = theme => {
     }
 }
 
+const tagInput = theme => css({
+    width:'100%',
+    padding:'10px 20px',
+    boxSizing:'border-box',
+    borderRadius:25,
+    border:'2px solid #2196f3',
+    fontSize:'2rem',
+    color:theme.textColor,
+    marginBottom:10
+})
+
 function transformTags(tags){
     let tagsWithAttrs = tags.map(tag=>{
         return {label:tag,value:tag,icon:''}
@@ -119,14 +131,16 @@ export function SerialTagSelector(props){
     },[])
 
     return(
-        <div>
-            <input type="text" onChange={handleSearch}/>
+        <div id="tag-selector-modal">
+            <input type="text" onChange={handleSearch} css={tagInput} 
+            placeholder="Search for available tags..."/>
             <div css={{display:'flex',flexFlow:'row wrap'}}>
                 {tags.map((item,i)=>{
                     return(
-                        <div key={i} css={theme=>({padding:10,border:`1px solid ${theme.borderColor}`,
-                        borderRadius:25,color:theme.textColor,display:'inline-block',
-                        width:'max-content',fontSize:'2rem',margin:7})}>{item.label}</div>
+                        <React.Fragment key={item.label}>
+                            <BubbleTag tag={item} selectedTags={selectedTags} 
+                            setSelectedTags={setSelectedTags}/>
+                        </React.Fragment>
                     )
                 })}
             </div>
@@ -134,10 +148,41 @@ export function SerialTagSelector(props){
     )
 }
 
+function BubbleTag({tag,selectedTags,setSelectedTags}){
+    const [clicked,setClicked] = useState(false);
+
+    function handleTagClick(){
+        setClicked(!clicked);
+    }
+
+    useEffect(()=>{
+        let newTags = [...selectedTags];
+
+        if(!clicked){
+            newTags = newTags.filter(t=>t.label!=tag.label);
+        }else{
+            newTags.push(tag)
+        }
+
+        setSelectedTags(newTags)
+    },[clicked])
+
+    return(
+        <div onClick={handleTagClick} 
+        css={theme=>({padding:'10px 20px',cursor:'pointer',transition:'background-color 0.3s ease',
+        border:clicked?`1px solid transparent`:`1px solid ${theme.borderColor}`,
+        borderRadius:25,color:clicked?'white':theme.textColor,display:'inline-block',
+        width:'max-content',fontSize:'2rem',margin:7,backgroundColor:clicked?'#219ef3 !important':'transparent',
+        '&:hover':{
+            backgroundColor:theme.backgroundDarkColor
+        }})}>
+        {tag.label}</div>
+    )
+}
+
 export function TagSelector(props){
 
     const [options,setOptions] = useState([]);
-
     const theme = useTheme();
 
     function handleChange(values){

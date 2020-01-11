@@ -353,8 +353,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const mxRef = useRef(0);
     const velocityTrigger = useRef(false);
 
-    const bind = useDrag(({ down, velocity, movement: [mx], direction: [xDir,yDir],xy:[x,y],cancel }) => {
-
+    const bind = useDrag(({ down, velocity,swipe:[swipeX,swipeY], movement: [mx,my], direction: [xDir,yDir],xy:[x,y],cancel }) => {
         // if browser is safari and user swipes from edge cancel the interaction
         // let safari handle the native gesture history
         if((isSafariFeature || isSafariVendor()) && 
@@ -427,7 +426,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 config:{ mass: 1, tension: 500, friction: 35 },                
             }
         })
-    })
+    },{axis:'x'})
 
     let pageProps = {
         posts:posts,
@@ -441,7 +440,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         columnCount:columnCount,
         movX:movX,
         updateFeed:updateFeed,
-        isFeed:isFeed
+        isFeed:isFeed,
+        container:container
     }
 
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
@@ -574,7 +574,7 @@ function shuffle(a) {
 }
 
 function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
-    movX,rowCount,columnCount,updateFeed,isFeed,width}){
+    movX,rowCount,columnCount,updateFeed,isFeed,width,container}){
 
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
@@ -726,7 +726,7 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
             display:'flex',alignItems:'center',zIndex:1000,
             backgroundColor:theme.backgroundDarkColor,boxShadow:'0px 2px 6px -4px black',borderRadius:10})}>
                 <Menu branch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
-                    width={width}
+                    width={width} container={container}
                 />
             </div>
         </div>
@@ -738,13 +738,12 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                 </React.Fragment>
             })}
         </div>
-        
     )
 }
 
 const createTo = (y) => ({ y: y })
 
-function Create({activeBranch,postsContext,isFeed,updateFeed}){
+function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
     const ref = useRef(null);
     const [show,setShow] = useState(false);
     const [height,setHeight] = useState(0);
@@ -753,11 +752,10 @@ function Create({activeBranch,postsContext,isFeed,updateFeed}){
     let width = container.clientWidth;
     let left = container.getBoundingClientRect().left;
 
-    const [props, set] = useSpring(() => ({
-        from:{ y:200 },
-        config:{tension:370,friction:27},
+    const [props,set] = useSpring(()=>({
+        from:{y:200}
     }))
-
+    
     const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
         const trigger = velocity > 0.2 && xDir < 0;
         const isGone = trigger && !down
@@ -766,42 +764,56 @@ function Create({activeBranch,postsContext,isFeed,updateFeed}){
             setShown(false);
         }*/
         set({ y:y })
-    })
+    },{domTarget:container, bounds: { top: 0, bottom: -200 } })
+
+    React.useEffect(bind, [bind])
+
+    function handleHide(e){
+        /*try{
+            if(!document.getElementById('tag-selector-modal')){
+                setShow(false);
+            }
+        }catch(e){
+            setShow(false);
+        }*/
+    }
+
+    function handleShow(){
+        setShow(true);
+    }
 
     useEffect(()=>{
         if(show){
             set(()=>createTo(0))
         }
     },[show])
+
     useEffect(()=>{
         if(ref.current){
             setHeight(ref.current.clientHeight);
         }
     },[ref])
 
-    return( 
+    return(
+        <>
         <div css={theme=>({display:'flex',fontSize:'1.4rem',padding:5,boxSizing:'border-box',
         backgroundColor:theme.backgroundDarkColor,zIndex:10000,borderRadius:100,alignItems:'center'})}
-        onClick={()=>setShow(true)}>
+        onClick={handleShow}>
             <div css={theme=>({display:'flex',padding:5,margin:'0 5px',backgroundColor:theme.backgroundLightColor,
             borderRadius:'50%'})}>
                 <PlusSvg css={theme=>({height:20,width:20,fill:theme.textColor})}/>
             </div>
             <span css={{margin:'0 10px',fontWeight:'bold'}}>Create a leaf</span>
-            {ReactDOM.createPortal(
-                show?
-                <animated.div {...bind()}  css={{height:'100vh',width:'100vw',position:'fixed',zIndex:1001,
-                backgroundColor:'#000000a1',top:0}}>
-                    <animated.div ref={ref} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
-                     css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left,
-                    }}>
-                        <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
-                        isFeed={isFeed} redirect style={{borderTopRightRadius:25,borderTopLeftRadius:25}}/>
-                    </animated.div>
-                </animated.div>
-                :null
-            ,document.getElementById('disable-slide-swipe'))}
         </div>
+        {ReactDOM.createPortal(
+            <animated.div ref={ref} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
+            css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left,
+            }}>
+                <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
+                isFeed={isFeed} redirect style={{borderTopRightRadius:25,borderTopLeftRadius:25}}/>
+            </animated.div>
+        ,document.getElementById('disable-slide-swipe'))}
+        </>
     )
 }
 
@@ -809,14 +821,14 @@ function GoToStartOrRefresh(){
     return <div>Go to start</div>
 }
 
-function Menu({activeBranch,postsContext,updateFeed,isFeed,width}){
+function Menu({activeBranch,postsContext,updateFeed,isFeed,width,container}){
     const [open, set] = useState(false)
     const [xy,setXY] = useState([0,0]);
 
     let data = [
         {
             component:<Create activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed}
-                isFeed={isFeed} width={width}
+                isFeed={isFeed} width={width} gridContainer={container}
             />,
             key:"create"
         },{
