@@ -653,6 +653,19 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                 smallItemTotal -=1;
             }
         }
+
+        try{
+            for(let i=orderWithSize.length - 3; i<orderWithSize.length - 1;i++){
+                if(isFlat(orderWithSize[i].post) != isFlat(orderWithSize[i+1].post)){
+                    let tmp = orderWithSize[i];
+                    orderWithSize[i] = orderWithSize[i+1];
+                    orderWithSize[i+1] = tmp;            
+                }
+            }
+        }catch(e){
+
+        }
+        
         return orderWithSize //shuffle(orderWithSize);
     }
 
@@ -745,7 +758,7 @@ const createTo = (y) => ({ y: y })
 
 function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
     const ref = useRef(null);
-    const [show,setShow] = useState(false);
+    const [show,setShow] = useState(true);
     const [height,setHeight] = useState(0);
 
     let container = document.getElementById('grid-container');
@@ -757,6 +770,7 @@ function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
     }))
     
     const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
+        console.log(mx,my)
         const trigger = velocity > 0.2 && xDir < 0;
         const isGone = trigger && !down
         const y = my;
@@ -764,7 +778,7 @@ function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
             setShown(false);
         }*/
         set({ y:y })
-    },{domTarget:container, bounds: { top: 0, bottom: -200 } })
+    },{domTarget:container, bounds: { top: 0} })
 
     React.useEffect(bind, [bind])
 
@@ -784,7 +798,7 @@ function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
 
     useEffect(()=>{
         if(show){
-            set(()=>createTo(0))
+            //set(()=>createTo(0))
         }
     },[show])
 
