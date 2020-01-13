@@ -737,8 +737,8 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
             })}
             <div css={theme=>({gridColumn:`span ${menuDimensions[0]}`,gridRow:`span ${menuDimensions[1]}`,
             display:'flex',alignItems:'center',zIndex:1000,
-            backgroundColor:theme.backgroundDarkColor,boxShadow:'0px 2px 6px -4px black',borderRadius:10})}>
-                <Menu branch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
+            backgroundColor:theme.backgroundDarkColor,boxShadow:'0px 2px 6px -4px black'})}>
+                <Menu2 activeBranch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
                     width={width} container={container}
                 />
             </div>
@@ -770,7 +770,6 @@ function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
     }))
     
     const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
-        console.log(mx,my)
         const trigger = velocity > 0.2 && xDir < 0;
         const isGone = trigger && !down
         const y = my;
@@ -781,16 +780,6 @@ function Create({activeBranch,postsContext,isFeed,updateFeed,gridContainer}){
     },{domTarget:container, bounds: { top: 0} })
 
     React.useEffect(bind, [bind])
-
-    function handleHide(e){
-        /*try{
-            if(!document.getElementById('tag-selector-modal')){
-                setShow(false);
-            }
-        }catch(e){
-            setShow(false);
-        }*/
-    }
 
     function handleShow(){
         setShow(true);
@@ -885,17 +874,83 @@ function Menu({activeBranch,postsContext,updateFeed,isFeed,width,container}){
             <animated.div style={{ ...rest, scale:size }}
             css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
             alignItems:'center',position:'relative'}} onClick={handleClick}>
-                <MenuSvg css={theme=>({height:'27%',fill:theme.textColor})}/>
+                <MenuSvg css={theme=>({height:'27%',maxHeight:30,fill:theme.textColor})}/>
             </animated.div>
             <div css={{position:'absolute',top:-10,width:'100%'}}>
                 {transitions.map((tr,index) => {
                     return <animated.div key={tr.key} style={tr.props} css={theme=>({
                     position:'absolute',borderRadius:'10px',boxSizing:'border-box',
-                    width:'max-content',bottom:50*index,left:0,right:0,marginLeft:'auto',marginRight:'auto'})}>
+                    width:'max-content',bottom:50*index,right:0,marginLeft:'auto',marginRight:'auto'})}>
                     {tr.item.component}</animated.div>
                 })}
             </div>
         </div>
+    )
+}
+
+function Menu2({activeBranch,postsContext,updateFeed,isFeed,width,container}){
+    const [open, setOpen] = useState(false)
+
+    let data = [
+        {
+            component:<Create activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed}
+                isFeed={isFeed} width={width} gridContainer={container}
+            />,
+            key:"create"
+        },{
+            component:<GoToStartOrRefresh/>,
+            key:"GoToStartOrRefresh"
+        }];
+
+    const [props,set] = useSpring(()=>({
+        from:{y:200}
+    }))
+    
+    const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
+        const trigger = velocity > 0.2 && xDir < 0;
+        const isGone = trigger && !down
+        const y = my;
+        /*if(isGone){
+            setShown(false);
+        }*/
+        set({ y:y })
+    },{domTarget:container, bounds: { top: 0} })
+  
+    function handleClick(e){
+        let rect = e.target.getBoundingClientRect();
+        let x = e.clientX - rect.left; //x position within the element.
+        let y = e.clientY - rect.top;  //y position within the element.
+        setOpen(!open)
+    }
+
+    useEffect(()=>{
+        if(open){
+            set({y:0})
+        }else{
+            set({y:200})
+        }
+    },[open])
+
+    return(
+        <>
+        <div style={{height:'100%',width:'100%',position:'relative'}}>
+            <animated.div
+            css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
+            alignItems:'center',position:'relative'}} onClick={handleClick}>
+                <MenuSvg css={theme=>({height:'27%',maxHeight:30,fill:theme.textColor})}/>
+            </animated.div>
+        </div>
+        {ReactDOM.createPortal(
+            <animated.div onClick={()=>setOpen(false)} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
+            css={{width:width,position:'fixed',zIndex:1002,bottom:0,
+            }}>
+                <div css={theme=>({backgroundColor:theme.backgroundDarkColor,
+                borderTopRightRadius:25,borderTopLeftRadius:25,height:200,width:width})}>
+
+                </div>
+            </animated.div>
+        ,document.getElementById('hidden-elements'))}
+        </>
     )
 }
 

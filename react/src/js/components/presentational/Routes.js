@@ -88,6 +88,7 @@ const Routes = () =>{
 const makeGlobalStyles = (theme,isMobileOrTablet) => css`
   html{
     overflow:auto;
+    overscroll-behavior: none;
   }
   
   body {

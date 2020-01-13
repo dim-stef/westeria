@@ -144,7 +144,7 @@ function PageSlider({width}){
             // these child elements are absolutely positioned to perform animations
             // we need to grab the first "pages" height in order to adjust parent accordingly
             return (
-                <animated.div ref={i==0?editorPageRef:null} key={i} {...bind()} css={customScroll}
+                <animated.div ref={i==0?editorPageRef:null} key={i} {...bind(i)} css={customScroll}
                 style={{height:'100%',width:'100%',position:'absolute',padding:'inherit',boxSizing:'border-box',
                 left:0,top:0,overflowY:'scroll',
                 transform:x.interpolate(x=>`translateX(${x}px)`)}}>

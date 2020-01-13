@@ -36,7 +36,8 @@ const serialTagSelector = theme =>({
     backgroundColor:theme.backgroundLightColor,
     borderRadius:25,
     padding:25,width:'50%',
-    maxHeight:'70%',
+    height:'70%',
+    boxSizing:'border-box',
     overflow:'auto',
     '@media (max-device-width:767px)':{
         width:'90%'
@@ -198,6 +199,7 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
     const [isLoading,setLoading] = useState(false);
     const userContext = useContext(UserContext);
     const [tags,setTags] = useState([]);
+    const [postToBranches,setPostToBranches] = useState([]);
     const [showTags,setShowTags] = useState(false);
     const inputRef = useRef(null)
     const handleClick = (e)=>{
@@ -222,15 +224,21 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
         formData.append('type',type);
         formData.append('text',post);
         
+        formData.append('posted_to',branch.id); // always post to self
+        formData.append('posted',branch.id);  // always post to self
+
+        let postTo = postToBranches.map(b=>b.id)
+
+        for(let id of postTo){
+            formData.append('posted_to',id)
+        }
+
         if(replyTo){
             formData.append('replied_to',replyTo)
             formData.append('posted_to',currentPost.poster_full.id)
         }else{
             formData.append('posted_to',activeBranch.id)
         }
-
-        formData.append('posted_to',branch.id); // always post to self
-        formData.append('posted',branch.id);  // always post to self
 
         let newTags = tags.map(t=>t.label).join(", ");
         formData.append('tags',newTags)
@@ -282,7 +290,8 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
                     <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
-                    <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">Add tags</button>
+                    <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">
+                    {tags.length > 0?`${tags.length} tags`:'Add tags'}</button>
                 </div>
                 {isLoading?
                 <div style={{alignSelf:'center',WebkitAlignItems:'center'}}>
@@ -300,7 +309,8 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             <div style={{position:'fixed',top:0,width:'100vw',height:'100vh',display:'flex'
             ,justifyContent:'center',alignItems:'center'}}>
                 <div css={serialTagSelector} onClick={e=>e.stopPropagation()}>
-                    <SerialTagSelector tags={tags} setTags={setTags} branch={branch}/>
+                    <SerialTagSelector selectedTags={tags} setSelectedTags={setTags} hide={()=>setShowTags(false)}
+                    selectedBranches={postToBranches} setSelectedBranches={setPostToBranches} branch={branch}/>
                 </div>
             </div>
         </Modal>    

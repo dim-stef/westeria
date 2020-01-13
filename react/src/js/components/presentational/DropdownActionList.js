@@ -27,7 +27,7 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
         }
     }
 
-    function handleHide(e,hide){
+    function handleHide(e){
         e.stopPropagation();
         setOpen(false);
     }
@@ -81,7 +81,7 @@ export function DropdownActionList({actions,wrapper,style=null,children}){
                 </>
             }}
             content={hide => (
-            <Modal onClick={(e)=>handleHide(e,hide)}>
+            <Modal hide={hide} onClick={e=>handleHide(e)} isOpen={isOpen}>
                 <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
                     <MobileModal mobileRef={mobileRef}>
                         {actions.map(a=>{
