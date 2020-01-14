@@ -324,7 +324,7 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
     }
 
     return(
-        <div css={superBar} ref={containerRef} style={{width:width}} onClickCapture={onClickCapture}>
+        <div css={superBar} id="super-bar" ref={containerRef} style={{width:width}} onClickCapture={onClickCapture}>
             <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()}
             style={{transform:props.x.interpolate(x=>`translateX(${x}px)`)}}>
                 {userContext.isAuth?<div css={bubble}><StatusUpdateButton branch={branch} updateFeed={updateFeed} 
@@ -354,8 +354,15 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
                 </>:null}
                 <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
 
-                {fillerBranches && branch && fillerBranches.length > 0?
-                    fillerBranches.filter(b=>b.uri!=branch.uri).map(b=>{
+                {fillerBranches && fillerBranches.length > 0?
+                    fillerBranches.filter(b=>{
+                            // in case user is not authenticated
+                            if(branch){
+                                return b.uri!=branch.uri
+                            }else {
+                                return true
+                            }
+                        }).map(b=>{
                         return <React.Fragment key={b.uri}>
                             <BubbleBranch branch={b} shouldClick={shouldClick}/>
                         </React.Fragment>

@@ -273,7 +273,7 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
                 <link rel="canonical" href="https://subranch.com"/>
             </Helmet>
             <FeedPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
-            postedId={context.currentBranch.id} usePostsContext showPostedTo 
+            postedId={context.currentBranch.id} postingTo={context.currentBranch} usePostsContext showPostedTo 
             branch={branch} params={params} setParams={setParams} isFeed
             />
             </>
@@ -309,7 +309,7 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
         </Helmet>
         <AllPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
         postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 
-        branch={branch} params={params} setParams={setParams} isFeed
+        branch={branch} params={params} setParams={setParams} isFeed postingTo={context.isAuth?context.currentBranch:null}
         />
         </>
     )
@@ -341,7 +341,8 @@ export const FrontPageTreePosts = React.memo(function FrontPageTreePosts(props){
 
         </Helmet>
         <TreePosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
-        postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 
+        postedId={context.isAuth?context.currentBranch.id:null} 
+        postingTo={context.isAuth?context.currentBranch:null} usePostsContext showPostedTo 
         branch={branch} params={params} setParams={setParams} isFeed
         />
         </>

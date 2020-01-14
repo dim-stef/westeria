@@ -39,8 +39,8 @@ def hot(ups, downs, spreads, date):
     s = score(ups, downs)
     spread_s = sigmoid(spreads) + 0.5
     sign = 1 if s > 0 else -1 if s < 0 else 0
-    if sign>0:
-        order = log(max(abs(s), 1), 10) * max(spread_s,1)
+    if sign > 0:
+        order = log(max(abs(s), 1), 10) * max(spread_s, 1)
     else:
         order = log(max(abs(s), 1), 10)
 
