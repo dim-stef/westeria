@@ -228,7 +228,7 @@ export function SerialTagSelector(props){
                         </div>
                         <div css={theme=>({display:'flex',justifyContent:'space-between',borderRadius:50,
                         backgroundColor:theme.backgroundDarkColor,padding:10,margin:10})}>
-                            <button css={negativeButton}>No, cancel</button>
+                            <button css={negativeButton} onClick={props.hide}>No, cancel</button>
                             <button css={positiveButton} onClick={sendToRight}>Add tags</button>
                         </div>
                         </>:<PostToBranches branches={availableBranches} sendToLeft={sendToLeft} hide={props.hide}

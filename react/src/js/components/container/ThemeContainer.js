@@ -30,8 +30,8 @@ const darkMode = {
 
 const lightMode = {
     backgroundColor:COLORS.white,
-    backgroundLightColor:COLORS.white,
-    backgroundDarkColor:COLORS.white,
+    backgroundLightColor:'#fbfbfb',
+    backgroundDarkColor:'#fbfbfb',
     textColor:COLORS.lightBlack,
     textLightColor:COLORS.darkGray,
     textHarshColor:COLORS.black,

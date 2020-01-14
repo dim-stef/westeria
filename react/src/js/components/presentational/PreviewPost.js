@@ -23,13 +23,12 @@ const Ripple = createRipples({
 
 const postCss = (theme,backgroundColor) =>css({
     //border:`1px solid ${theme.borderColor}`,
-    boxShadow:'0px 2px 6px -4px black',
     display:'flex',
     height:'100%',
     position:'relative',
     overflow:'hidden',
     cursor:'pointer',
-    backgroundColor:backgroundColor
+    backgroundColor:theme.backgroundLightColor
 })
 
 const text = (theme,textPosition,size,hasMedia) =>css({
@@ -37,7 +36,8 @@ const text = (theme,textPosition,size,hasMedia) =>css({
     top:textPosition,
     fontSize:size=='xsmall' || size=='small' ? '1.1rem' : '2rem',
     margin:5,
-    padding:hasMedia?5:0,
+    padding:hasMedia?'0px 10px 10px 10px':0,
+    borderRadius:15,
     color:hasMedia?'white':theme.textColor,
     backgroundColor:hasMedia?'#00000075':null,
     wordBreak:'break-word',
