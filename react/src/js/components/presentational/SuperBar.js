@@ -327,15 +327,12 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
         <div css={superBar} id="super-bar" ref={containerRef} style={{width:width}} onClickCapture={onClickCapture}>
             <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()}
             style={{transform:props.x.interpolate(x=>`translateX(${x}px)`)}}>
-                {userContext.isAuth?<div css={bubble}><StatusUpdateButton branch={branch} updateFeed={updateFeed} 
-                postedId={postedId} isFeed={isFeed} postsContext={postsContext} width={width} 
-                containerRef={containerRef}
-                /></div>:null}
                 {branch?
                 <div css={theme=>({...bubble(theme),backgroundColor:theme.backgroundLightColor})}
                  style={{padding:6,order:-2}} onClick={handleDrawerClick}>
                     <img css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}} src={branch.branch_image}/>
                 </div>:null}
+                <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
                 {(isFeed && userContext.isAuth) || !isFeed?
                 <div css={bubble}><Branches branch={branch} shouldClick={shouldClick}/></div>:null}
                 {(isFeed && userContext.isAuth)?
@@ -352,7 +349,6 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
                     <BubbleNavLink to={`/${branch.uri}/community`} 
                     {...bubbleProps} label="Community leaves" />
                 </>:null}
-                <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
 
                 {fillerBranches && fillerBranches.length > 0?
                     fillerBranches.filter(b=>{
@@ -385,7 +381,7 @@ function BubbleBranch({branch,shouldClick}){
     const [active,setActive] = useState(false);
 
     return <div ref={ref} style={{display:'contents'}}><NavLink exact to={{ pathname:`/${branch.uri}`}} css={bubble}
-    activeStyle={activeStyle} onClick={shouldPreventDefault}>
+    activeStyle={activeStyle} onClick={shouldPreventDefault} onDragStart={e=>e.preventDefault()}>
     <div css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
         <img src={branch.branch_image} css={{width:20,height:20,objectFit:'cover',borderRadius:'50%',
         marginRight:10}}/>
@@ -400,11 +396,13 @@ function BubbleNavLink({to,activeStyle,state=null,label,shouldClick,onClick}){
 
     return(
         <div ref={ref} style={{display:'contents'}}>
-        <NavLink exact to={{ pathname:to,state:state}} css={bubble} activeStyle={activeStyle} 
-        draggable="false" onClick={(e)=>{shouldPreventDefault(e,onClick);}}>{label}</NavLink></div>
+        <NavLink exact to={{pathname:to,state:state}} css={bubble} activeStyle={activeStyle} 
+        draggable="false" onDragStart={e=>e.preventDefault()} onClick={(e)=>{shouldPreventDefault(e,onClick);}}>
+        {label}</NavLink></div>
     )
 }
 
+// Use this to prevent ghost click after dragging an object
 function usePreventDragClick(ref,shouldClick){
 
     function shouldPreventDefault(e,func){

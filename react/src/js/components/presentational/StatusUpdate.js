@@ -310,7 +310,7 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             ,justifyContent:'center',alignItems:'center'}}>
                 <div css={serialTagSelector} onClick={e=>e.stopPropagation()}>
                     <SerialTagSelector selectedTags={tags} setSelectedTags={setTags} hide={()=>setShowTags(false)}
-                    selectedBranches={postToBranches} setSelectedBranches={setPostToBranches} branch={branch}/>
+                    selectedBranches={postToBranches} setSelectedBranches={setPostToBranches} branch={activeBranch}/>
                 </div>
             </div>
         </Modal>    
