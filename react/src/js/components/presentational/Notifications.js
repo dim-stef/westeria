@@ -3,7 +3,7 @@ import { css } from "@emotion/core";
 import {useTheme} from "emotion-theming";
 import {Link} from "react-router-dom"
 import {isMobile} from 'react-device-detect';
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import formatRelative from 'date-fns/formatRelative';
 import ReconnectingWebSocket from 'reconnecting-websocket';

@@ -5,7 +5,7 @@ import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import history from "../../history"
 import {Helmet} from 'react-helmet'
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import Linkify from 'linkifyjs/react';
 import {
     AllPostsContext,
@@ -25,8 +25,6 @@ import {useInView} from 'react-intersection-observer'
 import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
-import '@material/react-ripple/dist/ripple.css';
-import {withRipple} from '@material/react-ripple';
 import {DropdownActionList} from "./DropdownActionList"
 import {InfoMessage} from "./InfoMessage"
 import {Path} from "./LeafPath"

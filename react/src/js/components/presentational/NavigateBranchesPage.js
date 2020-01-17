@@ -1,7 +1,7 @@
 import React, {useEffect,useState,useRef,useContext} from "react"
 import {Link} from "react-router-dom";
 import {useMediaQuery} from "react-responsive";
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {css} from "@emotion/core"
 import {useTheme} from "emotion-theming";
 import {UserContext} from "../container/ContextContainer"
@@ -9,7 +9,7 @@ import {FadeImage} from "./FadeImage"
 import {CircularSkeletonList} from "./SkeletonBranchList"
 import {AddBranch} from "./BranchesPage"
 import RoutedHeadline from "./RoutedHeadline"
-import {CircularBranch} from "./Branch"
+import {CircularBranch,SquareBranch} from "./Branch"
 import history from "../../history";
 import axios from "axios";
 import axiosRetry from "axios-retry"
@@ -30,7 +30,7 @@ const container = (theme) =>css({
 const rowContainer = () =>css({
     display:'flex',
     flexFlow:'column',
-    justifyContent:'flex-start',
+    justifyContent:'space-around',
     flex:1
 })
 const branchRow = isMobile => css({
@@ -54,8 +54,9 @@ const skeletonRow = isMobile => css({
 })
 
 const header = theme =>css({
-    color:theme.textColor,
-    margin:10
+    color:theme.textHarshColor,
+    margin:4,
+    fontSize:'1.7rem'
 })
 
 const topRow = () =>css({
@@ -113,7 +114,7 @@ function ResponsiveBranchRows({uri,showTop,endpoint,withHeadline}){
     },[uri])
 
     return(
-        <div css={theme=>container(theme)} className="big-main-column" style={{padding:0}}>
+        <div css={theme=>container(theme)} className="big-main-column" style={{padding:0,height:'100%'}}>
             {showTop?
             <div css={topRow}>
                 <FadeImage src={branch?branch.branch_image:null} className="round-picture" style={{objectFit:'cover',
@@ -192,7 +193,10 @@ function BranchRow({type,branch,endpoint}){
     }
 
     return(
-        branches?branches.length>0 || type!='siblings'?<><div>
+        branches?branches.length>0 || type!='siblings'?<>
+        <div css={theme=>({backgroundColor:theme.backgroundLightColor,margin:isMobile?'2px 10px':'10px 15px',
+        padding:isMobile?5:10,boxSizing:'border-box',
+        borderRadius:25})}>
             <div>
                 <h1 css={theme=>header(theme)}>{infoText}</h1>
                     

@@ -1,7 +1,6 @@
 import React, {useContext,useState,useRef,useEffect} from "react";
 import {css} from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
-import Pullable from 'react-pullable';
 import {ResponsiveNavigationBar} from "./presentational/Navigation"
 import {RefreshContext} from "./container/ContextContainer"
 

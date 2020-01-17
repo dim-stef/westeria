@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import { css } from "@emotion/core";
 import {useTheme} from "emotion-theming";
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {Helmet} from 'react-helmet'
 import RoutedHeadline from './RoutedHeadline'
 import {BigBranchList} from "./BranchList"

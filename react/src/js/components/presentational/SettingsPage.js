@@ -51,6 +51,14 @@ const settingInput = theme =>css({
     border:`1px solid ${theme.borderColor}`
 })
 
+const imageCss = theme =>css({
+    '&:hover':{
+        'img':{
+            cursor:'pointer',
+            boxShadow:'0px 0px 0px 3px #219ef3',
+        }
+    }
+})
 
 function validateImageSize(target,maxSize){
     var files = target.files;
@@ -200,7 +208,9 @@ function BranchSettingsWrapper({match,history}){
                 <meta name="description" content="Update branch." />
             </Helmet>
             <RoutedHeadline to="/settings/branches" headline={`${branch.uri} settings`}/>
-            <BranchSwitcher defaultBranch={branch} setBranch={setBranch} showOnTop/>
+            <div css={{display:'flex',justifyContent:'center'}}>
+                <BranchSwitcher defaultBranch={branch} setBranch={setBranch} showOnTop/>
+            </div>
             <Setting>
                 <UpdateBranch branch={branch}/>
             </Setting>
@@ -443,7 +453,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                         <div style={{margin:'5px 0'}}>
                             <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
                             <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
-                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} profileRef={profileRef} createNew={createNew}/>
+                                <Profile src={branch?branch.branch_image:null} branch={branch} wrapperRef={wrapperRef} 
+                                profileRef={profileRef} createNew={createNew}/>
                             </div>
                             {errors.branch_image && <span className="setting-error">{errors.branch_image}</span>}
                             {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
@@ -732,8 +743,9 @@ export function Profile({src=null,wrapperRef,profileRef,createNew,name="branch_i
         <Field name={name}
         validate={onInput}>
             {({ input, meta }) => (
-            <div>
-                <label style={{height:'100%',padding:0}} css={theme=>settingLabel(theme)} htmlFor="branch-image">
+            <div css={imageCss}>
+                <label style={{height:'100%',padding:0,boxSizing:'border-box'}} css={theme=>settingLabel(theme)} 
+                htmlFor="branch-image">
                     <ImageInput key="profile" src={src?src:null} wrapperRef={wrapperRef} nodeRef={profileRef} 
                     getWidth={width=>width} className="round-picture" 
                     css={theme=>({height:'100%',objectFit:'cover',border:`1px solid ${theme.borderColor}`})} alt="Profile"

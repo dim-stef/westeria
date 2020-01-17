@@ -122,7 +122,7 @@ export function Modal({children ,onClick, isOpen,hide=()=>{},portalElement="moda
 
     return  ReactDOM.createPortal(
             transitions.map(({ item, key, props }) =>
-                item && <animated.div className="modal" style={props} key={key} onClick={onClick} onTouchMove={preventScrollEvents}>
+                item && <animated.div className="modal" style={props} key={key} onClick={onClick}>
                     {children}
                 </animated.div>),
             document.getElementById(portalElement)   

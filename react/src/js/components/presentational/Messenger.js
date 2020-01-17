@@ -3,7 +3,7 @@ import {Redirect} from 'react-router-dom';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {ChatRoomsContext, UserContext} from "../container/ContextContainer"
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {CustomEditor} from "./Editor"
 import {MediaPreview} from './EditorMediaPreview'
 import axios from 'axios'
@@ -65,9 +65,9 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
             for (var i = 0; i < files.length; i++)
             {
                 if(isFileImage(files[i])){
-                    formData.append('images',files[i])
+                    formData.append('images',files[i],files[i].fileName)
                 }else if(isFileVideo(files[i])){
-                    formData.append('videos',files[i])
+                    formData.append('videos',files[i],files[i].fileName)
                 }
             }
 

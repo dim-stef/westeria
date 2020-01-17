@@ -3,7 +3,7 @@ import {css} from "@emotion/core";
 import {useSprings,useSpring,useTransition,useChain,animated,config} from "react-spring/web.cjs";
 import {useMediaQuery} from 'react-responsive'
 import {useDrag} from "react-use-gesture";
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {UserContext,CachedBranchesContext} from "../container/ContextContainer";
 import {UpdateBranch} from "./SettingsPage";
 import {ArrowSvg} from "./Svgs";

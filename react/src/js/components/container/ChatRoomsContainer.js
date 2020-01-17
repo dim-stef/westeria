@@ -10,7 +10,7 @@ import {Images} from "../presentational/PostImageGallery"
 import {Desktop, Mobile, Tablet} from "../presentational/Responsive"
 import history from '../../history'
 import Linkify from 'linkifyjs/react';
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {Helmet} from 'react-helmet'
 import {FrontPageLeftBar} from "../presentational/FrontPage"
 import {DesktopProfileWrapper} from "../presentational/ProfileViewer"

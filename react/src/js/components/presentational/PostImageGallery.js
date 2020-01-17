@@ -5,20 +5,11 @@ import {useTheme} from "emotion-theming";
 import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
 import ReactPlayer from 'react-player'
-import ReactDOM from 'react-dom';
 import SwipeableViews from 'react-swipeable-views';
-import PinchToZoom from 'react-pinch-and-zoom';
+import { useSpring, animated , to } from 'react-spring/web.cjs'
+import { useGesture } from 'react-use-gesture'
 import {FadeImage} from "./FadeImage"
-
-const Modal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
-    )
-);
-
+import {Modal} from "./Temporary"
 
 Number.prototype.roundTo = function(num) {
     var resto = this%num;
@@ -180,7 +171,7 @@ export function Images(props){
                         {props.images.map(img=>{
                             return <div key={img.image} 
                             style={{width:'100%',height:'100%'}}>
-                            <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
+                            <ImageComponent width={props.imageWidth} key={img} src={img.image} imgHeight={img.height}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft} imgWidth={img.width}
                             /></div>
                         })}
@@ -243,11 +234,12 @@ function getScrollbarWidth() {
 }
 
 
-function ImageComponent({src,maxHeight,imgWidth,height}){
+function ImageComponent({src,maxHeight,imgWidth,imgHeight}){
+    const [open,setOpen] = useState(false);
 
     function handleModalOpen(e,show){
-
         e.stopPropagation();
+        setOpen(true);
         show();
         document.body.style.overflowY = 'hidden';
         document.body.style.paddingRight = `${getScrollbarWidth()}px`
@@ -258,17 +250,17 @@ function ImageComponent({src,maxHeight,imgWidth,height}){
     }
 
     function handleModalClose(e,hide){
+        setOpen(false);
 
         if(e){
             e.stopPropagation();
         }
         
-        hide();
         document.body.style.overflowY = 'scroll';
         document.body.style.paddingRight = 0;
     }
 
-    let borders = imgWidth>height?{
+    let borders = imgWidth>imgHeight?{
         height:'auto',
         width:'100%'
     }:{
@@ -279,7 +271,7 @@ function ImageComponent({src,maxHeight,imgWidth,height}){
     function listenHistory(hide){
         history.listen((location, action) => {
             if(action==='POP'){
-                hide();
+                setOpen(false);
             }
         });
     }
@@ -298,38 +290,106 @@ function ImageComponent({src,maxHeight,imgWidth,height}){
                                 handleModalOpen(e,show)
                                 }} style={{width:'100%',minHeight:'100%',
                             objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
-                            {/*,position:'absolute',
-                            top:'50%',right:'50%',transform:'translate(50%,-50%)' */}
-                    </LazyLoad>
-                    
+                    </LazyLoad>                    
                 </div>
             )}
             content={hide => {
                 
                 listenHistory(()=>handleModalClose(null,hide));
-                return <>
-                 <Modal onClick={e=>handleModalClose(e,hide)}>
-                        <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
-                            <div style={{margin:'auto',width:'100%'}}>
-                                <div className="close-button" onClick={e=>handleModalClose(e,hide)}>
-                                    <CloseSvg/>
-                                </div>
-                                <PinchToZoom>
-                                    <div className="zoom-container flex-fill center-items" onClick={e=>handleModalClose(e,hide)}>
-                                        <img style={{objectFit:'contain',height:'100vh',width:'100%',backgroundColor:'#59686f'}} 
-                                        onClick={(e)=>e.stopPropagation()} src={src}/>
-                                    </div>
-                                </PinchToZoom>
-                            </div>
-                        </div>
-                </Modal>
-                </>
+                return (
+                    <Modal isOpen={open} hide={hide} onClick={e=>handleModalClose(e,hide)} 
+                    portalElement="disable-slide-swipe">
+                        <SmartImage src={src} setOpen={setOpen} width={imgWidth} height={imgHeight}/>
+                    </Modal>
+                )
             }}/>
     )
 }
 
+function setLimit(value){
 
+    if(value > 5){
+      value = 5;
+    }
+    if(value < 0.4){
+      value = 0.4
+    }
+  
+    return value
+}
 
+function SmartImage({src,setOpen,width,height}){
+    const gone = useRef(false);
+    const imgRef = useRef(null);
+    const domTarget = useRef(null)
+    const pinching = useRef(false);
+
+    const [{ x, y, rotateX, rotateY, rotateZ, zoom, scale }, set,stop] = useSpring(() => (
+        {
+            rotateX: 0,
+            rotateY: 0,
+            rotateZ: 0,
+            scale: 1,
+            zoom: 0,
+            x: 0,
+            y: 0,
+            config: { mass: 1, tension: 350, friction: 40 },
+            onFrame:(f)=>{
+                if(Math.abs(f.y) > window.innerHeight){
+                    setOpen(false);
+                }
+            }
+        }
+    ))
+
+    const bind = useGesture(
+        {
+        onDrag: ({event, movement: [mx, my], direction:[xDir,yDir], velocity, down,cancel}) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const trigger = !down && velocity > 0.3 && Math.abs(my) > 60;
+            gone.current = trigger;
+            set(()=>{
+                if(gone.current){
+                    if(yDir < 0){
+                        return {y:-window.innerHeight - imgRef.current.clientHeight}
+                    }else{
+                        return {y:window.innerHeight + imgRef.current.clientHeight}
+                    }
+                }
+                if(!down){
+                    return {x:0,y:0}
+                }
+                return { x:mx, y:my, rotateX: 0, rotateY: 0 }
+            })
+        },
+        onPinch: ({ offset: [d, a] }) => {
+            set({ zoom: d / 200, rotateZ: a })
+        },
+        onPinchStart:()=>pinching.current=true,
+        onPinchEnd:()=>setTimeout(()=>pinching.current=false,5),
+        onHover: ({ hovering }) => !hovering && set({ rotateX: 0, rotateY: 0 }),
+        onWheel: ({ offset: [, y] }) => set({ zoom: y / 200})
+        },
+        { domTarget }
+    )
+
+    useEffect(bind, [bind])
+
+    return(
+        <animated.div css={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',width:'100vw'}}
+        ref={domTarget}>
+            <animated.div
+            style={{ x, y, scale: to([scale, zoom], (s, z) => s + z), rotateX, rotateY, rotateZ }}
+            >
+                <img ref={imgRef} onClick={e=>e.stopPropagation()} 
+                src={src} style={{height:height > width?'100vh':null,width:width > height?'100vw':null}} 
+                className="noselect" draggable="false"/>
+            </animated.div>
+
+        </animated.div>
+    )
+}
 
 function MediaButtons({index,changeIndex,count,imageWidth,setIndex,incrementIndex,decrementIndex}){
 

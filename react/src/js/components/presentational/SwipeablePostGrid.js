@@ -45,7 +45,6 @@ const animatedDiv = (theme,supportsGrid) =>css({
     padding:5,
     boxSizing:'border-box',
     backgroundColor:theme.backgroundColor,
-    willChange:'transform',
     border:'4px solid transparent',
     '@media (min-device-width: 767px)':{
         '&:hover':{
@@ -174,6 +173,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // ref to capture render end after index change
     // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
+    const bindedRef = useRef(null)
 
     const isSafariFeature = window['safari'] && safari.pushNotification &&
     safari.pushNotification.toString() === '[object SafariRemoteNotification]';
@@ -198,10 +198,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             if(f.x!=0){
                 shouldCaptureWheel.current = false;
             }
-
-            // When user is rapid swiping or switching pages animations would not play
-            // for whatever reason this stop() fixes this
-            stop();
 
             if((Math.abs(f.x) - offsetLeft > widthRef.current && Math.abs(f.x) - offsetLeft - 1 < widthRef.current)
             || (Math.abs(f.x) > widthRef.current && Math.abs(f.x) - 1 < widthRef.current)){
@@ -317,7 +313,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         if(index>=Math.round(pages.length - 3) && index !=0){
             fetchData();
         }
-        
+
+        // When user is rapid swiping or switching pages animations would not play
+        // for whatever reason this stop() fixes this
+
+        stop();
     },[index])
 
     function wheelEvent(e){
@@ -368,6 +368,13 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
 
         if(previewPostContainer.childElementCount>0) cancel();
+
+        if(down){
+            bindedRef.current.style.willChange = 'transform';
+        }else{
+            bindedRef.current.style.willChange = null;
+        }
+
         const isLastPage = index==pages.length
         isDown.current = down;
         movX.current = mx;
@@ -469,11 +476,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 }
                 </div>
             </animated.div>
-            <animated.div {...bind()} key={index} data-index={index} css={theme=>animatedDiv(theme,supportsGrid)}
+            <animated.div {...bind()} ref={bindedRef} key={index} data-index={index} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
             width:'100%',zIndex:1,height:'100%'}}>
                 <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
-                    {pages[index]?
+                    {pages[index] ?
                         <Page index={index} page={pages[index]} 
                         {...pageProps} hasMenu
                     />:hasMore?<SkeletonFixedGrid/>:<LastPage index={index} jumpToBack={jumpToBack} 
@@ -486,7 +493,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             1.5*x + width + offsetLeft<0?0:1.5*x + width + offsetLeft}px)`),
             width:'100%',zIndex:0,height:'100%'}}>
                 <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
-                    {pages[index + 1]?
+                    {pages[index + 1] ?
                         <Page index={index + 1} page={pages[index + 1]} 
                         {...pageProps}
                     />:hasMore?<SkeletonFixedGrid/>:<LastPage activeBranch={activeBranch} isFeed={isFeed} 
@@ -499,7 +506,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             width={width} container={container} menuOpen={menuOpen} setOpen={setOpen} 
             jumpToBack={jumpToBack} refresh={refresh} index={index}
             />:null}
-            
         </div>
     )
 }
@@ -572,7 +578,7 @@ function shuffle(a) {
 }
 
 function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
-    movX,rowCount,columnCount,updateFeed,isFeed,width,container,setOpen}){
+    movX,rowCount,columnCount,setOpen}){
 
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
