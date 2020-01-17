@@ -185,7 +185,7 @@ function BranchRow({type,branch,endpoint}){
     }else if(type=='parents'){
         infoText = `More generic communities than ${branch.name}`
     }else{
-        infoText = `Communities similar to ${branch.name}`
+        infoText = `Communities related to ${branch.name}`
     }
 
     function handleClick(branch){
@@ -193,13 +193,14 @@ function BranchRow({type,branch,endpoint}){
     }
 
     return(
-        branches?branches.length>0 || type!='siblings'?<>
+        branches?
         <div css={theme=>({backgroundColor:theme.backgroundLightColor,margin:isMobile?'2px 10px':'10px 15px',
         padding:isMobile?5:10,boxSizing:'border-box',
         borderRadius:25})}>
             <div>
                 <h1 css={theme=>header(theme)}>{infoText}</h1>
                     
+                {branches.length > 0?
                 <InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
                 next={next} hasMore={hasMore} loadMore={getBranches} dataLength={branches?branches.length:0}>
                 
@@ -222,14 +223,22 @@ function BranchRow({type,branch,endpoint}){
                     </div>:null}
                 </div>
                 </InfiniteHorizontalScroll>
+                :
+                <div css={{display:'flex',flexFlow:'column'}}>
+                    <p css={theme=>({color:theme.textColor,fontWeight:'bold',
+                    fontSize:'1.4rem'})}>
+                    {type=='siblings'?
+                    'No related communites were found :(':
+                    'No one is here yet. Expand your community by connecting with other communities'}</p>
+                    {type=='siblings' || !userContext.isAuth || branch.uri==userContext.currentBranch.uri?null:
+                    <AddBranch branch={branch} type={type}/>}
+                </div>}
             </div>
             {hasMore && !isMobile?
             <button className="load-more" style={{width:100}} onClick={getBranches}>Load more</button>:null}
         </div>
-        </>
-            
-            
-        :null:<div css={()=>skeletonRow(isMobile)}>
+
+        :<div css={()=>skeletonRow(isMobile)}>
             <CircularSkeletonList count={5} dimensions={isMobile?70:100}/>
         </div>
     )

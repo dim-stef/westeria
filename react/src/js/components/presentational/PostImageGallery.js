@@ -27,7 +27,6 @@ const previewImage = () =>css({
     minHeight:'100%',
     maxHeight:'100%',
     display:'flex',
-    willChange:'opacity'
 })
 
 const mediaContainer = (image=null) =>css({

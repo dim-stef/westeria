@@ -202,10 +202,10 @@ export function AddBranch({branch,component,type='children'}){
     let relation_type;
 
     if(type=='children'){
-        text = 'Become child';
+        text = 'Connect as more specific';
         relation_type = 'child';
     }else if(type=='parents'){
-        text = 'Become parent';
+        text = 'Connect as more generic';
         relation_type = 'parent';
     }
 
@@ -258,7 +258,7 @@ export function AddBranch({branch,component,type='children'}){
         style={{padding:10,cursor:'pointer',borderRadius:'50%',height:80,width:80,margin:20}} 
         css={theme=>add(theme)}
         role="button" onClick={onClick}>  
-            <h1 className="branch-add-text">{text}</h1>
+            <h1 className="branch-add-text" css={{fontSize:'1.2rem'}}>{text}</h1>
         </div>
         :sumbitted && requestStatus == 'accepted'?
             <CircularBranch branch={context.currentBranch}/>

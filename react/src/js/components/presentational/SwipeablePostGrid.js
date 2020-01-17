@@ -29,6 +29,12 @@ const gridContainer = () =>css({
     gridAutoFlow:'dense',
 })
 
+const grid = () =>css({
+    'div':{
+        willChange:'transform'
+    }
+})
+
 const cell = (size,isBig,isFlat) =>css({
     gridColumn:`span ${size[0]}`,
     gridRow:`span ${size[1]}`,
@@ -123,7 +129,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     }
 
     function getPages(){
-        console.log(posts)
         var perChunk = itemCount // items per chunk    
         var result = posts.reduce((resultArray, item, index) => { 
         const chunkIndex = Math.floor(index/perChunk)
@@ -142,7 +147,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
     const pages = getPages();
 
-    console.log(pages)
     // this ref is need in order to keep track of "pages" state inside the onFrame function
     const pagesRef = useRef();
     pagesRef.current = pages;
@@ -215,6 +219,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                     jumpedToBack.current = false;
                     indexRef.current = 0;
 
+                    set(()=>({
+                        to:ani(0),
+                        from:ani(0),
+                        immediate:true,
+                    }))
                     // Timeout for whatever reason prevents flashing after setIndex
                     setIndex(0)
                 }
@@ -249,13 +258,19 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         if(indexRef.current == 1){
             goToLeft();
         }else{
-            //stop();
             jumpedToBack.current = true;
-            // jump to 1st index
-            // then capture index change on effect and play animation to index 0
             indexRef.current = 1;
             setIndex(1);
-            
+
+            // jump to 1st index
+            // then capture index change on effect and play animation to index 0
+
+            set(()=>({
+                to:ani(width),
+                from:ani(0),
+                immediate:false,
+                config:{ mass: 1, tension: 500, friction: 35 },
+            }))
         }
     }
 
@@ -317,15 +332,10 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 immediate:true,
             }))
 
+            // When user is rapid swiping or switching pages animations would not play
+            // for whatever reason this stop() fixes this
+
             stop();
-        }else{
-            //stop()
-            set(()=>({
-                to:ani(width),
-                from:ani(0),
-                immediate:false,
-                config:{ mass: 1, tension: 500, friction: 35 },
-            }))
         }
 
         if(index>=Math.round(pages.length - 3) && index !=0 && !fetchingData.current){
@@ -333,8 +343,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             fetchData();
         }
 
-        // When user is rapid swiping or switching pages animations would not play
-        // for whatever reason this stop() fixes this
     },[index])
 
     function wheelEvent(e){
@@ -385,12 +393,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
 
         if(previewPostContainer.childElementCount>0) cancel();
-
-        if(down){
-            bindedRef.current.style.willChange = 'transform';
-        }else{
-            bindedRef.current.style.willChange = null;
-        }
 
         const isLastPage = index==pages.length
         isDown.current = down;
@@ -459,9 +461,10 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     },{axis:'x'})
 
     let pageProps = {
-        posts:posts,
         activeBranch:activeBranch,
         postsContext:postsContext,
+        updateFeed:updateFeed,
+        isFeed:isFeed,
         shouldOpen:shouldOpen,
         width:width,
         height:window.innerHeight,
@@ -478,7 +481,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
 
     return (
-        <div style={{position:'relative',width:width,height:height}} ref={container} id="grid-container">
+        <div style={{position:'relative',width:width,height:height}} css={grid} ref={container} id="grid-container">
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
             <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
             style={{position:'absolute',zIndex:2,
@@ -501,7 +504,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                         <Page index={index} page={pages[index]} 
                         {...pageProps} hasMenu
                     />:hasMore?<SkeletonFixedGrid/>:<LastPage index={index} jumpToBack={jumpToBack} 
-                    activeBranch={activeBranch} isFeed={isFeed} refresh={refresh}
+                    activeBranch={activeBranch} isFeed={isFeed} refresh={refresh} container={container}
                     postsContext={postsContext} updateFeed={updateFeed} posts={posts}/>}
                 </div>
             </animated.div>
@@ -514,7 +517,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                         <Page index={index + 1} page={pages[index + 1]} 
                         {...pageProps}
                     />:hasMore?<SkeletonFixedGrid/>:<LastPage activeBranch={activeBranch} isFeed={isFeed} 
-                    index={index} jumpToBack={jumpToBack} refresh={refresh}
+                    index={index} jumpToBack={jumpToBack} refresh={refresh} container={container}
                     postsContext={postsContext} updateFeed={updateFeed} posts={posts}/>}
                 </div>
             </animated.div>
@@ -594,14 +597,15 @@ function shuffle(a) {
     return a;
 }
 
-function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
-    movX,rowCount,columnCount,setOpen}){
+function Page({page,activeBranch,postsContext,updateFeed,
+    isFeed,pageType,height,shouldOpen,
+    movX,rowCount,columnCount,setOpen,container}){
 
-    console.log(page)
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
     const gridGap = 10;
     const implicitRowCount = (height-10*gridGap)/12;
+    const [showCreate,setShowCreate] = useState(false);
 
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
@@ -761,10 +765,20 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
                     <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
-            <div key="menu" css={theme=>({gridColumn:`span ${menuDimensions[0]}`,gridRow:`span ${menuDimensions[1]}`,
+            <div key="menu" css={theme=>({gridColumn:`span ${sizes.small.defaultDimensions[0]}`,
+            gridRow:`span ${sizes.small.defaultDimensions[0]}`,
             display:'flex',alignItems:'center',zIndex:1000,
             backgroundColor:theme.backgroundDarkColor})}>
                 <MenuButton setOpen={setOpen}/>
+            </div>
+            <div key="plus" css={theme=>({gridColumn:`span ${sizes.small.defaultDimensions[0]}`,
+            gridRow:`span ${sizes.small.defaultDimensions[0]}`,
+            display:'flex',alignItems:'center',zIndex:1000,
+            backgroundColor:theme.backgroundDarkColor})} onClick={()=>setShowCreate(true)}>
+                <Create activeBranch={activeBranch} postsContext={postsContext} isFeed={isFeed}
+                updateFeed={updateFeed} show={showCreate} setShow={setShowCreate} container={container}>
+                    <CreateButton/>
+                </Create>
             </div>
         </div>
         :
@@ -778,7 +792,7 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
     )
 }
 
-function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFeed,updateFeed}){
+function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFeed,updateFeed,container}){
     const [showCreate,setCreate] = useState(false);
     const userContext = useContext(UserContext);
 
@@ -797,7 +811,7 @@ function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFe
             {posts.length > 0 ? null:
             <div onClick={handleCreateClick} css={{margin:10,cursor:'pointer'}}>
             <Create activeBranch={activeBranch} postsContext={postsContext} isFeed={isFeed}
-                updateFeed={updateFeed} show={showCreate} setShow={setCreate}
+                updateFeed={updateFeed} show={showCreate} setShow={setCreate} container={container}
             /></div>}
             <div css={{display:'flex',flexFlow:'column',alignItems:'center',justifyContent:'center',margin:10,cursor:'pointer'}}>
                 <GoToStartOrRefresh index={index} jumpToBack={jumpToBack} refresh={refresh}/>
@@ -808,12 +822,18 @@ function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFe
 
 const createTo = (y) => ({ y: y })
 
-function Create({activeBranch,postsContext,isFeed,updateFeed,show,setShow}){
+function Create({activeBranch,postsContext,container,isFeed,updateFeed,show,setShow,children}){
     const ref = useRef(null);
 
-    let container = document.getElementById('grid-container');
-    let width = container.clientWidth;
-    let left = container.getBoundingClientRect().left;
+    //let container = document.getElementById('grid-container');
+    let width , left;
+    try{
+        width = container.current.clientWidth;
+        left = container.current.getBoundingClientRect().left;
+    }catch(e){
+        width = '100vw';
+        left = 0
+    }
 
     const [props,set] = useSpring(()=>({
         from:{y:200}
@@ -843,13 +863,17 @@ function Create({activeBranch,postsContext,isFeed,updateFeed,show,setShow}){
 
     return(
         <>
-        <div css={optionWrapper}>
-            <div css={theme=>({display:'flex',padding:5,margin:'0 5px',
-            borderRadius:'50%'})}>
-                <PlusSvg css={theme=>({height:20,width:20,fill:theme.textColor})}/>
+        {children?
+            children:
+                <div css={optionWrapper}>
+                <div css={theme=>({display:'flex',padding:5,margin:'0 5px',
+                borderRadius:'50%'})}>
+                    <PlusSvg css={theme=>({height:20,width:20,fill:theme.textColor})}/>
+                </div>
+                <span css={{margin:'0 10px',fontWeight:'bold'}}>Create a leaf</span>
             </div>
-            <span css={{margin:'0 10px',fontWeight:'bold'}}>Create a leaf</span>
-        </div>
+        }
+        
         {ReactDOM.createPortal(
             <animated.div ref={ref} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
             css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left
@@ -962,11 +986,11 @@ function Menu2({activeBranch,postsContext,updateFeed,isFeed,width,container,menu
                 borderTopRightRadius:25,borderTopLeftRadius:25,height:200,width:width,display:'flex',
                 justifyContent:'center',alignItems:'center'})}>
                     <div css={{display:'flex',height:'100%',justifyContent:'center',alignItems:'strech',flexFlow:'column'}}>
-                        <div onClick={handleCreateClick} css={{cursor:'pointer'}} className="noselect">
+                        {/*<div onClick={handleCreateClick} css={{cursor:'pointer'}} className="noselect">
                             <Create activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed}
                                 isFeed={isFeed} width={width} gridContainer={container} show={createOpen} setShow={setCreateOpen}
                             />
-                        </div>
+                        </div>*/}
                         <div css={{cursor:'pointer'}} className="noselect">
                             <GoToStartOrRefresh index={index} jumpToBack={jumpToBack} refresh={refresh} setOpen={setOpen}/>
                         </div>
@@ -989,6 +1013,19 @@ function MenuButton({setOpen}){
             css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
             alignItems:'center',position:'relative'}} onClick={handleClick}>
                 <MenuSvg css={theme=>({height:'27%',maxHeight:30,fill:theme.textColor})}/>
+            </div>
+        </div>
+    )
+}
+
+function CreateButton(){
+
+    return(
+        <div style={{height:'100%',width:'100%',position:'relative', cursor:'pointer'}}>
+            <div
+            css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
+            alignItems:'center',position:'relative'}}>
+                <PlusSvg css={theme=>({height:'27%',maxHeight:30,fill:theme.textHarshColor})}/>
             </div>
         </div>
     )

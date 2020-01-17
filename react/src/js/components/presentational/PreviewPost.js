@@ -73,7 +73,7 @@ const openPreviewPost = theme =>css({
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
     width:'95%',
-    willChange:'transform, opacity',
+    willChange:'transform, opacity, scale',
     animation: `${scaleUp} 0.33s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
     '@media (min-width: 1224px)': {
         width:'40%',
