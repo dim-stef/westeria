@@ -1,33 +1,70 @@
 import React, {Component, useState} from "react";
 import { css } from "@emotion/core";
 import {Link} from 'react-router-dom'
-import {isMobile} from 'react-device-detect';
 import {BranchBanner} from "./BranchBanner"
 import {UserContext} from '../container/ContextContainer'
 import {SmallCard} from "./Card"
 import {FadeImage} from "./FadeImage"
+import {useMediaQuery} from "react-responsive"
 
 const imageContainer = () =>css({
     display:'flex',
     flexFlow:'column',
     justifyContent:'center',
-    alignItems:'center'
+    alignItems:'center',
+    position:'relative'
 })
 
-const circularBranchName = theme =>css({
-    color: theme.textLightColor,
-    fontSize:'1.5rem',
-    fontWeight:500
+const circularBranchName = (theme,isMobile) =>css({
+    color: theme.textColor,
+    fontSize:isMobile?'1.3rem':'1.5rem',
+    margin:'5px 0',
+    fontWeight:400
  })
 
+const squareBranchName = theme =>css({
+    color:'white',
+    fontSize:'1.5rem',
+    fontWeight:500,
+    position:'absolute',
+    bottom:0,
+    paddingBottom:10,
+    textAlign:'center',
+    background:`linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0),
+        rgba(0, 0, 0, 0.6)
+      )`,
+    textShadow:'0 1px 2px #0000008a',
+    width:'100%'
+})
+
 export function CircularBranch({branch,endpoint}){
+    const isMobile = useMediaQuery({
+        query: '(max-width: 767px)'
+    })
+
+    return(
+        <Link to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
+            <div css={imageContainer} style={{margin:'0 5px'}} key={branch.id}>
+                <FadeImage className="round-picture branch-profile-setting" 
+                style={{height:isMobile?60:100,width:isMobile?60:100,display:'block',
+                objectFit:'cover',margin:2,boxSizing:'border-box'}}
+                src={branch.branch_image}/>
+                <span css={theme=>circularBranchName(theme,isMobile)}>{branch.name}</span>
+            </div>
+        </Link>
+    )
+}
+
+export function SquareBranch({branch,endpoint}){
     return(
         <Link to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
             <div css={imageContainer} key={branch.id}>
-                <FadeImage className="round-picture branch-profile-setting" style={{height:100,width:100,display:'block',
-                objectFit:'cover',margin:'10px 20px'}}
+                <FadeImage className="branch-profile-setting" style={{height:80,width:80,display:'block',
+                objectFit:'cover',boxSizing:'border-box'}}
                 src={branch.branch_image}/>
-                <span css={circularBranchName}>{branch.name}</span>
+                <span css={squareBranchName}>{branch.name}</span>
             </div>
         </Link>
     )

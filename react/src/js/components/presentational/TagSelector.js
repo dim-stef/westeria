@@ -1,6 +1,5 @@
 import React, {useState,useEffect,useLayoutEffect,useRef} from "react"
 import {useSprings,animated} from "react-spring/web.cjs";
-import {useDrag} from "react-use-gesture";
 import Async from "react-select/async";
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import {useTheme} from "emotion-theming";
@@ -78,16 +77,16 @@ const tagInput = theme => css({
 })
 
 const negativeButton = theme =>css({
-    padding:'10px 20px',fontSize:'1.3rem',fontWeight:'bold',
+    padding:'5px 10px',fontSize:'1.3rem',fontWeight:'bold',
     border:`1px solid ${theme.borderColor}`,
     borderRadius:50,backgroundColor:'transparent',color:theme.textColor,
-    margin:'0 10px'
+    margin:'0 5px'
 })
 
 const positiveButton = theme =>css({
-    padding:'10px 20px',fontSize:'1.3rem',fontWeight:'bold',border:0,
+    padding:'5px 10px',fontSize:'1.3rem',fontWeight:'bold',border:0,
     borderRadius:50,backgroundColor:'#2196f3',color:'white',
-    margin:'0 10px'
+    margin:'0 5px'
 })
 
 function transformTags(tags){
@@ -209,7 +208,7 @@ export function SerialTagSelector(props){
         ref={ref}>
             {sliderProps.map(({x},i)=>{
                 return (
-                    <animated.div key={i} style={{position:'absolute',height:'100%',
+                    <animated.div key={i} style={{position:'absolute',height:'100%',width:'100%',
                     transform:x.interpolate(x=>`translateX(${x}px)`)}} css={{display:'flex',flexFlow:'column'}}>
                     {i==0?
                         <>
@@ -227,7 +226,7 @@ export function SerialTagSelector(props){
                             })}
                         </div>
                         <div css={theme=>({display:'flex',justifyContent:'space-between',borderRadius:50,
-                        backgroundColor:theme.backgroundDarkColor,padding:10,margin:10})}>
+                        backgroundColor:theme.backgroundDarkColor,padding:10})}>
                             <button css={negativeButton} onClick={props.hide}>No, cancel</button>
                             <button css={positiveButton} onClick={sendToRight}>Add tags</button>
                         </div>
@@ -258,7 +257,7 @@ function PostToBranches({branches,selectedBranches,setSelectedBranches,sendToLef
                 }):null}
             </div>
             <div css={theme=>({display:'flex',justifyContent:'space-between',borderRadius:50,
-            backgroundColor:theme.backgroundDarkColor,padding:10,margin:10})}>
+            backgroundColor:theme.backgroundDarkColor,padding:10})}>
                 <button css={negativeButton} onClick={sendToLeft}>Change tags</button>
                 <button css={positiveButton} onClick={hide}>Add branches</button>
             </div>

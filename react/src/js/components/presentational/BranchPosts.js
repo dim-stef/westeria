@@ -1,7 +1,6 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
-import Pullable from 'react-pullable';
 import {CSSTransition} from 'react-transition-group';
 import {isMobile} from 'react-device-detect';
 import {NavLink} from 'react-router-dom';

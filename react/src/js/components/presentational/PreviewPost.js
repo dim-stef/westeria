@@ -236,7 +236,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
                 commentsActive.current = false;
                 setCommentsShown(false);
                 setPostShown(false);
-                stop();
+                
             }
         }
     }))
@@ -245,7 +245,6 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         e.preventDefault();
         return false;
     }
-
 
     function wheelEvent(e){
         var curTime = new Date().getTime();
@@ -289,6 +288,10 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
     }
 
     useEffect(()=>{
+        if(!postShown){
+            stop();
+        }
+
         set(()=>to())
 
         if(preventScrollRef.current){
@@ -309,12 +312,11 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         }
     },[postShown])
 
-    
     function detectOutSideClick(e){
         let previewPostContainer = document.getElementById('preview-post-container');
-        if(e.target == previewPostContainer){
+        /*if(e.target == previewPostContainer){
             set(()=>off())
-        }
+        }*/
     }
 
     useEffect(()=>{
@@ -337,8 +339,18 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
 
     const initTo = to().y
     // 1. Define the gesture
-    const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity}) => {
-        const trigger = velocity > 0.2 && (Math.abs(my) > 60 || Math.abs(xDir) < 0.5) // If you flick hard enough it should trigger the card to fly out
+    const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity, event, tap}) => {
+        try{
+            if(tap && !previewPostRef.current.contains(event.target)){
+                set(()=>off())
+                return
+            }
+        }catch(e){
+
+        }
+
+        // If you flick hard enough it should trigger the card to fly out
+        const trigger = velocity > 0.2 && (Math.abs(my) > 60 || Math.abs(xDir) < 0.5) 
         const dir = yDir < 0 ? -1 : 1 // Direction should either point left or right
         try{
             if (down && my!=0){
@@ -357,7 +369,8 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
 
         }
 
-        if (!down && trigger && dir==-1) shotUp.current = true// If button/finger's up and trigger velocity is reached, we flag the card ready to fly out
+        // If button/finger's up and trigger velocity is reached, we flag the card ready to fly out
+        if (!down && trigger && dir==-1) shotUp.current = true
         if (!down && trigger && dir==1) {
             shotDown.current = true;
             commentsActive.current = true;
@@ -409,7 +422,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
           const scale = down ? 1 : 1 // Active cards lift up a bit
           return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? 200 : 500 }}
         })
-    })
+    },{filterTaps:true})
     
     let hasMedia = post.videos.length>0 || post.images.length > 0
     return (
@@ -444,15 +457,15 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         {createPortal(
                 postShown?
                 <>
-                <div id="preview-post-container" css={{width:'100%',height:'100vh',position:'fixed',top:0,
+                <div id="preview-post-container" {...bind()} css={{width:'100%',height:'100vh',position:'fixed',top:0,
                 zIndex:1000}}>
                      
                 </div>
                 <div css={{zIndex:1001}}>
                 {commentsShown?<AnimatedCommentBox post={post} offset={200}/>:null}
-                <animated.div css={theme=>openPreviewPost(theme)} ref={previewPostRef}
+                <animated.div {...bind()} css={theme=>openPreviewPost(theme)} ref={previewPostRef}
                 id="preview-post"
-                {...bind()} style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
+                style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
                     <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
                         <Post post={post} postsContext={postsContext} down={initTo}
                         activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>

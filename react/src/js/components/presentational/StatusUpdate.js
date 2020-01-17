@@ -4,15 +4,12 @@ import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import history from "../../history"
 import {UserContext} from "../container/ContextContainer"
-import {SmallBranch} from "./Branch"
-import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
-import {SkeletonBranchList} from "./SkeletonBranchList";
 import {CustomEditor} from './Editor'
 import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
 //import EmojiPicker from 'emoji-picker-react';
 import {MediaPreview} from './EditorMediaPreview'
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {Modal} from "./Temporary"
 import {TagSelector,SerialTagSelector} from "./TagSelector";
 import axios from 'axios'
@@ -213,9 +210,9 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             for (var i = 0; i < files.length; i++)
             {
                 if(isFileImage(files[i])){
-                    formData.append('images',files[i])
+                    formData.append('images',files[i],files[i].fileName)
                 }else if(isFileVideo(files[i])){
-                    formData.append('videos',files[i])
+                    formData.append('videos',files[i],files[i].fileName)
                 }
                 
             }
@@ -263,9 +260,32 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
                     updateFeed(response.data);
                 })
             }).catch(error => {
+                console.log(error.response)
         }).finally(()=>{
             setLoading(false);
         })
+
+        /*fetch(uri,{
+            method:'POST',
+            body:formData,
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                'X-CSRF-TOKEN': getCookie('csrftoken')
+            },
+            
+        }).then(response => {
+            if(redirect){
+                history.push(`/${branch.uri}/leaves/${response.data.id}`)
+            }
+            resetEditor();
+            axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
+                updateFeed(response.data);
+            })
+        }).catch(error => {
+                console.log(error.response)
+        }).finally(()=>{
+            setLoading(false);
+        })*/
     }
 
     useEffect(()=>{
@@ -315,42 +335,6 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             </div>
         </Modal>    
         )}/>
-    )
-}
-
-function PostToBranches({parents,siblings,children,onSelect}){
-    const theme = useTheme();
-    return(
-        <div id="modal-post-to" className="post-to-branch-container" style={{backgroundColor:theme.hoverColor}}>
-            <div>
-                <Tabs onSelect={onSelect} defaultFocus={true}>
-                    <TabList className="post-to-branch-tab-list" >
-                        <Tab className="post-to-branch-tab"
-                        selectedClassName="post-to-branch-tab-list-selected">Parents</Tab>
-                        <Tab className="post-to-branch-tab"
-                        selectedClassName="post-to-branch-tab-list-selected">Siblings</Tab>
-                        <Tab className="post-to-branch-tab"
-                        selectedClassName="post-to-branch-tab-list-selected">Children</Tab>
-                    </TabList>
-
-                    <TabPanel>
-                        <div className="post-to-branch-tab-panel">
-                            {parents}
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <div className="post-to-branch-tab-panel">
-                            {siblings}
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <div className="post-to-branch-tab-panel">
-                            {children}
-                        </div>
-                    </TabPanel>
-                </Tabs>
-            </div>
-        </div>
     )
 }
 

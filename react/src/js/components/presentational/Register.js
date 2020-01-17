@@ -1,7 +1,7 @@
 import React, {Component} from "react";
 import {Link, Redirect} from 'react-router-dom'
 import {Helmet} from 'react-helmet'
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
