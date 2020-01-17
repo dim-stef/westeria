@@ -21,8 +21,8 @@ const contentContainer = (contentHeight) =>css({
 })
 
 export const Page = React.memo(function Page(props){
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
+    const isMobileOrTablet = useMediaQuery({
+        query: '(max-device-width: 1223px)'
     })
     const context = useContext(RefreshContext);
     const navBar = useRef(null);
@@ -47,7 +47,7 @@ export const Page = React.memo(function Page(props){
         }
     },[])
 
-    if(isMobile){
+    if(isMobileOrTablet){
         document.body.style.overflowY = 'auto';
     }else{
         document.body.style.overflowY = 'scroll';
@@ -57,13 +57,13 @@ export const Page = React.memo(function Page(props){
         <div className="root-wrapper">
             <div>
                 <div id="main-wrapper" className="main-wrapper">
-                    <div id={isMobile?'mobile-content-container':'content-container'}
-                    className="wide-content-container" style={{height:isMobile?contentHeight:null}}
-                    css={isMobile?()=>contentContainer(contentHeight):null}>
+                    <div id={isMobileOrTablet?'mobile-content-container':'content-container'}
+                    className="wide-content-container" style={{height:isMobileOrTablet?contentHeight:null}}
+                    css={isMobileOrTablet?()=>contentContainer(contentHeight):null}>
                         {props.children}
                     </div>
                     <div ref={navBar} id="nav-container" className="flex-fill center-items" 
-                    style={{display:isMobile?'block':null}}>
+                    style={{display:isMobileOrTablet?'block':null}}>
                         <ResponsiveNavigationBar/>
                     </div>
                 </div>
