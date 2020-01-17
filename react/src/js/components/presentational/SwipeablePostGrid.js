@@ -148,6 +148,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     const movX = useRef(null);
     const xDirRef = useRef(0);
     const shouldOpen = useRef(true);
+    const fetchingData = useRef(false);
 
     // index state is only changed after animation ends in order to virtually
     // render infinite pages
@@ -213,7 +214,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                     indexRef.current = 0;
 
                     // Timeout for whatever reason prevents flashing after setIndex
-                    setTimeout(()=>{setIndex(0);},5)
+                    setIndex(0)
                 }
                 else if(shouldUpdate.current){
                     dataIndexChanged.current = true;
@@ -239,13 +240,16 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
     function jumpToBack(){
         if(indexRef.current == 1){
+            
             goToLeft();
         }else{
+            //stop();
             jumpedToBack.current = true;
             // jump to 1st index
             // then capture index change on effect and play animation to index 0
             indexRef.current = 1;
             setIndex(1);
+            
         }
     }
 
@@ -291,6 +295,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }
 
+    useEffect(()=>{
+        // if posts changed that means data got fetched
+        fetchingData.current = false;
+    },[posts])
+
     useLayoutEffect(()=>{
         shouldCaptureWheel.current = true;
         if(!jumpedToBack.current){
@@ -301,8 +310,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 to:ani(0),
                 immediate:true,
             }))
-                
+
+            stop();
         }else{
+            //stop()
+            console.log(index)
             set(()=>({
                 to:ani(width),
                 from:ani(0),
@@ -310,14 +322,14 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 config:{ mass: 1, tension: 500, friction: 35 },
             }))
         }
-        if(index>=Math.round(pages.length - 3) && index !=0){
+
+        if(index>=Math.round(pages.length - 3) && index !=0 && !fetchingData.current){
+            fetchingData.current = true;
             fetchData();
         }
 
         // When user is rapid swiping or switching pages animations would not play
         // for whatever reason this stop() fixes this
-
-        stop();
     },[index])
 
     function wheelEvent(e){
