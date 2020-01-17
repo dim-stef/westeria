@@ -43,7 +43,6 @@ let source = CancelToken.source();
 
 
 const postsContainer = () =>css({
-    willChange:'filter',
     transition:'filter 0.2s ease'
 })
 
