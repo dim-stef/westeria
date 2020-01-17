@@ -123,6 +123,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     }
 
     function getPages(){
+        console.log(posts)
         var perChunk = itemCount // items per chunk    
         var result = posts.reduce((resultArray, item, index) => { 
         const chunkIndex = Math.floor(index/perChunk)
@@ -141,7 +142,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
     const pages = getPages();
 
-    // this ref is need in order to keep track of "pages" state inside the "onFrame" function
+    console.log(pages)
+    // this ref is need in order to keep track of "pages" state inside the onFrame function
     const pagesRef = useRef();
     pagesRef.current = pages;
  
@@ -238,9 +240,13 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }))
 
+    useEffect(()=>{
+        indexRef.current = postsContext.lastPage
+        setIndex(postsContext.lastPage)
+    },[postsContext])
+
     function jumpToBack(){
         if(indexRef.current == 1){
-            
             goToLeft();
         }else{
             //stop();
@@ -314,7 +320,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             stop();
         }else{
             //stop()
-            console.log(index)
             set(()=>({
                 to:ani(width),
                 from:ani(0),
@@ -592,6 +597,7 @@ function shuffle(a) {
 function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
     movX,rowCount,columnCount,setOpen}){
 
+    console.log(page)
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
     const gridGap = 10;
@@ -693,6 +699,10 @@ function Page({page,activeBranch,postsContext,pageType,height,shouldOpen,
             setOrder(getOrder());
         }
     },[page])
+
+    useEffect(()=>{
+        setOrder(getOrder())
+    },[postsContext])
 
     function getPostProps(post){
         let props = {
