@@ -45,24 +45,31 @@ class ChildrenLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 4
     max_limit = 20
 
+
 class BranchChatMessagePagination(CursorPagination):
     page_size = 30
 
+
 class BranchPostPagination(CursorPagination):
-    page_size = 16
+    page_size = 18
+
 
 class TrendingPagination(PageNumberPagination):
     page_size = 10
 
+
 class FollowedByPagination(PageNumberPagination):
     page_size = 15
+
 
 class ReplyTreePagination(CursorPagination):
     page_size = 5
 
+
 class NotificationsPagination(CursorPagination):
     page_size = 15
     ordering = '-timestamp'
+
 
 class LargeLinkPagination(PageNumberPagination):
     page_size = 50

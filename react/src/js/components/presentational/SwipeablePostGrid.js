@@ -1,7 +1,8 @@
 import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
 import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
-import { useSpring, useTransition, useChain, animated, config } from 'react-spring/web.cjs'
+import { useSpring, animated, config } from 'react-spring/web.cjs'
+import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
@@ -123,8 +124,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             size:7,
             bigItemCount:0,
             mediumItemCount:1,
-            responsiveItemCount:3,
-            smallItemCount:3
+            responsiveItemCount:4,
+            smallItemCount:2
         }
     }
 
@@ -180,8 +181,11 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // ref to capture render end after index change
     // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
-    const bindedRef = useRef(null)
+    const resting = useRef(true)
 
+    const setFirst = useRef(false);
+    const setLast = useRef(false);
+    const [prevIndex,setPrevIndex] = useState(postsContext.lastPage)
     const isSafariFeature = window['safari'] && safari.pushNotification &&
     safari.pushNotification.toString() === '[object SafariRemoteNotification]';
 
@@ -202,6 +206,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             }
         },
         onFrame:(f)=>{
+            
             if(f.x!=0){
                 shouldCaptureWheel.current = false;
             }
@@ -216,6 +221,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 }
 
                 if(jumpedToBack.current){
+                    dataIndexChanged.current = 'left';
                     jumpedToBack.current = false;
                     indexRef.current = 0;
 
@@ -228,9 +234,9 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                     setIndex(0)
                 }
                 else if(shouldUpdate.current){
-                    dataIndexChanged.current = true;
                     shouldUpdate.current = false;
                     if(xDirRef.current > 0 || sentToLeft.current){
+                        dataIndexChanged.current = 'left';
                         xDirRef.current = 0;
                         if(indexRef.current != 0){
                             sentToLeft.current = false;
@@ -239,6 +245,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                         }
                     }else{
                         if(pagesRef.current[indexRef.current]){
+                            dataIndexChanged.current = 'right';
                             sentToRight.current = false;
                             indexRef.current +=1
                             setIndex(indexRef.current)
@@ -271,12 +278,13 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 immediate:false,
                 config:{ mass: 1, tension: 500, friction: 35 },
             }))
+            
         }
     }
 
     function changeIndex(i){
         indexRef.current = i;
-        setTimeout(()=>{setIndex(i);},5)
+        setIndex(i)
     }
 
     swipeablePostGridContext.setIndex = changeIndex;
@@ -322,20 +330,26 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     },[posts])
 
     useLayoutEffect(()=>{
+        if(index > prevIndex){
+            setFirst.current = true;
+            setLast.current = false
+        }else{
+            setFirst.current = false;
+            setLast.current = true
+
+        }
+        setPrevIndex(index);
+
         shouldCaptureWheel.current = true;
         if(!jumpedToBack.current){
             postsContext.lastPage = indexRef.current;
 
+            stop();
             set(()=> ({
                 from:ani(0),
                 to:ani(0),
                 immediate:true,
             }))
-
-            // When user is rapid swiping or switching pages animations would not play
-            // for whatever reason this stop() fixes this
-
-            stop();
         }
 
         if(index>=Math.round(pages.length - 3) && index !=0 && !fetchingData.current){
@@ -466,6 +480,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         updateFeed:updateFeed,
         isFeed:isFeed,
         shouldOpen:shouldOpen,
+        posts:posts,
+        refresh:refresh,
         width:width,
         height:window.innerHeight,
         pageType:pageType,
@@ -473,60 +489,121 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         columnCount:columnCount,
         movX:movX,
         updateFeed:updateFeed,
-        isFeed:isFeed,
         container:container,
-        setOpen:setOpen
+        setOpen:setOpen,
     }
-
-    let supportsGrid = cssPropertyValueSupported('display', 'grid');
 
     return (
         <div style={{position:'relative',width:width,height:height}} css={grid} ref={container} id="grid-container">
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
-            <animated.div key={index - 1} data-index={index - 1} css={theme=>animatedDiv(theme,supportsGrid)}
-            style={{position:'absolute',zIndex:2,
-            transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?-width - offsetLeft:
-            1.5*x - width- offsetLeft>0?0:1.5*x-width - offsetLeft}px)`),
-            width:'100%',height:'100%'}}>
-                <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
-                {pages[index - 1] && index!=-1?
-                    <Page index={index-1} page={pages[index-1]}
-                    {...pageProps}
-                    />:null
+            {[...Array(3)].map((x,i)=>{
+                let initPosition;
+                if(i==0){
+                    initPosition = 'left';
+                }else if(i==1){
+                    initPosition = 'middle';
+                }else{
+                    initPosition = 'right';
                 }
-                </div>
-            </animated.div>
-            <animated.div {...bind()} ref={bindedRef} key={index} data-index={index} css={theme=>animatedDiv(theme,supportsGrid)}
-            style={{transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?0:x}px)`),position:'absolute',
-            width:'100%',zIndex:1,height:'100%'}}>
-                <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
-                    {pages[index] ?
-                        <Page index={index} page={pages[index]} 
-                        {...pageProps} hasMenu
-                    />:hasMore?<SkeletonFixedGrid/>:<LastPage index={index} jumpToBack={jumpToBack} 
-                    activeBranch={activeBranch} isFeed={isFeed} refresh={refresh} container={container}
-                    postsContext={postsContext} updateFeed={updateFeed} posts={posts}/>}
-                </div>
-            </animated.div>
-            <animated.div key={index + 1} data-index={index + 1} css={theme=>animatedDiv(theme,supportsGrid)}
-            style={{position:'absolute',transform : props.x.interpolate(x => `translateX(${dataIndexChanged.current?width + offsetLeft:
-            1.5*x + width + offsetLeft<0?0:1.5*x + width + offsetLeft}px)`),
-            width:'100%',zIndex:0,height:'100%'}}>
-                <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
-                    {pages[index + 1] ?
-                        <Page index={index + 1} page={pages[index + 1]} 
-                        {...pageProps}
-                    />:hasMore?<SkeletonFixedGrid/>:<LastPage activeBranch={activeBranch} isFeed={isFeed} 
-                    index={index} jumpToBack={jumpToBack} refresh={refresh} container={container}
-                    postsContext={postsContext} updateFeed={updateFeed} posts={posts}/>}
-                </div>
-            </animated.div>
+
+                return(
+                    <React.Fragment key={i}>
+                        <MovingPage pageProps={pageProps} index={i} currIndex={index} width={width} aniProps={props}
+                            dataIndexChanged={dataIndexChanged} offsetLeft={offsetLeft} pages={pages} hasMore={hasMore}
+                            initPosition={initPosition} bind={bind} set={set} jumpToBack={jumpToBack}
+                        />
+                    </React.Fragment>
+                )
+            })}
             {container.current?
             <Menu2 activeBranch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
             width={width} container={container} menuOpen={menuOpen} setOpen={setOpen} 
             jumpToBack={jumpToBack} refresh={refresh} index={index}
             />:null}
         </div>
+    )
+}
+
+function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
+    offsetLeft,initPosition,currIndex,jumpToBack,bind}){
+    let positions = ['left','middle','right'];
+    let initIndex = currIndex;
+    if(initPosition == 'left'){
+        initIndex -=1;
+    }else if(initPosition == 'right'){
+        initIndex +=1;
+    }
+
+    const position = useRef(initPosition);
+    const pageIndex = useRef(initIndex)
+    let supportsGrid = cssPropertyValueSupported('display', 'grid');
+
+
+
+    function getX(x){
+        
+        let posX;
+        if(position.current=='left'){
+            posX = dataIndexChanged.current?-width - offsetLeft:
+            1.5*x - width- offsetLeft>0?0:1.5*x-width - offsetLeft;
+        }else if(position.current == 'middle'){
+            posX = dataIndexChanged.current?0:x;
+        }else{
+            posX = dataIndexChanged.current?width + offsetLeft:
+            1.5*x + width + offsetLeft<0?0:1.5*x + width + offsetLeft;
+        }
+        return posX;
+    }
+
+    useLayoutEffect(()=>{
+        let posIndex = positions.findIndex(p=>position.current == p);
+
+        if(dataIndexChanged.current == 'right'){
+            if(posIndex - 1 < 0){
+                position.current = positions[positions.length - 1]
+            }else{
+                position.current = positions[posIndex - 1]
+            }
+        }else if(dataIndexChanged.current == 'left'){
+            if(posIndex + 1 > positions.length - 1){
+                position.current = positions[0]
+            }else{
+                position.current = positions[posIndex + 1]
+            }
+        }
+    },[currIndex])
+
+    
+    useLayoutEffect(()=>{
+        if(position.current == 'left'){
+            pageIndex.current = currIndex - 1;
+            //setPageIndex(currIndex - 1)
+        }else if(position.current == 'middle'){
+            pageIndex.current = currIndex
+            //setPageIndex(currIndex)
+        }else{
+            pageIndex.current = currIndex + 1;
+            //setPageIndex(currIndex + 1)
+        }
+    },[currIndex,position.current])
+
+    const binder = position.current=='middle'?bind:()=>{return {}}
+
+    return(
+        <animated.div data-index={pageIndex.current} {...binder()}
+        data-position={position.current} css={theme=>animatedDiv(theme,supportsGrid)}
+        style={{position:'absolute',transform : aniTo([aniProps.x],(x) => `translateX(${getX(x)}px)`),
+        width:'100%',zIndex:positions.findIndex(p=>position.current == p),height:'100%'}}>
+            <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
+                {pages[pageIndex.current] ?
+                    <Page index={pageIndex.current} page={pages[pageIndex.current]} position={position.current}
+                    {...pageProps}
+                />:hasMore?<SkeletonFixedGrid/>:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
+                activeBranch={pageProps.activeBranch} isFeed={pageProps.isFeed} 
+                refresh={pageProps.refresh} container={pageProps.container}
+                postsContext={pageProps.postsContext} updateFeed={pageProps.updateFeed} posts={pageProps.posts}/>}
+            </div>
+        </animated.div>
     )
 }
 
@@ -598,9 +675,9 @@ function shuffle(a) {
 }
 
 function Page({page,activeBranch,postsContext,updateFeed,
-    isFeed,pageType,height,shouldOpen,
-    movX,rowCount,columnCount,setOpen,container}){
-
+    isFeed,pageType,height,shouldOpen,index,
+    movX,setOpen,container,position}){
+    
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
     const gridGap = 10;
@@ -697,21 +774,20 @@ function Page({page,activeBranch,postsContext,updateFeed,
 
     const [order,setOrder] = useState(getOrder())
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(page.length!=cachedPageLength.current){
             cachedPageLength.current = page.length;
             setOrder(getOrder());
         }
     },[page])
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         setOrder(getOrder())
-    },[postsContext])
+    },[index,postsContext])
 
     function getPostProps(post){
         let props = {
             post:post,
-            key:[post.id,post.spreaders,postsContext.content],
             viewAs:"post",
             activeBranch:activeBranch,
             postsContext:postsContext,
@@ -758,11 +834,11 @@ function Page({page,activeBranch,postsContext,updateFeed,
 
     return(
         supportsGrid?
-        <div className="noselect" css={theme=>gridContainer(theme,rowCount,columnCount,implicitRowCount,height)}>
-            {order.map(o=>{
-                return <div key={o.post.id} 
+        <div className="noselect" css={gridContainer}>
+            {order.map((o,i)=>{
+                return <div key={i}
                 css={()=>cell(isFlat(o.post)?o.size.flatDimensions:o.size.defaultDimensions,isMobile)}>
-                    <PreviewPost {...getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
+                    <TestPost postProps={getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
                 </div>
             })}
             <div key="menu" css={theme=>({gridColumn:`span ${sizes.small.defaultDimensions[0]}`,
@@ -792,6 +868,12 @@ function Page({page,activeBranch,postsContext,updateFeed,
     )
 }
 
+const TestPost = React.memo(({postProps,size,shouldOpen})=>{
+
+    return(
+        <PreviewPost {...postProps} viewAs="post" size={size} shouldOpen={shouldOpen}/>
+    )
+})
 function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFeed,updateFeed,container}){
     const [showCreate,setCreate] = useState(false);
     const userContext = useContext(UserContext);
@@ -986,11 +1068,7 @@ function Menu2({activeBranch,postsContext,updateFeed,isFeed,width,container,menu
                 borderTopRightRadius:25,borderTopLeftRadius:25,height:200,width:width,display:'flex',
                 justifyContent:'center',alignItems:'center'})}>
                     <div css={{display:'flex',height:'100%',justifyContent:'center',alignItems:'strech',flexFlow:'column'}}>
-                        {/*<div onClick={handleCreateClick} css={{cursor:'pointer'}} className="noselect">
-                            <Create activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed}
-                                isFeed={isFeed} width={width} gridContainer={container} show={createOpen} setShow={setCreateOpen}
-                            />
-                        </div>*/}
+
                         <div css={{cursor:'pointer'}} className="noselect">
                             <GoToStartOrRefresh index={index} jumpToBack={jumpToBack} refresh={refresh} setOpen={setOpen}/>
                         </div>
