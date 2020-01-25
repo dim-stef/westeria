@@ -45,11 +45,12 @@ const mediaContainer = (image=null) =>css({
 })
 
 export function PreviewPostMedia({images,videos}){
+
     return(
         <div css={mediaContainer}>
             {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
                 thumbnail={videos[0].thumbnail}
-            />:<FadeImage className="noselect" css={previewImage} src={images[0].image} draggable="false"/>
+            />:images.length>0?<FadeImage className="noselect" css={previewImage} src={images[0].image} draggable="false"/>:null
             }
         </div>
     )

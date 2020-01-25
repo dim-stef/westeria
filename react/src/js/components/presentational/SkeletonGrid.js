@@ -47,6 +47,7 @@ export function SkeletonFixedGrid(){
             <div css={()=>gridAreaBox('c')}><SkeletonBox/></div>
             <div css={()=>gridAreaBox('d')}><SkeletonBox/></div>
             <div css={()=>gridAreaBox('e')}><SkeletonBox/></div>
+            <div css={()=>gridAreaBox('f')}><SkeletonBox/></div>
         </div>
     )
 }

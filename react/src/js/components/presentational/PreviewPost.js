@@ -46,6 +46,8 @@ const text = (theme,textPosition,size,hasMedia) =>css({
 
 const postedToImage = (size) =>css({
     position:'absolute',
+    border:0,
+    padding:0,
     margin:'5px',
     zIndex:330,
     width:size=='xsmall' || size=='small'?20:40,
@@ -124,7 +126,7 @@ const from = () => ({ opacity:0, x: 0, rot: 0, scale: 0, y: -(window.innerHeight
 const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1})
 const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
-export function PreviewPost({post,viewAs,size,shouldOpen=null}){
+export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
     const ref = useRef(null);
@@ -436,8 +438,8 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
                 }}
             />
             <div css={zoom} ref={zoomRef} onClick={handleClick}>
-                {images.length>0 || videos.length>0?<PreviewPostMedia images={images} measure={null} 
-                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>:null}
+                <PreviewPostMedia images={images} measure={null} 
+                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>
                 
                 {post.text?
                 <>
@@ -477,7 +479,7 @@ export function PreviewPost({post,viewAs,size,shouldOpen=null}){
         }
         </>
     )
-}
+})
 
 function useReplies(post){
     const [replyTrees,setReplyTrees] = useState([]);
