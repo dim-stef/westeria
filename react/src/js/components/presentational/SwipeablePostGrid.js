@@ -171,6 +171,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
 
     const isDown = useRef(false);
     const [menuOpen,setOpen] = useState(false);
+    const [showCreate,setShowCreate] = useState(false);
     const [index,setIndex] = useState(postsContext.lastPage);
 
     // ref is needed to keep track of index in the onFrame function
@@ -181,7 +182,6 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     // ref to capture render end after index change
     // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
-    const resting = useRef(true)
 
     const setFirst = useRef(false);
     const setLast = useRef(false);
@@ -491,6 +491,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         updateFeed:updateFeed,
         container:container,
         setOpen:setOpen,
+        setShowCreate:setShowCreate
     }
 
     return (
@@ -516,10 +517,12 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
                 )
             })}
             {container.current?
-            <Menu2 activeBranch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
+            <><Menu2 activeBranch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
             width={width} container={container} menuOpen={menuOpen} setOpen={setOpen} 
             jumpToBack={jumpToBack} refresh={refresh} index={index}
-            />:null}
+            /><Create activeBranch={activeBranch} postsContext={postsContext} isFeed={isFeed}
+            updateFeed={updateFeed} show={showCreate} setShow={setShowCreate} container={container} showDefaultButton={false}/>
+            </>:null}
         </div>
     )
 }
@@ -528,6 +531,7 @@ function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
     offsetLeft,initPosition,currIndex,jumpToBack,bind}){
     let positions = ['left','middle','right'];
     let initIndex = currIndex;
+
     if(initPosition == 'left'){
         initIndex -=1;
     }else if(initPosition == 'right'){
@@ -537,8 +541,6 @@ function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
     const position = useRef(initPosition);
     const pageIndex = useRef(initIndex)
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
-
-
 
     function getX(x){
         
@@ -572,18 +574,14 @@ function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
             }
         }
     },[currIndex])
-
     
     useLayoutEffect(()=>{
         if(position.current == 'left'){
             pageIndex.current = currIndex - 1;
-            //setPageIndex(currIndex - 1)
         }else if(position.current == 'middle'){
             pageIndex.current = currIndex
-            //setPageIndex(currIndex)
         }else{
             pageIndex.current = currIndex + 1;
-            //setPageIndex(currIndex + 1)
         }
     },[currIndex,position.current])
 
@@ -676,13 +674,12 @@ function shuffle(a) {
 
 function Page({page,activeBranch,postsContext,updateFeed,
     isFeed,pageType,height,shouldOpen,index,
-    movX,setOpen,container,position}){
+    movX,setOpen,setShowCreate,container,position}){
     
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
     const gridGap = 10;
     const implicitRowCount = (height-10*gridGap)/12;
-    const [showCreate,setShowCreate] = useState(false);
 
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
@@ -695,7 +692,6 @@ function Page({page,activeBranch,postsContext,updateFeed,
             label:'xsmall',
             isFlat:false
         },
-        //responsive:[2,Math.round(rowCount/2)],
         responsive:{
             defaultDimensions:[!isMobile?3:3,!isMobile?6:6],
             flatDimensions:[!isMobile?6:6,!isMobile?3:3],
@@ -851,10 +847,7 @@ function Page({page,activeBranch,postsContext,updateFeed,
             gridRow:`span ${sizes.small.defaultDimensions[0]}`,
             display:'flex',alignItems:'center',zIndex:1000,
             backgroundColor:theme.backgroundDarkColor})} onClick={()=>setShowCreate(true)}>
-                <Create activeBranch={activeBranch} postsContext={postsContext} isFeed={isFeed}
-                updateFeed={updateFeed} show={showCreate} setShow={setShowCreate} container={container}>
-                    <CreateButton/>
-                </Create>
+                <CreateButton/>
             </div>
         </div>
         :
@@ -904,7 +897,8 @@ function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFe
 
 const createTo = (y) => ({ y: y })
 
-function Create({activeBranch,postsContext,container,isFeed,updateFeed,show,setShow,children}){
+function Create({activeBranch,postsContext,container,isFeed,updateFeed,show,setShow,
+    showDefaultButton=true,children}){
     const ref = useRef(null);
 
     //let container = document.getElementById('grid-container');
@@ -947,13 +941,14 @@ function Create({activeBranch,postsContext,container,isFeed,updateFeed,show,setS
         <>
         {children?
             children:
+            showDefaultButton?
                 <div css={optionWrapper}>
                 <div css={theme=>({display:'flex',padding:5,margin:'0 5px',
                 borderRadius:'50%'})}>
                     <PlusSvg css={theme=>({height:20,width:20,fill:theme.textColor})}/>
                 </div>
                 <span css={{margin:'0 10px',fontWeight:'bold'}}>Create a leaf</span>
-            </div>
+            </div>:null
         }
         
         {ReactDOM.createPortal(
@@ -1068,7 +1063,6 @@ function Menu2({activeBranch,postsContext,updateFeed,isFeed,width,container,menu
                 borderTopRightRadius:25,borderTopLeftRadius:25,height:200,width:width,display:'flex',
                 justifyContent:'center',alignItems:'center'})}>
                     <div css={{display:'flex',height:'100%',justifyContent:'center',alignItems:'strech',flexFlow:'column'}}>
-
                         <div css={{cursor:'pointer'}} className="noselect">
                             <GoToStartOrRefresh index={index} jumpToBack={jumpToBack} refresh={refresh} setOpen={setOpen}/>
                         </div>

@@ -75,7 +75,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 AWS_S3_CALLING_FORMAT = 'boto.s3.connection.OrdinaryCallingFormat'
 AWS_LOCATION = 'static'
-STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+STATIC_URL = 'd3u9nsvugag1ev.cloudfront.net'
 #STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 ###
 

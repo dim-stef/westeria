@@ -251,7 +251,8 @@ class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
         try:
             uri = validated_data.pop('uri')
             if uri and uri != instance.uri:
-                validated_uri = generate_unique_uri(uri)
+                validated_uri = generate_unique_uri(validated_data['name'] if 'name' in validated_data
+                                                    else instance.name, uri)
                 instance.uri = validated_uri
         except KeyError:
             pass
@@ -264,6 +265,8 @@ class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
 
         try:
             new_tags = validated_data.pop('tags')
+            for i, item in enumerate(new_tags):
+                new_tags[i] = item.strip()
             instance.tags.set(*new_tags)
         except KeyError:
             pass
@@ -517,6 +520,8 @@ class NewPostSerializer(TaggitSerializer,serializers.ModelSerializer):
 
         try:
             new_tags = validated_data.pop('tags')
+            for i, item in enumerate(new_tags):
+                new_tags[i] = item.strip()
         except KeyError:
             pass
 

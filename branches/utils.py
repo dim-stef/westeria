@@ -1,11 +1,22 @@
 from django.apps import apps
 
 
-def generate_unique_uri(name):
+def generate_unique_uri(name, uri):
+    url_safe_chars = ['.','_']
+    Branch = apps.get_model('branches.Branch')
+
+    if uri:
+        # if uri is the default UUID it won't be iterable and will throw an exception on iteration
+        try:
+            url_safe_uri = ''.join(c for c in uri if c.isalpha() or c.isnumeric() or c in url_safe_chars)
+        except TypeError:
+            url_safe_uri = ''.join(c for c in name if c.isalpha() or c.isnumeric() or c in url_safe_chars)
+    else:
+        url_safe_uri = ''.join(c for c in name if c.isalpha() or c.isnumeric() or c in url_safe_chars)
+
     invalid_names = ['admin','api','all','tree','messages','notifications',
                      'settings','logout','login','register']
-    Branch = apps.get_model('branches.Branch')
-    branch_name = ''.join(name.split())
+    branch_name = ''.join(url_safe_uri.split())
     tester = branch_name
     x = 0
     while Branch.objects.filter(uri__iexact=tester).exists() or branch_name in invalid_names:
