@@ -17,7 +17,7 @@ export function MediaPreview(props){
             if(isFileImage(props.files[i])){
                 let file = props.files[i];
                 let img = (
-                <div style={{width:100,height:100,position:'relative'}}>
+                <div className="player-wrapper">
                     <img style={{objectFit:'cover',width:'100%',height:'100%'}} src={URL.createObjectURL(file)}/>
                     <button className="remove-media-btn" onClick={()=>handleClick(file)}>x</button>
                 </div>

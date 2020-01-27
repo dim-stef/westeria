@@ -598,7 +598,7 @@ function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
                     {...pageProps}
                 />:hasMore?<SkeletonFixedGrid/>:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
                 activeBranch={pageProps.activeBranch} isFeed={pageProps.isFeed} 
-                refresh={pageProps.refresh} container={pageProps.container}
+                refresh={pageProps.refresh} container={pageProps.container} setShowCreate={pageProps.setShowCreate}
                 postsContext={pageProps.postsContext} updateFeed={pageProps.updateFeed} posts={pageProps.posts}/>}
             </div>
         </animated.div>
@@ -867,13 +867,12 @@ const TestPost = React.memo(({postProps,size,shouldOpen})=>{
         <PreviewPost {...postProps} viewAs="post" size={size} shouldOpen={shouldOpen}/>
     )
 })
-function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFeed,updateFeed,container}){
-    const [showCreate,setCreate] = useState(false);
+function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFeed,updateFeed,container,setShowCreate}){
     const userContext = useContext(UserContext);
 
     function handleCreateClick(){
         if(userContext.isAuth){
-            setCreate(true)
+            setShowCreate(true)
         }else{
             history.push('/login')
         }
@@ -885,9 +884,13 @@ function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFe
             {posts.length>0?'Seen everything':'Nothing is here yet. Be the first to do something about it!'}</p>
             {posts.length > 0 ? null:
             <div onClick={handleCreateClick} css={{margin:10,cursor:'pointer'}}>
-            <Create activeBranch={activeBranch} postsContext={postsContext} isFeed={isFeed}
-                updateFeed={updateFeed} show={showCreate} setShow={setCreate} container={container}
-            /></div>}
+            <div css={optionWrapper}>
+                <div css={theme=>({display:'flex',padding:5,margin:'0 5px',
+                borderRadius:'50%'})}>
+                    <PlusSvg css={theme=>({height:20,width:20,fill:theme.textColor})}/>
+                </div>
+                <span css={{margin:'0 10px',fontWeight:'bold'}}>Create a leaf</span>
+            </div></div>}
             <div css={{display:'flex',flexFlow:'column',alignItems:'center',justifyContent:'center',margin:10,cursor:'pointer'}}>
                 <GoToStartOrRefresh index={index} jumpToBack={jumpToBack} refresh={refresh}/>
             </div>
