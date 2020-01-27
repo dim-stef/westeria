@@ -410,7 +410,6 @@ export function CreateableTagSelector(props){
             closeMenuOnSelect={false}
             isMulti
             onChange={handleChange}
-            menuIsOpen
             placeholder="Add or create your tags"
         />
     )

@@ -139,7 +139,7 @@ class Branch(models.Model):
 
     def save(self, *args, **kwargs):
         if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
-            self.uri = generate_unique_uri(self.name)
+            self.uri = generate_unique_uri(self.name,self.uri)
         '''else:
             branch = Branch.objects.get(pk=self.pk)
             if branch.uri != self.uri:                     #need validation if uri updated

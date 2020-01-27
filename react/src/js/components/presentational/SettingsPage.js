@@ -15,6 +15,7 @@ import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
 import {CreateableTagSelector} from "./TagSelector";
 import "react-toggle/style.css"
+import history from "../../history"
 
 axiosRetry(axios, 
     {
@@ -376,7 +377,7 @@ function CreateNewBranch(){
                 userContext.branches.push(updatedResponse.data);
                 cachedBranches.owned.push(updatedResponse.data);
                 userContext.changeCurrentBranch(updatedResponse.data);
-                history.push('/')
+                history.push(`/${updatedResponse.data.uri}`)
             }
         }catch(e){
             errors = e.response.data
@@ -432,7 +433,6 @@ export function PostRegisterForm({onSubmit,initialValues,branch,submittionFunc,p
 function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null}){
     const theme = useTheme();
     const profileRef = useRef(null);
-    const bannerRef = useRef(null);
     const wrapperRef = useRef(null);
 
     let isDefaultSwitchDisabled = false;
@@ -460,8 +460,17 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                             {errors.branch_banner && <span className="setting-error">{errors.branch_banner}</span>}
                         </div>
                         <div>
-                            <label css={theme=>settingLabel(theme)}>Name</label>
-                            <Field name="name" component="input" placeholder="Name" required={createNew} css={theme=>settingInput(theme)}/>
+                            <Field name="name" placeholder="Name" validate={(value)=>value?undefined:'Required'}
+                                render={({ input, meta }) => (
+                                <div>
+                                    <label css={theme=>settingLabel(theme)}>Name</label>
+                                    <input {...input} css={theme=>settingInput(theme)} type="text" placeholder="Name" maxLength="30" />
+                                    {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
+                                    {/*{meta.validating && <p>loading</p>}*/}
+                                    <span className="setting-info">Maximum of 30 characters</span>
+                                </div>
+                                )}
+                            />
                         </div>
 
                         <div style={{margin:'5px 0'}}>
@@ -485,6 +494,7 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                                 )}
                             </Field>
                         </div>
+                        {createNew?null:
                         <div style={{margin:'5px 0'}}>
                             <Field
                             name="tags">
@@ -498,7 +508,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                                 </div>
                             }}
                             </Field>
-                        </div>
+                        </div>}
+                        
                         {submitSucceeded?<p className="form-succeed-message">{createNew?
                         'Successfully created branch':'Successfully saved changes'}</p>:null}
                         {submitFailed?<p className="form-error-message">An error occured</p>:null}
@@ -551,12 +562,19 @@ export function UriField({branch=null}){
         };
       };
       
-      const usernameAvailable = simpleMemoize(async value => {
+      const usernameAvailable = async (value,allValues,meta) => {
+        
+        // Don't run validation if the field is not active
+        // prevents request spam
+        if (!meta.active){
+            return undefined
+        }
+
         if (!value) {
             return "Required";
         }
 
-        let sanitizeRe = /^[a-zA-Z0-9]*$/;
+        let sanitizeRe = /^[a-zA-Z0-9_.]*$/;
         if(!value.match(sanitizeRe)){
             return "The username you entered contains invalid characters";
         }
@@ -573,7 +591,7 @@ export function UriField({branch=null}){
         }
 
         return undefined;
-      });
+      };
 
     function cancelSearch(val,prevVal){
         if(val!=prevVal){

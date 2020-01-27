@@ -531,7 +531,7 @@ const previewCss = theme => css({
 })
 
 export function DropdownList({type="text",component=null,options,defaultOption,name,
-setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',showOnTop,children}){
+setParams,params,label,changeCurrentBranch,setBranch,preview=true,showOnTop,children}){
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
       })
@@ -604,7 +604,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                     id={`${name}-filter`} className="flex-fill filter-selector" 
                     >
                         {type=="text"?<span style={{color:theme.textLightColor}}>{selected.label}</span>:
-                        <SmallBranch branch={selected} isLink={false}/>}
+                        <SmallBranch branch={selected} isLink={false} hoverable={false}/>}
                         <DownArrowSvg/>
                     </div>:
                     <div>{children}</div>}

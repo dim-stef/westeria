@@ -191,9 +191,10 @@ export function BranchSwitch({defaultBranch}){
 }
 
 export function Settings(){
-    
+    const userContext = useContext(UserContext);
+
     function handleClick(){
-        history.push('/settings')
+        history.push(`/settings/branches/${userContext.currentBranch.uri}`)
     }
 
     return(
