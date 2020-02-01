@@ -1,7 +1,7 @@
 import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
 import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
-import { useSpring, animated, config } from 'react-spring/web.cjs'
+import { useSpring, animated } from 'react-spring/web.cjs'
 import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
@@ -12,6 +12,11 @@ import {SwipeablePostGridContext,UserContext} from "../container/ContextContaine
 import {useMediaQuery} from 'react-responsive'
 import {PlusSvg,CloseSvg} from "./Svgs"
 import history from "../../history"
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
 
 function cssPropertyValueSupported(prop, value) {
     var d = document.createElement('div');
@@ -48,7 +53,7 @@ const bigCell = (isFlat,size) =>css({
 
 const animatedDiv = (theme,supportsGrid) =>css({
     overflow:supportsGrid?'hidden':'auto',
-    boxShadow:'rgba(0, 0, 0, 0.32) 9px 7px 10px -7px',
+    boxShadow:'rgba(0, 0, 0, 0.56) -1px 4px 8px -3px',
     padding:5,
     boxSizing:'border-box',
     backgroundColor:theme.backgroundColor,
@@ -71,25 +76,9 @@ const to = (x) => ({ x: x,scale: 1,display: 'block'})
 const from = (x) => ({ x: x||0,scale: 1,display: 'block'})
 const ani = (x) => ({ x: x,scale: 1,display: 'block'})
 
-/*
-bigItemCount:0,
-mediumItemCount:1,
-responsiveItemCount:3,
-smallItemCount:4 
 
-bigItemCount:1,
-mediumItemCount:1,
-responsiveItemCount:3,
-smallItemCount:3
-
-bigItemCount:1,
-mediumItemCount:1,
-responsiveItemCount:4,
-smallItemCount:2
-*/
-
-export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,hasMore,width,height,refresh,
-    updateFeed,isFeed}){
+const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasMore,width,height,refresh,
+    updateFeed,isFeed}) => {
 
     const swipeablePostGridContext = useContext(SwipeablePostGridContext);
     let containerHeight = 860;
@@ -170,8 +159,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     let offsetLeft = 15;
 
     const isDown = useRef(false);
-    const [menuOpen,setOpen] = useState(false);
-    const [showCreate,setShowCreate] = useState(false);
+    const setShowMenuRef = useRef(()=>{})
+    const setShowCreateRef = useRef(()=>{})
     const [index,setIndex] = useState(postsContext.lastPage);
 
     // ref is needed to keep track of index in the onFrame function
@@ -311,7 +300,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     }
 
     function goToRight(){
-        if(indexRef.current!=pages.length){
+        if(indexRef.current!=pagesRef.current.length){
             sentToRight.current = true;
             shouldUpdate.current = true;
     
@@ -330,15 +319,10 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
     },[posts])
 
     useLayoutEffect(()=>{
-        if(index > prevIndex){
-            setFirst.current = true;
-            setLast.current = false
-        }else{
-            setFirst.current = false;
-            setLast.current = true
 
-        }
+        // if this is removed everything breaks ¯\_(ツ)_/¯
         setPrevIndex(index);
+        // dont touch this
 
         shouldCaptureWheel.current = true;
         if(!jumpedToBack.current){
@@ -381,6 +365,7 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         }
     }
 
+    
     useEffect(()=>{
         if(container.current){
             container.current.addEventListener('wheel',wheelEvent)
@@ -490,8 +475,8 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
         movX:movX,
         updateFeed:updateFeed,
         container:container,
-        setOpen:setOpen,
-        setShowCreate:setShowCreate
+        setOpenRef:setShowMenuRef,
+        setShowCreateRef:setShowCreateRef
     }
 
     return (
@@ -518,17 +503,21 @@ export function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,has
             })}
             {container.current?
             <><Menu2 activeBranch={activeBranch} updateFeed={updateFeed} isFeed={isFeed} postsContext={postsContext}
-            width={width} container={container} menuOpen={menuOpen} setOpen={setOpen} 
+            width={width} container={container} setOpenRef={setShowMenuRef} 
             jumpToBack={jumpToBack} refresh={refresh} index={index}
             /><Create activeBranch={activeBranch} postsContext={postsContext} isFeed={isFeed}
-            updateFeed={updateFeed} show={showCreate} setShow={setShowCreate} container={container} showDefaultButton={false}/>
+            updateFeed={updateFeed} setShowCreateRef={setShowCreateRef} container={container} showDefaultButton={false}/>
             </>:null}
         </div>
     )
 }
 
-function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
-    offsetLeft,initPosition,currIndex,jumpToBack,bind}){
+export const SwipeablePostGrid = React.memo(SwipeablePostGridNoMemo)
+
+SwipeablePostGrid.whyDidYouRender = true
+
+const MovingPage = React.memo(({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
+    offsetLeft,initPosition,currIndex,jumpToBack,bind}) => {
     let positions = ['left','middle','right'];
     let initIndex = currIndex;
 
@@ -598,12 +587,12 @@ function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
                     {...pageProps}
                 />:hasMore?<SkeletonFixedGrid/>:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
                 activeBranch={pageProps.activeBranch} isFeed={pageProps.isFeed} 
-                refresh={pageProps.refresh} container={pageProps.container} setShowCreate={pageProps.setShowCreate}
+                refresh={pageProps.refresh} container={pageProps.container} setShowCreate={pageProps.setShowCreateRef}
                 postsContext={pageProps.postsContext} updateFeed={pageProps.updateFeed} posts={pageProps.posts}/>}
             </div>
         </animated.div>
     )
-}
+})
 
 function NavigationArrows({index,pages,goToLeft,goToRight,container}){
     const isMobile = useMediaQuery({
@@ -672,9 +661,9 @@ function shuffle(a) {
     return a;
 }
 
-function Page({page,activeBranch,postsContext,updateFeed,
-    isFeed,pageType,height,shouldOpen,index,
-    movX,setOpen,setShowCreate,container,position}){
+function Page({page,activeBranch,postsContext,
+    pageType,height,shouldOpen,index,
+    movX,setOpenRef,setShowCreateRef}){
     
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
     const cachedPageLength = useRef(page.length)
@@ -754,18 +743,25 @@ function Page({page,activeBranch,postsContext,updateFeed,
         }
 
         try{
-            for(let i=orderWithSize.length - 3; i<orderWithSize.length - 1;i++){
-                if(isFlat(orderWithSize[i].post) != isFlat(orderWithSize[i+1].post)){
-                    let tmp = orderWithSize[i];
-                    orderWithSize[i] = orderWithSize[i+1];
-                    orderWithSize[i+1] = tmp;            
+            let alternateItems = [];
+            let responsiveItems = orderWithSize.splice(-pageType.responsiveItemCount);
+            for(let i=0; i<responsiveItems.length;i++){
+                for(let j=0; j<responsiveItems.length;j++){
+                    if(!alternateItems.length || isFlat(alternateItems[alternateItems.length - 1].post) != isFlat(responsiveItems[j].post)){
+                        alternateItems.push(responsiveItems[j])
+                        responsiveItems.splice(j,1)
+                        break;
+                    }
                 }
             }
-        }catch(e){
 
+            // append any remaining
+            alternateItems = alternateItems.concat(responsiveItems);
+            orderWithSize = orderWithSize.concat(alternateItems)
+        }catch(e){
         }
         
-        return orderWithSize //shuffle(orderWithSize);
+        return orderWithSize
     }
 
     const [order,setOrder] = useState(getOrder())
@@ -841,12 +837,12 @@ function Page({page,activeBranch,postsContext,updateFeed,
             gridRow:`span ${sizes.small.defaultDimensions[0]}`,
             display:'flex',alignItems:'center',zIndex:1000,
             backgroundColor:theme.backgroundDarkColor})}>
-                <MenuButton setOpen={setOpen}/>
+                <MenuButton setOpen={setOpenRef}/>
             </div>
             <div key="plus" css={theme=>({gridColumn:`span ${sizes.small.defaultDimensions[0]}`,
             gridRow:`span ${sizes.small.defaultDimensions[0]}`,
             display:'flex',alignItems:'center',zIndex:1000,
-            backgroundColor:theme.backgroundDarkColor})} onClick={()=>setShowCreate(true)}>
+            backgroundColor:theme.backgroundDarkColor})} onClick={()=>setShowCreateRef.current(true)}>
                 <CreateButton/>
             </div>
         </div>
@@ -867,12 +863,13 @@ const TestPost = React.memo(({postProps,size,shouldOpen})=>{
         <PreviewPost {...postProps} viewAs="post" size={size} shouldOpen={shouldOpen}/>
     )
 })
-function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFeed,updateFeed,container,setShowCreate}){
+
+function LastPage({index,jumpToBack,refresh,posts,setShowCreate}){
     const userContext = useContext(UserContext);
 
     function handleCreateClick(){
         if(userContext.isAuth){
-            setShowCreate(true)
+            setShowCreate.current(true)
         }else{
             history.push('/login')
         }
@@ -900,8 +897,10 @@ function LastPage({index,jumpToBack,refresh,posts,activeBranch,postsContext,isFe
 
 const createTo = (y) => ({ y: y })
 
-function Create({activeBranch,postsContext,container,isFeed,updateFeed,show,setShow,
+function Create({activeBranch,postsContext,container,isFeed,updateFeed,setShowCreateRef,
     showDefaultButton=true,children}){
+    const [show,setShow] = useState(false);
+    setShowCreateRef.current = setShow;
     const ref = useRef(null);
 
     //let container = document.getElementById('grid-container');
@@ -956,7 +955,7 @@ function Create({activeBranch,postsContext,container,isFeed,updateFeed,show,setS
         
         {ReactDOM.createPortal(
             <animated.div ref={ref} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
-            css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left
+            css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left,willChange:'transform'
             }}>
                 <div onClick={handleClose} 
                 css={{height:50,width:'100%',display:'flex',justifyContent:'center',
@@ -1007,10 +1006,12 @@ function GoToStartOrRefresh({index,jumpToBack,refresh,setOpen,optionStyle={}}){
     )
 }
 
-function Menu2({activeBranch,postsContext,updateFeed,isFeed,width,container,menuOpen,setOpen,jumpToBack,refresh,index}){
+function Menu2({width,container,setOpenRef,jumpToBack,refresh,index}){
     const ref = useRef(null);
     const userContext = useContext(UserContext);
     const [createOpen,setCreateOpen] = useState(false);
+    const [menuOpen,setOpen] = useState(false);
+    setOpenRef.current = setOpen;
 
     let left = container.current.getBoundingClientRect().left;
 
@@ -1079,7 +1080,7 @@ function Menu2({activeBranch,postsContext,updateFeed,isFeed,width,container,menu
 function MenuButton({setOpen}){
 
     function handleClick(e){
-        setOpen(true)
+        setOpen.current(true)
     }
 
     return(

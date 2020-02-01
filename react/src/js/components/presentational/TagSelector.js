@@ -4,6 +4,7 @@ import Async from "react-select/async";
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import {useTheme} from "emotion-theming";
 import {css} from "@emotion/core";
+import {BubbleBranch as StyledBubbleBranch} from "./Branch"
 import axios from "axios";
 
 const options = [
@@ -285,19 +286,7 @@ function BubbleBranch({branch,selectedBranches,setSelectedBranches}){
     },[clicked])
 
     return(
-        <div css={theme=>({display:'flex',margin:'10px 0',alignItems:'center',
-        backgroundColor:clicked?'#219ef3 !important':'transparent',cursor:'pointer',transition:'background-color 0.3s ease',
-        padding:10,margin:7,borderRadius:50,border:`1px solid ${theme.borderColor}`})} onClick={handleBranchClick}>
-            <img src={branch.branch_image} css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}}/>
-            <div css={{display:'flex',flexFlow:'column',marginLeft:5}}>
-                <span css={theme=>({color:clicked?'white':theme.textColor,fontSize:'1.5rem',fontWeight:500})}>
-                    {branch.name}
-                </span>
-                <span css={theme=>({color:clicked?'white':theme.textLightColor,fontSize:'1.2rem'})}>
-                    @{branch.uri}
-                </span>
-            </div>
-        </div>
+        <StyledBubbleBranch branch={branch} clicked={clicked} clickable={handleBranchClick}/>
     )
 }
 
@@ -322,7 +311,7 @@ function BubbleTag({tag,selectedTags,setSelectedTags}){
 
     return(
         <div onClick={handleTagClick} 
-        css={theme=>({padding:'5px 10px',cursor:'pointer',transition:'background-color 0.3s ease',
+        css={theme=>({padding:'5px 10px',cursor:'pointer',transition:'background-color 0.15s ease',
         border:clicked?`1px solid transparent`:`1px solid ${theme.borderColor}`,
         borderRadius:25,color:clicked?'white':theme.textColor,display:'inline-block',
         width:'max-content',fontSize:'1.7rem',margin:7,backgroundColor:clicked?'#219ef3 !important':'transparent',

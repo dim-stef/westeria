@@ -36,7 +36,7 @@ const serialTagSelector = theme =>({
     height:'70%',
     boxSizing:'border-box',
     overflow:'auto',
-    '@media (max-device-width:767px)':{
+    '@media (max-width:767px)':{
         width:'90%'
     }
 })
@@ -309,7 +309,7 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
                 <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
                     <input type="file" multiple className="inputfile" id="media"
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
-                    <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
+                    <label for="media" style={{display:'inherit',marginRight:5}}><MediaSvg/></label>
                     <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">
                     {tags.length > 0?`${tags.length} tags`:'Add tags'}</button>
                 </div>

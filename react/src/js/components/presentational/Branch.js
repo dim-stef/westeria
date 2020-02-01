@@ -19,7 +19,9 @@ const circularBranchName = (theme,isMobile) =>css({
     color: theme.textColor,
     fontSize:isMobile?'1.3rem':'1.5rem',
     margin:'5px 0',
-    fontWeight:400
+    fontWeight:400,
+    wordBreak:'break-word',
+    textAlign:'center'
  })
 
 const squareBranchName = theme =>css({
@@ -39,20 +41,26 @@ const squareBranchName = theme =>css({
     width:'100%'
 })
 
-export function CircularBranch({branch,endpoint}){
+export function CircularBranch({branch,endpoint,connect=null}){
     const isMobile = useMediaQuery({
         query: '(max-width: 767px)'
     })
 
+    const body = <div css={imageContainer} style={{margin:'0 5px'}} key={branch.id}>
+        <FadeImage className="round-picture branch-profile-setting" 
+        style={{height:isMobile?60:100,width:isMobile?60:100,display:'block',
+        objectFit:'cover',margin:2,boxSizing:'border-box'}}
+        src={branch.branch_image}/>
+        <span css={theme=>circularBranchName(theme,isMobile)}>{connect?connect:branch.name}</span>
+    </div>
+
     return(
-        <Link to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
-            <div css={imageContainer} style={{margin:'0 5px'}} key={branch.id}>
-                <FadeImage className="round-picture branch-profile-setting" 
-                style={{height:isMobile?60:100,width:isMobile?60:100,display:'block',
-                objectFit:'cover',margin:2,boxSizing:'border-box'}}
-                src={branch.branch_image}/>
-                <span css={theme=>circularBranchName(theme,isMobile)}>{branch.name}</span>
-            </div>
+        connect?<div css={theme=>({height:isMobile?100:150,width:isMobile?100:200,display:'block'})}>
+            {body}
+        </div>:
+        <Link css={theme=>({height:isMobile?100:150,width:isMobile?100:200,display:'block'})}
+        to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
+            {body}
         </Link>
     )
 }
@@ -85,6 +93,24 @@ export function ChildBranch({styleName='', style=null, branch, editMode, childre
         </>  
     )
     
+}
+
+export function BubbleBranch({branch,clickable=null,clicked=false}){
+    return(
+        <div css={theme=>({display:'flex',margin:'10px 0',alignItems:'center',
+        backgroundColor:clicked?'#219ef3 !important':'transparent',cursor:'pointer',transition:'background-color 0.15s ease',
+        padding:10,margin:7,borderRadius:50,border:`1px solid ${theme.borderColor}`})} onClick={clickable?clickable:null}>
+            <img src={branch.branch_image} css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}}/>
+            <div css={{display:'flex',flexFlow:'column',marginLeft:5}}>
+                <span css={theme=>({color:clicked?'white':theme.textColor,fontSize:'1.5rem',fontWeight:500})}>
+                    {branch.name}
+                </span>
+                <span css={theme=>({color:clicked?'white':theme.textLightColor,fontSize:'1.2rem'})}>
+                    @{branch.uri}
+                </span>
+            </div>
+        </div>
+    )
 }
 
 const name = theme => css({

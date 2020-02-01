@@ -1,8 +1,7 @@
 import React, {useState,useEffect,useLayoutEffect,useCallback,useRef,useContext} from "react";
 import { createPortal } from 'react-dom';
-import {Link} from "react-router-dom"
 import history from "../../history"
-import { useSpring, useTransition, animated, interpolate } from 'react-spring/web.cjs'
+import { useSpring, animated, interpolate } from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
 import {css,keyframes } from "@emotion/core";
@@ -11,7 +10,6 @@ import {useTheme} from "../container/ThemeContainer"
 import {Images, PreviewPostMedia} from './PostImageGallery'
 import {Post} from "./SingularPost"
 import {ReplyTree} from './Comments'
-import {SmallCard} from './Card'
 import {SingularPostContext,UserContext} from "../container/ContextContainer"
 import InfiniteScroll from 'react-infinite-scroll-component';
 import axios from 'axios';
@@ -123,7 +121,7 @@ const scaleUp = keyframes`
 
 const to = (y) => ({ opacity:1, x: 0, y: y||20, scale: 1 })
 const from = () => ({ opacity:0, x: 0, rot: 0, scale: 0, y: -(window.innerHeight) })
-const off = () => ({ opacity:1, x: 0, y: -(window.innerHeight + 250), scale: 1})
+const off = (offset=200) => ({ opacity:1, x: 0, y: -(window.innerHeight + offset + 50), scale: 1})
 const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
 export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
@@ -148,6 +146,13 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     const isLaptopOrDesktop = useMediaQuery({
         query: '(min-device-width: 1224px)'
     })
+
+    const isTall = useMediaQuery({
+        query: '(min-device-height: 600px)'
+    })
+
+    let offset = isTall?150:80;
+
 
     useEffect(()=>{
         if(ref.current){
@@ -205,13 +210,13 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
 
     const positions = {
         off:{
-            y:(250 + window.innerHeight)*-1
+            y:(offset + 50 + window.innerHeight)*-1
         },
         top:{
             y:20
         },
         bottom:{
-            y:window.innerHeight - 200
+            y:window.innerHeight - offset
         }
     }
 
@@ -231,7 +236,7 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
             if(shotUp.current){
                 shotUp.current = false
             }
-            if(Math.abs(f.y) > window.innerHeight + 200){
+            if(Math.abs(f.y) > window.innerHeight + offset){
                 lastDockedPosition.current = 20;
                 shotDown.current = false;
                 shotUp.current = false;
@@ -339,12 +344,19 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         }
     },[postShown])
 
+    const modalRoot = document.getElementById('modal-root');
     const initTo = to().y
     // 1. Define the gesture
-    const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity, event, tap}) => {
+    const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity, event, tap,cancel}) => {
+        if(modalRoot.childElementCount > 0){
+            cancel();
+            return;
+        }
+
         try{
-            if(tap && !previewPostRef.current.contains(event.target)){
-                set(()=>off())
+            if(tap && !previewPostRef.current.contains(event.target) 
+            && !modalRoot.contains(event.target)){
+                set(()=>off(offset))
                 return
             }
         }catch(e){
@@ -402,13 +414,13 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
                 }else{
                     // shoot post to top outside of screen
                     dockedTo.current = positions.off;
-                    y = (250 + window.innerHeight) * dir
+                    y = (offset + 50 + window.innerHeight) * dir
                 }
                 commentsActive.current = false;
             }else{
                 // shoot to bottom so the comments are shown
                 dockedTo.current = positions.bottom;
-                y = (window.innerHeight - 200) * dir
+                y = (window.innerHeight - offset) * dir
             }
 
             lastDockedPosition.current = y;
@@ -416,13 +428,13 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
 
           if(shotDown.current){
             dockedTo.current = positions.bottom;
-            y = (window.innerHeight - 200) * dir;
+            y = (window.innerHeight - offset) * dir;
             lastDockedPosition.current = y;
           }
 
           const rot = mx / 100 + (isGone ? dir * 10 * velocity : 0) // How much the card tilts, flicking it harder makes it rotate faster
           const scale = down ? 1 : 1 // Active cards lift up a bit
-          return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? 200 : 500 }}
+          return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? offset : 500 }}
         })
     },{filterTaps:true})
     
@@ -464,7 +476,7 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
                      
                 </div>
                 <div css={{zIndex:1001}}>
-                {commentsShown?<AnimatedCommentBox post={post} offset={200}/>:null}
+                {commentsShown?<AnimatedCommentBox post={post} offset={offset}/>:null}
                 <animated.div {...bind()} css={theme=>openPreviewPost(theme)} ref={previewPostRef}
                 id="preview-post"
                 style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>

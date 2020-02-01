@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Post} from './SingularPost'
 import StatusUpdate from './StatusUpdate'
+import {useTheme} from "emotion-theming";
 import axios from 'axios';
 
 
@@ -8,6 +9,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
     const [comments,setComments] = useState([]);
     const [justGotCached,setGotCached] = useState(false);
     const didMount = useRef(null)
+    const theme = useTheme();
     //const postsContext = useContext(PostsContext);
 
     let inCache = postsContext.cachedPosts.some(post=>{
@@ -81,7 +83,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
                         marginLeft = 0
                     }else{
                         marginLeft = 33;
-                        borderLeft='3px solid #e2eaf1';
+                        borderLeft=`3px solid ${theme.borderColor}`;
                     }
 
                     return (
@@ -105,8 +107,10 @@ export function ReplyTree({currentPost,topPost,
     const [hasMore,setHasMore] = useState(true);
     const [next,setNext] = useState(null);
     const [viewAll,setViewAll] = useState(false);
+    const theme = useTheme();
 
     const didMount = useRef(null)
+
     function measure(){
         return
     }
@@ -183,7 +187,7 @@ export function ReplyTree({currentPost,topPost,
         marginLeft = 0;
     }else{
         marginLeft = 15;
-        borderLeft='3px solid #e2eaf1';
+        borderLeft=`3px solid ${theme.borderColor}`;
     }
      
     return(

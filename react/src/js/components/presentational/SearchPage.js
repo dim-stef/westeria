@@ -1,12 +1,15 @@
 import React, {useEffect, useRef, useState} from 'react';
+import {Link} from "react-router-dom";
 import { css } from "@emotion/core";
+import { useSpring, useTransition, animated, to } from 'react-spring/web.cjs'
 import {useTheme} from "emotion-theming";
 import {Helmet} from 'react-helmet'
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
-import {Grid} from "./Grid"
+import {FadeImage} from "./FadeImage"
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import history from "../../history"
 
 axiosRetry(axios, 
     {
@@ -26,6 +29,7 @@ export function SearchPage(props){
             <h1 style={{padding:10}}>Search</h1>
             <Search/>
             <h1 style={{padding:10}}>Trending</h1>
+            <TopLevelBranches/>
             <Trending/>
         </div>
     )
@@ -45,6 +49,21 @@ const searchList = theme => css({
     margin:10,
     flexFlow:'column',
     border:`1px solid ${theme.borderColor}`
+})
+
+const button = (theme,backgroundColor='#2196f3c4') =>css({
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    boxSizing:'border-box',
+    padding:12,
+    width:'85%',
+    color:'white',
+    fontSize:'1.3rem',
+    fontWeight:500,
+    borderRadius:50,
+    margin:'5px 0',
+    backgroundColor:backgroundColor
 })
 
 function Search(){
@@ -120,13 +139,8 @@ function Search(){
             <div className="flex-fill" css={searchContainer}>
             {branches?
                 branches.length>0?
-                branches.map(r=>{
-                    return  <div className="branch-container flex-fill" 
-                            css={theme=>searchList(theme)}>
-                                <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
-                                branch={r}/>
-                                <BranchFooter branch={r}/>
-                            </div>
+                branches.map(b=>{
+                    return <ExpandableBranch branch={b}/>
                            
                 }):null
                 :null}
@@ -169,17 +183,87 @@ function Trending(){
         <div className="flex-fill" style={{flexFlow:'row wrap', justifyContent:'space-between'}}>
             {branches.length>0?
             branches.map(b=>{
-                return  <div key={`${b.id}-trending`} className="branch-container" 
-                    css={theme=>searchList(theme)}>
-                        <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
-                        branch={b}/>
-                        <BranchFooter branch={b}/>
-                    </div>
+                return <ExpandableBranch branch={b}/>
             }):null}
         </div>
         <div className="flex-fill center-items">
             {next?<button className="load-more" onClick={handleClick}>Load more</button>:null}
         </div>
         </>
+    )
+}
+
+function TopLevelBranches(){
+    const [branches,setBranches] = useState(null);
+
+    async function getTopLevel(){
+        let uri = '/api/v1/top_level_branches/';
+        const response = await axios.get(uri);
+        setBranches(response.data);
+    }
+
+    useEffect(()=>{
+        getTopLevel();
+    },[])
+
+    return(
+        branches?<div css={{display:'flex',flexFlow:'row wrap'}}>
+            {branches.map(b=>{
+                return <ExpandableBranch branch={b}/>
+            })}
+        </div>:null
+    )
+}
+
+function ExpandableBranch({branch}){
+    const [showOptions,setShowOptions] = useState(false);
+
+    const transitions = useTransition(showOptions, null, {
+        from: { opacity: 0, scale:0.8 },
+        enter: { opacity: 1, scale:1 },
+        leave: { opacity: 0, scale:0.8 },
+        config: {
+            duration: 200,
+        },
+    })
+
+    function handleProfileClick(e){
+        e.stopPropagation();
+        history.push(`/${branch.uri}`)
+    }
+
+    function handleRelatedClick(e){
+        e.stopPropagation();
+        history.push(`/${branch.uri}/branches`)
+    }
+
+    function handleCancelClick(e){
+        e.stopPropagation();
+        setShowOptions(false);
+    }
+
+    return (
+        <div css={theme=>({display:'flex',flexFlow:'column',alignItems:'center',justifyContent:'center',
+        margin:10,position:'relative',flexGrow:1,maxWidth:200,
+        width:150,backgroundColor:theme.backgroundLightColor,borderRadius:25})} onClick={()=>setShowOptions(true)}>
+            <div css={{display:'flex',flexFlow:'column',justifyContent:'center',alignItems:'center',height:'100%',width:'100%',
+            padding:'40px 10px',boxSizing:'border-box',transition:'0.3s filter ease',filter:showOptions?'blur(8px)':null}}>
+                <div>
+                    <FadeImage src={branch.branch_image} css={{height:80,width:80,borderRadius:'50%',objectFit:'cover'}}/>
+                </div>
+                <div css={{display:'flex',flexFlow:'column',justifyContent:'center',alignItems:'center'}}>
+                    <span css={theme=>({color:theme.textColor,fontSize:'1.7rem',fontWeight:500})}>{branch.name}</span>
+                    <span css={theme=>({fontSize:'1.2rem',color:theme.textLightColor})}>@{branch.uri}</span>
+                </div>
+            </div>
+            {transitions.map(({item, key, props})=>(
+                item && <animated.div key={key} style={props} css={{position:'absolute',height:'100%',width:'100%',
+                display:'flex',justifyContent:'center',alignItems:'center',flexFlow:'column',willChange:'opacity, scale'}}>
+                    <div role="button" css={theme=>button(theme)} onClick={handleProfileClick}>View profile</div>
+                    <div role="button" css={theme=>button(theme)} onClick={handleRelatedClick}>{branch.branch_count} Related</div>
+                    <div role="button" css={theme=>button(theme,'#f44336c4')} onClick={handleCancelClick}>Cancel</div>
+                </animated.div>
+            ))}
+        </div>
     )
 }

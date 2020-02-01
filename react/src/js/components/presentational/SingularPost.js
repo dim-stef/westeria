@@ -1,8 +1,8 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import ReactDOM from 'react-dom';
 import {Link, withRouter} from 'react-router-dom'
-import { useTheme } from 'emotion-theming'
+import { useTheme as useEmotionTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
+import {useTransition,animated} from "react-spring/web.cjs"
 import history from "../../history"
 import {Helmet} from 'react-helmet'
 import MoonLoader from 'react-spinners/MoonLoader';
@@ -20,7 +20,7 @@ import {FollowButton, SmallCard} from "./Card"
 import {ToggleContent} from './Temporary'
 import {ReplyTree} from './Comments'
 import RoutedHeadline from './RoutedHeadline'
-import {SmallBranch} from "./Branch"
+import {SmallBranch,BubbleBranch} from "./Branch"
 import {useInView} from 'react-intersection-observer'
 import {Images} from './PostImageGallery'
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -28,6 +28,7 @@ import axios from 'axios';
 import {DropdownActionList} from "./DropdownActionList"
 import {InfoMessage} from "./InfoMessage"
 import {Path} from "./LeafPath"
+import {Modal} from "./Temporary"
 
 const copy = require('clipboard-copy')
 
@@ -161,8 +162,8 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     return (
         post?
         <div css={theme=>({boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,
-        backgroundColor:theme.backgroundDarkColor,
-        '@media (max-device-width: 1226px)':{boxShadow:'none'}})}>
+        backgroundColor:theme.backgroundLightColor,
+        '@media (max-device-width: 1226px)':{boxShadow:'none',borderRadius:0}})}>
             <Helmet>
                 <title>{title}</title>
                 <meta name="description" content={description}></meta>
@@ -328,7 +329,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 function ShownBranch({branch,date,dimensions=48}){
-    const theme = useTheme();
+    const theme = useEmotionTheme();
     let dateElement=null;
 
     if(date){
@@ -387,7 +388,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
     activeBranch,open,updateTree,measure,viewAs,isSingular,className,children}){
 
     const context = useContext(UserContext);
-    const theme = useTheme();
+    const theme = useEmotionTheme();
 
     let initSelfSpread = post.spreaders.find(s=>{
         if(context.isAuth && s.branch){
@@ -454,6 +455,15 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
 
     let extraStyles = is_touch_device()?{}:desktopStyles
 
+    const transitions = useTransition(isStatusUpdateActive, null, {
+        from: { height: 0 },
+        enter: { height: 101 },
+        leave: { height: 0 },
+        config:{
+            duration:150
+        }
+    })
+        
     return(
         <>
         <div className={className}>
@@ -487,17 +497,34 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
                     </div>
             </div>
         </div>
-        {isStatusUpdateActive?
-        <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}/>:null}
+        {
+            transitions.map(({ item, key, props }) =>
+                item && <animated.div key={key} style={props} css={{overflow:'hidden'}}>
+
+                <div style={{height:'auto'}}>
+                    <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}/>
+                </div>
+            </animated.div>
+            )
+            }
         </>
     )
 }
+
+const postedToExtensionContainer = theme =>css({
+    backgroundColor:theme.backgroundLightColor,
+    borderRadius:25,
+    padding:'15px 20px',
+    '@media (max-width: 767px)':{
+        width:'90%'
+    }
+})
 
 function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
     
     const userContext = useContext(UserContext);
     const [branches,setBranches] = useState([]);
-    
+    const [open,setOpen] = useState(false);
 
     function branchesToDisplay(){
         return post.posted_to.filter(b =>{
@@ -523,27 +550,31 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
         <ToggleContent 
         toggle={show=>(
             branches.length>0?
-            <div style={{marginLeft:10,alignSelf:'center',
-            borderRadius:'50%',
-            backgroundColor:'rgb(220, 233, 245)'}}
-            onClick={e=>{e.stopPropagation();show()}}>
-                <span style={{fontSize:'1.5em',
-                display:'block',
-                padding:'4px 5px',color:'rgba(0, 0, 0, 0.75)'}}>+{branches.length}</span>
-            </div>:null
+            <div 
+            css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:50,
+            marginLeft:10,display:'flex',justifyContent:'center'})}
+            onClick={e=>{e.stopPropagation();show();setOpen(true);}}>
+                <span css={theme=>({fontSize:'1.5em',display:'flex',alignItems:'center',
+                padding:'4px 5px',color:theme.textLightColor})}>+{branches.length} more</span>
+            </div>
+            :null
         )}
         content={hide => (
-        <Modal onClick={e=>{e.stopPropagation();hide()}}>
-            <div className="post-to-branch-container" onClick={e=>e.stopPropagation()}> 
-
-                <div style={{height:500,padding:'15px 20px',overflow:'auto'}}>
-                    {branches.map(b=>{
-                        return <div key={b.id}>
-                        <SmallBranch branch={b}>
-                            <FollowButton branch={b}/>
-                        </SmallBranch>
-                        </div>
-                    })}
+        <Modal isOpen={open} hide={hide} onClick={e=>{e.stopPropagation();setOpen(false);}}>
+        <div css={{position:'fixed',height:'100vh',width:'100vw',display:'flex',
+                justifyContent:'center',alignItems:'center'}}>
+                <div css={postedToExtensionContainer} onClick={e=>e.stopPropagation()}>
+                    <h1 css={theme=>({color:theme.textColor})}>This leaf was also posted on these Branches</h1>
+                    <div css={{height:'100%',overflow:'auto',display:'flex',flexFlow:'row wrap',
+                    justifyContent:'center'}}>
+                        {branches.map(b=>{
+                            return <React.Fragment key={b.id}>
+                            <BubbleBranch branch={b}>
+                                <FollowButton branch={b}/>
+                            </BubbleBranch>
+                            </React.Fragment>
+                        })}
+                    </div>
                 </div>
             </div>
         </Modal>    
@@ -974,24 +1005,6 @@ function StarDislikeRatio({style,reacted,starCount,dislikeCount}){
     )
 }
 
-const Modal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
-    )
-);
-
-const ImageModal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="image-modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
-    )
-);
-
 function Comments({post,handleCommentClick}){
     const [clicked,setClicked] = useState(false);
 
@@ -1267,7 +1280,7 @@ function ShareCount({spreads}){
 
 function TopSpreadList({spreaders,selfSpread}){
     const context = useContext(UserContext);
-    const theme = useTheme();
+    const theme = useEmotionTheme();
 
     var topSpreadList = null;
     let postPicture = null;
