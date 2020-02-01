@@ -37,5 +37,6 @@ urlpatterns = [
     url(r'^', include(branch_router.urls)),
     url(r'^', include(branchchat_router.urls)),
     path('', include('api.urls')),
+    path('search2/',views.SearchViewSet.as_view()),
     path('branches_by_tags/', views.BranchesByTags.as_view())
 ]

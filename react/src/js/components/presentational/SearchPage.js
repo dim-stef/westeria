@@ -128,7 +128,7 @@ function Search(){
         <div ref={wrapperRef}>
             <div style={{padding:10}}>
                 <input
-                    placeholder="Type something"
+                    placeholder="Type a name or @username"
                     className="search-button"
                     value={text}
                     onChange={e=> setText(e.target.value)}

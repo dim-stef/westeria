@@ -61,6 +61,34 @@ class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
         return queryset
 
 
+class SearchFilterSet(FilterSet):
+    tags = filters.CharFilter(distinct=True, widget=CSVWidget, method='filter_tags')
+    uri = filters.CharFilter(distinct=True, method="filter_uri")
+    name = filters.CharFilter(distinct=True, method="filter_name")
+
+    class Meta:
+        model = Branch
+        fields = ['tags','name','uri']
+
+    def filter_tags(self, queryset, name, value):
+        data = ast.literal_eval(value)
+        return queryset.filter(tags__name__in=data).distinct()
+
+    def filter_uri(self, queryset, name, value):
+        return queryset.filter(uri__icontains=value).distinct()
+
+    def filter_name(self, queryset, name, value):
+        return queryset.filter(name__icontains=value).distinct()
+
+
+class SearchViewSet(generics.ListAPIView):
+    permission_classes = (permissions.AllowAny,)
+    serializer_class = serializers_v0.BranchSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_class = SearchFilterSet
+    queryset = Branch.objects.all()
+
+
 class FollowingBranchesViewSet(viewsets.GenericViewSet,
                         mixins.ListModelMixin,):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,api_permissions.IsOwnerOfBranch)

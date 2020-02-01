@@ -1006,6 +1006,15 @@ function GoToStartOrRefresh({index,jumpToBack,refresh,setOpen,optionStyle={}}){
     )
 }
 
+
+/*function Feedback(){
+    return(
+        <div css={{}}>
+
+        </div>
+    )
+}*/
+
 function Menu2({width,container,setOpenRef,jumpToBack,refresh,index}){
     const ref = useRef(null);
     const userContext = useContext(UserContext);
