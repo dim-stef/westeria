@@ -136,14 +136,14 @@ class BranchSerializer(TaggitSerializer, serializers.ModelSerializer):
 
     class Meta:
         model = Branch
-        fields = ['id', 'owner', 'parents',
+        fields = ['id', 'owner', 'parents','branch_type',
                   'parent_uri_field','followers_count','following_count','branch_count',
                   'children', 'name', 'uri','sibling_count','children_count','parent_count',
                   'children_uri_field','follows',
                   'followed_by', 'description',
                   'branch_image', 'branch_banner','default',
                   'post_context','spread_count','last_day_spread_count','tags','tags_with_dummy']
-        read_only_fields = ['id', 'owner', 'parents',
+        read_only_fields = ['id', 'owner', 'parents','branch_type',
                   'parent_uri_field','followers_count','following_count',
                   'children', 'name', 'uri','sibling_count','children_count','parent_count',
                   'children_uri_field', 'follows',

@@ -332,7 +332,7 @@ function ProfileDrawer({shown,setShown,branch}){
                         <DesktopProfile branch={branch}/>
                     </animated.div>
                 </animated.div>
-            ,document.getElementById('modal-root'))
+            ,document.getElementById('hidden-elements'))
         )
         
 }

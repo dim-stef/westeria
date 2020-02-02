@@ -17,6 +17,7 @@ const darkMode = {
     backgroundColor:COLORS.black,
     backgroundLightColor:'#151827',
     backgroundDarkColor:'#090a10',
+    navBarColor:'#090a10',
     textColor:COLORS.semiWhite,
     textLightColor:COLORS.lightGray,
     textHarshColor:COLORS.lightWhite,
@@ -31,7 +32,8 @@ const darkMode = {
 const lightMode = {
     backgroundColor:COLORS.white,
     backgroundLightColor:'#fbfbfb',
-    backgroundDarkColor:'#fbfbfb',
+    backgroundDarkColor:'#f5f5f5',
+    navBarColor:COLORS.white,
     textColor:COLORS.lightBlack,
     textLightColor:COLORS.darkGray,
     textHarshColor:COLORS.black,

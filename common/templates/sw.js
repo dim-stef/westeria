@@ -13,16 +13,16 @@ var staticCacheName = 'v1';
 const staticAssets = [
     './',
     './index.html',
-    'https://sb-static.s3.amazonaws.com/static/css/index.css',
-    'https://sb-static.s3.amazonaws.com/static/accounts/auth.css',
-    'https://sb-static.s3.amazonaws.com/static/css/errors.css',
-    'https://sb-static.s3.amazonaws.com/static/core/css/modal.css',
-    'https://sb-static.s3.amazonaws.com/static/groups/css/creategroup.css',
-    'https://sb-static.s3.amazonaws.com/static/groups/css/index.css',
-    'https://sb-static.s3.amazonaws.com/static/groupchat/css/groupchat.css',
-    'https://sb-static.s3.amazonaws.com/static/js/csrf.js',
-    'https://sb-static.s3.amazonaws.com/static/js/app.bundle.js',
-    'https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/css/index.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/accounts/auth.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/css/errors.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/core/css/modal.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/groups/css/creategroup.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/groups/css/index.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/groupchat/css/groupchat.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/js/csrf.js',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/js/app.bundle.js',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/logo_full.png',
 ];
 
 self.addEventListener('install', async e => {

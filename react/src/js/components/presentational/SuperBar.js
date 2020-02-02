@@ -13,6 +13,7 @@ import {useTheme as useEmotionTheme} from "emotion-theming";
 import {StatusUpdate} from "./StatusUpdate";
 
 const dropdownList = (theme,getTheme,ref) =>css({
+    zIndex:1,
     display:'flex',
     flexFlow:'column',
     position:'absolute',
@@ -324,7 +325,7 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
     }
 
     return(
-        <div css={superBar} id="super-bar" ref={containerRef} style={{width:width}} onClickCapture={onClickCapture}>
+        <div css={superBar} id="super-bar" ref={containerRef} style={{width:width,paddingBottom:5}} onClickCapture={onClickCapture}>
             <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()}
             style={{transform:props.x.interpolate(x=>`translateX(${x}px)`)}}>
                 {branch?

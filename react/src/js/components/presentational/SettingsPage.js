@@ -270,6 +270,11 @@ export function UpdateBranch({branch,postRegister=false,children,postRegisterAct
         tags:initTags.current
     }
 
+    useEffect(()=>{
+        // update tags on branch change
+        setTags(branch.tags.map(tag=>{return {label:tag,value:tag}}));
+    },[branch])
+
     function updateContext(contextBranches,data){
 
         var index = contextBranches.findIndex(b => b.uri==branch.uri);

@@ -192,8 +192,7 @@ export function BranchList(props){
 
 }
 
-export function AddBranch({branch,component,type='children'}){
-    const Component = component
+export function AddBranch({branch,type='children'}){
     const context = useContext(UserContext)
     const [sumbitted,setSubmitted] = useState(false);
     const [requestStatus,setRequestStatus] = useState(null);
@@ -221,7 +220,6 @@ export function AddBranch({branch,component,type='children'}){
         axios.post(
             uri,
             data,
-            
             {
                 withCredentials: true,
                 headers: {
@@ -254,11 +252,8 @@ export function AddBranch({branch,component,type='children'}){
 
     return(
         !requestStatus?
-        <div className="flex-fill" 
-        style={{padding:10,cursor:'pointer',borderRadius:'50%',height:80,width:80,margin:20}} 
-        css={theme=>add(theme)}
-        role="button" onClick={onClick}>  
-            <h1 className="branch-add-text" css={{fontSize:'1.2rem'}}>{text}</h1>
+        <div onClick={onClick} css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:25,padding:10})}>
+            <CircularBranch branch={context.currentBranch} connect={text}/>
         </div>
         :sumbitted && requestStatus == 'accepted'?
             <CircularBranch branch={context.currentBranch}/>
@@ -267,7 +262,6 @@ export function AddBranch({branch,component,type='children'}){
                 <RequestOnHold status={requestStatus}/>
                 <RequestDeclined status={requestStatus}/>
             </>
-
     )
 }
 
