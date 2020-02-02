@@ -252,7 +252,7 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute exact path='/:page(all|tree)?' render={(props)=><FrontPage {...props}/>}/>
             <AnimatedRoute path='/search/:uri' render={(props)=><DiscoverBranchesPage {...props} endpoint="search"/>} />
             <AnimatedRoute path='/search' component={SearchPage} />
-            <AnimatedRoute path='/about' component={FeedbackPage} />
+            <AnimatedRoute path='/feedback' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
             <AnimatedRoute exact path='/messages/create_conversation' 
             render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>

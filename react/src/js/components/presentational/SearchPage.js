@@ -28,8 +28,9 @@ export function SearchPage(props){
         margin:0,border:`1px solid ${theme.borderColor}`}}>
             <h1 style={{padding:10}}>Search</h1>
             <Search/>
-            <h1 style={{padding:10}}>Trending</h1>
+            <h1 style={{padding:10}}>Generic Branches</h1>
             <TopLevelBranches/>
+            <h1 style={{padding:10}}>Trending</h1>
             <Trending/>
         </div>
     )
@@ -39,16 +40,42 @@ const searchContainer = () => css({
     display:'flex',
     flexFlow:'row wrap',
     WebkitFlexFlow:'row wrap',
-    justifyContent:'space-between'
+    justifyContent:'center'
 })
 
-const searchList = theme => css({
-    minWidth:250, 
-    width:'auto',
-    flexGrow:1,
-    margin:10,
-    flexFlow:'column',
-    border:`1px solid ${theme.borderColor}`
+const expendableBranch = theme =>css({
+    display:'flex',flexFlow:'column',alignItems:'center',justifyContent:'center',
+    margin:10,position:'relative',flexGrow:1,maxWidth:200,overflow:'hidden',
+    width:170,backgroundColor:theme.backgroundLightColor,borderRadius:25,
+    cursor:'pointer',
+    '@media (max-width:767px)':{
+        maxWidth:'100%'
+    }
+})
+const branchType = theme =>css({
+    padding:'10px 0',
+    width:'100%',
+    backgroundColor:theme.backgroundDarkColor,
+    display:'flex',
+    justifyContent:'center',
+    fontSize:'1.3rem',
+    fontWeight:'bold'
+})
+
+const info = theme =>css({
+    padding:'10px 0',
+    width:'100%',
+    display:'flex',
+    justifyContent:'space-around',
+    fontSize:'1.3rem',
+    fontWeight:'bold',
+    boxSizing:'border-box'
+})
+
+const smallBubble = theme =>css({
+    padding:10,
+    backgroundColor:theme.backgroundDarkColor,
+    borderRadius:50
 })
 
 const button = (theme,backgroundColor='#2196f3c4') =>css({
@@ -68,7 +95,6 @@ const button = (theme,backgroundColor='#2196f3c4') =>css({
 
 function Search(){
     const theme = useTheme();
-    const [results,setResults] = useState([])
     const [branches,setBranches] = useState(null);
     const [focused,setFocused] = useState(false);
     const [text,setText] = useState('');
@@ -76,21 +102,21 @@ function Search(){
     const [hasMore,setHasMore] = useState(true);
     const wrapperRef = useRef(null);
 
-    async function getResults(){
-        let safeText = text.trim()
-        const response = safeText ? await axios.get(`/api/search/?search=${safeText}`,{
-            cancelToken: source.token
-          }): null
-         
-        if(response && Array.isArray(response.data)){
-            setResults(response.data)
-        }
-    }
 
     async function getBranches(){
 
         let safeText = text.trim()
-        const response = safeText ? await axios.get(next?next:`/api/search/?search=${safeText}`,{
+        let queryParams = {};
+
+        if(text[0]=='@'){
+            queryParams = {...queryParams,uri:text.substr(1)} // remove the @ so it doesn't get encoded
+        }else{
+            queryParams = {...queryParams,name:text}
+        
+        }
+
+        const params = new URLSearchParams(queryParams)
+        const response = safeText ? await axios.get(next?next:`/api/v1/search2/?${params}`,{
             cancelToken: source.token
         }): null
         
@@ -104,6 +130,12 @@ function Search(){
     }
 
     useEffect(()=>{
+        if(focused){
+            getBranches();
+        }
+    },[text])
+    
+    function handleChange(e){
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
         source = CancelToken.source();
@@ -111,12 +143,8 @@ function Search(){
         setNext(null);
         setHasMore(true);
         setBranches(null);
-
-        if(focused){
-            getBranches();
-        }
-    },[text])
-    
+        setText(e.target.value)
+    }
 
     return(
         <>
@@ -131,7 +159,7 @@ function Search(){
                     placeholder="Type a name or @username"
                     className="search-button"
                     value={text}
-                    onChange={e=> setText(e.target.value)}
+                    onChange={handleChange}
                     onFocus={e=> setFocused(true)}
                     style={{border:`1px solid ${theme.borderColor}`,color:theme.textColor}}            
                 />
@@ -141,7 +169,6 @@ function Search(){
                 branches.length>0?
                 branches.map(b=>{
                     return <ExpandableBranch branch={b}/>
-                           
                 }):null
                 :null}
             </div>
@@ -215,7 +242,7 @@ function TopLevelBranches(){
     )
 }
 
-function ExpandableBranch({branch}){
+export function ExpandableBranch({branch}){
     const [showOptions,setShowOptions] = useState(false);
 
     const transitions = useTransition(showOptions, null, {
@@ -242,28 +269,51 @@ function ExpandableBranch({branch}){
         setShowOptions(false);
     }
 
+    function handleFollowClick(e){
+        e.stopPropagation();
+        history.push(`/${branch.uri}/followers`)
+    }
+
+    function handleBranchesClick(e){
+        e.stopPropagation();
+        history.push(`/${branch.uri}/branches`)
+    }
+
+    let branchTypeText = 'Person';
+    if(branch.branch_type == 'CM'){
+        branchTypeText = 'Community'
+    }else if(branch.branch_type == 'HB'){
+        branchTypeText = 'Hub'
+    }
+
     return (
-        <div css={theme=>({display:'flex',flexFlow:'column',alignItems:'center',justifyContent:'center',
-        margin:10,position:'relative',flexGrow:1,maxWidth:200,
-        width:150,backgroundColor:theme.backgroundLightColor,borderRadius:25})} onClick={()=>setShowOptions(true)}>
+        <div css={expendableBranch} onClick={()=>history.push(`/${branch.uri}`)}>
+            <span css={branchType}>{branchTypeText}</span>
+
             <div css={{display:'flex',flexFlow:'column',justifyContent:'center',alignItems:'center',height:'100%',width:'100%',
-            padding:'40px 10px',boxSizing:'border-box',transition:'0.3s filter ease',filter:showOptions?'blur(8px)':null}}>
+            padding:'20px 10px 20px 10px',boxSizing:'border-box'}}>
                 <div>
                     <FadeImage src={branch.branch_image} css={{height:80,width:80,borderRadius:'50%',objectFit:'cover'}}/>
                 </div>
                 <div css={{display:'flex',flexFlow:'column',justifyContent:'center',alignItems:'center'}}>
-                    <span css={theme=>({color:theme.textColor,fontSize:'1.7rem',fontWeight:500})}>{branch.name}</span>
-                    <span css={theme=>({fontSize:'1.2rem',color:theme.textLightColor})}>@{branch.uri}</span>
+                    <span css={theme=>({color:theme.textColor,fontSize:'1.7rem',fontWeight:500,wordBreak:'break-word',
+                    textAlign:'center'})}>{branch.name}</span>
+                    <span css={theme=>({fontSize:'1.2rem',color:theme.textLightColor,wordBreak:'break-word',
+                    textAlign:'center'})}>@{branch.uri}</span>
                 </div>
             </div>
-            {transitions.map(({item, key, props})=>(
+            <div css={info}>
+                <span css={smallBubble} onClick={handleFollowClick}>{branch.followers_count} followers</span>
+                <span css={smallBubble} onClick={handleBranchesClick}>{branch.branch_count} branches</span>
+            </div>
+            {/*transitions.map(({item, key, props})=>(
                 item && <animated.div key={key} style={props} css={{position:'absolute',height:'100%',width:'100%',
                 display:'flex',justifyContent:'center',alignItems:'center',flexFlow:'column',willChange:'opacity, scale'}}>
                     <div role="button" css={theme=>button(theme)} onClick={handleProfileClick}>View profile</div>
                     <div role="button" css={theme=>button(theme)} onClick={handleRelatedClick}>{branch.branch_count} Related</div>
                     <div role="button" css={theme=>button(theme,'#f44336c4')} onClick={handleCancelClick}>Cancel</div>
                 </animated.div>
-            ))}
+            ))*/}
         </div>
     )
 }

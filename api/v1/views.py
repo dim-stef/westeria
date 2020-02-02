@@ -1,19 +1,24 @@
 from rest_framework import viewsets, views, mixins,generics,permissions
-from django.core.exceptions import PermissionDenied
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser,JSONParser,FileUploadParser
-from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import FilterSet, filters, DjangoFilterBackend
 from taggit.models import Tag
 from api import serializers as serializers_v0
 from api import permissions as api_permissions
 from . import serializers
 from branches.models import Branch
+from branchposts.models import Post
 from branchchat.models import ChatRequest
 from branches.utils import get_tags_above, get_tags_beneath, get_all_related_tags
 from django_filters.widgets import CSVWidget
+from django.db.models import Count
 from tags.models import GenericStringTaggedItem
 import ast
+
+
+class SearchPagination(PageNumberPagination):
+    page_size = 10
 
 
 class AllTagsFilterSet(FilterSet):
@@ -50,6 +55,17 @@ class TagsFilterSet(FilterSet):
         return queryset.filter(tag__name__contains=value).distinct()
 
 
+class MostPopularTagsViewSet(mixins.ListModelMixin,viewsets.GenericViewSet):
+    serializer_class = serializers.TagSerializer
+    permission_classes = (permissions.AllowAny,)
+
+    def get_queryset(self):
+        most_popular_post_tags = Post.tags.most_common()
+        most_popular_branch_tags = Branch.tags.most_common()
+        most_common_tags = most_popular_branch_tags | most_popular_post_tags
+        return most_common_tags.order_by('-num_times')[:10]
+
+
 class OwnedBranchesViewSet(mixins.RetrieveModelMixin,
                          mixins.ListModelMixin,
                          viewsets.GenericViewSet):
@@ -84,6 +100,7 @@ class SearchFilterSet(FilterSet):
 class SearchViewSet(generics.ListAPIView):
     permission_classes = (permissions.AllowAny,)
     serializer_class = serializers_v0.BranchSerializer
+    pagination_class = SearchPagination
     filter_backends = (DjangoFilterBackend,)
     filter_class = SearchFilterSet
     queryset = Branch.objects.all()

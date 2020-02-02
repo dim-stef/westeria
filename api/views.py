@@ -332,11 +332,12 @@ class SiblingsViewSet(BranchRelationsMixin):
 class BranchUpdateMixin(viewsets.GenericViewSet,
                         mixins.UpdateModelMixin,):
     permission_classes = (permissions.IsAuthenticated,IsOwnerOfBranch)
+    lookup_value_regex = '[a-z0-9._]+'
     lookup_field = 'uri'
 
     def get_queryset(self):
         try:
-            queryset = Branch.objects.filter(owner=self.request.user, uri=self.kwargs['uri'])
+            queryset = Branch.objects.filter(owner=self.request.user, uri__iexact=self.kwargs['uri'])
         except Branch.DoesNotExist:
             queryset = Branch.objects.none()
         return queryset
@@ -356,9 +357,6 @@ class BranchUpdateViewSet(BranchUpdateMixin,):
             pass
 
     def update(self, request, *args, **kwargs):
-        '''owns_branch_with_same_name = request.user.owned_groups.filter(name__iexact=request.data['name'])
-        if owns_branch_with_same_name.exists():
-            return Response({'name':'You already own a branch with this name'},status=status.HTTP_400_BAD_REQUEST)'''
         return super(BranchUpdateViewSet, self).update(request,*args,**kwargs)
 
 

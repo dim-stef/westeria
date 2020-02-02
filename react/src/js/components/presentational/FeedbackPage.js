@@ -69,7 +69,7 @@ export function FeedbackForm(){
 
     return(
         <div className="main-column" css={theme=>mainColumn(theme)}>
-            <RoutedHeadline headline="About"/>
+            <RoutedHeadline headline="Feedback"/>
             <Form onSubmit={onSubmit} validate={validate}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return <form id="feedback" style={{padding:10}} onSubmit={handleSubmit}>

@@ -94,10 +94,11 @@ export function DesktopProfile({branch,noSettings=false}){
                 <div css={{margin:'10px 0',width:'100%'}}>
                     <FollowInfo branch={viewedBranch}/>
                 </div>
-                <div css={{margin:'10px 0',alignSelf:'center'}}>
+                <div css={{margin:'10px 0',alignSelf:'center',flex:1}}>
                     <FollowButton branch={viewedBranch} style={{margin:0}}/>
                 </div>
-           
+                <span css={{fontWeight:'bold',fontSize:'1.3rem',cursor:'pointer'}}
+                onClick={()=>history.push('/feedback')}>Rate this app!</span>
             </div>
             {noSettings?null:<UserSettings branch={viewedBranch}/>}
         </div>:

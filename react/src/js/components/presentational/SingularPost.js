@@ -460,7 +460,8 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
         enter: { height: 101 },
         leave: { height: 0 },
         config:{
-            duration:150
+            duration:150,
+            easing: t => t*(2-t)
         }
     })
         
@@ -513,6 +514,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
 
 const postedToExtensionContainer = theme =>css({
     backgroundColor:theme.backgroundLightColor,
+    boxSizing:'border-box',
     borderRadius:25,
     padding:'15px 20px',
     '@media (max-width: 767px)':{
@@ -568,11 +570,11 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
                     <div css={{height:'100%',overflow:'auto',display:'flex',flexFlow:'row wrap',
                     justifyContent:'center'}}>
                         {branches.map(b=>{
-                            return <React.Fragment key={b.id}>
-                            <BubbleBranch branch={b}>
-                                <FollowButton branch={b}/>
-                            </BubbleBranch>
-                            </React.Fragment>
+                            return <div key={b.id} onClick={()=>history.push(`/${b.uri}`)}>
+                                <BubbleBranch branch={b}>
+                                    <FollowButton branch={b}/>
+                                </BubbleBranch>
+                            </div>
                         })}
                     </div>
                 </div>
