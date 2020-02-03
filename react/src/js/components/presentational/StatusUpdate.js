@@ -305,9 +305,9 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             toggle={show=>(
             <div className="flex-fill" style={{marginTop:5}}>
                 <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
-                    <input type="file" multiple className="inputfile" id={`media_${currentPost.id}`}
+                    <input type="file" multiple className="inputfile" id={currentPost?`media_${currentPost.id}`:'media'}
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
-                    <label for={`media_${currentPost.id}`} style={{display:'inherit',marginRight:5}}><MediaSvg/></label>
+                    <label for={currentPost?`media_${currentPost.id}`:'media'} style={{display:'inherit',marginRight:5}}><MediaSvg/></label>
                     <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">
                     {tags.length > 0?`${tags.length} tags`:'Add tags'}</button>
                 </div>
