@@ -3,6 +3,8 @@ import {Link, withRouter} from 'react-router-dom'
 import { useTheme as useEmotionTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {useTransition,animated} from "react-spring/web.cjs"
+import useMeasure from 'react-use-measure'
+import { ResizeObserver } from '@juggle/resize-observer'
 import history from "../../history"
 import {Helmet} from 'react-helmet'
 import MoonLoader from 'react-spinners/MoonLoader';
@@ -175,11 +177,11 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                 viewAs="post" isStatusUpdateActive updateTree={updateTree} isSingular
             />
             <div>
-                {userReplies.map(rt=>{
-                    return <ReplyTree topPost={post} parentPost={post} currentPost={rt} 
+                {userReplies.map((rt,i)=>{
+                    return <React.Fragment key={i}><ReplyTree topPost={post} parentPost={post} currentPost={rt} 
                     postsContext={postsContext} activeBranch={activeBranch}
                     isStatusUpdateActive={false} isSingular
-                    />
+                    /></React.Fragment>
                 })}
                 <InfiniteScroll
                 dataLength={replyTrees.length}
@@ -196,12 +198,12 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                     </p>
                 }
                 >
-                    {replyTrees.map(rt=>{
+                    {replyTrees.map((rt,i)=>{
                          
-                        return <ReplyTree topPost={post} key={rt.id} parentPost={post} currentPost={rt} 
+                        return <React.Fragment key={i}><ReplyTree topPost={post} parentPost={post} currentPost={rt} 
                         postsContext={postsContext} activeBranch={activeBranch}
                         isStatusUpdateActive={false}
-                        />
+                        /></React.Fragment>
                     })}
                 </InfiniteScroll>
             </div>
@@ -222,7 +224,6 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
 export const Post = React.memo(function Post({post,parentPost=null,down=0,
     measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
     viewAs="post",isSingular,movement,updateTree=()=>{}}){
-    const [isStatusUpdateActive,setStatusUpdateActive] = useState(false);
 
     const [ref, inView] = useInView({
         threshold: 0,
@@ -279,7 +280,7 @@ export const Post = React.memo(function Post({post,parentPost=null,down=0,
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
                 showPostedTo activeBranch={activeBranch} down={down}
                 open={open} measure={measure} postsContext={postsContext}
-                isStatusUpdateActive={isStatusUpdateActive} isSingular={isSingular} updateTree={updateTree}
+                isSingular={isSingular} updateTree={updateTree}
                 />
             </div>
         </StyledPostWrapper>
@@ -446,7 +447,6 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
         }
     },[selfSpread]);
 
-
     let desktopStyles = {
         '&:hover': {
             backgroundColor:isEmbedded?theme.embeddedHoverColor:theme.hoverColor
@@ -454,15 +454,28 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
     }
 
     let extraStyles = is_touch_device()?{}:desktopStyles
+    const editorRef = useRef(null);
+    const animatedRef = useRef(null);
+
+    const editorHeight = 101;
 
     const transitions = useTransition(isStatusUpdateActive, null, {
         from: { height: 0 },
-        enter: { height: 101 },
+        enter: { height: editorHeight },
         leave: { height: 0 },
+        onFrame:(f)=>{
+            if(animatedRef.current){
+                if(animatedRef.current.offsetHeight == editorHeight){
+                    // wait for stuff to finish then change height to auto
+                    // so the container doesn't glitch out
+                    setTimeout(()=>animatedRef.current.style.height = 'auto',5)
+                }
+            }
+        },
         config:{
             duration:150,
             easing: t => t*(2-t)
-        }
+        },
     })
         
     return(
@@ -500,14 +513,15 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
         </div>
         {
             transitions.map(({ item, key, props }) =>
-                item && <animated.div key={key} style={props} css={{overflow:'hidden'}}>
-
-                <div style={{height:'auto'}}>
-                    <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}/>
+                item && <animated.div key={key} ref={animatedRef} style={props} css={{overflow:'hidden'}}>
+                <div ref={editorRef} style={{height:'auto'}}>
+                    <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}
+                        activeBranch={activeBranch}
+                    />
                 </div>
             </animated.div>
             )
-            }
+        }
         </>
     )
 }

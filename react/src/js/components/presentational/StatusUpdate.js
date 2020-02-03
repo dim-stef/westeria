@@ -106,7 +106,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
         setValue('');
         setFiles([]);
     }
-    
 
     function handleClickOutside(event) {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)
@@ -194,13 +193,12 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
     // the user can switch accounts on the go without fetching new data
 
     const [isLoading,setLoading] = useState(false);
-    const userContext = useContext(UserContext);
     const [tags,setTags] = useState([]);
     const [postToBranches,setPostToBranches] = useState([]);
     const [showTags,setShowTags] = useState(false);
     const inputRef = useRef(null)
+
     const handleClick = (e)=>{
-        
         let post = value;
         //let post = value;
         let type = replyTo?'reply':'post';
@@ -307,9 +305,9 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
             toggle={show=>(
             <div className="flex-fill" style={{marginTop:5}}>
                 <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
-                    <input type="file" multiple className="inputfile" id="media"
+                    <input type="file" multiple className="inputfile" id={`media_${currentPost.id}`}
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
-                    <label for="media" style={{display:'inherit',marginRight:5}}><MediaSvg/></label>
+                    <label for={`media_${currentPost.id}`} style={{display:'inherit',marginRight:5}}><MediaSvg/></label>
                     <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">
                     {tags.length > 0?`${tags.length} tags`:'Add tags'}</button>
                 </div>

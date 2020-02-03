@@ -17,7 +17,7 @@ export function MediaPreview(props){
             if(isFileImage(props.files[i])){
                 let file = props.files[i];
                 let img = (
-                <div className="player-wrapper">
+                <div className="player-wrapper" key={file}>
                     <img style={{objectFit:'cover',width:'100%',height:'100%'}} src={URL.createObjectURL(file)}/>
                     <button className="remove-media-btn" onClick={()=>handleClick(file)}>x</button>
                 </div>
@@ -34,7 +34,7 @@ export function MediaPreview(props){
             if(isFileVideo(props.files[i])){
                 let file = props.files[i];
                 let vid = (
-                <div className="player-wrapper">
+                <div className="player-wrapper" key={file}>
                     <ReactPlayer width={100} height={100} url={URL.createObjectURL(file)} 
                     volume={0} muted playing loop>
                     </ReactPlayer>
