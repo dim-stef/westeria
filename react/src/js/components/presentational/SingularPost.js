@@ -456,20 +456,39 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
     let extraStyles = is_touch_device()?{}:desktopStyles
     const editorRef = useRef(null);
     const animatedRef = useRef(null);
-
     const editorHeight = 101;
+
+    let timeout = null;
+
+    // hacky way of resetting height back to auto after animation incoming
+    // sorry :)
+    function setAutoHeight(){
+        if(animatedRef.current){
+            animatedRef.current.style.height = 'auto'
+        }
+    }
+
+    function startInterval(){
+        timeout = setInterval(setAutoHeight, 1000)
+    }
+
+    useEffect(()=>{
+        return()=>{
+            clearInterval(timeout);
+        }
+    },[])
 
     const transitions = useTransition(isStatusUpdateActive, null, {
         from: { height: 0 },
         enter: { height: editorHeight },
         leave: { height: 0 },
-        onFrame:(f)=>{
+        onFrame:()=>{
+            clearInterval(timeout)
+        },
+        onRest:()=>{
             if(animatedRef.current){
-                if(animatedRef.current.offsetHeight == editorHeight){
-                    // wait for stuff to finish then change height to auto
-                    // so the container doesn't glitch out
-                    setTimeout(()=>animatedRef.current.style.height = 'auto',5)
-                }
+                startInterval();
+                setTimeout(()=>animatedRef.current.style.height = 'auto',1000)    
             }
         },
         config:{
@@ -513,7 +532,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
         </div>
         {
             transitions.map(({ item, key, props }) =>
-                item && <animated.div key={key} ref={animatedRef} style={props} css={{overflow:'hidden'}}>
+                item && <animated.div key={key} ref={animatedRef} style={props} css={{overflow:'hidden',height:'auto'}}>
                 <div ref={editorRef} style={{height:'auto'}}>
                     <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}
                         activeBranch={activeBranch}
