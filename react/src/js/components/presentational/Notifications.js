@@ -173,7 +173,7 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
     return(
         <>
         <Helmet>
-            <title>Notifications - Subranch</title>
+            <title>Notifications - Westeria</title>
             <meta name="description" content="Your notifications." />
         </Helmet>
         <div className="main-column" style={{border:`1px solid ${theme.borderColor}`}}>

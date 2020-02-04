@@ -122,7 +122,7 @@ export const BranchContainer = React.memo(function BranchContainer(props){
         }else{
             return <>
             <Helmet>
-                <title>Branch not found - Subranch</title>
+                <title>Branch not found - Westeria</title>
                 <meta name="description" content="Branch not found." />
             </Helmet>
             <p style={{margin:'0 auto',fontSize:'3rem',fontWeight:'bold',textAlign:'center'}}>Nothing seems to be here</p></>

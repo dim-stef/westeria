@@ -47,7 +47,7 @@ function EmailConfirm({match}){
     return(
         <>
         <Helmet>
-            <title>Email confirm - Subranch</title>
+            <title>Email confirm - Westeria</title>
             <meta name="description" content="Email confirm." />
         </Helmet>
         <AuthFormWrapper>

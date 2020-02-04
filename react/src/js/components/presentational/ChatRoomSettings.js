@@ -58,7 +58,7 @@ export function ChatRoomSettings({match}){
             room?
             <>
                 <Helmet>
-                    <title>{room.name} Settings - Subranch</title>
+                    <title>{room.name} Settings - Westeria</title>
                     <meta name="description" content="Change this rooms settings here." />
                 </Helmet>
                 <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>

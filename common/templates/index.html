@@ -21,8 +21,8 @@
 
     <meta charset="utf-8"/>
     <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
-    <title>Subranch</title>
-    <meta name="description" content="Discover communities and people you did't know existed. Join the conversation. Become part of the Subranch tree." data-react-helmet="true">
+    <title>Westeria</title>
+    <meta name="description" content="Discover communities and people you did't know existed. Join the conversation. Become part of the Westeria tree." data-react-helmet="true">
     <link rel="manifest" href="/static/js/manifest.webmanifest" crossorigin="use-credentials">
     <link rel="canonical" href="https://subranch.com" data-react-helmet="true">
     <link rel="search" href="https://subranch.com/google/links/branches">
@@ -38,8 +38,7 @@
                             switch (installingWorker.state) {
                                 case 'installed':
                                     if (navigator.serviceWorker.controller) {
-                                        // new update available
-                                        //resolve(true);
+                                        document.getElementById('update-notification').classList.add('show-update-notification')
                                     } else {
                                         // no update available
                                         //resolve(false);
@@ -49,6 +48,7 @@
                         };
                     };
                });
+
     }
     </script>
     <link rel="stylesheet" type="text/css" href="{% static 'settings/settings.css' %}">
@@ -62,7 +62,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'groupchat/css/groupchat.css' %}"/>
     <link rel="stylesheet" type="text/css" href="{% static 'css/tree.css' %}"/>
     <link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
-    <meta name="apple-mobile-web-app-title" content="Subranch">
+    <meta name="apple-mobile-web-app-title" content="Westeria">
 
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
@@ -89,6 +89,9 @@
     <div id="hoverable-element-root"></div>
     <div id="disable-slide-swipe"></div>
     <div id="hidden-elements"></div>
+    <div id="update-notification" class="update-notification">
+        <div id="update-box" class="update-box flex-fill center-items">A new version of Westeria is available. Click to refresh</div>
+    </div>
     <script src="{% static 'js/csrf.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/app.bundle.js' %}"></script>
 </body>

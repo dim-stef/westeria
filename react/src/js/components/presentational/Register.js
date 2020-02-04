@@ -109,8 +109,8 @@ export default class Register extends Component{
         return(
             <>
             <Helmet>
-                <title>Register - Subranch</title>
-                <meta name="description" content="Register to Subranch" />
+                <title>Register - Westeria</title>
+                <meta name="description" content="Register to Westeria" />
                 <link rel="canonical" href="https://subranch.com/register"/>
             </Helmet>
             <div className="main-layout">

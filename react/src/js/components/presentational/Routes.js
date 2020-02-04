@@ -399,7 +399,7 @@ export const BranchPage = function(props){
     return(
         <ResponsiveBranchPage branch={props.branch}>
             <Helmet>
-                <title>{props.branch.name} (@{props.branch.uri}) - Subranch</title>
+                <title>{props.branch.name} (@{props.branch.uri}) - Westeria</title>
                 <meta name="description" content={props.branch.description} />
                 <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
             </Helmet>

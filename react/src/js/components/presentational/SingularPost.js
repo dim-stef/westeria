@@ -148,7 +148,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         return;
     }
 
-    let title = 'Subranch';
+    let title = 'Westeria';
     let description = '';
     let maxLength=100;
     let trancuation = ''
@@ -156,8 +156,8 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         let endOfText = post.text.length > maxLength ? maxLength : post.text.length
         trancuation =  post.text.length > maxLength ? '...':'';
         if(post.text){
-            title = post.poster_name + ' ' + post.text.substring(0,endOfText)+ trancuation + ' - Subranch';
-            description = `${post.poster_name} @(${post.poster_uri}) on Subranch: ${post.description}`;
+            title = post.poster_name + ' ' + post.text.substring(0,endOfText)+ trancuation + ' - Westeria';
+            description = `${post.poster_name} @(${post.poster_uri}) on Westeria: ${post.description}`;
         }
     }
     
@@ -465,6 +465,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
     function setAutoHeight(){
         if(animatedRef.current){
             animatedRef.current.style.height = 'auto'
+            animatedRef.current.style.overflow = 'auto'
         }
     }
 

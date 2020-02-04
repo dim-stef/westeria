@@ -101,13 +101,13 @@ function FrontPageList(){
                     </Tooltip>
                     <Tooltip position={{left:isMobile?0:listWidth/3 * 2,top:top}}>
                         <p css={{fontWeight:400,width:isMobile?listWidth-20:width}}>
-                        <b>All</b>. You can see the content from all the branches of Subranch here</p>
+                        <b>All</b>. You can see the content from all the branches of Westeria here</p>
                     </Tooltip>
                 </TooltipChain>
                 :<TooltipChain delay={12000} onLeave={onLeave}>
                 <Tooltip position={{left:0,top:top}}>
                         <p css={{fontWeight:400,width:width}}>
-                        You can see the content from <b>all</b> the branches of Subranch here</p>
+                        You can see the content from <b>all</b> the branches of Westeria here</p>
                 </Tooltip>
                 <Tooltip position={{left:0,top:top}}>
                         <p css={{fontWeight:400,width:width}}>
@@ -268,7 +268,7 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
         return(
             <>
             <Helmet>
-                <title>Home - Subranch</title>
+                <title>Home - Westeria</title>
                 <meta name="description" content="Your personal feed created from the communities you follow." />
                 <link rel="canonical" href="https://subranch.com"/>
             </Helmet>
@@ -302,9 +302,9 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
     return(
         <>
         <Helmet>
-            <title>Subranch</title>
+            <title>Westeria</title>
             <meta name="description" content="Browse all the leaves created 
-            by the subranch community."/>
+            by the westeria community."/>
             <link rel="canonical" href="https://subranch.com"/>
         </Helmet>
         <AllPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
@@ -334,9 +334,9 @@ export const FrontPageTreePosts = React.memo(function FrontPageTreePosts(props){
     return(
         <>
         <Helmet>
-            <title>Tree - Subranch</title>
+            <title>Tree - Westeria</title>
             <meta name="description" content="Browse all the leaves created 
-            by the subranch community." />
+            by the westeria community." />
             <link rel="canonical" href="https://subranch.com/tree"/>
 
         </Helmet>

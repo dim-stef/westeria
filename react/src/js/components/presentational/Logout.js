@@ -44,8 +44,8 @@ function Logout({history,location,match}){
     return(
         <>
         <Helmet>
-            <title>Logout - Subranch</title>
-            <meta name="description" content="Logout from Subranch" />
+            <title>Logout - Westeria</title>
+            <meta name="description" content="Logout from Westeria" />
         </Helmet>   
         {match.params.instant?null:<div className="main-layout">
             <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>

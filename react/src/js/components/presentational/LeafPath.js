@@ -43,7 +43,7 @@ export function Path({from,to,id,postsContext}){
     if(!from){
         compassText = `One of the paths containing @${to}`
     }else{
-        compassText = `This is the path Subranch took to show you this leaf from @${to}`;
+        compassText = `This is the path Westeria took to show you this leaf from @${to}`;
     }
 
     function handleClick(e){
