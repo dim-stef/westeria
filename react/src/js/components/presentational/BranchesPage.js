@@ -55,7 +55,7 @@ export function BranchesPage(props){
     return(
         <>
         <Helmet>
-            <title>{props.branch.name} @({props.branch.uri}) {title} {' '} - Subranch</title>
+            <title>{props.branch.name} @({props.branch.uri}) {title} {' '} - Westeria</title>
             <meta name="description" content="Your messages." />
         </Helmet>
         <div>

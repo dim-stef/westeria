@@ -48,7 +48,7 @@ export function TrendingWithWrapper(){
             </div>
             <div css={siteInfo}>
                 <Link to="/about" css={theme=>link(theme)}>About</Link>
-                <span style={{color:theme.textLightColor}}>© 2019 Subranch</span>
+                <span style={{color:theme.textLightColor}}>© 2020 Westeria</span>
             </div>
             
         </div>

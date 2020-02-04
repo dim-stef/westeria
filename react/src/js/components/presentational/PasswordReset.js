@@ -45,7 +45,7 @@ function PasswordReset(){
     return(
         <>
         <Helmet>
-            <title>Password reset - Subranch</title>
+            <title>Password reset - Westeria</title>
             <meta name="description" content="Forgot your password? You can reset it here." />
             <link rel="canonical" href="https://subranch.com/password/reset"/>
 

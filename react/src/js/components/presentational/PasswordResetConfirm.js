@@ -57,7 +57,7 @@ function PasswordResetConfirm({match}){
     return(
         <>
         <Helmet>
-            <title>Password reset confirm - Subranch</title>
+            <title>Password reset confirm - Westeria</title>
             <meta name="description" content="Confirm password reset" />
         </Helmet>
         <AuthFormWrapper>

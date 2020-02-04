@@ -149,8 +149,8 @@ function Search(){
     return(
         <>
         <Helmet>
-            <title>Search - Subranch</title>
-            <meta name="description" content="Search the branches of Subranch." />
+            <title>Search - Westeria</title>
+            <meta name="description" content="Search the branches of Westeria." />
             <link rel="canonical" href="https://subranch.com/search"/>
         </Helmet>
         <div ref={wrapperRef}>

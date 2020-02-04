@@ -77,7 +77,7 @@ export function SettingsPage(){
         userContext.isAuth?
             <>
             <Helmet>
-                <title>Settings - Subranch</title>
+                <title>Settings - Westeria</title>
                 <meta name="description" content="Manage your account settings and details here." />
             </Helmet>
             <div className="main-column" 
@@ -146,7 +146,7 @@ function BranchSettingsLayer(){
     return(
         <>
         <Helmet>
-            <title>Branch settings - Subranch</title>
+            <title>Branch settings - Westeria</title>
             <meta name="description" content="Manage your branch settings here." />
         </Helmet>
         <RoutedHeadline to="/settings" headline="Branch settings"/>
@@ -164,7 +164,7 @@ function CreateNewBranchWrapper(){
     return(
         <>
         <Helmet>
-            <title>Create new Branch - Subranch</title>
+            <title>Create new Branch - Westeria</title>
             <meta name="description" content="Create a new branch." />
         </Helmet>
 
@@ -205,7 +205,7 @@ function BranchSettingsWrapper({match,history}){
         branch?
             <>
             <Helmet>
-                <title>Update @{branch.uri} - Subranch</title>
+                <title>Update @{branch.uri} - Westeria</title>
                 <meta name="description" content="Update branch." />
             </Helmet>
             <RoutedHeadline to="/settings/branches" headline={`${branch.uri} settings`}/>
@@ -219,7 +219,7 @@ function BranchSettingsWrapper({match,history}){
         :userContext.branches.some(b=>b.uri==match.params.uri)?null:
         <>
         <Helmet>
-            <title>Branch not found - Subranch</title>
+            <title>Branch not found - Westeria</title>
             <meta name="description" content="Branch not found." />
         </Helmet>
         <RoutedHeadline to="/settings/branches" headline="Branch settings"/>
@@ -236,7 +236,7 @@ function PrivacySettingsWrapper({match}){
     return(
         <>
         <Helmet>
-            <title>Privacy - Subranch</title>
+            <title>Privacy - Westeria</title>
             <meta name="description" content="Manage your privacy settings here." />
         </Helmet>
         <RoutedHeadline headline="Privacy settings"/>

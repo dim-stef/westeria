@@ -44,7 +44,7 @@ export function ChatRoomsContainer({inBox,match}){
         <>
         <ChatRoomsContext.Provider value={{rooms:rooms,setRooms:setRooms}}>
             <Helmet>
-                <title>Messages - Subranch</title>
+                <title>Messages - Westeria</title>
                 <meta name="description" content="Your messages." />
             </Helmet>
             <WebSocketRooms inBox={inBox} match={match} loaded={loaded} rooms={rooms} setRooms={setRooms}/>
@@ -333,7 +333,7 @@ function RoomContainer({roomData,match}){
     return(
         <>
         <Helmet>
-            <title>{name} - Subranch</title>
+            <title>{name} - Westeria</title>
             <meta name="description" content={`${name} messages.`} />
         </Helmet>
         <PageWrapper>
