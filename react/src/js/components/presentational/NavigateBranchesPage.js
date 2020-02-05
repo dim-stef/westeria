@@ -34,10 +34,10 @@ const rowContainer = () =>css({
     flex:1
 })
 const branchRow = isMobile => css({
-    display:'inline-flex',
-    justifyContent:isMobile?'center':'flex-start',
+    display:'flex',
+    justifyContent:'center',
     alignItems:'center',
-    flexFlow:isMobile?'row':'row wrap',
+    flexFlow:'row wrap',
     padding:'10px 0',
     a:{
         textDecoration:'none'
@@ -53,10 +53,13 @@ const skeletonRow = isMobile => css({
     margin:isMobile?0:20
 })
 
-const header = theme =>css({
+const header = (theme,isMobile) =>css({
     color:theme.textHarshColor,
-    margin:4,
-    fontSize:'1.7rem'
+    margin:isMobile?6:12,
+    fontSize:isMobile?'1.7rem':'2rem',
+    display:'flex',
+    justifyContent:'center',
+    textAlign:'center'
 })
 
 const topRow = () =>css({
@@ -67,6 +70,17 @@ const topRow = () =>css({
     alignItems:'center',
     padding:20,
     boxShadow:'0 1px 1px rgba(0,0,0,0.15), 0 2px 2px rgba(0,0,0,0.15), 0 4px 4px rgba(0,0,0,0.15), 0 5px 5px rgba(0,0,0,0.15)'
+})
+
+const loadMore = theme =>css({
+    width:'100%',
+    boxSizing:'border-box',
+    padding:15,
+    border:0,
+    borderRadius:50,
+    backgroundColor:theme.backgroundDarkColor,
+    color:theme.textColor,
+    fontWeight:'bold'
 })
 
 const imageContainer = () =>css({
@@ -125,8 +139,8 @@ function ResponsiveBranchRows({uri,showTop,endpoint,withHeadline}){
             <div css={rowContainer}>
                 {branch?<>
                     <BranchRow type="parents" branch={branch} key="parents" endpoint={endpoint}/>
-                    <BranchRow type="siblings" branch={branch} key="siblings" endpoint={endpoint}/>
                     <BranchRow type="children" branch={branch} key="children" endpoint={endpoint}/>
+                    <BranchRow type="siblings" branch={branch} key="siblings" endpoint={endpoint}/>
                 </>:null}
             </div>
         </div>
@@ -140,9 +154,12 @@ function useBranches(type="children",branch){
     const [branches,setBranches] = useState(null);
     const [next,setNext] = useState(null);
     const [hasMore,setHasMore] = useState(true);
+    const [loading,setLoading] = useState(false);
 
     async function getBranches(){
+        setLoading(true);
         let response = await axios.get(next?next:`/api/branches/${branch.uri || branch}/${type}/`);
+        setLoading(false);
 
         if(!response.data.next){
             setHasMore(false);
@@ -165,14 +182,14 @@ function useBranches(type="children",branch){
         getBranches();
     },[branch])
 
-    return [branches,next,hasMore,getBranches]
+    return [branches,next,hasMore,getBranches,loading]
 }
 
 
 function BranchRow({type,branch,endpoint}){
     const ref = useRef(null);
     const userContext = useContext(UserContext);
-    const [branches,next,hasMore,getBranches] = useBranches(type,branch);
+    const [branches,next,hasMore,getBranches,loading] = useBranches(type,branch);
     const theme = useTheme();
 
     const isMobile = useMediaQuery({
@@ -185,7 +202,7 @@ function BranchRow({type,branch,endpoint}){
     }else if(type=='parents'){
         infoText = `More generic communities than ${branch.name}`
     }else{
-        infoText = `Communities related to ${branch.name}`
+        infoText = `Communities probably related to ${branch.name}`
     }
 
     function handleClick(branch){
@@ -194,35 +211,26 @@ function BranchRow({type,branch,endpoint}){
 
     return(
         branches?
-        <div css={theme=>({backgroundColor:theme.backgroundLightColor,margin:isMobile?'2px 10px':'10px 15px',
-        padding:isMobile?5:10,boxSizing:'border-box',
-        borderRadius:25})}>
+        <div css={theme=>({backgroundColor:theme.backgroundLightColor,margin:15,
+        padding:20,boxSizing:'border-box',
+        borderRadius:25,display:'flex',alignItems:'flex-start',flexFlow:'column'})}>
             <div>
-                <h1 css={theme=>header(theme)}>{infoText}</h1>
+                <h1 css={theme=>header(theme,isMobile)}>{infoText}</h1>
                     
                 {branches.length > 0?
-                <InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
+                /*<InfiniteHorizontalScroll scrollTarget={ref.current?ref.current:window} value={branch}
                 next={next} hasMore={hasMore} loadMore={getBranches} dataLength={branches?branches.length:0}>
-                
+                </InfiniteHorizontalScroll>*/
+
                 <div css={()=>branchRow(isMobile)}>
                     {type=='siblings' || !userContext.isAuth || branch.uri==userContext.currentBranch.uri?null:
-                    <AddBranch branch={branch} type={type}/>}
+                    <AddBranch branch={branch} branches={branches} type={type}/>}
                     {branches?branches.map(b=>{
                         return(
                             <CircularBranch branch={b} endpoint={endpoint}/>
                         )
                     }):null}
-                    {hasMore && branches && branches.length != 0?
-                        <div className="flex-fill load-spinner-wrapper" css={{justifyContent:'center',margin:'0 30px'}}>
-                        <MoonLoader
-                            sizeUnit={"px"}
-                            size={20}
-                            color={theme.textLightColor}
-                            loading={true}
-                        />
-                    </div>:null}
                 </div>
-                </InfiniteHorizontalScroll>
                 :
                 <div css={{display:'flex',flexFlow:'column'}}>
                     <p css={theme=>({color:theme.textColor,fontWeight:'bold',
@@ -231,11 +239,22 @@ function BranchRow({type,branch,endpoint}){
                     'No related communites were found :(':
                     'No one is here yet. Expand your community by connecting with other communities'}</p>
                     {type=='siblings' || !userContext.isAuth || branch.uri==userContext.currentBranch.uri?null:
-                    <AddBranch branch={branch} type={type}/>}
+                    <AddBranch branch={branch} branches={branches} type={type}/>}
                 </div>}
             </div>
-            {hasMore && !isMobile?
-            <button className="load-more" style={{width:100}} onClick={getBranches}>Load more</button>:null}
+            {hasMore?
+                <div css={{display:'flex',width:'100%',justifyContent:'center',alignItems:'center'}}>
+                    {loading?
+                        <div className="flex-fill load-spinner-wrapper" css={{justifyContent:'center',margin:'0 30px'}}>
+                        <MoonLoader
+                            sizeUnit={"px"}
+                            size={20}
+                            color={theme.textLightColor}
+                            loading={true}
+                        />
+                    </div>:<button css={loadMore} onClick={getBranches}>Load more</button>}
+                </div>
+            :null}
         </div>
 
         :<div css={()=>skeletonRow(isMobile)}>
