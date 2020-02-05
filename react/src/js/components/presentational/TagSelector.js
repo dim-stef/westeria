@@ -334,8 +334,9 @@ function BubbleTag({tag,selectedTags,setSelectedTags}){
         <div onClick={handleTagClick} 
         css={theme=>({padding:'5px 10px',cursor:'pointer',transition:'background-color 0.15s ease',
         border:clicked?`1px solid transparent`:`1px solid ${theme.borderColor}`,
-        borderRadius:25,color:clicked?'white':theme.textColor,display:'inline-block',
+        borderRadius:50,color:clicked?'white':theme.textColor,
         width:'max-content',fontSize:'1.7rem',margin:7,backgroundColor:clicked?'#219ef3 !important':'transparent',
+        minHeight:30,display:'flex',alignItems:'center',justifyContent:'center',flex:'1 1 auto',textAlign:'center',
         '&:hover':{
             backgroundColor:theme.backgroundDarkColor
         }})}>
