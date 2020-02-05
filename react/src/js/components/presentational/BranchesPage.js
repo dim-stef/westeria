@@ -192,7 +192,7 @@ export function BranchList(props){
 
 }
 
-export function AddBranch({branch,type='children'}){
+export function AddBranch({branch,branches,type='children'}){
     const context = useContext(UserContext)
     const [sumbitted,setSubmitted] = useState(false);
     const [requestStatus,setRequestStatus] = useState(null);
@@ -250,9 +250,12 @@ export function AddBranch({branch,type='children'}){
         }
     },[])
 
+    let isAlreadyConnected = branches.some(b=>b.uri==context.currentBranch.uri);
+    
     return(
-        !requestStatus?
-        <div onClick={onClick} css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:25,padding:10})}>
+        !requestStatus && !isAlreadyConnected?
+        <div onClick={onClick} css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:25,padding:10,
+        display:'flex',justifyContent:'center',flexGrow:1,minWidth:120})}>
             <CircularBranch branch={context.currentBranch} connect={text}/>
         </div>
         :sumbitted && requestStatus == 'accepted'?

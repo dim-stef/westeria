@@ -48,17 +48,17 @@ export function CircularBranch({branch,endpoint,connect=null}){
 
     const body = <div css={imageContainer} style={{margin:'0 5px'}} key={branch.id}>
         <FadeImage className="round-picture branch-profile-setting" 
-        style={{height:isMobile?60:100,width:isMobile?60:100,display:'block',
+        style={{height:isMobile?70:100,width:isMobile?70:100,display:'block',
         objectFit:'cover',margin:2,boxSizing:'border-box'}}
         src={branch.branch_image}/>
         <span css={theme=>circularBranchName(theme,isMobile)}>{connect?connect:branch.name}</span>
     </div>
 
     return(
-        connect?<div css={theme=>({height:isMobile?100:150,width:isMobile?100:200,display:'block'})}>
+        connect?<div css={theme=>({height:isMobile?130:150,width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}>
             {body}
         </div>:
-        <Link css={theme=>({height:isMobile?100:150,width:isMobile?100:200,display:'block'})}
+        <Link css={theme=>({height:isMobile?130:150,width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}
         to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
             {body}
         </Link>

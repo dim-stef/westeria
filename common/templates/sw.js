@@ -8,7 +8,7 @@ const messaging = firebase.messaging();
 
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js');
 
-var version = 8;
+var version = 9;
 
 if (workbox) {
     workbox.routing.registerRoute(

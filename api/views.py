@@ -42,7 +42,7 @@ class ChildrenPagination(PageNumberPagination):
 
 
 class ChildrenLimitOffsetPagination(LimitOffsetPagination):
-    default_limit = 4
+    default_limit = 6
     max_limit = 20
 
 

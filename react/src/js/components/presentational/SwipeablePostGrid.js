@@ -1110,7 +1110,7 @@ function CreateButton(){
             <div
             css={{width:'100%',height:'100%',display:'flex',justifyContent:'center',
             alignItems:'center',position:'relative'}}>
-                <PlusSvg css={theme=>({height:'27%',maxHeight:30,fill:theme.textHarshColor})}/>
+                <PlusSvg css={theme=>({height:'27%',width:'100%',maxHeight:30,fill:theme.textHarshColor})}/>
             </div>
         </div>
     )

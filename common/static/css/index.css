@@ -38,9 +38,9 @@ body {
 
 .big-main-column{
     height: auto;
-    flex: 1 1 auto;
-    -webkit-flex: 1 1 auto;
-    -ms-flex: 1 1 auto;
+    flex: 1;
+    -webkit-flex: 1;
+    -ms-flex: 1;
     margin: 0 10px;
     border: 1px solid #e2eaf1;
     overflow-x: hidden;

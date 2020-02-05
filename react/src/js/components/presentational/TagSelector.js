@@ -146,9 +146,17 @@ function useSlider(width){
 export function SerialTagSelector(props){
     const ref = useRef(null)
     const [width,setWidth] = useState(0);
-    const [tags,setTags] = useState([]);
-    const [availableBranches,setAvailableBranches] = useState([]);
 
+    // all tags related to props.branch that were fetched from search results
+    const [tags,setTags] = useState([]);
+
+    // all selected tags available in westeria
+    const [genericTags,setGenericTags] = useState([]);
+
+    // all selected tags related to props.branch
+    const [relatedTags,setRelatedTags] = useState([]);
+    // branches that were found based on the selected tags
+    const [availableBranches,setAvailableBranches] = useState([]);
     const [sliderProps,set,sendToRight,sendToLeft] = useSlider(width);
 
     async function loadInitialTags(){
@@ -186,6 +194,14 @@ export function SerialTagSelector(props){
     },[ref])
 
     useEffect(()=>{
+        // genericTags might be null
+        // doing this to prevent non spreadable error
+
+        let genTags = genericTags?genericTags:[]
+        props.setSelectedTags([...relatedTags,...genTags])
+    },[genericTags,relatedTags])
+
+    useEffect(()=>{
         loadInitialTags();
     },[])
 
@@ -213,18 +229,23 @@ export function SerialTagSelector(props){
                     transform:x.interpolate(x=>`translateX(${x}px)`)}} css={{display:'flex',flexFlow:'column'}}>
                     {i==0?
                         <>
-                        <h1>Select some tags</h1>
+                        <h1>Add your own tags</h1>
+                        <CreateableTagSelector tags={genericTags} setTags={setGenericTags}/>
+                        <h1>Select tags related to {props.branch.name}</h1>
                         <input type="text" onChange={handleSearch} css={tagInput} 
                         placeholder="Search for available tags..."/>
-                        <div css={{display:'flex',flexFlow:'row wrap',overflow:'auto'}}>
+                        <div css={{display:'flex',flexFlow:'row wrap',overflow:'auto',minHeight:200}}>
                             {tags.map((item,i)=>{
                                 return(
-                                    <React.Fragment key={item.label}>
-                                        <BubbleTag tag={item} selectedTags={props.selectedTags} 
-                                        setSelectedTags={props.setSelectedTags}/>
+                                    <React.Fragment key={i}>
+                                        <BubbleTag tag={item} selectedTags={relatedTags} 
+                                        setSelectedTags={setRelatedTags}/>
                                     </React.Fragment>
                                 )
                             })}
+                            {tags && tags.length == 0?
+                            <h1 css={{alignSelf:'center',justifySelf:'center',width:'100%',textAlign:'center'}}>
+                            No related tags were found :(</h1>:null}
                         </div>
                         <div css={theme=>({display:'flex',justifyContent:'space-between',borderRadius:50,
                         backgroundColor:theme.backgroundDarkColor,padding:10})}>
