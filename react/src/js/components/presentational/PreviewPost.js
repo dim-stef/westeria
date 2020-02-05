@@ -37,9 +37,11 @@ const text = (theme,textPosition,size,hasMedia) =>css({
     padding:hasMedia?'0px 10px 10px 10px':0,
     borderRadius:15,
     color:hasMedia?'white':theme.textColor,
-    backgroundColor:hasMedia?'#00000075':null,
+    backgroundColor:hasMedia?'#00000036':null,
     wordBreak:'break-word',
-    display:'inline'
+    display:'inline',
+    height:'80%',
+    overflow:'hidden'
 })
 
 const postedToImage = (size) =>css({
@@ -58,6 +60,26 @@ const postedToImage = (size) =>css({
 const zoom = () =>css({
     transition:'transform ease 0.5s',
     width:'100%'
+})
+
+const textOverflowButton = () =>css({
+    position:'absolute',
+    bottom:50,
+    height:30,
+    width:'80%',
+    backgroundColor:'#484e50d6',
+    marginLeft:'auto',
+    marginRight:'auto',
+    left:0,
+    right:0,
+    zIndex:200000,
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    fontSize:'2rem',
+    padding:5,
+    borderRadius:50,
+    color:'white'
 })
 
 const openPreviewPost = theme =>css({
@@ -129,7 +151,7 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     const userContext = useContext(UserContext);
     const ref = useRef(null);
     const imageRef = useRef(null);
-    const zoomRef = useRef(null);
+    const containerRef = useRef(null);
     const previewPostRef = useRef(null);
     const preventScrollRef = useRef(null)
     const [imageWidth,setImageWidth] = useState(0);
@@ -207,6 +229,7 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     const lastDockedPosition = useRef(null);
     const prevTime = useRef(new Date().getTime());
     const isResting = useRef(true);
+    const textRef = useRef(null);
 
     const positions = {
         off:{
@@ -439,6 +462,22 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     },{filterTaps:true})
     
     let hasMedia = post.videos.length>0 || post.images.length > 0
+
+    const [textCount,setTextCount] = useState(0);
+    const [textOverflowing,setTextOverflowing] = useState(false);
+
+    useEffect(()=>{
+        if(textRef.current){
+            setTextCount(textRef.current.innerText.split(' ').length);
+            if(textRef.current.innerText.split(' ').length > 10){
+                console.log('height',textRef.current.offsetHeight , containerRef.current.clientHeight)
+            }
+            if(textRef.current.offsetHeight > containerRef.current.clientHeight){
+                setTextOverflowing(true);
+            }
+        }
+    },[textRef])
+
     return (
         <>
         <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
@@ -449,19 +488,19 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
                     history.push(`/${post.posted_to[0].uri}`);
                 }}
             />
-            <div css={zoom} ref={zoomRef} onClick={handleClick}>
+            <div css={zoom} ref={containerRef} onClick={handleClick}>
                 <PreviewPostMedia images={images} measure={null} 
                 videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>
-                
+                {textOverflowing?<div css={textOverflowButton}>{textCount} words</div>:null}
                 {post.text?
                 <>
                 {size=='xsmall' || size=='small'?
                 <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
                     <div css={{display:'inline-block',width:30,height:23}}></div>
-                    {post.text}
+                    <div ref={textRef} css={{display:'inline'}}>{post.text}</div>
                 </div>:
                 <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
-                    {post.text}
+                    <div ref={textRef} css={{display:'inline'}}>{post.text}</div>
                 </div>}
                 
                 </>:null}

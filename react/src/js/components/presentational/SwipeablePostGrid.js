@@ -35,12 +35,6 @@ const gridContainer = () =>css({
     gridAutoFlow:'dense',
 })
 
-const grid = () =>css({
-    'div':{
-        willChange:'transform'
-    }
-})
-
 const cell = (size,isBig,isFlat) =>css({
     gridColumn:`span ${size[0]}`,
     gridRow:`span ${size[1]}`,
@@ -58,6 +52,7 @@ const animatedDiv = (theme,supportsGrid) =>css({
     boxSizing:'border-box',
     backgroundColor:theme.backgroundColor,
     border:'4px solid transparent',
+    willChange:'transform',
     '@media (min-device-width: 767px)':{
         '&:hover':{
             borderRadius:10,
@@ -480,7 +475,7 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
     }
 
     return (
-        <div style={{position:'relative',width:width,height:height}} css={grid} ref={container} id="grid-container">
+        <div style={{position:'relative',width:width,height:height}} ref={container} id="grid-container">
             <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
             {[...Array(3)].map((x,i)=>{
                 let initPosition;
