@@ -40,7 +40,7 @@ const searchContainer = () => css({
     display:'flex',
     flexFlow:'row wrap',
     WebkitFlexFlow:'row wrap',
-    justifyContent:'center'
+    justifyContent:'center',
 })
 
 const expendableBranch = theme =>css({
@@ -234,7 +234,7 @@ function TopLevelBranches(){
     },[])
 
     return(
-        branches?<div css={{display:'flex',flexFlow:'row wrap'}}>
+        branches?<div css={{display:'flex',flexFlow:'row wrap',justifyContnet:'center'}}>
             {branches.map(b=>{
                 return <ExpandableBranch branch={b}/>
             })}

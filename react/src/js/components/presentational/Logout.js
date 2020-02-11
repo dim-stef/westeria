@@ -1,6 +1,8 @@
 import React, {useEffect} from "react";
 import {withRouter} from 'react-router-dom'
 import {Helmet} from "react-helmet";
+import MoonLoader from 'react-spinners/MoonLoader';
+import {AuthenicationSave,AuthenticationWrapper} from "./Forms"
 import axios from 'axios'
 
 
@@ -47,13 +49,12 @@ function Logout({history,location,match}){
             <title>Logout - Westeria</title>
             <meta name="description" content="Logout from Westeria" />
         </Helmet>   
-        {match.params.instant?null:<div className="main-layout">
-            <div className="form-layout" style={{margin: '6em auto', backgroundColor: '#ffffff', textAlign: 'center'}}>
-            <div className="form-container" style={{width: '70%', margin: 'auto', paddingBottom: '14px'}}>
-                <button className="login-btn" onClick={handleLogout}>Logout</button>
-            </div>
-            </div>
-        </div>}
+        {match.params.instant?null:
+            <AuthenticationWrapper header="Are you sure to log out from Westeria?">
+                <div css={{display:'flex',justifyContent:'center'}}>
+                    <AuthenicationSave className="login-btn" value="Logout" onClick={handleLogout}/>
+                </div>
+            </AuthenticationWrapper>}
         </>
         
     )

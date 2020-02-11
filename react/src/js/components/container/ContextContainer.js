@@ -128,3 +128,6 @@ export const PathContext = React.createContext([])
 export const SwipeablePostGridContext = React.createContext({})
 export const ParentBranchDrawerContext = React.createContext({})
 export const AppContext = React.createContext({})
+export const LandingPageContext = React.createContext({
+    setOpen:()=>{}
+})

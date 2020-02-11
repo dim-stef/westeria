@@ -3,8 +3,6 @@ import {Link, withRouter} from 'react-router-dom'
 import { useTheme as useEmotionTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {useTransition,animated} from "react-spring/web.cjs"
-import useMeasure from 'react-use-measure'
-import { ResizeObserver } from '@juggle/resize-observer'
 import history from "../../history"
 import {Helmet} from 'react-helmet'
 import MoonLoader from 'react-spinners/MoonLoader';

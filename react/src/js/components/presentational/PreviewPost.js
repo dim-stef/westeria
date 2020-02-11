@@ -2,6 +2,7 @@ import React, {useState,useEffect,useLayoutEffect,useCallback,useRef,useContext}
 import { createPortal } from 'react-dom';
 import history from "../../history"
 import { useSpring, animated, interpolate } from 'react-spring/web.cjs'
+import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
 import {css,keyframes } from "@emotion/core";
@@ -37,9 +38,11 @@ const text = (theme,textPosition,size,hasMedia) =>css({
     padding:hasMedia?'0px 10px 10px 10px':0,
     borderRadius:15,
     color:hasMedia?'white':theme.textColor,
-    backgroundColor:hasMedia?'#00000075':null,
+    backgroundColor:hasMedia?'#00000036':null,
     wordBreak:'break-word',
-    display:'inline'
+    display:'inline',
+    height:'80%',
+    overflow:'hidden'
 })
 
 const postedToImage = (size) =>css({
@@ -60,6 +63,26 @@ const zoom = () =>css({
     width:'100%'
 })
 
+const textOverflowButton = () =>css({
+    position:'absolute',
+    bottom:10,
+    height:25,
+    width:'60%',
+    backgroundColor:'#484e50d6',
+    marginLeft:'auto',
+    marginRight:'auto',
+    left:0,
+    right:0,
+    zIndex:200000,
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    fontSize:'1.5rem',
+    padding:5,
+    borderRadius:50,
+    color:'white'
+})
+
 const openPreviewPost = theme =>css({
     zIndex:23123,
     position:'fixed',
@@ -68,13 +91,14 @@ const openPreviewPost = theme =>css({
     right:0,
     marginLeft:'auto',
     marginRight:'auto',
-    overflow:'hidden',
     borderRadius:30,
     backgroundColor:theme.backgroundColor,
     boxShadow:`0px 2px 6px -1px ${theme.textHarshColor}`,
     width:'95%',
     willChange:'transform, opacity, scale',
     animation: `${scaleUp} 0.33s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
+    maxHeight:'90vh',
+    overflow:'auto',
     '@media (min-width: 1224px)': {
         width:'40%',
         marginLeft:'37%',
@@ -120,47 +144,33 @@ const scaleUp = keyframes`
 `
 
 const to = (y) => ({ opacity:1, x: 0, y: y||20, scale: 1 })
-const from = () => ({ opacity:0, x: 0, rot: 0, scale: 0, y: -(window.innerHeight) })
-const off = (offset=200) => ({ opacity:1, x: 0, y: -(window.innerHeight + offset + 50), scale: 1})
+const from = (initAnimation) => ({ opacity:0, x: 0, y: 20, scale: initAnimation?initAnimation.current?0:1:0 })
+const off = (offset=200) => ({
+        opacity:1, x: 0, y: -(window.innerHeight + offset + 50), scale: 1
+    })
 const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
 export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
-    const postsContext = useContext(SingularPostContext);
-    const userContext = useContext(UserContext);
     const ref = useRef(null);
     const imageRef = useRef(null);
-    const zoomRef = useRef(null);
-    const previewPostRef = useRef(null);
-    const preventScrollRef = useRef(null)
+    const containerRef = useRef(null);
+    const textRef = useRef(null);
     const [imageWidth,setImageWidth] = useState(0);
     const [textPosition,setTextPosition] = useState(0);
     const [postShown,setPostShown] = useState(false);
     const [commentsShown,setCommentsShown] = useState(false);
     const images = post.images;
     const videos = post.videos;
-
     const theme = useTheme();
-
     let backgroundColor = theme.dark?'#151827':null
-  
-    const isLaptopOrDesktop = useMediaQuery({
-        query: '(min-device-width: 1224px)'
-    })
 
-    const isTall = useMediaQuery({
-        query: '(min-device-height: 600px)'
-    })
-
-    let offset = isTall?150:80;
-
-
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(ref.current){
             setImageWidth(ref.current.clientWidth)
         }
     },[ref])
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(postShown){
             try{
                 document.getElementById('posts-container').style.filter = 'grayscale(1)';
@@ -168,6 +178,7 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
 
             }
         }else{
+
             try{
                 document.getElementById('posts-container').style.filter = null;
             }catch(e){
@@ -175,7 +186,6 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
             }
         }
     },[postShown])
-
 
     useLayoutEffect(()=>{
         if(imageRef.current){
@@ -193,20 +203,82 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         }
     }
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(postShown){
             ref.current.style.filter = 'blur(5px)';
         }else{
             ref.current.style.filter = null;
         }
     },[postShown])
+    
+    let hasMedia = post.videos.length>0 || post.images.length > 0
 
-    const shotUp = useRef(null);
-    const shotDown = useRef(null);
-    const commentsActive = useRef(null);
-    const lastDockedPosition = useRef(null);
-    const prevTime = useRef(new Date().getTime());
-    const isResting = useRef(true);
+    const [textCount,setTextCount] = useState(0);
+    const [textOverflowing,setTextOverflowing] = useState(false);
+
+    useEffect(()=>{
+        if(textRef.current){
+            setTextCount(textRef.current.innerText.split(' ').length);
+
+            if(textRef.current.offsetHeight > containerRef.current.clientHeight){
+                setTextOverflowing(true);
+            }
+        }
+    },[textRef])
+
+    const isLaptopOrDesktop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
+
+    const isTall = useMediaQuery({
+        query: '(min-device-height: 600px)'
+    })
+
+    return (
+        <>
+        <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
+            <img className="post-profile-picture round-picture double-border noselect" 
+            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
+                onClick={(e)=>{
+                    e.stopPropagation();
+                    history.push(`/${post.posted_to[0].uri}`);
+                }}
+            />
+            <div css={zoom} ref={containerRef} onClick={handleClick}>
+                <PreviewPostMedia images={images} measure={null} 
+                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>
+                {textOverflowing?<div css={textOverflowButton}>{textCount} words</div>:null}
+                {post.text?
+                <>
+                {size=='xsmall' || size=='small'?
+                <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
+                    <div css={{display:'inline-block',width:30,height:23}}></div>
+                    <div ref={textRef} css={{display:'inline'}}>{post.text}</div>
+                </div>:
+                <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
+                    <div ref={textRef} css={{display:'inline'}}>{post.text}</div>
+                </div>}
+                
+                </>:null}
+            </div>
+        </div>
+
+        {createPortal(
+                postShown?
+                <PopUpPost postShown={postShown} setPostShown={setPostShown} post={post}
+                    commentsShown={commentsShown} setCommentsShown={setCommentsShown}
+                    isLaptopOrDesktop={isLaptopOrDesktop} isTall={isTall}
+                />:null
+            ,document.getElementById("leaf-preview-root"))
+        }
+        </>
+    )
+})
+
+function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
+    isLaptopOrDesktop,isTall}){
+    
+    let offset = isTall?150:80;
 
     const positions = {
         off:{
@@ -222,12 +294,30 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
 
     const dockedTo = useRef(positions.top);
 
-    const [props, set, stop] = useSpring(()=>({from:from(),to:to(),
+    const shotUp = useRef(null);
+    const shotDown = useRef(null);
+    const commentsActive = useRef(null);
+    const lastDockedPosition = useRef(null);
+    const prevTime = useRef(new Date().getTime());
+    const isResting = useRef(true);
+    const previewPostRef = useRef(null);
+    const preventScrollRef = useRef(null)
+    const postsContext = useContext(SingularPostContext);
+    const userContext = useContext(UserContext);
+    const initAnimation = useRef(false);
+
+    const [props, set, stop] = useSpring(()=>({from:from(initAnimation),to:to(),
 
         onRest:(f)=>{
             isResting.current = true;
         },
+        onStart:()=>{
+            if(initAnimation.current){
+                initAnimation.current = true;
+            }
+        },
         onFrame:(f)=>{
+
             isResting.current = false;
             if(shotDown.current){
                 shotDown.current = false;
@@ -241,9 +331,9 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
                 shotDown.current = false;
                 shotUp.current = false;
                 commentsActive.current = false;
-                setCommentsShown(false);
                 setPostShown(false);
-                
+                setCommentsShown(false);
+                stop()
             }
         }
     }))
@@ -258,8 +348,27 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         if(typeof prevTime.current !== 'undefined'){
             var timeDiff = curTime-prevTime.current;
             if(timeDiff>200 || isResting.current){
-                e.preventDefault();
                 e.stopPropagation();
+
+                let scrolledToTop = previewPostRef.current.scrollTop == 0
+                let scrolledToBottom = previewPostRef.current.scrollTop ==
+                (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight)
+                || previewPostRef.current.scrollTop ==
+                (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight) + 1;
+
+                let isOnInitTopPosition = previewPostRef.current.getBoundingClientRect().y <= positions.top.y + 120
+                && previewPostRef.current.getBoundingClientRect().y >= positions.top.y
+
+                if(!scrolledToTop || !scrolledToBottom){
+                    if((e.wheelDelta > 0 && scrolledToTop) || (e.wheelDelta < 0 && scrolledToBottom)){
+                        e.preventDefault();
+                    }else{
+                        if(isOnInitTopPosition){
+                            set(()=>to())
+                            return;
+                        }
+                    }
+                }
 
                 if(e.wheelDelta > 0){
                     // update flags
@@ -295,47 +404,13 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     }
 
     useEffect(()=>{
-        if(!postShown){
-            stop();
-        }
-
-        set(()=>to())
-
-        if(preventScrollRef.current){
-            preventScrollRef.current.addEventListener('touchmove',preventDefault, { passive: false })
-        }
-        
-        return()=>{
-            try{
-                let scrollableContainer = document.getElementById('mobile-content-container');
-                scrollableContainer.style.overflow = 'auto';
-            }catch(e){
-
-            }
-
-            if(preventScrollRef.current){
-                preventScrollRef.current.removeEventListener('touchmove',preventDefault)
-            }
-        }
-    },[postShown])
-
-    function detectOutSideClick(e){
-        let previewPostContainer = document.getElementById('preview-post-container');
-        /*if(e.target == previewPostContainer){
-            set(()=>off())
-        }*/
-    }
-
-    useEffect(()=>{
         if(postShown){
-            document.getElementById('preview-post-container').addEventListener('click',detectOutSideClick);
             document.getElementById('preview-post-container').addEventListener('wheel',wheelEvent);
             previewPostRef.current.addEventListener('wheel',wheelEvent);
         }
         
         return ()=>{
             try{
-                document.getElementById('preview-post-container').removeEventListener('click',detectOutSideClick);
                 document.getElementById('preview-post-container').removeEventListener('wheel',wheelEvent);
                 previewPostRef.current.removeEventListener('wheel',wheelEvent);
             }catch(e){
@@ -348,6 +423,26 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
     const initTo = to().y
     // 1. Define the gesture
     const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity, event, tap,cancel}) => {
+        let scrolledToTop = previewPostRef.current.scrollTop == 0
+        let scrolledToBottom = previewPostRef.current.scrollTop ==
+        (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight)
+        || previewPostRef.current.scrollTop ==
+        (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight) + 1;
+        let isOnInitTopPosition = previewPostRef.current.getBoundingClientRect().y <= positions.top.y + 120
+        && previewPostRef.current.getBoundingClientRect().y >= positions.top.y
+
+        if(previewPostRef.current.contains(event.target) && (!scrolledToTop || !scrolledToBottom)){
+            if((yDir > 0 && scrolledToTop) || (yDir < 0 && scrolledToBottom)){
+
+            }else{
+                if(isOnInitTopPosition){
+                    cancel();
+                    set(()=>to())
+                    return;
+                }
+            }
+        }
+
         if(modalRoot.childElementCount > 0){
             cancel();
             return;
@@ -356,6 +451,7 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         try{
             if(tap && !previewPostRef.current.contains(event.target) 
             && !modalRoot.contains(event.target)){
+                dockedTo.current = positions.top
                 set(()=>off(offset))
                 return
             }
@@ -434,64 +530,31 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
 
           const rot = mx / 100 + (isGone ? dir * 10 * velocity : 0) // How much the card tilts, flicking it harder makes it rotate faster
           const scale = down ? 1 : 1 // Active cards lift up a bit
-          return { rot, scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? offset : 500 }}
+                    
+          return { scale, y, delay: undefined, config: { friction: 25, tension: down ? 800 : isGone ? offset : 500 }}
         })
     },{filterTaps:true})
-    
-    let hasMedia = post.videos.length>0 || post.images.length > 0
-    return (
-        <>
-        <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
-            <img className="post-profile-picture round-picture double-border noselect" 
-            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
-                onClick={(e)=>{
-                    e.stopPropagation();
-                    history.push(`/${post.posted_to[0].uri}`);
-                }}
-            />
-            <div css={zoom} ref={zoomRef} onClick={handleClick}>
-                <PreviewPostMedia images={images} measure={null} 
-                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>
-                
-                {post.text?
-                <>
-                {size=='xsmall' || size=='small'?
-                <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
-                    <div css={{display:'inline-block',width:30,height:23}}></div>
-                    {post.text}
-                </div>:
-                <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
-                    {post.text}
-                </div>}
-                
-                </>:null}
-            </div>
-        </div>
 
-        {createPortal(
-                postShown?
-                <>
-                <div id="preview-post-container" {...bind()} css={{width:'100%',height:'100vh',position:'fixed',top:0,
-                zIndex:1000}}>
-                     
-                </div>
-                <div css={{zIndex:1001}}>
-                {commentsShown?<AnimatedCommentBox post={post} offset={offset}/>:null}
-                <animated.div {...bind()} css={theme=>openPreviewPost(theme)} ref={previewPostRef}
-                id="preview-post"
-                style={{ transform: interpolate([props.rot, props.scale, props.y], trans)}}>
-                    <div ref={preventScrollRef} style={{touchAction:'none'}} touchAction="none">
-                        <Post post={post} postsContext={postsContext} down={initTo}
-                        activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
-                    </div>
-                </animated.div>
+    return(
+        <>
+        <div id="preview-post-container" {...bind()} css={{width:'100%',height:'100vh',position:'fixed',top:0,
+        zIndex:1000}}>
+                
+        </div>
+        <div css={{zIndex:1001}}>
+        {commentsShown?<AnimatedCommentBox post={post} offset={offset}/>:null}
+        <animated.div {...bind()} css={theme=>openPreviewPost(theme)} ref={previewPostRef}
+        id="preview-post"
+        style={{ transform: aniTo([props.y,props.scale],(y,s) => {return `translateY(${y}px) scale(${s})`})}}>
+            <div ref={preventScrollRef}>
+                <Post post={post} postsContext={postsContext} down={initTo}
+                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
             </div>
-            </>:null
-            ,document.getElementById("leaf-preview-root"))
-        }
+        </animated.div>
+        </div>
         </>
     )
-})
+}
 
 function useReplies(post){
     const [replyTrees,setReplyTrees] = useState([]);

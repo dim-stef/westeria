@@ -2,7 +2,7 @@ import React, {useEffect} from "react";
 import {Redirect, withRouter} from 'react-router-dom'
 import {Form} from 'react-final-form'
 import {Helmet} from 'react-helmet'
-import {AuthFormWrapper, Save} from "./Forms"
+import {AuthFormWrapper, Save,AuthenicationSave,AuthenticationWrapper} from "./Forms"
 import axios from 'axios'
 
 //"reset/:uid/:token"
@@ -50,20 +50,22 @@ function EmailConfirm({match}){
             <title>Email confirm - Westeria</title>
             <meta name="description" content="Email confirm." />
         </Helmet>
-        <AuthFormWrapper>
+        <AuthenticationWrapper header="Confirm your email">
             <Form onSubmit={handleEmailConfirm}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
-                    <form id="emailConfirmForm" style={{padding:10}} onSubmit={handleSubmit}>
+                    <form id="emailConfirmForm" css={{padding:10,display:'flex',flexFlow:'column',
+                    alignItems:'center'}} onSubmit={handleSubmit}>
 
                         {submitSucceeded?<Redirect to="/"/>:null}
-                        <Save submitting={submitting} submitSucceeded={submitSucceeded}
-                        className="login-btn" value="Confirm email" />
+                        
+                        <AuthenicationSave submitting={submitting} submitSucceeded={submitSucceeded}
+                        className="login-btn" value="Confirm" />
 
                     </form>
                 )
             }}/>
-        </AuthFormWrapper>
+        </AuthenticationWrapper>
         </>
         
     )

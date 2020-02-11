@@ -1,15 +1,19 @@
-import React, {useLayoutEffect} from "react";
+import React, {useLayoutEffect,useState} from "react";
 import {Field, Form} from 'react-final-form'
 import {Helmet} from "react-helmet"
-import {AuthFormWrapper} from "./Forms"
+import {css} from "@emotion/core"
+import MoonLoader from 'react-spinners/MoonLoader';
+import {AuthFormWrapper,AuthenticationInput,AuthenicationSave,AuthenticationWrapper} from "./Forms"
 import axios from 'axios'
 
 
 function PasswordReset(){
 
+    const [loading,setLoading] = useState(false);
+    
     async function handlePasswordReset(values){
         let errors = {};
-
+        setLoading(true)
         try{
             let url = '/rest-auth/password/reset/';
             let response = await axios.post(
@@ -23,12 +27,13 @@ function PasswordReset(){
                     }
                 }
             );
+            setLoading(false)
              
         }catch(error){
-             
             if(error.response.data.email){
                 errors.email = error.response.data.email[0]
             }
+            setLoading(false)
         }
 
         return errors;
@@ -50,30 +55,29 @@ function PasswordReset(){
             <link rel="canonical" href="https://subranch.com/password/reset"/>
 
         </Helmet>
-        <AuthFormWrapper>
+        <AuthenticationWrapper header="Reset your password">
             <Form onSubmit={handlePasswordReset}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
-                    <form id="passwordResetForm" style={{padding:10}} onSubmit={handleSubmit}>
-                        <Field name="email" type="email">
-                        {({ input, meta }) => (
-                            <div>
-                                <input {...input} className="text email auth-input" placeholder="Email" required/>
-                                {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
-                            </div>
-                        )}
-                        </Field>
+                    <form id="passwordResetForm" css={{padding:10,display:'flex',flexFlow:'column',alignItems:'center'}} onSubmit={handleSubmit}>
+                        <AuthenticationInput name="email" type="email" label="Email" placeholder="address@email.com" required/>
                         <Error name="email"/>
                         {submitSucceeded?<p className="form-succeed-message">An email has been sent to your email address</p>:null}
-                        <Save submitting={submitting} submitSucceeded={submitSucceeded} pristine={pristine} invalid={invalid}
-                            className="login-btn" value="Send"
-                        />
+                        {loading?
+                            <MoonLoader
+                            sizeUnit={"px"}
+                            size={20}
+                            color={'#123abc'}
+                            loading={true}
+                            />
+                            :<AuthenicationSave submitting={submitting} submitSucceeded={submitSucceeded} pristine={pristine} invalid={invalid}
+                            className="login-btn" value="Send"/>
+                        }
                     </form>
                 )
             }}/>
-        </AuthFormWrapper>
+        </AuthenticationWrapper>
         </>
-        
     )
 }
 
