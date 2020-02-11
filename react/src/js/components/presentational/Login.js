@@ -1,13 +1,16 @@
-import React, {Component} from "react";
+import React, {Component,useEffect,useState,useLayoutEffect,useContext} from "react";
 import {Link, Redirect} from 'react-router-dom'
 import {Helmet} from "react-helmet"
+import {Field, Form} from 'react-final-form'
+import {css} from "@emotion/core"
+import {AuthenticationInput,AuthenicationSave,AuthenticationWrapper} from "./Forms"
 import MoonLoader from 'react-spinners/MoonLoader';
 import {UserContext} from "../container/ContextContainer"
 import axios from 'axios'
 
 var csrftoken = getCookie('csrftoken');
 
-export default class Login extends Component{
+export class Login extends Component{
     static contextType = UserContext
     constructor(props){
         super(props);
@@ -128,4 +131,88 @@ export default class Login extends Component{
             </>
         )
     }
+}
+
+export default function Login2(){
+
+    let initialValues = {
+
+    }
+
+    const userContext = useContext(UserContext)
+    const [loading,setLoading] = useState(false);
+
+    async function onSubmit(values){
+        let errors = {};
+        setLoading(true);
+        try{
+            let uri = '/rest-auth/login/';
+            let config = {
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': "Bearer " + localStorage.getItem("token"),
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+            }
+            let response = await axios.post(uri,values,config);
+            localStorage.setItem("token",response.data.token);
+            setLoading(false);
+        }catch(e){
+            setLoading(false);
+            return e.response.data
+        }
+        
+        return errors;
+    }
+
+    return(
+        <>
+            <Helmet>
+                <title>Login - Westeria</title>
+                <meta name="description" content="Login to Westeria" />
+                <link rel="canonical" href="https://subranch.com/login"/>
+            </Helmet>
+                <AuthenticationWrapper header="Login to Westeria">
+                <div css={theme=>({padding:10})}>
+                    <Form onSubmit={onSubmit} initialValues={initialValues}
+                    render={({handleSubmit,submitting,submitSucceeded,submitFailed, pristine, submitErrors, errors })=>{
+
+                        if(submitSucceeded || userContext.isAuth){
+                            return <Redirect to="/"/>
+                        }
+
+                        return(
+                            <form id="branchForm" css={{width:'100%',display:'flex',flexFlow:'column',
+                            justifyContent:'center',alignItems:'center'}} onSubmit={handleSubmit}>
+                                <AuthenticationInput name="email" type="email" placeholder="email@address.com" label="Email"/>
+                                <AuthenticationInput name="password" type="password" placeholder="shhh..." label="Password"/>
+                                {submitErrors?
+                                submitErrors.non_field_errors.map(e=>{
+                                    return <div key={e} className="setting-error" css={{margin:'15px 0'}}>{e}</div>
+                                }):null}
+                                {loading?<MoonLoader
+                                sizeUnit={"px"}
+                                size={20}
+                                color={'#123abc'}
+                                loading={true}
+                                />:<AuthenicationSave value="Login"/>}
+                                
+                            </form>
+                        )
+                    }}/>
+                </div>
+                <div css={{display:'flex',flexFlow:'column',justifyContent:'center',alignItems:'center',marginTop:20}}>
+                    <div css={{fontSize:'1.5rem'}}>
+                        <span>Don't have an account? </span>
+                        <Link to="/register" css={theme=>css({color:'#4b9be0',textDecoration:'none',
+                        })}>Sign up</Link>
+                    </div>
+                    <div css={{fontSize:'1.5rem',marginTop:5}}>
+                        <Link to="/register" css={theme=>css({color:'#4b9be0',textDecoration:'none',
+                        })}>Forgot password</Link>
+                    </div>
+                </div>
+            </AuthenticationWrapper>        
+        </>
+    )
 }

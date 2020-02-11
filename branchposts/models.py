@@ -91,7 +91,7 @@ class Post(models.Model):
             MinValueValidator(0)
         ]
     )
-    text = models.TextField(_("Text"),null=True,blank=True, max_length=3000)
+    text = models.TextField(_("Text"),null=True,blank=True, max_length=30000)
     hot_score = models.DecimalField(max_digits=19,decimal_places=10,default=0.0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

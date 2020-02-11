@@ -14,6 +14,7 @@ const COLORS = {
 }
 
 const darkMode = {
+    primaryColor:'rgb(33, 150, 243)',
     backgroundColor:COLORS.black,
     backgroundLightColor:'#151827',
     backgroundDarkColor:'#090a10',
@@ -26,10 +27,12 @@ const darkMode = {
     embeddedHoverColor:'#121b23',
     notificationBranchColor:'#121b23',
     skeletonColor:'#151827',
-    skeletonHighlightColor:'#0d0f1b'
+    skeletonHighlightColor:'#0d0f1b',
+    landingPageButtonColor:'#33364a',
 }
 
 const lightMode = {
+    primaryColor:'rgb(33, 150, 243)',
     backgroundColor:COLORS.white,
     backgroundLightColor:'#fbfbfb',
     backgroundDarkColor:'#f5f5f5',
@@ -42,7 +45,8 @@ const lightMode = {
     embeddedHoverColor:'#e1e7ef',
     notificationBranchColor:'#e1e7ef',
     skeletonColor:'#f0f3f5',
-    skeletonHighlightColor:'#e2e7ea'
+    skeletonHighlightColor:'#e2e7ea',
+    landingPageButtonColor:'#d0d3d6',
 }
 
 const theme = mode => (mode=='dark'?darkMode:lightMode)

@@ -3,7 +3,7 @@ import {css} from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import {ResponsiveNavigationBar} from "./presentational/Navigation"
 import {RefreshContext} from "./container/ContextContainer"
-
+import {LandingPage} from "./presentational/LandingPage"
 
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
@@ -68,7 +68,7 @@ export const Page = React.memo(function Page(props){
                     </div>
                 </div>
             </div>
-
+            <LandingPage/>
             <div className="success-message-container" style={{ display: 'none' }}>
                 <p id="success-message" />
             </div>

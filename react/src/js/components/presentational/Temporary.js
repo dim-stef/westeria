@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import ReactDOM from 'react-dom';
-import { useTransition, animated, config } from 'react-spring'
+import { useTransition, animated, config } from 'react-spring/web.cjs'
 import {FollowButton} from "./Card"
 import {RefreshContext} from "../container/ContextContainer"
 import axios from "axios"

@@ -3,7 +3,7 @@ import {Link, NavLink} from "react-router-dom"
 import { css } from "@emotion/core";
 import {useTheme as useEmotionTheme} from "emotion-theming"
 import { createRipples } from 'react-ripples';
-import {NotificationsContext, UserContext} from "../container/ContextContainer"
+import {NotificationsContext, UserContext,LandingPageContext} from "../container/ContextContainer"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
 import {Messages} from "./Messages";
@@ -311,11 +311,10 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
                 </Ripple>:null
             }
             {!context.isAuth?
-            <SideDrawer open={drawerOpen} setOpen={setDrawerOpen}>
-                <div ref={profRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                    <Profile/>
-                </div>
-            </SideDrawer>:null}
+            <div ref={profRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                <Profile/>
+            </div>
+            :null}
         </div>
     )  
 }
@@ -384,15 +383,12 @@ function Home(props){
 
 function Profile(){
     const context = useContext(UserContext);
+    const landingPageContext = useContext(LandingPageContext);
     const [focused,setFocused] = useState(false);
     const ref = useRef(null)
     
     function handleClick(){
-        if(context.isAuth){
-            history.push(`/${context.currentBranch.uri}`)
-        }else{
-            setFocused(!focused);
-        }
+        landingPageContext.setOpen(true);
     }
 
     useEffect(()=>{
@@ -410,7 +406,7 @@ function Profile(){
     };
 
     return(
-        <div ref={ref} style={{position:'relative',cursor:'pointer'}} className="flex-fill center-items" 
+        <div ref={ref} style={{position:'relative',cursor:'pointer',width:'100%',height:'100%'}} className="flex-fill center-items" 
         onClick={handleClick}>
         {context.isAuth?
             <div className="round-picture" style={{
@@ -418,7 +414,6 @@ function Profile(){
                 height:32,
                 backgroundImage:`url(${context.currentBranch.branch_image})`}}>
         </div>:<UserSvg css={theme=>({fill:theme.textColor})}/>}
-            {focused && !isMobile?<ProfileDropDown setFocused={setFocused}/>:null}
         </div>
     )
 }

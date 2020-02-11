@@ -580,7 +580,7 @@ const MovingPage = React.memo(({pageProps,aniProps,width,dataIndexChanged,hasMor
                 {pages[pageIndex.current] ?
                     <Page index={pageIndex.current} page={pages[pageIndex.current]} position={position.current}
                     {...pageProps}
-                />:hasMore?<SkeletonFixedGrid/>:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
+                />:hasMore?pageIndex.current>=0?<SkeletonFixedGrid/>:null:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
                 activeBranch={pageProps.activeBranch} isFeed={pageProps.isFeed} 
                 refresh={pageProps.refresh} container={pageProps.container} setShowCreate={pageProps.setShowCreateRef}
                 postsContext={pageProps.postsContext} updateFeed={pageProps.updateFeed} posts={pageProps.posts}/>}
