@@ -1,7 +1,7 @@
 import React, {useState,useEffect,useLayoutEffect,useCallback,useRef,useContext} from "react";
 import { createPortal } from 'react-dom';
 import history from "../../history"
-import { useSpring, animated, interpolate } from 'react-spring/web.cjs'
+import { useSpring,useTransition, animated, interpolate } from 'react-spring/web.cjs'
 import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
@@ -13,6 +13,7 @@ import {Post} from "./SingularPost"
 import {ReplyTree} from './Comments'
 import {SingularPostContext,UserContext} from "../container/ContextContainer"
 import InfiniteScroll from 'react-infinite-scroll-component';
+import {ArrowSvg} from "./Svgs"
 import axios from 'axios';
 
 const Ripple = createRipples({
@@ -80,7 +81,8 @@ const textOverflowButton = () =>css({
     fontSize:'1.5rem',
     padding:5,
     borderRadius:50,
-    color:'white'
+    color:'white',
+    textAlign:'center'
 })
 
 const openPreviewPost = theme =>css({
@@ -97,7 +99,7 @@ const openPreviewPost = theme =>css({
     width:'95%',
     willChange:'transform, opacity, scale',
     animation: `${scaleUp} 0.33s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
-    maxHeight:'90vh',
+    maxHeight:'80vh',
     overflow:'auto',
     '@media (min-width: 1224px)': {
         width:'40%',
@@ -291,6 +293,10 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
             y:window.innerHeight - offset
         }
     }
+    
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
 
     const dockedTo = useRef(positions.top);
 
@@ -305,6 +311,17 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);
     const initAnimation = useRef(false);
+    const [menuOpen,setMenuOpen] = useState(true);
+
+    const openTransitions = useTransition(menuOpen, null, {
+        from: {transform: 'translateY(100%)'},
+        enter: { transform: 'translateY(0)'},
+        leave: {transform: 'translateY(100%)'},
+        config:{
+            duration:250,
+            easing:t => t*(2-t)
+        }
+    });
 
     const [props, set, stop] = useSpring(()=>({from:from(initAnimation),to:to(),
 
@@ -423,11 +440,11 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
     const initTo = to().y
     // 1. Define the gesture
     const bind = useDrag(({ down, movement: [mx,my], direction: [xDir,yDir], velocity, event, tap,cancel}) => {
-        let scrolledToTop = previewPostRef.current.scrollTop == 0
-        let scrolledToBottom = previewPostRef.current.scrollTop ==
-        (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight)
-        || previewPostRef.current.scrollTop ==
-        (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight) + 1;
+        let scrolledToTop = previewPostRef.current.scrollTop < 10
+
+        let scrolledToBottom = previewPostRef.current.scrollTop >
+        (previewPostRef.current.scrollHeight - previewPostRef.current.offsetHeight) - 10;
+
         let isOnInitTopPosition = previewPostRef.current.getBoundingClientRect().y <= positions.top.y + 120
         && previewPostRef.current.getBoundingClientRect().y >= positions.top.y
 
@@ -452,6 +469,7 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
             if(tap && !previewPostRef.current.contains(event.target) 
             && !modalRoot.contains(event.target)){
                 dockedTo.current = positions.top
+                setMenuOpen(false);
                 set(()=>off(offset))
                 return
             }
@@ -509,6 +527,7 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
                     y = 20;
                 }else{
                     // shoot post to top outside of screen
+                    setMenuOpen(false);
                     dockedTo.current = positions.off;
                     y = (offset + 50 + window.innerHeight) * dir
                 }
@@ -535,6 +554,11 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
         })
     },{filterTaps:true})
 
+    function handleMenuClick(e){
+        e.stopPropagation();
+        setMenuOpen(false);
+        set(()=>off(offset))
+    }
     return(
         <>
         <div id="preview-post-container" {...bind()} css={{width:'100%',height:'100vh',position:'fixed',top:0,
@@ -551,6 +575,16 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
                 activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
             </div>
         </animated.div>
+        {isMobile?
+            openTransitions.map(({item, props, key}) => (
+                item && <animated.div key={key} style={props} css={theme=>({position:'fixed',bottom:0,width:'100%',
+                height:60,backgroundColor:theme.backgroundLightColor,boxShadow:'0 2px 5px 0px #000000b0',
+                zIndex:123123123,display:'flex',justifyContent:'center',alignItems:'center',willChange:'transform'})} 
+                onClick={handleMenuClick}>
+                    <ArrowSvg css={theme=>({fill:theme.textColor,height:'50%',transform:'rotate(90deg)'})}/>
+                </animated.div>
+            ))
+            :null}
         </div>
         </>
     )
