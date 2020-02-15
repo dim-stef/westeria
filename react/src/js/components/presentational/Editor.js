@@ -1,8 +1,8 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 
 
 export function CustomEditor({onInput,onKeyDown,placeholder,className,style,editorRef=null,onBlur,
-    files,setFiles=()=>{},onFocus}){
+    files,setFiles=()=>{},onFocus,autofocus=false}){
 
     function handleInput(e){
 
@@ -33,6 +33,12 @@ export function CustomEditor({onInput,onKeyDown,placeholder,className,style,edit
     function onDrop(){
         //
     }
+
+    useEffect(()=>{
+        if(editorRef.current && autofocus){
+            editorRef.current.focus();
+        }
+    },[editorRef])
 
     return(
         <div

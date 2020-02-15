@@ -29,6 +29,7 @@ const darkMode = {
     skeletonColor:'#151827',
     skeletonHighlightColor:'#0d0f1b',
     landingPageButtonColor:'#33364a',
+    scrollBarColor:'#22232d',
 }
 
 const lightMode = {
@@ -47,6 +48,7 @@ const lightMode = {
     skeletonColor:'#f0f3f5',
     skeletonHighlightColor:'#e2e7ea',
     landingPageButtonColor:'#d0d3d6',
+    scrollBarColor:'#dfe4ec',
 }
 
 const theme = mode => (mode=='dark'?darkMode:lightMode)
@@ -60,8 +62,14 @@ const ThemeContext = React.createContext(defaultContextData);
 const useTheme = () => React.useContext(ThemeContext)
 
 const useDarkMode = () =>{
+    let defaultDark = false;
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('dark')) {
+        defaultDark = true;
+        localStorage.setItem("dark",'true');
+    }
     const [themeState,setThemeState] = React.useState({
-        dark:false,
+        dark:defaultDark,
         hasThemeMounted:false
     });
     React.useEffect(()=>{

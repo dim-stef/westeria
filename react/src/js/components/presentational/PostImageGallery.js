@@ -44,12 +44,12 @@ const mediaContainer = (image=null) =>css({
     }
 })
 
-export function PreviewPostMedia({images,videos}){
+export function PreviewPostMedia({images,videos,position}){
 
     return(
         <div css={mediaContainer}>
             {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
-                thumbnail={videos[0].thumbnail} controls={false}
+                thumbnail={videos[0].thumbnail} controls={false} playing={position=='middle'?true:false}
             />:images.length>0?<FadeImage className="noselect" css={previewImage} src={images[0].image} draggable="false"/>:null
             }
         </div>
@@ -196,12 +196,12 @@ const videoContainer = () =>css({
     }
 })
 //disablepictureinpicture controlslist="nodownload"
-function VideoComponent({src,thumbnail,autoplay=true,controls=true}){
+function VideoComponent({src,thumbnail,autoplay=true,controls=true,playing=true}){
 
     return(
         <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container" css={videoContainer}>
             <ReactPlayer pip={false} 
-             width="100%" height="100%" url={src} volume={0} muted controls={controls} playing
+             width="100%" height="100%" url={src} volume={0} muted controls={controls} playing={playing}
              playsinline light={autoplay?false:thumbnail}
              config={{ file: { attributes: { controlsList: 'nodownload',disablepictureinpicture: 'true' } } }}>
             </ReactPlayer>

@@ -534,7 +534,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
                 item && <animated.div key={key} ref={animatedRef} style={props} css={{overflow:'hidden',height:'auto'}}>
                 <div ref={editorRef} style={{height:'auto'}}>
                     <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}
-                        activeBranch={activeBranch}
+                        activeBranch={activeBranch} autofocus
                     />
                 </div>
             </animated.div>
