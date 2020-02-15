@@ -208,7 +208,7 @@ export default function Login2(){
                         })}>Sign up</Link>
                     </div>
                     <div css={{fontSize:'1.5rem',marginTop:5}}>
-                        <Link to="/register" css={theme=>css({color:'#4b9be0',textDecoration:'none',
+                        <Link to="/password/reset" css={theme=>css({color:'#4b9be0',textDecoration:'none',
                         })}>Forgot password</Link>
                     </div>
                 </div>

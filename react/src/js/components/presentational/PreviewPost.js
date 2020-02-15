@@ -1,7 +1,8 @@
 import React, {useState,useEffect,useLayoutEffect,useCallback,useRef,useContext} from "react";
 import { createPortal } from 'react-dom';
 import history from "../../history"
-import { useSpring,useTransition, animated, interpolate } from 'react-spring/web.cjs'
+import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs'
+import { useGesture } from 'react-use-gesture'
 import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import { createRipples } from 'react-ripples'
@@ -13,7 +14,7 @@ import {Post} from "./SingularPost"
 import {ReplyTree} from './Comments'
 import {SingularPostContext,UserContext} from "../container/ContextContainer"
 import InfiniteScroll from 'react-infinite-scroll-component';
-import {ArrowSvg} from "./Svgs"
+import {ArrowSvg,TextSvg} from "./Svgs"
 import axios from 'axios';
 
 const Ripple = createRipples({
@@ -21,9 +22,10 @@ const Ripple = createRipples({
     during: 600,
 })
 
-const postCss = (theme,backgroundColor) =>css({
+const postCss = (theme,size,isFlat) =>css({
     //border:`1px solid ${theme.borderColor}`,
     display:'flex',
+    flexFlow:size=='small' && isFlat?'row':'column',
     height:'100%',
     position:'relative',
     overflow:'hidden',
@@ -32,28 +34,22 @@ const postCss = (theme,backgroundColor) =>css({
 })
 
 const text = (theme,textPosition,size,hasMedia) =>css({
-    position:'absolute',
     top:textPosition,
     fontSize:size=='xsmall' || size=='small' ? '1.1rem' : '2rem',
-    margin:5,
-    padding:hasMedia?'0px 10px 10px 10px':0,
-    borderRadius:15,
-    color:hasMedia?'white':theme.textColor,
-    backgroundColor:hasMedia?'#00000036':null,
+    color:theme.textColor,
     wordBreak:'break-word',
-    display:'inline',
-    height:'80%',
-    overflow:'hidden'
+    height:'100%',
+    overflow:'hidden',
+    padding:'0 5px'
 })
 
-const postedToImage = (size) =>css({
-    position:'absolute',
+const postedToImage = (size,isLaptopOrDesktop) =>css({
     border:0,
     padding:0,
-    margin:'5px',
+    margin:'0 5px',
     zIndex:330,
-    width:size=='xsmall' || size=='small'?20:40,
-    height:size=='xsmall' || size=='small'?20:40,
+    width:isLaptopOrDesktop?30:20,
+    height:isLaptopOrDesktop?30:20,
     '&:hover':{
         cursor:'pointer'
     }
@@ -61,7 +57,8 @@ const postedToImage = (size) =>css({
 
 const zoom = () =>css({
     transition:'transform ease 0.5s',
-    width:'100%'
+    width:'100%',
+    height:'100%'
 })
 
 const textOverflowButton = () =>css({
@@ -99,8 +96,15 @@ const openPreviewPost = theme =>css({
     width:'95%',
     willChange:'transform, opacity, scale',
     animation: `${scaleUp} 0.33s cubic-bezier(0.390, 0.575, 0.565, 1.000)`,
-    maxHeight:'80vh',
+    maxHeight:window.innerHeight - 100,
     overflow:'auto',
+    '&::-webkit-scrollbar':{
+        width:10
+    },
+    '&::-webkit-scrollbar-thumb':{
+        backgroundColor:theme.scrollBarColor,
+        borderRadius:30,
+    },
     '@media (min-width: 1224px)': {
         width:'40%',
         marginLeft:'37%',
@@ -128,6 +132,20 @@ const bubbleBox = (theme,height=100) =>css({
     }
 })
 
+const name = (isLaptopOrDesktop,size,isFlat) =>css({
+    fontWeight:'bold',
+    /*width:isLaptopOrDesktop?isFlat && size!='xsmall'?50:100:isFlat && size!='xsmall'?40:70,*/
+    width:'100%',
+    display:'-webkit-box',
+    WebkitLineClamp:3,
+    WebkitBoxOrient:'vertical',
+    overflow:'hidden',
+    textOverflow:'ellipsis',
+    wordBreak:'break-word',
+    padding:2,
+    boxSizing:'border-box',
+})
+
 const scaleUp = keyframes`
   0%{
     transform: scale(0.7) translate(0px, 20px);
@@ -152,25 +170,57 @@ const off = (offset=200) => ({
     })
 const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
-export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
+const postTo = (y=0) => ({ y:y })
+
+export const PreviewPost = React.memo(({post,viewAs,isFlat,size,shouldOpen=null,position})=>{
     const ref = useRef(null);
     const imageRef = useRef(null);
     const containerRef = useRef(null);
     const textRef = useRef(null);
     const [imageWidth,setImageWidth] = useState(0);
+    const [height,setHeight] = useState(0);
     const [textPosition,setTextPosition] = useState(0);
     const [postShown,setPostShown] = useState(false);
     const [commentsShown,setCommentsShown] = useState(false);
+    const [useTimer,setTimer] = useState(true);
     const images = post.images;
     const videos = post.videos;
+    const postSlideIndex = useRef(0);
+    let postSlideInterval = null;
     const theme = useTheme();
-    let backgroundColor = theme.dark?'#151827':null
+    let hasMedia = post.videos.length>0 || post.images.length > 0
+
+    const isLaptopOrDesktop = useMediaQuery({
+        query: '(min-device-width: 1224px)'
+    })
+
+    const isTall = useMediaQuery({
+        query: '(min-device-height: 600px)'
+    })
+
+    const nameOffset = isLaptopOrDesktop?40:30;
 
     useLayoutEffect(()=>{
         if(ref.current){
-            setImageWidth(ref.current.clientWidth)
+            setImageWidth(ref.current.clientWidth);
         }
     },[ref])
+
+    useLayoutEffect(()=>{
+        if(containerRef.current){
+            setHeight(containerRef.current.clientHeight);
+        }
+    },[containerRef,post.id])
+
+    useEffect(() => {
+        if(hasMedia && post.text && useTimer){
+            postSlideInterval = setInterval(() => {            
+                postSlideIndex.current = postSlideIndex.current == 0?1:0;
+                set((i)=>postTo((postSlideIndex.current * height)*-1 + (i==1?nameOffset:0)))
+            }, 3000);
+            return () => clearInterval(postSlideInterval);
+        }
+    }, [height,useTimer]);
 
     useLayoutEffect(()=>{
         if(postShown){
@@ -195,6 +245,54 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         }
     },[imageRef])
 
+    const [props, set] = useSprings(2, i => ({ y: hasMedia?0:nameOffset }))
+    
+    useLayoutEffect(()=>{
+        set((i)=>{
+            return { y: hasMedia?0:nameOffset }
+        })
+    },[post])
+
+    const bind = useDrag(({ down, movement:[mx,my],direction:[xDir,yDir],velocity,cancel }) => {
+        setTimer(false);
+        if(hasMedia && post.text){
+            
+        }else{
+            cancel();
+            return;
+        }
+        const trigger = velocity > 0.4 && Math.abs(my) > 10 || Math.abs(my) > 50;
+        const isGone = trigger;
+        if(isGone){
+            cancel();
+        }
+        postSlideIndex.current = isGone? yDir < 0 ? postSlideIndex.current+1 :postSlideIndex.current - 1 : postSlideIndex.current
+        if(postSlideIndex.current > 1) postSlideIndex.current = 1;
+        if(postSlideIndex.current < 0) postSlideIndex.current = 0;
+
+        set(i=>{
+            let y;
+            if(isGone){
+                y = (postSlideIndex.current * height)*-1 + (i==1?nameOffset:0);
+            }else{
+                let fixMy;
+                if(postSlideIndex.current==0){
+                    fixMy = my;
+                }else{
+                    fixMy = my - height + nameOffset
+                }
+
+                y = (down ? fixMy : hasMedia?0:nameOffset)
+                if(y > 0){
+                    y = 0;
+                }else if(y < height*(-1)){
+                    y = height*(-1)
+                }
+            }
+            return {y:y}
+        })
+    },{axis:'y'})
+
     function handleClick(){
         if(shouldOpen===null){
             setPostShown(true)
@@ -213,7 +311,6 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         }
     },[postShown])
     
-    let hasMedia = post.videos.length>0 || post.images.length > 0
 
     const [textCount,setTextCount] = useState(0);
     const [textOverflowing,setTextOverflowing] = useState(false);
@@ -228,40 +325,60 @@ export const PreviewPost = React.memo(({post,viewAs,size,shouldOpen=null})=>{
         }
     },[textRef])
 
-    const isLaptopOrDesktop = useMediaQuery({
-        query: '(min-device-width: 1224px)'
-    })
+    function handleSwitchClick(e){
+        e.stopPropagation();
+        setTimer(false);
 
-    const isTall = useMediaQuery({
-        query: '(min-device-height: 600px)'
-    })
+        postSlideIndex.current = postSlideIndex.current == 0?1:0;
+        set((i)=>postTo((postSlideIndex.current * height)*-1 + (i==1?nameOffset:0)))
+    }
 
     return (
         <>
-        <div css={theme=>postCss(theme,backgroundColor)} ref={ref}>
-            <img className="post-profile-picture round-picture double-border noselect" 
-            src={post.posted_to[0].branch_image} css={()=>postedToImage(size)} ref={imageRef}
-                onClick={(e)=>{
-                    e.stopPropagation();
-                    history.push(`/${post.posted_to[0].uri}`);
-                }}
-            />
-            <div css={zoom} ref={containerRef} onClick={handleClick}>
-                <PreviewPostMedia images={images} measure={null} 
-                videos={videos} imageWidth={imageWidth} viewAs={viewAs}/>
-                {textOverflowing?<div css={textOverflowButton}>{textCount} words</div>:null}
-                {post.text?
-                <>
-                {size=='xsmall' || size=='small'?
-                <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
-                    <div css={{display:'inline-block',width:30,height:23}}></div>
-                    <div ref={textRef} css={{display:'inline'}}>{post.text}</div>
-                </div>:
-                <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
-                    <div ref={textRef} css={{display:'inline'}}>{post.text}</div>
-                </div>}
-                
-                </>:null}
+        <div css={theme=>postCss(theme,size,isFlat)} ref={ref}>
+            <div css={theme=>({display:'flex',/*flexFlow:size=='small' && isFlat?'column':'row',alignItems:'center'*/
+            zIndex:10,position:'absolute',height:nameOffset})}>
+                <div css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+                    <img className="post-profile-picture round-picture double-border noselect" 
+                    src={post.posted_to[0].branch_image} css={()=>postedToImage(size,isLaptopOrDesktop)} ref={imageRef}
+                        onClick={(e)=>{
+                            e.stopPropagation();
+                            history.push(`/${post.posted_to[0].uri}`);
+                        }}
+                    />
+                    <span css={theme=>name(isLaptopOrDesktop,size,isFlat)}>{post.posted_to[0].name}</span>
+                </div>
+            </div>
+            {post.text && hasMedia?
+            <div css={{position:'absolute',bottom:0,right:0,zIndex:20}} onClick={handleSwitchClick}>
+                <div css={{margin:10}}>
+                    <TextSvg css={{fill:'white',backgroundColor:'#00000038',padding:10,borderRadius:'50%',
+                    height:12,width:12,overflow:'visible'}}/>
+                </div>
+            </div>:null}
+            <div css={zoom} ref={containerRef} onClick={handleClick} {...bind()}>
+             {props.map(({y},i)=>{
+                return <animated.div key={i} {...bind(i)}
+                style={{height:'100%',width:'100%',willChange:'transform',
+                transform:y.interpolate(y=>`translateY(${y}px)`)}}>
+                    {i==0 && hasMedia?<PreviewPostMedia images={images} measure={null} 
+                    videos={videos} imageWidth={imageWidth} viewAs={viewAs} position={position}/>
+                    :null}
+                    {/*textOverflowing?<div css={textOverflowButton}>{textCount} words</div>:null*/}
+
+                    {post.text && ((i==1 && hasMedia) || (i==0 && !hasMedia))?
+                    <>
+                    {size=='xsmall' || size=='small'?
+                    <div className="noselect" css={theme=>text(theme,0,size,hasMedia)}>
+                        <div ref={textRef}>{post.text}</div>
+                    </div>:
+                    <div className="noselect" css={theme=>text(theme,textPosition,size,hasMedia)}>
+                        <div ref={textRef}>{post.text}</div>
+                    </div>}
+                    
+                    </>:null}
+                </animated.div>
+             })}
             </div>
         </div>
 
@@ -572,14 +689,14 @@ function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
         style={{ transform: aniTo([props.y,props.scale],(y,s) => {return `translateY(${y}px) scale(${s})`})}}>
             <div ref={preventScrollRef}>
                 <Post post={post} postsContext={postsContext} down={initTo}
-                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post"/>
+                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post" preview/>
             </div>
         </animated.div>
         {isMobile?
             openTransitions.map(({item, props, key}) => (
                 item && <animated.div key={key} style={props} css={theme=>({position:'fixed',bottom:0,width:'100%',
                 height:60,backgroundColor:theme.backgroundLightColor,boxShadow:'0 2px 5px 0px #000000b0',
-                zIndex:123123123,display:'flex',justifyContent:'center',alignItems:'center',willChange:'transform'})} 
+                zIndex:20000,display:'flex',justifyContent:'center',alignItems:'center',willChange:'transform'})} 
                 onClick={handleMenuClick}>
                     <ArrowSvg css={theme=>({fill:theme.textColor,height:'50%',transform:'rotate(90deg)'})}/>
                 </animated.div>
@@ -620,6 +737,7 @@ function useReplies(post){
 
 function CommentBox({post,postsContext,activeBranch,parentRef}){
     const [hasMore,replyTrees,fetchData] = useReplies(post);
+    const [userReplies,setUserReplies] = useState([]);
 
     useEffect(()=>{
         try{
@@ -636,6 +754,13 @@ function CommentBox({post,postsContext,activeBranch,parentRef}){
     },[hasMore,replyTrees])
 
     return(
+        <>
+        {userReplies.map(rt=>{
+            return <ReplyTree topPost={post} parentPost={post} currentPost={rt} 
+            postsContext={postsContext} activeBranch={activeBranch}
+            isStatusUpdateActive={false} isSingular
+            />
+        })}
         <InfiniteScroll
         scrollableTarget='comment-scroller'
         dataLength={replyTrees.length}
@@ -659,6 +784,7 @@ function CommentBox({post,postsContext,activeBranch,parentRef}){
                 />
             })}
         </InfiniteScroll>
+        </>
     )
 }
 

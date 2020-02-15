@@ -10,6 +10,7 @@ import {SkeletonFixedGrid} from "./SkeletonGrid"
 import StatusUpdate from "./StatusUpdate";
 import {SwipeablePostGridContext,UserContext} from "../container/ContextContainer";
 import {useMediaQuery} from 'react-responsive'
+import MoonLoader from 'react-spinners/MoonLoader';
 import {PlusSvg,CloseSvg} from "./Svgs"
 import history from "../../history"
 
@@ -31,7 +32,7 @@ const gridContainer = () =>css({
     gridTemplateRows:`repeat(auto-fit, minmax(4vmin, 1fr))`,
     gridAutoRows:'1fr',
     gridAutoColumns:'1fr',
-    gridGap:10,
+    gridGap:5,
     gridAutoFlow:'dense',
 })
 
@@ -48,17 +49,9 @@ const bigCell = (isFlat,size) =>css({
 const animatedDiv = (theme,supportsGrid) =>css({
     overflow:supportsGrid?'hidden':'auto',
     boxShadow:'rgba(0, 0, 0, 0.56) -1px 4px 8px -3px',
-    padding:5,
     boxSizing:'border-box',
     backgroundColor:theme.backgroundColor,
-    border:'4px solid transparent',
     willChange:'transform',
-    '@media (min-device-width: 767px)':{
-        '&:hover':{
-            borderRadius:10,
-            border:'4px solid #2196f3'
-        }
-    }
 })
 
 const optionWrapper = theme =>css({
@@ -576,11 +569,18 @@ const MovingPage = React.memo(({pageProps,aniProps,width,dataIndexChanged,hasMor
         data-position={position.current} css={theme=>animatedDiv(theme,supportsGrid)}
         style={{position:'absolute',transform : aniTo([aniProps.x],(x) => `translateX(${getX(x)}px)`),
         width:'100%',zIndex:positions.findIndex(p=>position.current == p),height:'100%'}}>
-            <div className="noselect" style={{height:'100%',borderRadius:15,overflow:'hidden'}}>
+            <div className="noselect" style={{height:'100%',overflow:'hidden'}}>
                 {pages[pageIndex.current] ?
                     <Page index={pageIndex.current} page={pages[pageIndex.current]} position={position.current}
+                    pagePosition={position}
                     {...pageProps}
-                />:hasMore?pageIndex.current>=0?<SkeletonFixedGrid/>:null:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
+                />:hasMore?pageIndex.current!=0?<div css={{display:'flex',height:'100%',
+                width:'100%',justifyContent:'center',alignItems:'center'}}><MoonLoader
+                        sizeUnit={"px"}
+                        size={20}
+                        color={'#123abc'}
+                        loading={true}
+                    /></div>:pageIndex.current==0?<SkeletonFixedGrid/>:null:<LastPage index={pageIndex.current} jumpToBack={jumpToBack} 
                 activeBranch={pageProps.activeBranch} isFeed={pageProps.isFeed} 
                 refresh={pageProps.refresh} container={pageProps.container} setShowCreate={pageProps.setShowCreateRef}
                 postsContext={pageProps.postsContext} updateFeed={pageProps.updateFeed} posts={pageProps.posts}/>}
@@ -658,16 +658,15 @@ function shuffle(a) {
 
 function Page({page,activeBranch,postsContext,
     pageType,height,shouldOpen,index,
-    movX,setOpenRef,setShowCreateRef}){
+    movX,setOpenRef,setShowCreateRef,position}){
     
-    let supportsGrid = cssPropertyValueSupported('display', 'grid');
-    const cachedPageLength = useRef(page.length)
-    const gridGap = 10;
-    const implicitRowCount = (height-10*gridGap)/12;
-
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
     })
+    let supportsGrid = cssPropertyValueSupported('display', 'grid');
+    const cachedPageLength = useRef(page.length)
+    let gridGap = isMobile?5:10;
+    const implicitRowCount = (height-10*gridGap)/12;
 
     let sizes = {
         small:{
@@ -825,7 +824,9 @@ function Page({page,activeBranch,postsContext,
             {order.map((o,i)=>{
                 return <div key={i}
                 css={()=>cell(isFlat(o.post)?o.size.flatDimensions:o.size.defaultDimensions,isMobile)}>
-                    <TestPost postProps={getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}/>
+                    <TestPost postProps={getPostProps(o.post)} viewAs="post" size={o.size.label} shouldOpen={shouldOpen}
+                        isFlat={isFlat(o.post)} position={position}
+                    />
                 </div>
             })}
             <div key="menu" css={theme=>({gridColumn:`span ${sizes.small.defaultDimensions[0]}`,
@@ -852,12 +853,13 @@ function Page({page,activeBranch,postsContext,
     )
 }
 
-const TestPost = React.memo(({postProps,size,shouldOpen})=>{
-
+const TestPost = ({postProps,isFlat,size,shouldOpen,position})=>{
     return(
-        <PreviewPost {...postProps} viewAs="post" size={size} shouldOpen={shouldOpen}/>
+        <PreviewPost {...postProps} viewAs="post" size={size} shouldOpen={shouldOpen} isFlat={isFlat}
+            position={position}
+        />
     )
-})
+}
 
 function LastPage({index,jumpToBack,refresh,posts,setShowCreate}){
     const userContext = useContext(UserContext);

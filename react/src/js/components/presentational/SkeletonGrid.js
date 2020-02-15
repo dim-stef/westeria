@@ -11,7 +11,7 @@ const gridContainer = () =>css({
     gridTemplateRows:`repeat(auto-fit, minmax(4vmin, 1fr))`,
     gridAutoRows:'1fr',
     gridAutoColumns:'1fr',
-    gridGap:10,
+    gridGap:5,
     gridAutoFlow:'dense',
 })
 
@@ -24,7 +24,7 @@ const fixedGridContainer = () =>css({
     "d d d"
     "d d d"
     "e f f"`,
-    gridGap:10,
+    gridGap:5,
 })
 
 const gridAreaBox = place =>css({

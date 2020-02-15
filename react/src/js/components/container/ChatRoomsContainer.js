@@ -342,8 +342,14 @@ function RoomContainer({roomData,match}){
                 <RoutedHeadline to="/messages" className="chat-headline" containerStyle={{backgroundColor:theme.backgroundColor}}>
                     {headline}
                 </RoutedHeadline>
-                <div ref={parentRef} className="flex-fill" style={{padding:'10px',overflowY:'auto',flex:1,msFlex:1,WebkitFlex:1,
-                flexFlow:'column',WebkitFlexFlow:'column'}}>
+                <div ref={parentRef} className="flex-fill" css={theme=>({padding:'10px',overflowY:'auto',flex:1,
+                flexFlow:'column',
+                '&::-webkit-scrollbar':{
+                    width:10
+                },
+                '&::-webkit-scrollbar-thumb':{
+                    backgroundColor:theme.scrollBarColor,
+                }})}>
                     <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
                     setFirstBatch={setFirstBatch} prevScrollHeight={prevScrollHeight}
                     parentRef={parentRef} wrapperRef={ref}/> 

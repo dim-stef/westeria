@@ -51,7 +51,7 @@ function isFileVideo(file) {
 }
 
 export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null,
-    redirect=false,postingTo=null}){
+    redirect=false,postingTo=null,autofocus=false}){
 
     const theme = useTheme();
     const [value,setValue] = useState('');
@@ -167,6 +167,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     editorRef={editorRef}
                     onInput={handleChange}
                     placeholder={placeholder}
+                    autofocus={autofocus}
                     className="editor flex-fill text-wrap"
                     value={value}
                     style={{padding:'5px 10px',backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,
@@ -263,28 +264,6 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
         }).finally(()=>{
             setLoading(false);
         })
-
-        /*fetch(uri,{
-            method:'POST',
-            body:formData,
-            headers: {
-                'Content-Type': 'multipart/form-data',
-                'X-CSRF-TOKEN': getCookie('csrftoken')
-            },
-            
-        }).then(response => {
-            if(redirect){
-                history.push(`/${branch.uri}/leaves/${response.data.id}`)
-            }
-            resetEditor();
-            axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
-                updateFeed(response.data);
-            })
-        }).catch(error => {
-                console.log(error.response)
-        }).finally(()=>{
-            setLoading(false);
-        })*/
     }
 
     useEffect(()=>{

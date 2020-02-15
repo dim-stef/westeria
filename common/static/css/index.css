@@ -1132,3 +1132,7 @@ input,textarea{
 * {
     -webkit-tap-highlight-color: transparent; /* for removing the highlight */
 }
+[contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
+}
