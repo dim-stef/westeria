@@ -66,10 +66,9 @@ function resetPostListContext(postsContext,props){
     postsContext.lastPage = 0
 }
 
-function DisplayPosts({isFeed,posts,setPosts,
-    postsContext,resetPostsContext,
-    updateFeed,postedId,fetchData,hasMore,
-    showPostedTo,activeBranch,refresh,target,keyword}){
+function DisplayPosts({isFeed,posts,
+    postsContext,
+    updateFeed,postedId,fetchData,hasMore,activeBranch,refresh}){
     
     const isMobileOrTablet = useMediaQuery({
         query: '(max-device-width: 1223px)'

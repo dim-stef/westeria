@@ -44,17 +44,39 @@ const mediaContainer = (image=null) =>css({
     }
 })
 
-export function PreviewPostMedia({images,videos,position}){
+export const PreviewPostMedia = React.memo(function PreviewPostMedia({images,videos}){
 
     return(
         <div css={mediaContainer}>
             {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
-                thumbnail={videos[0].thumbnail} controls={false} playing={position=='middle'?true:false}
+                thumbnail={videos[0].thumbnail} controls={false} playing
             />:images.length>0?<FadeImage className="noselect" css={previewImage} src={images[0].image} draggable="false"/>:null
             }
         </div>
     )
-}
+},(prevProps,nextProps)=>{
+    if(prevProps.images.length != nextProps.images.length || prevProps.videos.length != nextProps.videos.length){
+        return false;
+    }else{
+        if(prevProps.images.length > 0){
+            // if images are different rerender
+            for(let i = 0;i<prevProps.images.length;i++){
+                if(prevProps.images[i].image != nextProps.images[i].image){
+                    return false;
+                }
+            }
+        }
+        if(prevProps.videos.length > 0){
+            // if videos are different rerender
+            for(let i = 0;i<prevProps.videos.length;i++){
+                if(prevProps.videos[i].video != nextProps.videos[i].video){
+                    return false;
+                }
+            }
+        }
+    }
+    return true
+})
 
 export function Images(props){
     const theme = useTheme();

@@ -185,7 +185,7 @@ const trans = (r, s, y) => `translate(0px,${y}px) scale(${s})`
 
 const postTo = (y=0) => ({ y:y })
 
-export const PreviewPost = React.memo(({post,viewAs,isFlat,size,shouldOpen=null,position})=>{
+export const PreviewPost = React.memo(function PreviewPost({post,viewAs,isFlat,size,shouldOpen=null,position}){
     const ref = useRef(null);
     const imageRef = useRef(null);
     const containerRef = useRef(null);
@@ -372,7 +372,7 @@ export const PreviewPost = React.memo(({post,viewAs,isFlat,size,shouldOpen=null,
             <div css={zoom} ref={containerRef} onClick={handleClick} {...bind()}>
              {props.map(({y},i)=>{
                 return <animated.div key={i} {...bind(i)}
-                style={{height:'100%',width:'100%',willChange:'transform',
+                style={{height:'100%',width:'100%',willChange:hasMedia && post.text?'transform':null,
                 transform:y.interpolate(y=>`translateY(${y}px)`)}}>
                     {i==0 && hasMedia?<PreviewPostMedia images={images} measure={null} 
                     videos={videos} imageWidth={imageWidth} viewAs={viewAs} position={position}/>
@@ -405,8 +405,15 @@ export const PreviewPost = React.memo(({post,viewAs,isFlat,size,shouldOpen=null,
         }
         </>
     )
-})
+},areEqual)
 
+function areEqual(prevProps, nextProps) {
+    if(prevProps.post.id == nextProps.post.id){
+        return true
+    }
+
+    return false
+}
 
 const fullScreenFrom = ()=> ({y:window.innerHeight + 10,x:0});
 const fullScreenTo = ()=> ({y:0,x:0});

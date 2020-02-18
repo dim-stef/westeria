@@ -1,6 +1,6 @@
 import React, {useEffect,useLayoutEffect,useRef,useState,useContext} from "react";
 import ReactDOM from "react-dom";
-import {Link,NavLink,useLocation} from "react-router-dom";
+import {Link,NavLink,Route,useLocation} from "react-router-dom";
 import history from "../../history";
 import {css} from "@emotion/core";
 import { useSpring,useSprings,useTransition, animated, interpolate } from 'react-spring/web.cjs';
@@ -11,7 +11,7 @@ import {useFollowingBranches,useTopLevelBranches} from "../container/BranchConta
 import {useTheme} from "../container/ThemeContainer";
 import {useTheme as useEmotionTheme} from "emotion-theming";
 import {StatusUpdate} from "./StatusUpdate";
-import {HamburgerSvg} from "./Svgs"
+import {HamburgerSvg,UserSvg,CommunitySvg,TreeSvg,EarthSvg,HomeSvg} from "./Svgs"
 import bezier from "bezier-easing"
 
 const dropdownList = (theme,getTheme,ref) =>css({
@@ -64,7 +64,6 @@ const linkCss = theme =>css({
     textDecoration:'none',
     color:theme.textColor,
     margin:'0 5px',
-    borderBottom:'2px solid transparent',
     fontSize:'1.6rem',
     fontWeight:'bold',
     flexGrow:1,
@@ -72,18 +71,34 @@ const linkCss = theme =>css({
     width:'33%',
     overflow:'hidden',
     display:'flex',
+    flexFlow:'column',
     justifyContent:'center',
     alignItems:'center',
+    borderRadius:10,
+    padding:'2px 0',
+    transition:'background-color 0.2s',
     '@media (max-device-width:767px)':{
-        fontSize:'1.3rem',
+        fontSize:'1.1rem',
+    },
+    '&:active':{
+        backgroundColor:'rgba(33, 150, 243, 0.19)',
+        
+    },
+})
+
+const activeLink = theme =>css({
+    'svg':{
+        fill:'rgb(33, 150, 243)'
     }
 })
 
-const linkContentCss = () =>css({
+const linkContentCss = (theme,match) =>css({
     overflow:'hidden',
     textOverflow:'ellipsis',
     whiteSpace:'nowrap',
-    width:'100%'
+    width:'100%',
+    color:match?theme.primaryColor:theme.textColor,
+    transition:'color 250ms'
 })
 
 function PostListPicker({postsContext,branch}){
@@ -248,6 +263,17 @@ const swipeableBarWrapper = theme =>css({
     willChange:'transform'
 })
 
+const navIcon = (theme,match) =>css({
+    fill:match?theme.primaryColor:theme.textHarshColor,
+    height:25,
+    width:25,
+    transition:'fill 250ms',
+    '@media (max-device-width:767px)':{
+        height:20,
+        width:20
+    }
+})
+
 const bubble = theme =>css({
     color:theme.textColor,
     textDecoration:'none',
@@ -280,7 +306,7 @@ const bubble = theme =>css({
 
 const sliderTo = (y=0) =>({y:y})
 
-export function SwipeableBar({postsContext,refresh,branch,isFeed,width}){
+export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refresh,branch,isFeed,width}){
     const theme = useEmotionTheme();
     const loc = useLocation();
     const [location,setLocation] = useState(loc);
@@ -409,12 +435,6 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,width}){
         onClick:handleBubbleClick
     }
 
-    let linkProps = {
-        activeStyle:{
-            borderBottom:'2px solid #2196f3'
-        },
-    }
-
 
     return(
         <div css={superBar} ref={superBarRef} id="super-bar" style={{width:width}}>
@@ -439,25 +459,71 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,width}){
                         justifyContent:'center',alignItems:'center','@media (max-device-width:767px)':{
                             maxWidth:'100%'
                         }}}>
-                            {isMobile?<h4 css={{margin:'0 10px',alignSelf:'flex-start'}}>{headerText}</h4>:null}
                             {(isFeed)?
                             <div css={{display:'flex',flexGrow:1,width:'100%',justifyContent:'center',width:'100%'}}>
                                 {userContext.isAuth?
                                 <>
-                                <NavLink exact to="/" css={linkCss} {...linkProps}><span css={linkContentCss}>Feed</span></NavLink>
-                                <NavLink to="/tree" css={linkCss} {...linkProps}><span css={linkContentCss}>Tree</span></NavLink>
-                                <NavLink to="/all" css={linkCss} {...linkProps}><span css={linkContentCss}>All</span></NavLink>
+                                <NavLink exact to="/" css={linkCss}>
+                                    
+                                    <Route exact path="/" children={({ match }) => (
+                                        <>
+                                        <HomeSvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text="Feed" match={match}></LinkText>
+                                        </>
+                                    )} />
+                                </NavLink>
+                                <NavLink to="/tree" css={linkCss}>
+                                    <Route exact path="/tree" children={({ match }) => (
+                                        <>
+                                        <TreeSvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text="Tree" match={match}></LinkText>
+                                        </>
+                                    )} />
+                                </NavLink>
+                                <NavLink to="/all" css={linkCss}>
+                                    <Route exact path="/all" children={({ match }) => (
+                                        <>
+                                        <EarthSvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text="All" match={match}></LinkText>
+                                        </>
+                                    )} />
+                                </NavLink>
                                 </>
-                                :<NavLink to="/" css={linkCss} {...linkProps}><span css={linkContentCss}>All</span></NavLink>}
+                                :<NavLink to="/" css={linkCss}>
+                                    <Route path="/" children={({ match }) => (
+                                        <>
+                                        <EarthSvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text="All" match={match}></LinkText>
+                                        </>
+                                    )} />
+                                    <Route>
+                                </Route></NavLink>}
                             </div>:null}
                             {!isFeed?
                             <div css={{display:'flex',flexGrow:1,width:'100%',justifyContent:'center',width:'100%'}}>
-                                <NavLink exact to={`/${branch.uri}`} css={linkCss}  {...linkProps}>
-                                <span css={linkContentCss}>{branch.name}</span></NavLink>
-                                <NavLink to={`/${branch.uri}/tree`} css={linkCss}  {...linkProps}>
-                                <span css={linkContentCss}>Tree</span></NavLink>
-                                <NavLink to={`/${branch.uri}/community`} css={linkCss}  {...linkProps}>
-                                <span css={linkContentCss}>Community</span></NavLink>
+                                <NavLink exact to={`/${branch.uri}`} css={linkCss} >
+                                    <Route exact path={`/${branch.uri}`} children={({ match }) => (
+                                        <>
+                                        <UserSvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text={branch.name} match={match}></LinkText>
+                                        </>
+                                    )} />
+                                </NavLink>
+                                <NavLink to={`/${branch.uri}/tree`} css={linkCss} >
+                                    <Route exact path={`/${branch.uri}/tree`} children={({ match }) => (
+                                        <>
+                                        <TreeSvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text="Tree" match={match}></LinkText>
+                                        </>
+                                    )} /></NavLink>
+                                <NavLink to={`/${branch.uri}/community`} css={linkCss}>
+                                    <Route exact path={`/${branch.uri}/community`} children={({ match }) => (
+                                        <>
+                                        <CommunitySvg css={theme=>navIcon(theme,match)}/>
+                                        <LinkText text="Community" match={match}></LinkText>
+                                        </>
+                                    )} />
+                                </NavLink>
                             </div>:null}
                         </div>:
                         <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()} onClickCapture={onClickCapture} 
@@ -494,6 +560,32 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,width}){
             </div>
         </div>
     )
+},(prevProps,nextProps)=>{
+    if(prevProps.branch && nextProps.branch && 
+        prevProps.branch.uri == nextProps.branch.uri && prevProps.width == nextProps.width){
+        return true;
+    }
+    return false;
+})
+
+function LinkText({text,match}){
+    
+    const transitions = useTransition(match, null, {
+        from: { opacity: 0, height:0},
+        enter: { opacity: 1, height:20},
+        leave: { opacity: 0, height:0},
+        config: {
+            duration: 250,
+            easing:t => t*(2-t)
+        },
+    })
+
+    return (
+        <div css={theme=>linkContentCss(theme,match)}>
+            {text}
+        </div>
+    )
+    
 }
 
 function BubbleBranch({branch,shouldClick}){
