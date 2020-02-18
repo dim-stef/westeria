@@ -1,4 +1,4 @@
-import React, {useEffect,useRef,useState,useContext} from "react";
+import React, {useEffect,useLayoutEffect,useRef,useState,useContext} from "react";
 import ReactDOM from "react-dom";
 import {Link,NavLink,useLocation} from "react-router-dom";
 import history from "../../history";
@@ -11,6 +11,8 @@ import {useFollowingBranches,useTopLevelBranches} from "../container/BranchConta
 import {useTheme} from "../container/ThemeContainer";
 import {useTheme as useEmotionTheme} from "emotion-theming";
 import {StatusUpdate} from "./StatusUpdate";
+import {HamburgerSvg} from "./Svgs"
+import bezier from "bezier-easing"
 
 const dropdownList = (theme,getTheme,ref) =>css({
     zIndex:1,
@@ -46,12 +48,42 @@ const optionCss = (theme,isMobile) =>css({
     }
 })
 
-const superBar = () =>css({
+const superBar = theme =>css({
     boxSizing:'border-box',
     overflow:'hidden',
+    display:'flex',
+    alignItems:'center',
+    padding:'5px 0',
+    backgroundColor:theme.backgroundLightColor,
     '@media (max-device-width: 767px)':{
         margin:0
     }
+})
+
+const linkCss = theme =>css({
+    textDecoration:'none',
+    color:theme.textColor,
+    margin:'0 5px',
+    borderBottom:'2px solid transparent',
+    fontSize:'1.6rem',
+    fontWeight:'bold',
+    flexGrow:1,
+    textAlign:'center',
+    width:'33%',
+    overflow:'hidden',
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    '@media (max-device-width:767px)':{
+        fontSize:'1.3rem',
+    }
+})
+
+const linkContentCss = () =>css({
+    overflow:'hidden',
+    textOverflow:'ellipsis',
+    whiteSpace:'nowrap',
+    width:'100%'
 })
 
 function PostListPicker({postsContext,branch}){
@@ -186,7 +218,6 @@ const superBarWrapper = (isDark) =>css({
 
 })
 
-import bezier from "bezier-easing"
 
 export function SuperBar({postsContext,refresh,branch,isFeed,updateFeed,postedId}){
     const getTheme = useTheme();
@@ -210,7 +241,6 @@ export function SuperBar({postsContext,refresh,branch,isFeed,updateFeed,postedId
 }
 
 const swipeableBarWrapper = theme =>css({
-    paddingTop:'10px',
     boxSizing:'border-box',
     height:'inherit',
     display:'flex',
@@ -223,7 +253,7 @@ const bubble = theme =>css({
     textDecoration:'none',
     userSelect:'none',
     userDrag:'none',
-    padding:'5px 15px',
+    padding:'5px 8px',
     fontSize:'1.4rem',
     fontWeight:'bold',
     backgroundColor:theme.hoverColor,
@@ -233,6 +263,8 @@ const bubble = theme =>css({
     justifyContent:'center',
     alignItems:'center',
     width:'max-content',
+    zIndex:1,
+    fill:theme.textColor,
     'a':{
         color:theme.textColor,
         textDecoration:'none',
@@ -246,21 +278,64 @@ const bubble = theme =>css({
     }
 })
 
-export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,postedId,width}){
+const sliderTo = (y=0) =>({y:y})
+
+export function SwipeableBar({postsContext,refresh,branch,isFeed,width}){
     const theme = useEmotionTheme();
     const loc = useLocation();
-    const [location,setLocation] = useState(loc)
+    const [location,setLocation] = useState(loc);
+    const [height,setHeight] = useState(0);
     const userContext = useContext(UserContext);
     const parentBranchDrawerContext = useContext(ParentBranchDrawerContext)
-    const barRef = useRef(null);
+    const indexRef = useRef(0);
     const containerRef = useRef(null);
+    const superBarRef = useRef(null);
+    const barRef = useRef(null);
     const shouldClick = useRef(true);
     const fillerBranches = userContext.isAuth?useFollowingBranches():useTopLevelBranches();
+
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    let headerText;
+    if(postsContext.content=='all'){
+        headerText = 'All leaves';
+    }else if(postsContext.content=='tree'){
+        headerText = 'Tree leaves';
+    }else if(postsContext.content=='branch'){
+        headerText = `${branch.name}'s leaves`;
+    }else if(postsContext.content=='branch_community'){
+        headerText = 'Community leaves';
+    }else if(postsContext.content=='branch_tree'){
+        headerText = 'Tree leaves';
+    }else{
+        headerText = 'Feed leaves';
+    }
+
+    useLayoutEffect(()=>{
+        if(superBarRef.current){
+            setHeight(superBarRef.current.clientHeight);
+        }
+    },[superBarRef])
 
     const [props, set] = useSpring(() => ({
         from:{ x:0 },
         config:{tension:370,friction:27},
     }))
+
+    const [switcherProps, switcherSet,stop] = useSprings(2,i => ({
+        // using 60 as an estimated height for the bar
+        from:{ y:i*60 },
+    }))
+
+    useEffect(()=>{
+        if(height!=0){
+            switcherSet((i)=>({
+                to:sliderTo(i*height),
+            }))
+        }
+    },[height])
 
     const bind = useDrag(({ down,movement:[mx,my], offset: [ox, oy],delta:[dx,dy], velocity,direction:[xDir,yDir],
         memo = props.x.getValue() }) => {
@@ -299,14 +374,14 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
         }
     }
 
-    function handleDrawerClick(){
+    function handleDrawerClick(e){
+        e.stopPropagation();
         try{
             parentBranchDrawerContext.setShow(true);
         }catch(e){
             // no drawer is shown
             // desktop user goes here
-        }
-        
+        }   
     }
 
     let activeStyle={
@@ -318,53 +393,105 @@ export function SwipeableBar({postsContext,refresh,branch,isFeed,updateFeed,post
         set({x:0})
     }
 
+    function handleMenuClick(e){
+        e.stopPropagation();
+        indexRef.current = indexRef.current==0?1:0;
+
+        switcherSet((i)=>({
+            to:sliderTo((height)*(i-indexRef.current)),
+        }))
+
+    }
+
     let bubbleProps = {
         activeStyle:activeStyle,
         shouldClick:shouldClick,
         onClick:handleBubbleClick
     }
 
-    return(
-        <div css={superBar} id="super-bar" ref={containerRef} style={{width:width,paddingBottom:5}} onClickCapture={onClickCapture}>
-            <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()}
-            style={{transform:props.x.interpolate(x=>`translateX(${x}px)`)}}>
-                {branch?
-                <div css={theme=>({...bubble(theme),backgroundColor:theme.backgroundLightColor})}
-                 style={{padding:6,order:-2}} onClick={handleDrawerClick}>
-                    <img css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}} src={branch.branch_image}/>
-                </div>:null}
-                <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
-                {(isFeed && userContext.isAuth) || !isFeed?
-                <div css={bubble}><Branches branch={branch} shouldClick={shouldClick}/></div>:null}
-                {(isFeed && userContext.isAuth)?
-                <>
-                    <BubbleNavLink to="/" label="Feed" {...bubbleProps}/>
-                    <BubbleNavLink to="/tree" label="Tree leaves" {...bubbleProps}/>
-                    <BubbleNavLink to="/all" label="All leaves" {...bubbleProps}/>
-                </>:null}
-                {!isFeed?
-                <>
-                    <BubbleNavLink to={`/${branch.uri}`} 
-                    {...bubbleProps} label={`${branch.name}'s leaves`}/>
-                    <BubbleNavLink to={`/${branch.uri}/tree`} {...bubbleProps} label="Tree leaves"/>
-                    <BubbleNavLink to={`/${branch.uri}/community`} 
-                    {...bubbleProps} label="Community leaves" />
-                </>:null}
+    let linkProps = {
+        activeStyle:{
+            borderBottom:'2px solid #2196f3'
+        },
+    }
 
-                {fillerBranches && fillerBranches.length > 0?
-                    fillerBranches.filter(b=>{
-                            // in case user is not authenticated
-                            if(branch){
-                                return b.uri!=branch.uri
-                            }else {
-                                return true
-                            }
-                        }).map(b=>{
-                        return <React.Fragment key={b.uri}>
-                            <BubbleBranch branch={b} shouldClick={shouldClick}/>
-                        </React.Fragment>
-                    }):null}
-            </animated.div>
+
+    return(
+        <div css={superBar} ref={superBarRef} id="super-bar" style={{width:width}}>
+            <div css={{display:'flex',width:'100%'}}>
+            {branch?
+            <div css={theme=>({backgroundColor:theme.backgroundLightColor,zIndex:1,borderTopRightRadius:100,
+            borderBottomRightRadius:100})}
+            onClick={handleDrawerClick}>
+                <div css={theme=>({marginLeft:5,borderRadius:'50%',backgroundColor:theme.backgroundDarkColor,display:'flex',
+                padding:6})}>
+                    <img css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}} onClick={handleDrawerClick} 
+                    src={branch.branch_image}/>
+                </div>
+            </div>:null}
+            <div ref={containerRef} css={{minWidth:'50%',flexBasis:'90%',position:'relative'}}>
+                {switcherProps.map(({y},i)=>{
+                    return <animated.div css={{width:'100%',height:'100%',position:'absolute'}}
+                    style={{willChange:'transform',
+                    transform:y.interpolate(y=>{return `translateY(${y}px)`})}}>
+                        {(i==0 && userContext.isAuth) || (i==1 && !userContext.isAuth)?
+                        <div css={{height:'100%',display:'flex',flexFlow:'column',maxWidth:'70%',margin:'0 auto',
+                        justifyContent:'center',alignItems:'center','@media (max-device-width:767px)':{
+                            maxWidth:'100%'
+                        }}}>
+                            {isMobile?<h4 css={{margin:'0 10px',alignSelf:'flex-start'}}>{headerText}</h4>:null}
+                            {(isFeed)?
+                            <div css={{display:'flex',flexGrow:1,width:'100%',justifyContent:'center',width:'100%'}}>
+                                {userContext.isAuth?
+                                <>
+                                <NavLink exact to="/" css={linkCss} {...linkProps}><span css={linkContentCss}>Feed</span></NavLink>
+                                <NavLink to="/tree" css={linkCss} {...linkProps}><span css={linkContentCss}>Tree</span></NavLink>
+                                <NavLink to="/all" css={linkCss} {...linkProps}><span css={linkContentCss}>All</span></NavLink>
+                                </>
+                                :<NavLink to="/" css={linkCss} {...linkProps}><span css={linkContentCss}>All</span></NavLink>}
+                            </div>:null}
+                            {!isFeed?
+                            <div css={{display:'flex',flexGrow:1,width:'100%',justifyContent:'center',width:'100%'}}>
+                                <NavLink exact to={`/${branch.uri}`} css={linkCss}  {...linkProps}>
+                                <span css={linkContentCss}>{branch.name}</span></NavLink>
+                                <NavLink to={`/${branch.uri}/tree`} css={linkCss}  {...linkProps}>
+                                <span css={linkContentCss}>Tree</span></NavLink>
+                                <NavLink to={`/${branch.uri}/community`} css={linkCss}  {...linkProps}>
+                                <span css={linkContentCss}>Community</span></NavLink>
+                            </div>:null}
+                        </div>:
+                        <animated.div ref={barRef} css={swipeableBarWrapper} {...bind()} onClickCapture={onClickCapture} 
+                            style={{transform:props.x.interpolate(x=>`translateX(${x}px)`)}}>
+                            <div css={bubble}><Filter postsContext={postsContext} refresh={refresh}/></div>
+
+                            {fillerBranches && fillerBranches.length > 0?
+                                fillerBranches.filter(b=>{
+                                        // in case user is not authenticated
+                                        if(branch){
+                                            return b.uri!=branch.uri
+                                        }else {
+                                            return true
+                                        }
+                                    }).map(b=>{
+                                    return <React.Fragment key={b.uri}>
+                                        <BubbleBranch branch={b} shouldClick={shouldClick}/>
+                                    </React.Fragment>
+                                }):null}
+                        </animated.div>}
+                    </animated.div>
+                })}
+            </div>
+            <div css={theme=>({backgroundColor:theme.backgroundLightColor,zIndex:1,borderTopLeftRadius:100,
+            borderBottomLeftRadius:100})} onClick={handleMenuClick}
+            >
+                <div css={theme=>({marginRight:5,borderRadius:'50%',backgroundColor:theme.backgroundDarkColor,display:'flex',
+                padding:6})}>
+                    <div css={{height:32,width:32,display:'flex',justifyContent:'center',alignItems:'center'}}>
+                        <HamburgerSvg css={{height:20,width:20,fill:theme.textColor}}/>
+                    </div>
+                </div>
+            </div>
+            </div>
         </div>
     )
 }
@@ -384,7 +511,7 @@ function BubbleBranch({branch,shouldClick}){
     return <div ref={ref} style={{display:'contents'}}><NavLink exact to={{ pathname:`/${branch.uri}`}} css={bubble}
     activeStyle={activeStyle} onClick={shouldPreventDefault} onDragStart={e=>e.preventDefault()}>
     <div css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
-        <img src={branch.branch_image} css={{width:20,height:20,objectFit:'cover',borderRadius:'50%',
+        <img src={branch.branch_image} css={{width:32,height:32,objectFit:'cover',borderRadius:'50%',
         marginRight:10}}/>
         <span>{branch.name}</span>
     </div></NavLink></div>
@@ -496,10 +623,6 @@ function Filter({postsContext,refresh}){
 }
 
 function SuperDropDown({options,children}){
- 
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
-    })
 
     const [shown,setShown] = useState(false);
     const [selected,setSelected] = useState(options[0]);

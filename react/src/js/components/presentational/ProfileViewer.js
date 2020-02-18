@@ -18,6 +18,21 @@ const description = theme =>css({
     wordBreak:'break-word',
 })
 
+const similar = theme =>css({
+    fontSize:'2rem',
+    fontWeight:'bold',
+    padding:'5px 20px',
+    backgroundColor:theme.backgroundLightOppositeColor,
+    color:theme.backgroundColor,
+    borderRadius:5,
+    width:'100%',
+    display:'block',
+    boxSizing:'border-box',
+    textAlign:'center',
+    pointer:'cursor',
+    textDecoration:'none'
+})
+
 const followContainerCss = theme =>css({
     display: 'inline-flex',
     margin:14,
@@ -92,11 +107,15 @@ export function DesktopProfile({branch,noSettings=false}){
                     <span css={theme=>description(theme)}>{viewedBranch.description}</span>
                 </div>
                 <div css={{margin:'10px 0',width:'100%'}}>
+                    <Link to={`/${branch.uri}/branches`} css={similar}>{branch.branch_count} similar</Link>
+                </div>
+                <div css={{margin:'10px 0',width:'100%'}}>
                     <FollowInfo branch={viewedBranch}/>
                 </div>
+                {userContext.isAuth && userContext.currentBranch.uri!=branch.uri?
                 <div css={{margin:'10px 0',alignSelf:'center',flex:1}}>
                     <FollowButton branch={viewedBranch} style={{margin:0}}/>
-                </div>
+                </div>:null}
                 <span css={{fontWeight:'bold',fontSize:'1.3rem',cursor:'pointer'}}
                 onClick={()=>history.push('/feedback')}>Rate this app!</span>
             </div>

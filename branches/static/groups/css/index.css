@@ -492,6 +492,7 @@ div.route-section {
     padding: 10px 0;
     overflow: auto;
     z-index: 55;
+    width:max-content;
 }
 
 .filter-dropdown-item{

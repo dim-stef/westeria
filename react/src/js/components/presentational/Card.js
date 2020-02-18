@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useState} from "react";
 import { createPortal } from 'react-dom';
+import {useTransition, animated} from 'react-spring'
 import { css } from "@emotion/core";
 import { useTheme } from 'emotion-theming'
 import {useMediaQuery} from 'react-responsive'
@@ -126,7 +127,7 @@ export function FollowButton({branch,style=null}){
             className = 'following-main'
             setFollowing(false)
         }
-    },[uri])
+    },[branch,context.isAuth?context.currentBranch.uri:null])
 
     function followSetter(){
         setDisabled(true);
@@ -177,9 +178,12 @@ export function FollowButton({branch,style=null}){
     return(
         <button
             onClick={onClick}
-            className={className}
             disabled={isDisabled}
             name="followAction"
+            css={{backgroundColor:following?'#2196F3':'transparent',border:following?`2px solid transparent`
+            :'2px solid #2196F3',color:following?'white':'#2196F3','&:hover':{
+                backgroundColor:following?'#1888e2':'#2196f329'
+            }}}
             style={{
             borderRadius: 50,
             display:'block',
@@ -195,10 +199,11 @@ export function FollowButton({branch,style=null}){
 }
 
 
-const smallCardContainer = (theme,width) => css({
+const smallCardContainer = (theme,width,left,top) => css({
     maxWidth:300,width:width || 300,height:'auto',position:'absolute',
     boxShadow:'0px 1px 6px -3px',top:50,backgroundColor:theme.backgroundColor,
-    borderRadius:30,zIndex:50,padding:10,cursor:'auto'
+    borderRadius:30,zIndex:50,padding:10,cursor:'auto',position:'fixed',zIndex:211110,
+    left:left,top:top
 })
 
 const uri = theme => css({
@@ -225,6 +230,13 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
 
     const [showCard,setShowCard] = useState(false);
     const [mousePosition,setMousePosition] = useState(null);
+
+    const transitions = useTransition(showCard, null, {
+        from: { opacity: 0 },
+        enter: { opacity: 1 },
+        leave: { opacity: 0 },
+    })
+
     let setTimeoutConst;
     let setTimeoutConst2;
 
@@ -237,7 +249,7 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
 
         setTimeoutConst = setTimeout(()=>{
             setShowCard(true);
-        },500)
+        },1000)
     }
 
     function handleMouseLeave(){
@@ -245,7 +257,7 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
 
         setTimeoutConst2 = setTimeout(()=>{
             setShowCard(false);
-        },500)
+        },1000)
     }
 
     function onClick(e){
@@ -261,41 +273,45 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
         })}
         
         
-        {showCard?
-            createPortal(
-            <div style={{position:'fixed',zIndex:211110,left:mousePosition?mousePosition[0]-20:0,top:mousePosition?mousePosition[1]-20:0}} 
-            css={theme=>smallCardContainer(theme,containerWidth)} onClick={onClick}
-        onMouseEnter={isMobile || !hoverable?null:handleMouseEnter} onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}>
-            <div
-                style={{position:'relative'}} className="noselect small-branch-container flex-fill">
-                <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
-                    <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
-                    <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
-                    justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10, flex:'1 1 auto',msFlex:'1 1 auto',
-                    WebkitFlex:'1 1 auto'}}>
-                        <p css={theme=>name(theme)}>{branch.name}</p>
-                        <span css={theme=>uri(theme)}>@{branch.uri}</span>
+        {transitions.map(({ item, key, props }) => 
+            item && createPortal(
+                <animated.div 
+                style={props}
+                key={key} 
+                css={theme=>smallCardContainer(theme,containerWidth,
+                mousePosition?mousePosition[0]+20:0,mousePosition?mousePosition[1]+20:0)} onClick={onClick}
+                onMouseEnter={isMobile || !hoverable?null:handleMouseEnter} onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}>
+                <div
+                    style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+                    <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
+                        <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
+                        <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
+                        justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10, flex:'1 1 auto',msFlex:'1 1 auto',
+                        WebkitFlex:'1 1 auto'}}>
+                            <p css={theme=>name(theme)}>{branch.name}</p>
+                            <span css={theme=>uri(theme)}>@{branch.uri}</span>
+                        </div>
+                    </Link>
+                    <FollowButton branch={branch}/>
+                </div>
+                <p className="text-wrap" css={theme=>description(theme)}>{branch.description}</p>
+                <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between',
+                WebkitJustifyContent:'space-between'}}>
+                    <div>
+                        <span style={{fontWeight:'bold'}}>Followers </span>
+                        <span css={theme=>cardNumber(theme)}>{branch.followers_count}</span>
                     </div>
-                </Link>
-                <FollowButton branch={branch}/>
-            </div>
-            <p className="text-wrap" css={theme=>description(theme)}>{branch.description}</p>
-            <div className="flex-fill" style={{margin:'10px 0',fontSize:'1.5em',justifyContent:'space-between',
-            WebkitJustifyContent:'space-between'}}>
-                <div>
-                    <span style={{fontWeight:'bold'}}>Followers </span>
-                    <span css={theme=>cardNumber(theme)}>{branch.followers_count}</span>
+                    <div>
+                        <span style={{fontWeight:'bold'}}>Following </span>
+                        <span css={theme=>cardNumber(theme)}>{branch.following_count}</span>
+                    </div>
+                    <div>
+                        <span style={{fontWeight:'bold'}}>Branches </span>
+                        <span css={theme=>cardNumber(theme)}>{branch.branch_count?branch.branch_count:0}</span>
+                    </div>
                 </div>
-                <div>
-                    <span style={{fontWeight:'bold'}}>Following </span>
-                    <span css={theme=>cardNumber(theme)}>{branch.following_count}</span>
-                </div>
-                <div>
-                    <span style={{fontWeight:'bold'}}>Branches </span>
-                    <span css={theme=>cardNumber(theme)}>{branch.branch_count?branch.branch_count:0}</span>
-                </div>
-            </div>
-        </div>,document.getElementById('hoverable-element-root')):null}
+            </animated.div>
+        ,document.getElementById('hoverable-element-root')))}
         
         </>
     )

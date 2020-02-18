@@ -190,10 +190,10 @@ class BranchSerializer(TaggitSerializer, serializers.ModelSerializer):
         return dd
 
     def get_followed_by_count(self,branch):
-        return branch.followed_by.count()
+        return branch.followed_by.exclude(uri=branch.uri).count()
 
     def get_following_count(self,branch):
-        return branch.follows.count()
+        return branch.follows.exclude(uri=branch.uri).count()
 
     def get_branch_count(self,branch):
         return branch.children.count() + branch.parents.count()

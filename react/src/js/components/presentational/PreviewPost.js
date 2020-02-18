@@ -10,7 +10,7 @@ import {css,keyframes } from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import {useTheme} from "../container/ThemeContainer"
 import {Images, PreviewPostMedia} from './PostImageGallery'
-import {Post} from "./SingularPost"
+import {Post,SingularPost} from "./SingularPost"
 import {ReplyTree} from './Comments'
 import {SingularPostContext,UserContext} from "../container/ContextContainer"
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -49,6 +49,7 @@ const postedToImage = (size,isLaptopOrDesktop) =>css({
     margin:'0 5px',
     zIndex:330,
     width:isLaptopOrDesktop?30:20,
+    minWidth:isLaptopOrDesktop?30:20,
     height:isLaptopOrDesktop?30:20,
     '&:hover':{
         cursor:'pointer'
@@ -144,6 +145,18 @@ const name = (isLaptopOrDesktop,size,isFlat) =>css({
     wordBreak:'break-word',
     padding:2,
     boxSizing:'border-box',
+})
+
+const commentHeader = theme =>css({
+    display:'flex',
+    alignItems:'center',
+    boxShadow:'0px 6px 4px -6px #0000006e',
+    zIndex:10,
+    backgroundColor:theme.backgroundLightColor,
+    '@media (min-device-width:1223px)':{
+        display:'sticky',
+        top:0
+    }
 })
 
 const scaleUp = keyframes`
@@ -394,7 +407,97 @@ export const PreviewPost = React.memo(({post,viewAs,isFlat,size,shouldOpen=null,
     )
 })
 
+
+const fullScreenFrom = ()=> ({y:window.innerHeight + 10,x:0});
+const fullScreenTo = ()=> ({y:0,x:0});
+const fullScreenOffRight = ()=> ({y:0,x:window.innerWidth + 10});
+
+const arrowButton = theme =>css({
+    border:0,
+    backgroundColor:'transparent',
+    padding:10,
+    marginTop:5
+})
+
 function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
+    isLaptopOrDesktop,isTall}){
+
+    const postsContext = useContext(SingularPostContext);
+    const userContext = useContext(UserContext);
+    const containerRef = useRef(null);
+
+    // only start loading comments once spring is done
+    // to prevent any fps lag
+    const [loadComments,setLoadComments] = useState(false);
+
+    const shouldClose = useRef(false);
+
+    const bind = useDrag(
+        ({ down, movement: [mx, my],velocity }) =>{
+                const trigger = ((velocity > 0.2 && mx > 50) || (mx >200)) && !down;
+                if(trigger){
+                    shouldClose.current = true;
+                    set(()=>fullScreenOffRight())
+                }else{
+                    set({ x: down?mx:0 })
+                }
+                
+            },
+        { bounds: { left: 0 },axis:'x' }
+    )
+
+    const [props,set,stop] = useSpring(()=>({
+        from:fullScreenFrom(),
+        to:fullScreenTo(),
+        onFrame:(f)=>{
+            if((f.y >= window.innerHeight || f.x >=window.innerWidth ) && shouldClose.current){
+                stop();
+                setPostShown(false)
+            }
+
+            if(f.y <= 10 && !shouldClose.current){
+                setLoadComments(true);
+            }
+        }
+    }));
+
+    useEffect(()=>{
+        if(postShown){
+            set(()=>fullScreenTo())
+        }else{
+            set(()=>fullScreenFrom())
+        }
+    },[postShown])
+
+
+    function handleReturnClick(){
+        shouldClose.current = true;
+        set(()=>fullScreenFrom());
+    }
+    
+    return(
+        <animated.div {...bind()} onMouseMove={()=>{}} onMouseDown={()=>{}}
+        style={{willChange:'transform',transform: aniTo([props.y,props.x],(y,x) => {return `translateY(${y}px) translateX(${x}px)`})}}
+        css={theme=>({position:'fixed',top:0,left:0,zIndex:1002,backgroundColor:theme.backgroundLightColor,
+        width:'100%',height:'100%',overflow:'hidden'})} ref={containerRef}>
+            <div css={{height:'100%',width:'100%',overflow:'auto'}}>
+                <div css={{maxWidth:800,margin:'0 auto'}}>
+                    <div css={commentHeader} onClick={handleReturnClick}>
+                        <button css={arrowButton}><ArrowSvg 
+                        css={theme=>({height:16,width:16,fill:theme.textHarshColor})}/></button>
+                        <h1>Comments</h1>
+                    </div>
+                    <SingularPost wholePost={post} postsContext={postsContext} noStyle noRoutedHeadline
+                    activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post" preview
+                    loadComments={loadComments}
+                    />
+                </div>
+            </div>
+        </animated.div>
+    )
+}
+
+function PopUpPost2({postShown,setPostShown,post,commentsShown,setCommentsShown,
     isLaptopOrDesktop,isTall}){
     
     let offset = isTall?150:80;
