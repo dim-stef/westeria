@@ -10,10 +10,11 @@ import axios from 'axios';
 
 const imgWrapper = () => css({
     display:'flex',
-    flexFlow:'row wrap',
+    flexFlow:'row',
     alignItems:'center',
     height:40,
-    margin:'10px 0'
+    margin:'10px 0',
+    overflow:'auto'
 })
 
 const arrow = ()=>css({

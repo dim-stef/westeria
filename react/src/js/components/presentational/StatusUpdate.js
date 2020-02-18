@@ -14,13 +14,6 @@ import {Modal} from "./Temporary"
 import {TagSelector,SerialTagSelector} from "./TagSelector";
 import axios from 'axios'
 
-const schema  = {
-	blocks: {
-		text: {
-			isVoid: true
-		}
-	}
-};
 export default function StatusUpdateAuthWrapper(props){
     const userContext = useContext(UserContext);
 

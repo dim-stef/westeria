@@ -255,7 +255,7 @@ export function AddBranch({branch,branches,type='children'}){
     return(
         !requestStatus && !isAlreadyConnected?
         <div onClick={onClick} css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:25,padding:10,
-        display:'flex',justifyContent:'center',flexGrow:1,minWidth:120})}>
+        display:'flex',justifyContent:'center',flexGrow:1,minWidth:120,margin:'0 10px'})}>
             <CircularBranch branch={context.currentBranch} connect={text}/>
         </div>
         :sumbitted && requestStatus == 'accepted'?

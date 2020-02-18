@@ -1,6 +1,6 @@
 import React, {useLayoutEffect, useRef, useState,useEffect,useContext} from "react";
 import ReactDOM from "react-dom";
-import {Link,useLocation} from 'react-router-dom'
+import {Link,withRouter,useLocation} from 'react-router-dom'
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {NavLink} from "react-router-dom"
@@ -281,14 +281,14 @@ export function ProfileBubble({branch}){
             <img src={branch.branch_image} className="round-picture" css={{objectFit:'cover',height:40,width:40,
             border:'2px solid white',boxShadow:'1px 2px 3px 0px #000000b3',willChange:'transform'}} onClick={handleClick}/>
         </animated.div>*/}
-        <ProfileDrawer branch={branch} shown={show} setShown={setShow}/>
+        <ProfileDrawerWithRouter branch={branch} shown={show} setShown={setShow}/>
         </>
     )
 }
 
 const to = (x) => ({ x: x })
 
-function ProfileDrawer({shown,setShown,branch}){
+function ProfileDrawer({shown,setShown,branch,history}){
 
     const [props, set] = useSpring(() => ({
         from:{ x:-window.innerWidth, scale: 1 },
@@ -313,6 +313,17 @@ function ProfileDrawer({shown,setShown,branch}){
         }
     },[shown])
     
+    useEffect(()=>{
+        const unlisten = history.listen(()=>{
+            //set(()=>to(-window.innerWidth))
+            setShown(false);
+        })
+
+        return ()=>{
+            unlisten();
+        }
+    })
+
     function handleClick(e){
         e.stopPropagation();
         setShown(false);
@@ -334,8 +345,9 @@ function ProfileDrawer({shown,setShown,branch}){
                 </animated.div>
             ,document.getElementById('hidden-elements'))
         )
-        
 }
+
+const ProfileDrawerWithRouter = withRouter(ProfileDrawer);
 
 const ArrowLeftSvg = props =>{
     return(

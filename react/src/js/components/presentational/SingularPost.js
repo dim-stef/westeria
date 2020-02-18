@@ -93,9 +93,10 @@ export function PostContainer(props){
     )
 }
 
-export function SingularPost({postId,parentPost=null,postsContext,activeBranch,lastComment}){
+export function SingularPost({postId,wholePost=null,parentPost=null,postsContext,activeBranch,lastComment,noStyle=false,
+    noRoutedHeadline=false,loadComments=true}){
 
-    const [post,setPost] = useState(null);
+    const [post,setPost] = useState(wholePost);
     const [loaded,setLoaded] = useState(false);
     const [replyTrees,setReplyTrees] = useState([]);
     const [userReplies,setUserReplies] = useState([]);
@@ -126,7 +127,9 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         try{
             let response = await axios.get(uri);
             let data = await response.data
-            fetchData(data)
+            if(loadComments){
+                fetchData(data)
+            }
             setPost(data);
             setLoaded(true);
         }catch(e){
@@ -134,9 +137,18 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
         }
     }
 
+    // fetch post if its not given
+    // in case comment load is delayed listen to "loadComments"
+    // then fetch comments
     useEffect(()=>{
-        getPost();
-    },[])
+        if(!post){
+            getPost();
+        }else{
+            if(loadComments){
+                fetchData(post)
+            }
+        }
+    },[loadComments])
 
     const updateTree = useCallback(newPost=>{
         setUserReplies([newPost,...userReplies])
@@ -150,6 +162,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     let description = '';
     let maxLength=100;
     let trancuation = ''
+
     if(post){
         let endOfText = post.text.length > maxLength ? maxLength : post.text.length
         trancuation =  post.text.length > maxLength ? '...':'';
@@ -161,7 +174,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
     
     return (
         post?
-        <div css={theme=>({boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,
+        <div css={theme=>(noStyle?null:{boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,
         backgroundColor:theme.backgroundLightColor,
         '@media (max-device-width: 1226px)':{boxShadow:'none',borderRadius:0}})}>
             <Helmet>
@@ -169,7 +182,7 @@ export function SingularPost({postId,parentPost=null,postsContext,activeBranch,l
                 <meta name="description" content={description}></meta>
                 <link rel="canonical" href={`${window.location.origin}/${post.poster || post.poster.uri}/leaves/${post.id}`}></link>
             </Helmet>
-            <RoutedHeadline/>
+            {noRoutedHeadline?null:<RoutedHeadline/>}
             <Post post={post} parentPost={parentPost} postsContext={postsContext}
                 index={0} activeBranch={activeBranch} lastComment={lastComment} measure={measure}
                 viewAs="post" isStatusUpdateActive updateTree={updateTree} isSingular
@@ -447,7 +460,7 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
 
     let desktopStyles = {
         '&:hover': {
-            backgroundColor:isEmbedded?theme.embeddedHoverColor:theme.hoverColor
+            backgroundColor:isEmbedded?theme.embeddedHoverColor:null
         }
     }
 
@@ -531,12 +544,12 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
         </div>
         {
             transitions.map(({ item, key, props }) =>
-                item && <animated.div key={key} ref={animatedRef} style={props} css={{overflow:'hidden',height:'auto'}}>
-                <div ref={editorRef} style={{height:'auto'}}>
-                    <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}
-                        activeBranch={activeBranch} autofocus
-                    />
-                </div>
+            item && <animated.div key={key} ref={animatedRef} style={props} css={{overflow:'hidden',height:'auto'}}>
+            <div ref={editorRef} style={{height:'auto'}}>
+                <StatusUpdate replyTo={post.id} postsContext={postsContext} currentPost={post} updateFeed={updateTree}
+                    activeBranch={activeBranch}
+                />
+            </div>
             </animated.div>
             )
         }

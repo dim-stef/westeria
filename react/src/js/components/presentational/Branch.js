@@ -7,12 +7,17 @@ import {SmallCard} from "./Card"
 import {FadeImage} from "./FadeImage"
 import {useMediaQuery} from "react-responsive"
 
-const imageContainer = () =>css({
+const imageContainer = theme =>css({
     display:'flex',
     flexFlow:'column',
     justifyContent:'center',
     alignItems:'center',
-    position:'relative'
+    position:'relative',
+    padding:'5px 0',
+    borderRadius:25,
+    '&:hover':{
+        backgroundColor:theme.backgroundDarkColor
+    }
 })
 
 const circularBranchName = (theme,isMobile) =>css({
@@ -20,8 +25,11 @@ const circularBranchName = (theme,isMobile) =>css({
     fontSize:isMobile?'1.3rem':'1.5rem',
     margin:'5px 0',
     fontWeight:400,
-    wordBreak:'break-word',
-    textAlign:'center'
+    textAlign:'center',
+    width:'100%',
+    whiteSpace:'nowrap',
+    overflow:'hidden',
+    textOverflow:'ellipsis'
  })
 
 const squareBranchName = theme =>css({
@@ -55,10 +63,10 @@ export function CircularBranch({branch,endpoint,connect=null}){
     </div>
 
     return(
-        connect?<div css={theme=>({height:isMobile?130:150,width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}>
+        connect?<div css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}>
             {body}
         </div>:
-        <Link css={theme=>({height:isMobile?130:150,width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}
+        <Link css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}
         to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
             {body}
         </Link>
