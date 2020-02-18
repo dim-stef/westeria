@@ -65,8 +65,9 @@ const from = (x) => ({ x: x||0,scale: 1,display: 'block'})
 const ani = (x) => ({ x: x,scale: 1,display: 'block'})
 
 
-const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasMore,width,height,refresh,
-    updateFeed,isFeed}) => {
+export const SwipeablePostGrid = React.memo(function SwipeablePostGrid({postsContext,activeBranch,posts,fetchData,hasMore
+    ,width,height,refresh,
+    updateFeed,isFeed}){
 
     const swipeablePostGridContext = useContext(SwipeablePostGridContext);
     let containerHeight = 860;
@@ -84,6 +85,9 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
             smallItemCount:3
         }
     }*/
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
 
     if(height <= 760){
         itemCount = 6;
@@ -159,9 +163,8 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
     // ref to capture render end after index change
     // used to apply correct values to left and right pages
     const dataIndexChanged = useRef(false);
+    const canFlip = useRef(true);
 
-    const setFirst = useRef(false);
-    const setLast = useRef(false);
     const [prevIndex,setPrevIndex] = useState(postsContext.lastPage)
     const isSafariFeature = window['safari'] && safari.pushNotification &&
     safari.pushNotification.toString() === '[object SafariRemoteNotification]';
@@ -188,8 +191,8 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
                 shouldCaptureWheel.current = false;
             }
 
-            if((Math.abs(f.x) - offsetLeft > widthRef.current && Math.abs(f.x) - offsetLeft - 1 < widthRef.current)
-            || (Math.abs(f.x) > widthRef.current && Math.abs(f.x) - 1 < widthRef.current)){
+            if((Math.abs(f.x) - offsetLeft > widthRef.current && Math.abs(f.x) - offsetLeft - 50 < widthRef.current)
+            || (Math.abs(f.x) > widthRef.current && Math.abs(f.x) - 50 < widthRef.current)){
                 if(didRefresh.current){
                     didRefresh.current = false
                     indexRef.current = 0;
@@ -307,7 +310,10 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
     },[posts])
 
     useLayoutEffect(()=>{
-
+        canFlip.current = false;
+        setTimeout(() => {
+            canFlip.current = true;
+        }, 200);
         // if this is removed everything breaks ¯\_(ツ)_/¯
         setPrevIndex(index);
         // dont touch this
@@ -372,14 +378,22 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
     const velocityTrigger = useRef(false);
 
     const bind = useDrag(({ down, velocity,swipe:[swipeX,swipeY], movement: [mx,my], direction: [xDir,yDir],xy:[x,y],cancel }) => {
+        if(!canFlip.current){
+            cancel();
+            return;
+        }
         // if browser is safari and user swipes from edge cancel the interaction
         // let safari handle the native gesture history
         if((isSafariFeature || isSafariVendor()) && 
         (x <= 0.05*window.innerWidth || x>= window.innerWidth - 0.05*window.innerWidth)){
             cancel();
+            return;
         }
 
-        if(previewPostContainer.childElementCount>0) cancel();
+        if(previewPostContainer.childElementCount>0){
+            cancel()
+            return;
+        }
 
         const isLastPage = index==pages.length
         isDown.current = down;
@@ -469,7 +483,8 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
 
     return (
         <div style={{position:'relative',width:width,height:height}} ref={container} id="grid-container">
-            <NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
+            {!isMobile?<NavigationArrows index={index} pages={pages} goToRight={goToRight} goToLeft={goToLeft} container={container}/>
+            :null}
             {[...Array(3)].map((x,i)=>{
                 let initPosition;
                 if(i==0){
@@ -498,14 +513,12 @@ const SwipeablePostGridNoMemo = ({postsContext,activeBranch,posts,fetchData,hasM
             </>:null}
         </div>
     )
-}
-
-export const SwipeablePostGrid = React.memo(SwipeablePostGridNoMemo)
+})
 
 SwipeablePostGrid.whyDidYouRender = true
 
-const MovingPage = React.memo(({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
-    offsetLeft,initPosition,currIndex,jumpToBack,bind}) => {
+const MovingPage = React.memo(function MovingPage({pageProps,aniProps,width,dataIndexChanged,hasMore,pages,
+    offsetLeft,initPosition,currIndex,jumpToBack,bind}){
     let positions = ['left','middle','right'];
     let initIndex = currIndex;
 
@@ -589,7 +602,7 @@ const MovingPage = React.memo(({pageProps,aniProps,width,dataIndexChanged,hasMor
     )
 })
 
-function NavigationArrows({index,pages,goToLeft,goToRight,container}){
+const NavigationArrows = React.memo(function NavigationArrows({index,pages,goToLeft,goToRight,container}){
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
     })
@@ -623,7 +636,7 @@ function NavigationArrows({index,pages,goToLeft,goToRight,container}){
         {!isMobile && hovering && index!=pages.length?<RightPageArrow goToRight={goToRight}/>:null}
         </>
     )
-}
+})
 
 
 function LeftPageArrow({goToLeft}){
@@ -656,7 +669,7 @@ function shuffle(a) {
     return a;
 }
 
-function Page({page,activeBranch,postsContext,
+const Page = React.memo(function Page({page,activeBranch,postsContext,
     pageType,height,shouldOpen,index,
     movX,setOpenRef,setShowCreateRef,position}){
     
@@ -851,6 +864,20 @@ function Page({page,activeBranch,postsContext,
             })}
         </div>
     )
+},areEqual)
+
+function areEqual(prevProps, nextProps) {
+    try{
+        for(let i=0;i<prevProps.page.length;i++){
+            if(prevProps.page[i].id != nextProps.page[i].id){
+                return false;
+            }
+        }
+    }catch(e){
+        // index out of bounds pages are different
+    }
+    
+    return true
 }
 
 const TestPost = ({postProps,isFlat,size,shouldOpen,position})=>{
@@ -894,7 +921,7 @@ function LastPage({index,jumpToBack,refresh,posts,setShowCreate}){
 
 const createTo = (y) => ({ y: y })
 
-function Create({activeBranch,postsContext,container,isFeed,updateFeed,setShowCreateRef,
+const Create = React.memo(function Create({activeBranch,postsContext,container,isFeed,updateFeed,setShowCreateRef,
     showDefaultButton=true,children}){
     const [show,setShow] = useState(false);
     setShowCreateRef.current = setShow;
@@ -952,7 +979,7 @@ function Create({activeBranch,postsContext,container,isFeed,updateFeed,setShowCr
         
         {ReactDOM.createPortal(
             <animated.div ref={ref} style={{transform:props.y.interpolate(y=>`translateY(${y}px)`)}}
-            css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left,willChange:'transform'
+            css={{width:width,position:'fixed',zIndex:1002,bottom:0,left:left
             }}>
                 <div onClick={handleClose} 
                 css={{height:50,width:'100%',display:'flex',justifyContent:'center',
@@ -967,7 +994,12 @@ function Create({activeBranch,postsContext,container,isFeed,updateFeed,setShowCr
         ,document.getElementById('hidden-elements'))}
         </>
     )
-}
+},(prevProps,nextProps)=>{
+    if(!prevProps.activeBranch || !nextProps.activeBranch || prevProps.activeBranch.uri == nextProps.activeBranch.uri){
+        return true
+    }
+    return false
+})
 
 function GoToStartOrRefresh({index,jumpToBack,refresh,setOpen,optionStyle={}}){
 
@@ -1012,7 +1044,7 @@ function GoToStartOrRefresh({index,jumpToBack,refresh,setOpen,optionStyle={}}){
     )
 }*/
 
-function Menu2({width,container,setOpenRef,jumpToBack,refresh,index}){
+const Menu2 = React.memo(function Menu({width,container,setOpenRef,jumpToBack,refresh,index}){
     const ref = useRef(null);
     const userContext = useContext(UserContext);
     const [createOpen,setCreateOpen] = useState(false);
@@ -1081,7 +1113,12 @@ function Menu2({width,container,setOpenRef,jumpToBack,refresh,index}){
             </animated.div>
         ,document.getElementById('hidden-elements'))
     )
-}
+},(prevProps,nextProps)=>{
+    if(prevProps.index == nextProps.index){
+        return true
+    }
+    return false
+})
 
 function MenuButton({setOpen}){
 
