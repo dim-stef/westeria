@@ -2,6 +2,8 @@ import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react
 import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
 import { useSpring, animated } from 'react-spring/web.cjs'
+import { FixedSizeList as List } from "react-window";
+import InfiniteLoader from "react-window-infinite-loader";
 import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
 import {PreviewPost} from "./PreviewPost"
@@ -51,7 +53,6 @@ const animatedDiv = (theme,supportsGrid) =>css({
     boxShadow:'rgba(0, 0, 0, 0.56) -1px 4px 8px -3px',
     boxSizing:'border-box',
     backgroundColor:theme.backgroundColor,
-    willChange:'transform',
 })
 
 const optionWrapper = theme =>css({
@@ -59,6 +60,144 @@ const optionWrapper = theme =>css({
     backgroundColor:theme.backgroundDarkColor,zIndex:10000,borderRadius:100,alignItems:'center'
 })
 
+export function VerticalPostGrid({postsContext,activeBranch,posts,fetchData,hasMore
+    ,width,height,refresh,
+    updateFeed,isFeed}){
+
+    let containerHeight = 860;
+    let columnCount = 4;
+    let rowCount = Math.round(4 * containerHeight / width);
+    let itemCount = 7;
+    let pageType;
+    /*if(width/height < 0.6){
+        pageType={
+            type:'mobile',
+            size:8,
+            bigItemCount:1,
+            mediumItemCount:1,
+            responsiveItemCount:3,
+            smallItemCount:3
+        }
+    }*/
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    if(height <= 760){
+        itemCount = 6;
+        pageType={
+            type:'largeMobile',
+            size:6,
+            bigItemCount:1,
+            mediumItemCount:2,
+            responsiveItemCount:3,
+            smallItemCount:0
+        }
+    }else{
+        pageType={
+            type:'desktop',
+            size:7,
+            bigItemCount:0,
+            mediumItemCount:1,
+            responsiveItemCount:4,
+            smallItemCount:2
+        }
+    }
+
+    function getPages(){
+        var perChunk = itemCount // items per chunk    
+        var result = posts.reduce((resultArray, item, index) => { 
+        const chunkIndex = Math.floor(index/perChunk)
+
+        if(!resultArray[chunkIndex]) {
+            resultArray[chunkIndex] = [] // start a new chunk
+        }
+
+        resultArray[chunkIndex].push(item)
+
+        return resultArray
+        }, [])
+
+        return result
+    }
+
+    const pages = getPages();
+
+    // this ref is need in order to keep track of "pages" state inside the onFrame function
+    const pagesRef = useRef();
+    pagesRef.current = pages;
+
+    const shouldOpen = useRef(true);
+
+    const setOpenRef = useRef(null)
+    const setShowCreateRef = useRef(null)
+
+    const listRef = useRef(null);
+    const infiniteLoaderRef = useRef(null);
+
+    useEffect(()=>{
+        if(listRef.current){
+            listRef.current.scrollToItem(200);
+        }
+
+    },[listRef])
+
+    let pageProps = {
+        activeBranch:activeBranch,
+        postsContext:postsContext,
+        pageType:pageType,
+        height:height,
+        shouldOpen:shouldOpen,
+        setOpenRef:setOpenRef,
+        setShowCreateRef:setShowCreateRef
+    }
+
+    return(
+        <InfiniteLoader
+        ref={infiniteLoaderRef}
+        isItemLoaded={()=>true}
+        itemCount={posts.length}
+        loadMoreItems={fetchData}
+        >
+            {({ onItemsRendered, ref }) => (
+            <List
+            ref={listRef}
+            height={height}
+            itemCount={posts.length}
+            itemSize={height}
+            onItemsRendered={onItemsRendered}
+            width={width}
+            >{({ style,index }) => (
+                    <ListItem style={style} index={index}
+                        pages={pages} {...pageProps} post={posts[index]}
+                    />
+                )}
+            </List>
+            )}
+        </InfiniteLoader>
+    )
+}
+
+function ListItem({page,pages,data,style,index,...rest}){
+    function getPostProps(post){
+        let props = {
+            post:rest.post,
+            viewAs:"post",
+            activeBranch:rest.activeBranch,
+            postsContext:rest.postsContext,
+            index:0
+        };
+        return props;
+    }
+
+    return(
+        <div style={style}>
+            <Post
+            {...getPostProps()}
+            />
+        </div>
+    )
+}
 
 const to = (x) => ({ x: x,scale: 1,display: 'block'})
 const from = (x) => ({ x: x||0,scale: 1,display: 'block'})
@@ -580,7 +719,7 @@ const MovingPage = React.memo(function MovingPage({pageProps,aniProps,width,data
     return(
         <animated.div data-index={pageIndex.current} {...binder()}
         data-position={position.current} css={theme=>animatedDiv(theme,supportsGrid)}
-        style={{position:'absolute',transform : aniTo([aniProps.x],(x) => `translateX(${getX(x)}px)`),
+        style={{position:'absolute',transform : aniTo([aniProps.x],(x) => `translate3d(${getX(x)}px,0,0)`),
         width:'100%',zIndex:positions.findIndex(p=>position.current == p),height:'100%'}}>
             <div className="noselect" style={{height:'100%',overflow:'hidden'}}>
                 {pages[pageIndex.current] ?
@@ -671,7 +810,7 @@ function shuffle(a) {
 
 const Page = React.memo(function Page({page,activeBranch,postsContext,
     pageType,height,shouldOpen,index,
-    movX,setOpenRef,setShowCreateRef,position}){
+    setOpenRef,setShowCreateRef,position}){
     
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
@@ -859,7 +998,7 @@ const Page = React.memo(function Page({page,activeBranch,postsContext,
         <div css={{display:'flex',flexFlow:'column'}}>
             {order.map(o=>{
                 return <React.Fragment key={o.post.id}>
-                    <Post {...getPostProps(o.post)} movement={movX}/>
+                    <Post {...getPostProps(o.post)}/>
                 </React.Fragment>
             })}
         </div>

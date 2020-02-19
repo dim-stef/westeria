@@ -27,7 +27,7 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
-import {SwipeablePostGrid} from "./SwipeablePostGrid";
+import {SwipeablePostGrid, VerticalPostGrid} from "./SwipeablePostGrid";
 import {SuperBar, SwipeableBar} from "./SuperBar"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
