@@ -27,7 +27,7 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
 import {Grid} from "./Grid"
-import {SwipeablePostGrid} from "./SwipeablePostGrid";
+import {SwipeablePostGrid, VerticalPostGrid} from "./SwipeablePostGrid";
 import {SuperBar, SwipeableBar} from "./SuperBar"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
@@ -117,7 +117,7 @@ function DisplayPosts({isFeed,posts,
         />
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
         {width && height>0?
-        <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
+        <VerticalPostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
             width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
             updateFeed={updateFeed} isFeed={isFeed}
         />

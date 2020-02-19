@@ -5,7 +5,7 @@ const BundleTracker = require("webpack-bundle-tracker");
 
 var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   entry: {
     'app': './src/js/app.js',
   },
