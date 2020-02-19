@@ -117,7 +117,7 @@ function DisplayPosts({isFeed,posts,
         />
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
         {width && height>0?
-        <VerticalPostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
+        <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
             width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
             updateFeed={updateFeed} isFeed={isFeed}
         />

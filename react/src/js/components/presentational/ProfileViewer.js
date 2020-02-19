@@ -112,7 +112,7 @@ export function DesktopProfile({branch,noSettings=false}){
                 <div css={{margin:'10px 0',width:'100%'}}>
                     <FollowInfo branch={viewedBranch}/>
                 </div>
-                {userContext.isAuth && userContext.currentBranch.uri!=branch.uri?
+                {userContext.isAuth && userContext.currentBranch.uri!=viewedBranch.uri?
                 <div css={{margin:'10px 0',alignSelf:'center',flex:1}}>
                     <FollowButton branch={viewedBranch} style={{margin:0}}/>
                 </div>:null}
