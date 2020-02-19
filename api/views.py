@@ -347,6 +347,8 @@ class BranchUpdateViewSet(BranchUpdateMixin,):
     serializer_class = serializers.BranchUpdateSerializer
     parser_classes = (MultiPartParser,JSONParser,FileUploadParser,)
 
+    lookup_value_regex = '[^/]+'
+
     def owns_branch_with_same_name(self,request):
         try:
             owns_branch = request.user.owned_groups.filter(uri__iexact=request.data['uri']).exists()

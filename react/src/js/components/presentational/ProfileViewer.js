@@ -107,7 +107,7 @@ export function DesktopProfile({branch,noSettings=false}){
                     <span css={theme=>description(theme)}>{viewedBranch.description}</span>
                 </div>
                 <div css={{margin:'10px 0',width:'100%'}}>
-                    <Link to={`/${branch.uri}/branches`} css={similar}>{branch.branch_count} similar</Link>
+                    <Link to={`/${viewedBranch.uri}/branches`} css={similar}>{viewedBranch.branch_count} similar</Link>
                 </div>
                 <div css={{margin:'10px 0',width:'100%'}}>
                     <FollowInfo branch={viewedBranch}/>
@@ -283,7 +283,6 @@ const BranchSwitchIcon = (props) =>{
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         version="1.1"
-        id="Capa_1"
         x="0px"
         y="0px"
         viewBox="0 0 489.4 489.4"
@@ -297,21 +296,6 @@ const BranchSwitchIcon = (props) =>{
             <path d="M209.9,365.7c-4.8-4.8-12.5-4.8-17.3,0L119,439.3V20.5c0-6.8-5.5-12.3-12.3-12.3s-12.3,5.5-12.3,12.3v418.8l-73.5-73.6    c-4.8-4.8-12.5-4.8-17.3,0s-4.8,12.5,0,17.3l94.5,94.5c2.4,2.4,5.5,3.6,8.7,3.6s6.3-1.2,8.7-3.6L210,383    C214.6,378.3,214.6,370.5,209.9,365.7z" />
             </g>
         </g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
         </svg>
 
     )
@@ -323,7 +307,6 @@ const SettingsSvg = (props)=>{
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         version="1.1"
-        id="Capa_1"
         x="0px"
         y="0px"
         viewBox="0 0 478.703 478.703"
@@ -337,21 +320,6 @@ const SettingsSvg = (props)=>{
             <path d="M239.4,136.001c-57,0-103.3,46.3-103.3,103.3s46.3,103.3,103.3,103.3s103.3-46.3,103.3-103.3S296.4,136.001,239.4,136.001    z M239.4,315.601c-42.1,0-76.3-34.2-76.3-76.3s34.2-76.3,76.3-76.3s76.3,34.2,76.3,76.3S281.5,315.601,239.4,315.601z" />
             </g>
         </g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
         </svg>
     )
 }
@@ -362,7 +330,6 @@ const PlusSvg = (props)=>{
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         version="1.1"
-        id="Capa_1"
         x="0px"
         y="0px"
         viewBox="0 0 512 512"
@@ -375,21 +342,6 @@ const PlusSvg = (props)=>{
             <path d="M492,236H276V20c0-11.046-8.954-20-20-20c-11.046,0-20,8.954-20,20v216H20c-11.046,0-20,8.954-20,20s8.954,20,20,20h216    v216c0,11.046,8.954,20,20,20s20-8.954,20-20V276h216c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z" />
             </g>
         </g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
         </svg>
     )
 }
@@ -413,7 +365,6 @@ const SunSvg = props =>{
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         version="1.1"
-        id="Capa_1"
         x="0px"
         y="0px"
         viewBox="0 0 45.16 45.16"
@@ -452,21 +403,6 @@ const SunSvg = props =>{
             </g>
             </g>
         </g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
         </svg>
     )
 }
@@ -477,7 +413,6 @@ const LogoutSvg = props =>{
         xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         version="1.1"
-        id="Capa_1"
         x="0px"
         y="0px"
         viewBox="0 0 471.2 471.2"
@@ -491,21 +426,6 @@ const LogoutSvg = props =>{
             <path d="M450.019,226.1l-85.8-85.8c-5.3-5.3-13.8-5.3-19.1,0c-5.3,5.3-5.3,13.8,0,19.1l62.8,62.8h-273.9c-7.5,0-13.5,6-13.5,13.5    s6,13.5,13.5,13.5h273.9l-62.8,62.8c-5.3,5.3-5.3,13.8,0,19.1c2.6,2.6,6.1,4,9.5,4s6.9-1.3,9.5-4l85.8-85.8    C455.319,239.9,455.319,231.3,450.019,226.1z" />
             </g>
         </g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
-        <g></g>
         </svg>
     )
 }

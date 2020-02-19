@@ -311,7 +311,7 @@ function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,rep
 
 export function CheckBox({value,checkedBranches,setCheckedBranches}){
     const ref = useRef(null)
-    
+
     useEffect(()=>{
         for(var value of checkedBranches){
             if(value==ref.current.value){

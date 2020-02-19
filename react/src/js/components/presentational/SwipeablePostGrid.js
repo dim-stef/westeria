@@ -136,7 +136,6 @@ export function VerticalPostGrid({postsContext,activeBranch,posts,fetchData,hasM
     const infiniteLoaderRef = useRef(null);
 
     useEffect(()=>{
-        console.log(listRef,infiniteLoaderRef)
         if(listRef.current){
             listRef.current.scrollToItem(200);
         }
@@ -157,20 +156,20 @@ export function VerticalPostGrid({postsContext,activeBranch,posts,fetchData,hasM
         <InfiniteLoader
         ref={infiniteLoaderRef}
         isItemLoaded={()=>true}
-        itemCount={pages.length}
+        itemCount={posts.length}
         loadMoreItems={fetchData}
         >
             {({ onItemsRendered, ref }) => (
             <List
             ref={listRef}
             height={height}
-            itemCount={pages.length}
+            itemCount={posts.length}
             itemSize={height}
             onItemsRendered={onItemsRendered}
             width={width}
             >{({ style,index }) => (
                     <ListItem style={style} index={index}
-                        pages={pages} {...pageProps}
+                        pages={pages} {...pageProps} post={posts[index]}
                     />
                 )}
             </List>
@@ -180,10 +179,21 @@ export function VerticalPostGrid({postsContext,activeBranch,posts,fetchData,hasM
 }
 
 function ListItem({page,pages,data,style,index,...rest}){
+    function getPostProps(post){
+        let props = {
+            post:rest.post,
+            viewAs:"post",
+            activeBranch:rest.activeBranch,
+            postsContext:rest.postsContext,
+            index:0
+        };
+        return props;
+    }
+
     return(
         <div style={style}>
-            <Page index={index} page={pages[index]} position={"middle"}
-            {...rest}
+            <Post
+            {...getPostProps()}
             />
         </div>
     )
