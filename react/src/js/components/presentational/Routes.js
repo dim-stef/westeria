@@ -96,6 +96,14 @@ const makeGlobalStyles = (theme,isMobileOrTablet) => css`
     color: ${theme.textColor};
     -webkit-overflow-scrolling: touch;
   }
+
+  *::-webkit-scrollbar{
+    width:10px;
+  }
+
+  *::-webkit-scrollbar-thumb{
+    background-color:${theme.scrollBarColor};
+  }
 `
 
 const GlobalStyles = withTheme(({ theme }) => {

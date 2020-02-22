@@ -43,7 +43,8 @@ let source = CancelToken.source();
 
 
 const postsContainer = () =>css({
-    transition:'filter 0.2s ease'
+    transition:'filter 0.2s ease',
+    position:'relative'
 })
 
 function cssPropertyValueSupported(prop, value) {
@@ -127,7 +128,6 @@ const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
     </>
     )
 },(prevProps,nextProps)=>{
-    console.log("in")
     return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
     nextProps.postsContext.content && prevProps.loading == nextProps.loading &&
     ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 

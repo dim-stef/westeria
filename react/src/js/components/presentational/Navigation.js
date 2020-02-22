@@ -210,7 +210,7 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
 
 
 const mobileNavBarPositioner = theme => css({
-    height: 60,
+    height: 45,
     position: 'fixed',
     width: '100%',
     backgroundColor: theme.navBarColor,
@@ -558,7 +558,6 @@ function UserSvg(props) {
     return (
       <svg
         xmlns="http://www.w3.org/2000/svg"
-        style={{ height: 32, width: 32 }}
         width="640"
         height="640"
         viewBox="0 0 480 480"

@@ -1071,15 +1071,6 @@ const Create = React.memo(function Create({activeBranch,postsContext,container,i
     const [props,set] = useSpring(()=>({
         from:{y:200}
     }))
-    
-    /*const bind = useDrag(({ down, movement: [mx, my], velocity,direction:[xDir,yDir] }) => {
-        const trigger = velocity > 0.2 && xDir < 0;
-        const isGone = trigger && !down
-        const y = my;
-        set({ y:y })
-    },{domTarget:container, bounds: { top: 0} })
-
-    React.useEffect(bind, [bind])*/
 
     useEffect(()=>{
         if(show){

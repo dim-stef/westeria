@@ -19,7 +19,7 @@ const darkMode = {
     backgroundLightColor:'#151827',
     backgroundDarkColor: COLORS.black,
     backgroundLightOppositeColor:COLORS.white,
-    postFloatingButtonColor:COLORS.black,
+    postFloatingButtonColor:'#272727',
     navBarColor:'#090a10',
     textColor:COLORS.semiWhite,
     textLightColor:COLORS.lightGray,

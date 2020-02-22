@@ -308,10 +308,10 @@ function ImageComponent({src,maxHeight,imgWidth,imgHeight}){
                         height="100%"
                         >
                         
-                            <img draggable="false" onClick={e=>{
+                            <FadeImage draggable="false" onClick={e=>{
                                 handleModalOpen(e,show)
                                 }} style={{width:'100%',minHeight:'100%',
-                            objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
+                            objectFit:'cover',maxHeight:maxHeight}} src={src}/>
                     </LazyLoad>                    
                 </div>
             )}

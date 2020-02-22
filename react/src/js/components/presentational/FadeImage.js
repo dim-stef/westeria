@@ -7,6 +7,9 @@ export const FadeImage= React.memo(function FadeImage(props){
 
     let style = props.style?props.style:{}
 
+    useEffect(()=>{
+        console.log("mount")
+    },[])
     function onImageLoad(){
         setLoaded(true);
     }
@@ -23,4 +26,6 @@ export const FadeImage= React.memo(function FadeImage(props){
         }}
         onLoad={onImageLoad}/>
     )
+},(prevProps,nextProps)=>{
+    return prevProps.src == nextProps.src;
 })
