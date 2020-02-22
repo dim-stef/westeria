@@ -1,17 +1,18 @@
-import React, {useState,useRef,useEffect,useLayoutEffect,useContext} from "react";
+import React, {useState,useRef,useEffect,useLayoutEffect,useContext,useCallback} from "react";
 import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
 import { useSpring, animated } from 'react-spring/web.cjs'
-import { FixedSizeList as List } from "react-window";
+import { VariableSizeList as List } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 import {to as aniTo} from 'react-spring/web.cjs'
 import { useDrag } from 'react-use-gesture'
-import {PreviewPost} from "./PreviewPost"
+import {PreviewPost,PopUpPost} from "./PreviewPost"
 import {Post} from "./SingularPost"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
 import StatusUpdate from "./StatusUpdate";
 import {SwipeablePostGridContext,UserContext} from "../container/ContextContainer";
 import {useMediaQuery} from 'react-responsive'
+import { useWindowSize } from "./useWindowResize";
 import MoonLoader from 'react-spinners/MoonLoader';
 import {PlusSvg,CloseSvg} from "./Svgs"
 import history from "../../history"
@@ -60,72 +61,10 @@ const optionWrapper = theme =>css({
     backgroundColor:theme.backgroundDarkColor,zIndex:10000,borderRadius:100,alignItems:'center'
 })
 
-export function VerticalPostGrid({postsContext,activeBranch,posts,fetchData,hasMore
-    ,width,height,refresh,
-    updateFeed,isFeed}){
+export const VerticalPostGrid = React.memo(function VerticalPostList({postsContext,activeBranch,posts,fetchData,hasMore
+    ,width,height,loading}){
 
-    let containerHeight = 860;
-    let columnCount = 4;
-    let rowCount = Math.round(4 * containerHeight / width);
-    let itemCount = 7;
-    let pageType;
-    /*if(width/height < 0.6){
-        pageType={
-            type:'mobile',
-            size:8,
-            bigItemCount:1,
-            mediumItemCount:1,
-            responsiveItemCount:3,
-            smallItemCount:3
-        }
-    }*/
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
-    })
-
-    if(height <= 760){
-        itemCount = 6;
-        pageType={
-            type:'largeMobile',
-            size:6,
-            bigItemCount:1,
-            mediumItemCount:2,
-            responsiveItemCount:3,
-            smallItemCount:0
-        }
-    }else{
-        pageType={
-            type:'desktop',
-            size:7,
-            bigItemCount:0,
-            mediumItemCount:1,
-            responsiveItemCount:4,
-            smallItemCount:2
-        }
-    }
-
-    function getPages(){
-        var perChunk = itemCount // items per chunk    
-        var result = posts.reduce((resultArray, item, index) => { 
-        const chunkIndex = Math.floor(index/perChunk)
-
-        if(!resultArray[chunkIndex]) {
-            resultArray[chunkIndex] = [] // start a new chunk
-        }
-
-        resultArray[chunkIndex].push(item)
-
-        return resultArray
-        }, [])
-
-        return result
-    }
-
-    const pages = getPages();
-
-    // this ref is need in order to keep track of "pages" state inside the onFrame function
-    const pagesRef = useRef();
-    pagesRef.current = pages;
+    const margin = 30; // needed for height difference between posts
 
     const shouldOpen = useRef(true);
 
@@ -135,50 +74,90 @@ export function VerticalPostGrid({postsContext,activeBranch,posts,fetchData,hasM
     const listRef = useRef(null);
     const infiniteLoaderRef = useRef(null);
 
+    const sizeMap = useRef({});
+    const setSize = useCallback((index, size) => {
+        sizeMap.current = { ...sizeMap.current, [index]: size };
+    }, []);
+    const getSize = useCallback(index => sizeMap.current[index] + margin || 20, []);
+    const [windowWidth] = useWindowSize();
+
+    function onScroll({
+        scrollOffset,
+      }) {
+        if(scrollOffset!=0){
+            postsContext.lastScrollPosition = scrollOffset;
+        }
+    }
+
     useEffect(()=>{
-        if(listRef.current){
-            listRef.current.scrollToItem(200);
+        if(infiniteLoaderRef.current){
+            infiniteLoaderRef.current._listRef.scrollTo(postsContext.lastScrollPosition);
         }
 
-    },[listRef])
+    },[infiniteLoaderRef,postsContext.content])
 
     let pageProps = {
         activeBranch:activeBranch,
         postsContext:postsContext,
-        pageType:pageType,
         height:height,
         shouldOpen:shouldOpen,
         setOpenRef:setOpenRef,
         setShowCreateRef:setShowCreateRef
     }
 
+
+    const loadMore = loading ? () => {} : fetchData;
+
     return(
         <InfiniteLoader
         ref={infiniteLoaderRef}
-        isItemLoaded={()=>true}
-        itemCount={posts.length}
-        loadMoreItems={fetchData}
+        isItemLoaded={index => index < posts.length}
+        itemCount={posts.length + 1}
+        loadMoreItems={loadMore}
+        threshold={10}
         >
             {({ onItemsRendered, ref }) => (
             <List
-            ref={listRef}
+            ref={ref}
             height={height}
             itemCount={posts.length}
-            itemSize={height}
+            itemSize={getSize}
             onItemsRendered={onItemsRendered}
             width={width}
+            onScroll={onScroll}
             >{({ style,index }) => (
-                    <ListItem style={style} index={index}
-                        pages={pages} {...pageProps} post={posts[index]}
-                    />
+                    <div style={style} css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+                        <ListItem style={style} index={index} setSize={setSize} windowWidth={windowWidth}
+                            {...pageProps} post={posts[index]} listRef={infiniteLoaderRef}
+                        />
+                    </div>
                 )}
             </List>
             )}
         </InfiniteLoader>
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
+    nextProps.postsContext.content && prevProps.loading == nextProps.loading && 
+    ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
+    nextProps.activeBranch.uri)
+})
 
-function ListItem({page,pages,data,style,index,...rest}){
+const ListItem = React.memo(function ListItem({page,pages,data,style,index,setSize,listRef, 
+    windowWidth,...rest}){
+    const ref = useRef();
+    const [postShown,setPostShown] = useState(false);
+
+    useEffect(() => {
+        try{
+            setSize(index, ref.current.getBoundingClientRect().height);
+            listRef.current._listRef.resetAfterIndex(index);
+    
+        }catch(e){
+
+        }
+    }, [windowWidth]);
+
     function getPostProps(post){
         let props = {
             post:rest.post,
@@ -191,13 +170,26 @@ function ListItem({page,pages,data,style,index,...rest}){
     }
 
     return(
-        <div style={style}>
-            <Post
-            {...getPostProps()}
-            />
+        <>
+        <div ref={ref} css={{margin:'30px 10px',width:'100%'}} onClick={()=>setPostShown(true)}>
+            <div css={theme=>({backgroundColor:theme.backgroundLightColor,boxShadow:`0 0.5px 0.8px rgba(0, 0, 0, 0.04), 
+            0 1.6px 2.7px rgba(0, 0, 0, 0.06), 0 7px 12px rgba(0, 0, 0, 0.1)`,borderRadius:25,overflow:'hidden'})}>
+                <Post minimal isSingular
+                {...getPostProps()}
+                />
+            </div> 
         </div>
+        {ReactDOM.createPortal(
+            postShown?
+            <PopUpPost postShown={postShown} setPostShown={setPostShown} post={rest.post}
+            />:null
+        ,document.getElementById("leaf-preview-root"))
+        }
+        </>
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.index==nextProps.index && prevProps.style.height == nextProps.style.height
+})
 
 const to = (x) => ({ x: x,scale: 1,display: 'block'})
 const from = (x) => ({ x: x||0,scale: 1,display: 'block'})

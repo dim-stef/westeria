@@ -7,15 +7,21 @@ import {UserContext} from "../container/ContextContainer";
 import {BranchSwitcher} from "./BranchSwitcher"
 import {FollowButton} from "./Card"
 
-const desktopProfile = (backgroundColor) =>css({
+const desktopProfile = (dark,backgroundColor) =>css({
     height:'100%',width:'100%',padding:'10px 20px',display:'flex',flexFlow:'column',alignItems:'center',boxSizing:'border-box',
-      boxShadow:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,backgroundColor:backgroundColor
+    boxShadow:dark?null:'0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)',borderRadius:15,backgroundColor:backgroundColor,
+    '@media (max-device-width:767px)':{
+        borderRadius:0
+    }
   })
 
 const description = theme =>css({
     color:theme.textHarshColor,
-    fontSize:'2em',
+    fontSize:'2rem',
     wordBreak:'break-word',
+    '@media (max-device-width:767px)':{
+        fontSize:'1.3rem'
+    }
 })
 
 const similar = theme =>css({
@@ -91,7 +97,7 @@ export function DesktopProfile({branch,noSettings=false}){
     
     return(
         userContext.isAuth || viewedBranch?
-        <div css={()=>desktopProfile(backgroundColor)}>
+        <div css={()=>desktopProfile(theme.dark,backgroundColor)}>
             <Link rel="canonical" to={`/${viewedBranch.uri}`}>
                 <img src={viewedBranch.branch_image} css={profilePicture}/>
             </Link>

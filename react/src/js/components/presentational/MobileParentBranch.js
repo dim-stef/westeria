@@ -332,7 +332,7 @@ function ProfileDrawer({shown,setShown,branch,history}){
     return (
         ReactDOM.createPortal(
             <animated.div {...bind()}
-                css={theme=>({opacity:0.9,zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundColor,
+                css={theme=>({opacity:0.9,zIndex:1002,height:window.innerHeight,backgroundColor:theme.backgroundDarkColor,
                 position:'fixed',top:0,width:'100vw'})} 
                 style={{transform:props.x.interpolate(x=>`translateX(${x>0?0:x}px)`)}} 
                 onClick={e=>e.stopPropagation()}>

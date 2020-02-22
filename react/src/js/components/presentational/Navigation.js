@@ -128,7 +128,7 @@ const navBarPositioner = (theme,isDark) => css({
     position: "fixed",
     width: "100%",
     backgroundColor: theme.navBarColor,
-    boxShadow:'0px 0px 4px 0px #0000004d',
+    boxShadow:isDark?null:'0px 0px 4px 0px #0000004d',
     maxWidth:1200,
     zIndex: 1001,
     top:0,

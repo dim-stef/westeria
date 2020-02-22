@@ -234,7 +234,7 @@ export function SingularPost({postId,wholePost=null,parentPost=null,postsContext
 
 export const Post = React.memo(function Post({post,parentPost=null,down=0,
     measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
-    viewAs="post",isSingular,movement,updateTree=()=>{}}){
+    viewAs="post",isSingular,movement,minimal=false,updateTree=()=>{}}){
 
     const [ref, inView] = useInView({
         threshold: 0,
@@ -291,11 +291,15 @@ export const Post = React.memo(function Post({post,parentPost=null,down=0,
                 date={date} cls="main-post" posts={posts} setPosts={setPosts}
                 showPostedTo activeBranch={activeBranch} down={down}
                 open={open} measure={measure} postsContext={postsContext}
-                isSingular={isSingular} updateTree={updateTree}
+                isSingular={isSingular} updateTree={updateTree} minimal={minimal}
                 />
             </div>
         </StyledPostWrapper>
     )
+},(prevProps,nextProps)=>{
+
+    return prevProps.post.id == nextProps.post.id && 
+    ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == nextProps.activeBranch.uri)
 })
 
 function StyledPostWrapper({post,down,viewAs,index,isSingular,movement,children}){
@@ -340,7 +344,7 @@ if (process.env.NODE_ENV !== 'production') {
     whyDidYouRender(React);
 }
 
-function ShownBranch({branch,date,dimensions=48}){
+function ShownBranch({branch,date,minimal,dimensions=48}){
     const theme = useEmotionTheme();
     let dateElement=null;
 
@@ -354,21 +358,19 @@ function ShownBranch({branch,date,dimensions=48}){
 
     return(
         
-        <div style={{display:'-webkit-inline-flex',display:'-ms-inline-flexbox',
-        display:'inline-flex',position:'relative'}} >
+        <div css={{display:'flex',alignItems:'center',position:'relative'}} >
             <SmallCard branch={branch}>
-                <PostPicture picture={branch.branch_image} 
-                style={{width:dimensions,height:dimensions}}
-                uri={branch.uri}/>
-                <div className="flex-fill" style={{display:'flex',flexFlow:'row wrap'}}>
+                <div css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+                    <PostPicture picture={branch.branch_image} 
+                    style={{width:dimensions,height:dimensions}}
+                    uri={branch.uri}/>
                     <Link to={`/${branch.uri}`} onClick={handleAnchorClick} 
                     style={{textDecoration:'none', color:theme.textHarshColor,marginRight:10}}>
-                            <strong style={{fontSize:'1.7em'}}>{branch.name}</strong>
+                            <strong css={{fontSize:minimal?'1.2rem':'1.7rem'}}>{branch.name}</strong>
                     </Link>
-                    {date?<div style={{padding:'3px 0px',color:theme.textLightColor,fontWeight:600}}>
+                    {date?<div css={{padding:'3px 0px',color:theme.textLightColor,fontWeight:600}}>
                         {dateElement}
                     </div> :null}
-                    
                 </div>
             </SmallCard>
         </div>
@@ -397,7 +399,7 @@ function is_touch_device() {
 }
 
 function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
-    activeBranch,open,updateTree,measure,viewAs,isSingular,className,children}){
+    activeBranch,updateTree,measure,viewAs,isSingular,className,minimal,children}){
 
     const context = useContext(UserContext);
     const theme = useEmotionTheme();
@@ -415,12 +417,12 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
     })
     let mainPostedBranch = getPostedTo(post,activeBranch,context);
 
-    const [isStatusUpdateActive,setStatusUpdateActive] = useState(isOpen && viewAs=="post" || isSingular);
+    const [isStatusUpdateActive,setStatusUpdateActive] = useState((isOpen && viewAs=="post" || isSingular) && !minimal);
     const ref = useRef(null);
 
     let isEmbedded = viewAs=="embeddedPost" ? true : false;
     let borderBottom = viewAs=="post" || isEmbedded ? `1px solid ${theme.borderColor}` : borderBottom;
-    borderBottom = viewAs=="reply" ? 'none' : borderBottom
+    borderBottom = viewAs=="reply" || minimal ? 'none' : borderBottom
     let border = isEmbedded ? `1px solid ${theme.borderColor}` : 'none';
     let borderRadius = isEmbedded ? '10px' : '0';
     let marginTop = isEmbedded ? '10px' : '0';
@@ -518,16 +520,16 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
                 {post.spreaders.length>0 && !isEmbedded && context.isAuth?
                 <TopSpreadList spreaders={post.spreaders} selfSpread={selfSpread}/>
                 :null}
-                {viewAs=='post'?
+                {viewAs=='post' && !minimal?
                 <Path from={post.matches.from} to={post.matches.to || post.posted_to[0].uri} id={post.id} postsContext={postsContext}/>:
                 null} 
                 <div className="flex-fill">
                     <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null,flexFlow:'column'}}>
-                        <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} 
-                        date={date} post={post} dimensions={viewAs=='reply'?24:36}/>
-                        <PostedTo post={post} mainPostedBranch={mainPostedBranch} 
-                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply'?24:36}
-                        measure={measure}
+                        <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} minimal={minimal}
+                        date={date} post={post} dimensions={viewAs=='reply' || minimal?24:36}/>
+                        <PostedTo post={post} mainPostedBranch={mainPostedBranch} minimal={minimal}
+                        activeBranch={activeBranch} showPostedTo={showPostedTo} dimensions={viewAs=='reply' || minimal?24:36}
+                        measure={measure} minimal={minimal}
                         />
                     </div>
                     <More post={post} posts={posts} setPosts={setPosts}/>
@@ -536,8 +538,10 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
                         <PostBody post={post} embeddedPostData={post.replied_to} activeBranch={activeBranch} isEmbedded={isEmbedded}
                         text={post.text} postsContext={postsContext} images={post.images} videos={post.videos} 
                         measure={measure} postRef={ref} viewAs={viewAs}/>
-                        <PostActions post={post} handleCommentClick={handleCommentClick}
-                        handleSpread={onSpread} selfSpread={selfSpread} postsContext={postsContext}/>
+                        {!minimal?
+                            <PostActions post={post} handleCommentClick={handleCommentClick}
+                            handleSpread={onSpread} selfSpread={selfSpread} postsContext={postsContext}/>
+                        :null}
                         
                     </div>
             </div>
@@ -567,7 +571,7 @@ const postedToExtensionContainer = theme =>css({
     }
 })
 
-function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
+function PostedToExtension({post,activeBranch,mainPostedBranch,minimal}){
     
     const userContext = useContext(UserContext);
     const [branches,setBranches] = useState([]);
@@ -602,7 +606,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
             marginLeft:10,display:'flex',justifyContent:'center'})}
             onClick={e=>{e.stopPropagation();show();setOpen(true);}}>
                 <span css={theme=>({fontSize:'1.5em',display:'flex',alignItems:'center',
-                padding:'4px 5px',color:theme.textLightColor})}>+{branches.length} more</span>
+                padding:'4px 5px',color:theme.textLightColor})}>+{branches.length}{minimal?null:' more'}</span>
             </div>
             :null
         )}
@@ -630,17 +634,17 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,measure}){
 }
 
 
-function PostedTo({post,showPostedTo,activeBranch=null,mainPostedBranch=null,dimensions=48,measure}){
+function PostedTo({post,activeBranch=null,mainPostedBranch=null,dimensions=48,measure,minimal}){
 
     return(
         mainPostedBranch && post.type!=="reply"?
-            <div className="flex-fill" style={{alignItems:'center',margin:'0 10px'}}>
+            <div className="flex-fill" css={{alignItems:'center',margin:'0 10px'}}>
                 <div className="arrow-right"></div>
                 <div style={{marginLeft:20}}>
                     <div className="flex-fill">
-                        <ShownBranch branch={mainPostedBranch} dimensions={dimensions}/>
+                        <ShownBranch branch={mainPostedBranch} dimensions={dimensions} minimal={minimal}/>
                         <PostedToExtension post={post} activeBranch={activeBranch} 
-                        mainPostedBranch={mainPostedBranch} measure={measure}/>
+                        mainPostedBranch={mainPostedBranch} measure={measure} minimal={minimal}/>
                     </div>
                 </div>
             </div>
@@ -1482,7 +1486,7 @@ function MoreSvg({className}){
 }
 
 function getDateElement(diff,prefix = ''){
-    let fontSize = '1.4em';
+    let fontSize = '1.1em';
 
     if(prefix === ''){
         let months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec'];

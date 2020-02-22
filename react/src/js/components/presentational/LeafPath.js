@@ -67,7 +67,7 @@ export function Path({from,to,id,postsContext}){
                 }
 
                 return (
-                        <React.Fragment key={b.uri}>
+                        <React.Fragment key={i}>
                         <SmallCard branch={b}>
                             <div style={{margin:'0 10px'}} onClick={handleClick}>
                                 <Link to={`/${b.uri}`}>

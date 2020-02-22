@@ -3,8 +3,6 @@ import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {CSSTransition} from 'react-transition-group';
 import {isMobile} from 'react-device-detect';
-import {NavLink} from 'react-router-dom';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import {
     AllPostsContext,
     BranchCommunityPostsContext,
@@ -18,19 +16,21 @@ import {
     SwipeablePostGridContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
-import {Tooltip, TooltipChain} from "./Tooltip";
 import {Modal, ToggleContent} from "./Temporary"
 import {SmallBranch} from "./Branch"
 import Skeleton, {SkeletonTheme} from 'react-loading-skeleton';
-import {Post} from './SingularPost';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
-import {Grid} from "./Grid"
-import {SwipeablePostGrid, VerticalPostGrid} from "./SwipeablePostGrid";
+import {InfinitePostList} from "./InfinitePostList"
 import {SuperBar, SwipeableBar} from "./SuperBar"
 import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
 
 axiosRetry(axios, 
     {
@@ -66,10 +66,14 @@ function resetPostListContext(postsContext,props){
     postsContext.lastPage = 0
 }
 
-function DisplayPosts({isFeed,posts,
-    postsContext,
+const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
+    postsContext,loading,
     updateFeed,postedId,fetchData,hasMore,activeBranch,refresh}){
     
+    useEffect(()=>{
+        console.log("render")
+    })
+
     const isMobileOrTablet = useMediaQuery({
         query: '(max-device-width: 1223px)'
     })
@@ -78,7 +82,6 @@ function DisplayPosts({isFeed,posts,
 
     const [height,setHeight] = useState(0);
     const [width,setWidth] = useState(0);
-    const isSwiping = useRef(false);
 
     function handleWidth(){
         if(ref.current){
@@ -116,16 +119,22 @@ function DisplayPosts({isFeed,posts,
             updateFeed={updateFeed} postedId={postedId} isFeed={isFeed} width={width}
         />
         <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
-        {width && height>0?
-        <SwipeablePostGrid postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
-            width={width} height={height} hasMore={hasMore} isSwiping={isSwiping} refresh={refresh}
-            updateFeed={updateFeed} isFeed={isFeed}
+        <InfinitePostList postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
+            width={width} height={height} hasMore={hasMore} refresh={refresh}
+            updateFeed={updateFeed} isFeed={isFeed} loading={loading}
         />
-        :null}
         </div>
     </>
     )
-}
+},(prevProps,nextProps)=>{
+    console.log("in")
+    return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
+    nextProps.postsContext.content && prevProps.loading == nextProps.loading &&
+    ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
+    nextProps.activeBranch.uri)
+})
+
+DisplayPosts.whyDidYouRender = true;
 
 function ResponsiveSkeleton({height}){
     let supportsGrid = cssPropertyValueSupported('display', 'grid');
@@ -155,15 +164,11 @@ function ResponsiveSkeleton({height}){
     )
 }
 
-if (process.env.NODE_ENV !== 'production') {
-    const whyDidYouRender = require('@welldone-software/why-did-you-render');
-    whyDidYouRender(React);
-}
 
-
-export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,postingTo=null})=>{
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId})=>{
     const swipeablePostGridContext = useContext(SwipeablePostGridContext)
     const [posts,setPosts] = useState(postsContext.loadedPosts);
+    const [loading,setLoading] = useState(false);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
     const scrollableTarget = useRef(null);
@@ -184,7 +189,9 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     }
 
     const fetchData = async () =>{
+        setLoading(true);
         if(!postsContext.hasMore){
+            setLoading(false);
             return;
         }
 
@@ -216,10 +223,12 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
 
         if(postsContext.loadedPosts == 0){
             postsContext.loadedPosts = [...response.data.results];
-            setPosts([...response.data.results]); 
+            setPosts([...response.data.results]);
+            setLoading(false);
         }else{
             postsContext.loadedPosts = [...posts,...response.data.results];
             setPosts([...posts,...response.data.results]);
+            setLoading(false);
         }
         
         //setNext(response.data.next);
@@ -270,7 +279,7 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
             updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
             posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
             activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
-            target={isMobile?scrollableTarget.current:null}
+            target={isMobile?scrollableTarget.current:null} loading={loading}
             />
             
         </div>
@@ -279,7 +288,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
 
 
 export default function FeedPosts(props){
-    const postsContext = useContext(PostsContext);
     const branchPostsContext = useContext(BranchPostsContext);
     const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
     const branchTreePostsContext = useContext(BranchTreePostsContext);
@@ -291,8 +299,8 @@ export default function FeedPosts(props){
     },[])
 
     return(
-        <FinalDisplayPosts {...props} keyword="feed" isFeed postsContext={postsContext} 
-        resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
+        <FinalDisplayPosts {...props} keyword={props.keyword} isFeed postsContext={props.postsContext} 
+        resetPostsContext={()=>resetPostListContext(props.postsContext,props)}/>
     )
 }
 

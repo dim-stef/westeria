@@ -15,10 +15,11 @@ const COLORS = {
 
 const darkMode = {
     primaryColor:'rgb(33, 150, 243)',
-    backgroundColor:COLORS.black,
+    backgroundColor:'#090a10',
     backgroundLightColor:'#151827',
-    backgroundDarkColor:'#090a10',
+    backgroundDarkColor: COLORS.black,
     backgroundLightOppositeColor:COLORS.white,
+    postFloatingButtonColor:COLORS.black,
     navBarColor:'#090a10',
     textColor:COLORS.semiWhite,
     textLightColor:COLORS.lightGray,
@@ -39,6 +40,7 @@ const lightMode = {
     backgroundLightColor:'#fbfbfb',
     backgroundDarkColor:'#f5f5f5',
     backgroundLightOppositeColor:darkMode.backgroundLightColor,
+    postFloatingButtonColor:COLORS.white,
     navBarColor:COLORS.white,
     textColor:COLORS.lightBlack,
     textLightColor:COLORS.darkGray,
