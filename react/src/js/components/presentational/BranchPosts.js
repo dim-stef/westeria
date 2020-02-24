@@ -82,6 +82,10 @@ const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
 
     function handleWidth(){
         if(ref.current){
+            let statusUpdateActive = document.getElementsByName("statusUpdate");
+            if(statusUpdateActive.length > 1){
+                return;
+            }
             let mobileNavBar = null;
             try{
                 mobileNavBar = document.getElementById('mobile-nav-bar');
@@ -126,7 +130,7 @@ const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
 },(prevProps,nextProps)=>{
     return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
     nextProps.postsContext.content && prevProps.loading == nextProps.loading &&
-    prevProps.width == nextProps.width &&
+    prevProps.width == nextProps.width && prevProps.height==nextProps.height &&
     ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
     nextProps.activeBranch.uri)
 })
