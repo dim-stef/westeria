@@ -243,7 +243,7 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
                 )}
             </InfiniteLoader>
         </animated.div>
-        {posts.length == 0?
+        {posts.length == 0 && !loading?
         <div css={{display:'flex',flexFlow:'column',position:'absolute',top:200,width:'100%'}}>
             <h1 css={{textAlign:'center',marginTop:20}}>
                 Nothing is here :(
