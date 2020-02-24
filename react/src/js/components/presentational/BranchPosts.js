@@ -125,7 +125,7 @@ const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
     )
 },(prevProps,nextProps)=>{
     return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
-    nextProps.postsContext.content && prevProps.loading == nextProps.loading && prevProps.height == nextProps.height &&
+    nextProps.postsContext.content && prevProps.loading == nextProps.loading &&
     prevProps.width == nextProps.width &&
     ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
     nextProps.activeBranch.uri)
