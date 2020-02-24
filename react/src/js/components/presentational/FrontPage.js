@@ -21,6 +21,7 @@ import {MobileParentBranch2} from "./MobileParentBranch"
 import {Helmet} from "react-helmet";
 import {Link, NavLink, Redirect, Route, Switch,useLocation} from 'react-router-dom'
 import {Desktop, Mobile, Tablet} from "./Responsive"
+import history from "../../history"
 
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js');
@@ -201,25 +202,25 @@ export const FrontPage = React.memo(function FrontPage(props){
                 <div css={{flexBasis:'22%'}}>
                     <DesktopProfile branch={userContext.currentBranch}/>
                 </div>
-                <FrontPagePostList/> 
+                <FrontPagePostList match={props.match}/> 
             </Desktop>
 
             <Tablet>
                 <MobileParentBranch2 branch={userContext.currentBranch}>
-                    <FrontPagePostList/> 
+                    <FrontPagePostList match={props.match}/> 
                 </MobileParentBranch2>
             </Tablet>
 
             <Mobile>
                 <MobileParentBranch2 branch={userContext.currentBranch}>
-                    <FrontPagePostList/>
+                    <FrontPagePostList match={props.match}/>
                 </MobileParentBranch2>
             </Mobile>
         </>
     )
 })
 
-const FrontPagePostList = React.memo(function FrontPagePostList({page}){
+const FrontPagePostList = React.memo(function FrontPagePostList({match}){
     const userContext = useContext(UserContext);
     const isMobile = useMediaQuery({
         query:'(max-device-width: 767px)'
@@ -228,21 +229,60 @@ const FrontPagePostList = React.memo(function FrontPagePostList({page}){
     return(
         <div className="post-list" css={theme=>postList(theme,isMobile)}>
             {/*<FrontPageList/>*/}
-            <Switch>
-                <Route exact path="/" render={
-                    () => userContext.isAuth?<FrontPageFeed />:
-                    <FrontPageAllPosts/>
-                }/>
-                <Route exact path="/all" render={()=> <FrontPageAllPosts/>}/>
-                <Route exact path="/tree" render={()=> userContext.isAuth?
-                <FrontPageTreePosts/>:<Redirect to="/login"/>}/>
-            </Switch>
+            <FrontPagePostListMatcher match={match}/>
         </div>
     )
 })
 
-FrontPagePostList.whyDidYouRender = true
+export function FrontPagePostListMatcher({match}){
+    let _context;
+    let title;
+    let description;
+    let href;
+    let keyword;
 
+    const context = useContext(UserContext);
+
+    if(!match.params.page && context.isAuth){
+        keyword="feed";
+        title = 'Home - Westeria'
+        description = 'Your personal feed created from the communities you follow.'
+        href = 'https://subranch.com'
+        _context = PostsContext;
+    }else if(match.params.page=='tree' && context.isAuth){
+        keyword="following_tree";
+        title = 'Tree - Westeria'
+        description = 'Browse all the leaves created by the westeria community.'
+        href = 'https://subranch.com/tree'
+        _context = TreePostsContext;
+    }else{
+        keyword="all";
+        title = 'Westeria'
+        description = 'Browse all the leaves created by the westeria community.'
+        href = 'https://subranch.com/'
+        _context = AllPostsContext;
+    }
+    const postsContext = useContext(_context);
+    const [uri,setUri] = useState('initialUri')
+    const branch = context.isAuth?context.currentBranch.uri:null;
+    const [params,setParams] = useState(null);
+
+    return(
+        <>
+        <Helmet>
+            <title>{title}</title>
+            <meta name="description" content={description}/>
+            <link rel="canonical" href={href}/>
+        </Helmet>
+        <FeedPosts uri={uri} setUri={setUri} activeBranch={context.isAuth?context.currentBranch:null}
+        postedId={context.isAuth?context.currentBranch.id:null} 
+        postingTo={context.isAuth?context.currentBranch:null} postsContext={postsContext} showPostedTo 
+        branch={branch} params={params} setParams={setParams} isFeed keyword={keyword}
+        />
+        </>
+    )
+    
+}
 
 export const FrontPageFeed = React.memo(function FrontPageFeed(props){
     const context = useContext(UserContext);

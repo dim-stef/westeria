@@ -55,7 +55,10 @@ const superBar = theme =>css({
     alignItems:'center',
     padding:'5px 0',
     backgroundColor:theme.backgroundLightColor,
+    borderRadius:100,
+    overflow:'hidden',
     '@media (max-device-width: 767px)':{
+        borderRadius:0,
         margin:0
     }
 })
@@ -97,8 +100,10 @@ const linkContentCss = (theme,match) =>css({
     textOverflow:'ellipsis',
     whiteSpace:'nowrap',
     width:'100%',
-    color:match?theme.primaryColor:theme.textColor,
-    transition:'color 250ms'
+    color:match?theme.primaryColor:theme.textLightColor,
+    transition:'color 250ms',
+    marginTop:2,
+    fontWeight:400
 })
 
 function PostListPicker({postsContext,branch}){
@@ -264,7 +269,7 @@ const swipeableBarWrapper = theme =>css({
 })
 
 const navIcon = (theme,match) =>css({
-    fill:match?theme.primaryColor:theme.textHarshColor,
+    fill:match?theme.primaryColor:theme.textLightColor,
     height:25,
     width:25,
     transition:'fill 250ms',
@@ -550,7 +555,7 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
             <div css={theme=>({backgroundColor:theme.backgroundLightColor,zIndex:1,borderTopLeftRadius:100,
             borderBottomLeftRadius:100})} onClick={handleMenuClick}
             >
-                <div css={theme=>({marginRight:5,borderRadius:'50%',backgroundColor:theme.backgroundDarkColor,display:'flex',
+                <div css={theme=>({marginRight:5,borderRadius:'50%',backgroundColor:theme.backgroundLightColor,display:'flex',
                 padding:6})}>
                     <div css={{height:32,width:32,display:'flex',justifyContent:'center',alignItems:'center'}}>
                         <HamburgerSvg css={{height:20,width:20,fill:theme.textColor}}/>

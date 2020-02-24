@@ -23,4 +23,6 @@ export const FadeImage= React.memo(function FadeImage(props){
         }}
         onLoad={onImageLoad}/>
     )
+},(prevProps,nextProps)=>{
+    return prevProps.src == nextProps.src;
 })

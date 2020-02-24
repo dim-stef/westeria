@@ -337,18 +337,24 @@ function RoomContainer({roomData,match}){
             <meta name="description" content={`${name} messages.`} />
         </Helmet>
         <PageWrapper>
-            <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:{height},
+            <div className="flex-fill big-main-column" ref={ref} style={{display:'relative',height:height,
             flexFlow:'column',WebkitFlexFlow:'column',marginRight:0,flex:1,msFlex:1,WebkitFlex:1,border:`1px solid ${theme.borderColor}`}}>
                 <RoutedHeadline to="/messages" className="chat-headline" containerStyle={{backgroundColor:theme.backgroundColor}}>
                     {headline}
                 </RoutedHeadline>
-                <div ref={parentRef} className="flex-fill" css={theme=>({padding:'10px',overflowY:'auto',flex:1,
+                <div ref={parentRef} className="flex-fill" css={theme=>({padding:'10px',overflowY:'overlay',flex:1,
+                overflowX:'hidden !important',
                 flexFlow:'column',
                 '&::-webkit-scrollbar':{
                     width:10
                 },
                 '&::-webkit-scrollbar-thumb':{
                     backgroundColor:theme.scrollBarColor,
+                },
+                '@media (max-device-width:767px)':{
+                    '&::-webkit-scrollbar':{
+                        width:4
+                    }, 
                 }})}>
                     <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
                     setFirstBatch={setFirstBatch} prevScrollHeight={prevScrollHeight}

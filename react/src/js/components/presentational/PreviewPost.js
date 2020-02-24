@@ -398,8 +398,6 @@ export const PreviewPost = React.memo(function PreviewPost({post,viewAs,isFlat,s
         {createPortal(
                 postShown?
                 <PopUpPost postShown={postShown} setPostShown={setPostShown} post={post}
-                    commentsShown={commentsShown} setCommentsShown={setCommentsShown}
-                    isLaptopOrDesktop={isLaptopOrDesktop} isTall={isTall}
                 />:null
             ,document.getElementById("leaf-preview-root"))
         }
@@ -426,8 +424,7 @@ const arrowButton = theme =>css({
     marginTop:5
 })
 
-function PopUpPost({postShown,setPostShown,post,commentsShown,setCommentsShown,
-    isLaptopOrDesktop,isTall}){
+export function PopUpPost({postShown,setPostShown,post}){
 
     const postsContext = useContext(SingularPostContext);
     const userContext = useContext(UserContext);

@@ -15,10 +15,15 @@ const COLORS = {
 
 const darkMode = {
     primaryColor:'rgb(33, 150, 243)',
-    backgroundColor:COLORS.black,
+    backgroundColor:'#090a10',
     backgroundLightColor:'#151827',
-    backgroundDarkColor:'#090a10',
+    backgroundDarkColor: COLORS.black,
     backgroundLightOppositeColor:COLORS.white,
+    postFloatingButtonColor:'#272727',
+    postFloatingButtonShadow:`0 0.1px 0.2px -1px rgba(0, 0, 0, 0.273),
+    0 0.3px 0.6px -1px rgba(0, 0, 0, 0.361),
+    0 0.6px 1.5px -1px rgba(0, 0, 0, 0.481),
+    0 2px 5px -1px rgba(0, 0, 0, 0.97)`,
     navBarColor:'#090a10',
     textColor:COLORS.semiWhite,
     textLightColor:COLORS.lightGray,
@@ -31,6 +36,7 @@ const darkMode = {
     skeletonHighlightColor:'#0d0f1b',
     landingPageButtonColor:'#33364a',
     scrollBarColor:'#22232d',
+
 }
 
 const lightMode = {
@@ -39,6 +45,10 @@ const lightMode = {
     backgroundLightColor:'#fbfbfb',
     backgroundDarkColor:'#f5f5f5',
     backgroundLightOppositeColor:darkMode.backgroundLightColor,
+    postFloatingButtonColor:COLORS.white,
+    postFloatingButtonShadow:`0 0.5px 0.8px rgba(0, 0, 0, 0.016),
+    0 1.6px 2.7px rgba(0, 0, 0, 0.024),
+    0 7px 12px rgba(0, 0, 0, 0.04)`,
     navBarColor:COLORS.white,
     textColor:COLORS.lightBlack,
     textLightColor:COLORS.darkGray,

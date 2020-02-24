@@ -74,6 +74,13 @@ body {
     padding: 4px;
 }
 
+@media all and (max-device-width: 767px){
+    .nav-icon{
+        width: 28px;
+        height: 28px;
+    }
+}
+
 .nav-icon-container:hover svg{
     background-color: #219ef31c !important;
 }
