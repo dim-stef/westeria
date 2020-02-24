@@ -71,10 +71,6 @@ const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
     postsContext,loading,
     updateFeed,postedId,fetchData,hasMore,activeBranch,refresh}){
     
-    useEffect(()=>{
-        console.log("render")
-    })
-
     const isMobileOrTablet = useMediaQuery({
         query: '(max-device-width: 1223px)'
     })
@@ -129,7 +125,8 @@ const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
     )
 },(prevProps,nextProps)=>{
     return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
-    nextProps.postsContext.content && prevProps.loading == nextProps.loading &&
+    nextProps.postsContext.content && prevProps.loading == nextProps.loading && prevProps.height == nextProps.height &&
+    prevProps.width == nextProps.width &&
     ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
     nextProps.activeBranch.uri)
 })

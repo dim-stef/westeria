@@ -365,8 +365,12 @@ function ShownBranch({branch,date,minimal,dimensions=48}){
                     style={{width:dimensions,height:dimensions}}
                     uri={branch.uri}/>
                     <Link to={`/${branch.uri}`} onClick={handleAnchorClick} 
-                    style={{textDecoration:'none', color:theme.textHarshColor,marginRight:10}}>
-                            <strong css={{fontSize:minimal?'1.2rem':'1.7rem'}}>{branch.name}</strong>
+                    style={{textDecoration:'none', color:theme.textHarshColor,marginRight:3}}>
+                        <strong css={{fontSize:minimal?'1.2rem':'1.7rem',
+                        maxWidth:150,textOverflow:'ellipsis',overflow:'hidden',whiteSpace:'nowrap',
+                        '@media (max-device-width:767px)':{
+                            maxWidth:55
+                        }}}>{branch.name}</strong>
                     </Link>
                     {date?<div css={{padding:'3px 0px',color:theme.textLightColor,fontWeight:600}}>
                         {dateElement}
@@ -524,7 +528,8 @@ function StyledPost({post,posts,setPosts,postsContext,date,showPostedTo,
                 <Path from={post.matches.from} to={post.matches.to || post.posted_to[0].uri} id={post.id} postsContext={postsContext}/>:
                 null} 
                 <div className="flex-fill">
-                    <div className="flex-fill associated-branches" style={{fontSize:viewAs=='reply'?'0.7rem':null,flexFlow:'column'}}>
+                    <div className="flex-fill associated-branches" css={{flexFlow:'row !important'}} 
+                    style={{fontSize:viewAs=='reply'?'0.7rem':null}}>
                         <ShownBranch branch={post.posted_to.find(b=>post.poster==b.uri)} minimal={minimal}
                         date={date} post={post} dimensions={viewAs=='reply' || minimal?24:36}/>
                         <PostedTo post={post} mainPostedBranch={mainPostedBranch} minimal={minimal}
@@ -603,7 +608,7 @@ function PostedToExtension({post,activeBranch,mainPostedBranch,minimal}){
             branches.length>0?
             <div 
             css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:50,
-            marginLeft:10,display:'flex',justifyContent:'center'})}
+            marginLeft:5,display:'flex',justifyContent:'center',cursor:'pointer'})}
             onClick={e=>{e.stopPropagation();show();setOpen(true);}}>
                 <span css={theme=>({fontSize:'1.5em',display:'flex',alignItems:'center',
                 padding:'4px 5px',color:theme.textLightColor})}>+{branches.length}{minimal?null:' more'}</span>
@@ -640,7 +645,7 @@ function PostedTo({post,activeBranch=null,mainPostedBranch=null,dimensions=48,me
         mainPostedBranch && post.type!=="reply"?
             <div className="flex-fill" css={{alignItems:'center',margin:'0 10px'}}>
                 <div className="arrow-right"></div>
-                <div style={{marginLeft:20}}>
+                <div style={{marginLeft:10}}>
                     <div className="flex-fill">
                         <ShownBranch branch={mainPostedBranch} dimensions={dimensions} minimal={minimal}/>
                         <PostedToExtension post={post} activeBranch={activeBranch} 
@@ -716,7 +721,7 @@ function PostPicture(props){
 
     return(
         <Link to={`/${props.uri}`} onClick={handleAnchorClick} 
-        className="noselect" style={{marginRight:10}}>
+        className="noselect" style={{marginRight:5}}>
             <img src={props.picture} className="post-profile-picture round-picture" 
             style={props.style?{...props.style}:null}/>
         </Link>
@@ -1486,7 +1491,7 @@ function MoreSvg({className}){
 }
 
 function getDateElement(diff,prefix = ''){
-    let fontSize = '1.1em';
+    let fontSize = '1.1rem';
 
     if(prefix === ''){
         let months = ['Jan','Feb','Mar','Apr','May','June','July','Aug','Sept','Oct','Nov','Dec'];

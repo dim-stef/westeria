@@ -227,7 +227,7 @@ export const HomeSvg = props =>(
   </svg>
 )
 
-function StarSvg(props){
+export function StarSvg(props){
   return(
       <svg
           xmlnsXlink="http://www.w3.org/1999/xlink"
@@ -242,7 +242,7 @@ function StarSvg(props){
   )
 }
 
-const DislikeSvg = props => (
+export const DislikeSvg = props => (
   <svg
     x="0px"
     y="0px"

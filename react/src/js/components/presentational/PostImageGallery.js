@@ -111,7 +111,7 @@ export function Images(props){
         }
     }else{
         initStyle = {
-            margin: '0 -10px'
+            margin: '-10px'
         }
     }
 

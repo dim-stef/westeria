@@ -1,10 +1,20 @@
-function useReactActions(post){
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import history from "../../history"
+import {
+    UserContext
+} from '../container/ContextContainer'
+import axios from 'axios';
+import {StarSvg,DislikeSvg} from "./Svgs"
+
+
+export function useReactActions(post){
 
     const context = useContext(UserContext)
     const [react,setReact] = useState(null);
     const [starCount,setStarCount] = useState(post.stars);
     const [dislikeCount,setDislikeCount] = useState(post.dislikes);
     const [isDisabled,setDisabled] = useState(false);
+    const disabled = useRef(isDisabled);
 
     useLayoutEffect(()=>{
         if(context.isAuth){
@@ -16,6 +26,8 @@ function useReactActions(post){
     },[])
 
     function changeReact(type){
+        if(disabled.current) return;
+        disabled.current = true;
         setDisabled(true);
 
         let reactUUID = context.currentBranch.reacts.find(x=>x.post===post.id).id
@@ -50,11 +62,15 @@ function useReactActions(post){
                 let index = context.currentBranch.reacts.findIndex(r=>r.post == post.id)
                 context.currentBranch.reacts[index] = r.data;
             }).finally(r=>{
+                disabled.current = false;
                 setDisabled(false);
             })
     }
 
-    const createOrDeleteReact = useCallback((type) => {
+    const createOrDeleteReact = (type) => {
+        
+        if(disabled.current) return;
+        disabled.current = true;
         setDisabled(true);
         // delete react
         if(type==react){
@@ -79,11 +95,11 @@ function useReactActions(post){
                  
                 //setReact(null)
             }).finally(r=>{
+                disabled.current = false;
                 setDisabled(false);
             });
         }else{
-            // post react
-            
+
             setReact(type);
             type=='star'?setStarCount(starCount+1):setDislikeCount(dislikeCount+1);
             let uri = `/api/reacts/`;
@@ -102,7 +118,6 @@ function useReactActions(post){
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken')
                     },
-                    withCredentials: true
                 }).then(r=>{
                     context.currentBranch.reacts.push(r.data);
                     //setReact(type);
@@ -110,36 +125,18 @@ function useReactActions(post){
                     setReact(null);
                     type=='star'?setStarCount(starCount-1):setDislikeCount(dislikeCount-1);
             }).finally(r=>{
+                disabled.current = false;
                 setDisabled(false);
             })
         }
-    },[react])
-
-
-    return [react,starCount,dislikeCount,isDisabled];
-}
-
-function Star({post,react,changeReact,createOrDeleteReact,isDisabled}){
-    const [reacted,setReacted] = useState(false);
-    const [react,starCount,dislikeCount,isDisabled] = useReactActions(post)
-    const context = useContext(UserContext);
-
-    const onClick = (e) =>{
-        e.stopPropagation();
-        if(context.isAuth){
-            handleStarClick();
-        }else{
-            history.push('/login');
-        }
     }
 
-    useLayoutEffect(()=>{
-        if(react=='star'){
-            setReacted(true);
-        }else{
-            setReacted(false);
-        }
-    },[react])
+    return [react,starCount,dislikeCount,isDisabled,changeReact,createOrDeleteReact];
+}
+
+export function Star({react,isDisabled,changeReact,createOrDeleteReact,size=20,starClickRef}){
+    const [reacted,setReacted] = useState(false);
+    const context = useContext(UserContext);
 
     function handleStarClick(){
         if(react && react!='star'){
@@ -149,16 +146,84 @@ function Star({post,react,changeReact,createOrDeleteReact,isDisabled}){
         }
     }
 
-    // hard-coded clicked class
-    let className = reacted ? 'star-clicked' : '';
-    let clickedColor = reacted ? '#fb4c4c' : null;
+    const onClick = (e) =>{
+        try{
+            e.stopPropagation();
+        }catch(e){
+
+        }
+        
+        if(context.isAuth){
+            handleStarClick();
+        }else{
+            history.push('/login');
+        }
+    }
+
+    starClickRef.current = onClick
+
+    useLayoutEffect(()=>{
+        if(react=='star'){
+            setReacted(true);
+        }else{
+            setReacted(false);
+        }
+    },[react])
+
     return(
-        <div className="post-action-container flex-fill star" style={{minWidth:0,width:'100%',
-        justifyContent:'flex-start',WebkitJustifyContent:'flex-start'}}>
-            <button style={{height:25,border:0,backgroundColor:'transparent',padding:0,paddingTop:3}}
-            disabled={isDisabled} onClick={e=>onClick(e)}>
-                <div className="flex-fill" style={{alignItems:'center'}}>
-                    <StarSvg className={className} clickedColor={clickedColor}/>
+        <div css={{zIndex:1,justifyContent:'center',alignItems:'center',cursor:'pointer'}}>
+            <button css={{border:0,backgroundColor:'transparent',padding:0}}>
+                <div css={{display:'flex',alignItems:'center'}}>
+                    <StarSvg css={theme=>({height:size,width:size,stroke:reacted?'white':theme.textHarshColor,strokeWidth:'5%',
+                    fill:reacted?'white':'transparent',overflow:'visible'})}/>
+                </div>
+            </button>
+        </div>
+    )
+}
+
+export function Dislike({react,changeReact,createOrDeleteReact,size=20,dislikeClickRef}){
+    const [reacted,setReacted] = useState(false);
+    const context = useContext(UserContext);
+
+    const onClick = (e) =>{
+        try{
+            e.stopPropagation();
+        }catch(e){
+
+        }
+        
+        if(context.isAuth){
+            handleDislikeClick();
+        }else{
+            history.push('/login');
+        }
+    }
+
+    dislikeClickRef.current = onClick
+
+    useLayoutEffect(()=>{
+        if(react=='dislike'){
+            setReacted(true);
+        }else{
+            setReacted(false);
+        }
+    },[react])
+
+    function handleDislikeClick(){
+        if(react && react!='dislike'){
+            changeReact('dislike');
+        }else{
+            createOrDeleteReact('dislike');
+        }
+    }
+
+    return(
+        <div css={{zIndex:1,justifyContent:'center',alignItems:'center',cursor:'pointer'}}>
+            <button css={{border:0,backgroundColor:'transparent',padding:0,paddingTop:5}}>
+                <div css={{display:'flex',alignItems:'center'}}>
+                    <DislikeSvg css={theme=>({height:size,width:size,stroke:reacted?'white':theme.textHarshColor,strokeWidth:'5%',
+                    fill:reacted?'white':'transparent',overflow:'visible'})}/>
                 </div>
             </button>
         </div>
