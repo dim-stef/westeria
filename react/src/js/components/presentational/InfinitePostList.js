@@ -232,10 +232,12 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
                                     <SkeletonPostList count={4} branchSize={30} boxSize={200}/>
                                 </div>:null}
                             </div>:
-                            <ListItem style={style} index={index - 1} setSize={setSize} windowWidth={windowWidth}
-                                {...pageProps} posts={posts} listRef={infiniteLoaderRef} 
-                                isItemLoaded={isItemLoaded} loading={loading}
-                            />}
+                            <React.Fragment key={index-1}>
+                                <ListItem style={style} index={index - 1} setSize={setSize} windowWidth={windowWidth}
+                                    {...pageProps} posts={posts} listRef={infiniteLoaderRef} 
+                                    isItemLoaded={isItemLoaded} loading={loading}
+                                />
+                            </React.Fragment>}
                             
                         </div>
                     }}
@@ -258,7 +260,7 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
 },(prevProps,nextProps)=>{
     return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
     nextProps.postsContext.content && prevProps.hasMore ==nextProps.hasMore && 
-    prevProps.loading == nextProps.loading && prevProps.width==nextProps.width && prevProps.height==nextProps.height &&
+    prevProps.loading == nextProps.loading && prevProps.width==nextProps.width && nextProps.height == prevProps.height &&
     ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
     nextProps.activeBranch.uri)
 })

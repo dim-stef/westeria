@@ -145,7 +145,8 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
     }
 
     return(
-            <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
+            <div ref={wrapperRef} name="statusUpdate" 
+            className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
             justifyContent:'stretch',WebkitJustifyContent:'strech',position:'relative',zIndex:3,...style}}>
                 <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
                 setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview" 
