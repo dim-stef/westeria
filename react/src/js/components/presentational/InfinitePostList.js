@@ -113,6 +113,16 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
         mounted.current = true;
     },[])
 
+    useEffect(()=>{
+        if(posts.length <= 10){
+            try{
+                setShowActionButtons.current(true);
+            }catch(e){
+
+            }
+        }
+    },[posts])
+
     function onScroll({
         scrollOffset,
         scrollDirection,
@@ -233,6 +243,15 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
                 )}
             </InfiniteLoader>
         </animated.div>
+        {posts.length == 0?
+        <div css={{display:'flex',flexFlow:'column',position:'absolute',top:200,width:'100%'}}>
+            <h1 css={{textAlign:'center',marginTop:20}}>
+                Nothing is here :(
+            </h1>
+            <h2 css={{marginTop:5,textAlign:'center'}}>
+                Do something about it!
+            </h2>
+        </div>:null}
         {mounted.current?<Actions setShowActionButtons={setShowActionButtons} {...actionProps}/>:null}
         </>
     )
