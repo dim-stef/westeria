@@ -2,7 +2,10 @@ import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useS
 import {Link} from 'react-router-dom'
 import { useTheme } from 'emotion-theming'
 import { css, keyframes } from "@emotion/core";
+import {useTransition,useChain,useSpring,config,animated} from "react-spring/web.cjs"
 import {useMediaQuery} from 'react-responsive'
+import {VariableSizeList as List} from "react-window";
+import {useWindowSize} from "../presentational/useWindowResize"
 import formatRelative from 'date-fns/formatRelative';
 import differenceInMinutes from 'date-fns/differenceInMinutes'
 import ReconnectingWebSocket from 'reconnecting-websocket';
@@ -12,7 +15,6 @@ import history from '../../history'
 import Linkify from 'linkifyjs/react';
 import MoonLoader from 'react-spinners/MoonLoader';
 import {Helmet} from 'react-helmet'
-import {FrontPageLeftBar} from "../presentational/FrontPage"
 import {DesktopProfileWrapper} from "../presentational/ProfileViewer"
 import RoutedHeadline from "../presentational/RoutedHeadline"
 import Messenger from "../presentational/Messenger"
@@ -342,20 +344,24 @@ function RoomContainer({roomData,match}){
                 <RoutedHeadline to="/messages" className="chat-headline" containerStyle={{backgroundColor:theme.backgroundColor}}>
                     {headline}
                 </RoutedHeadline>
-                <div ref={parentRef} className="flex-fill" css={theme=>({padding:'10px',overflowY:'overlay',flex:1,
-                overflowX:'hidden !important',
-                flexFlow:'column',
-                '&::-webkit-scrollbar':{
-                    width:10
-                },
-                '&::-webkit-scrollbar-thumb':{
-                    backgroundColor:theme.scrollBarColor,
-                },
-                '@media (max-device-width:767px)':{
+                <div ref={parentRef} className="flex-fill" css={theme=>({flex:1,overflow:'hidden',            
+                 '>div':{
+                    overflowX:'hidden !important',
+                    padding:'10px',flex:1,
+                    flexFlow:'column',
                     '&::-webkit-scrollbar':{
-                        width:4
-                    }, 
-                }})}>
+                        width:10
+                    },
+                    '&::-webkit-scrollbar-thumb':{
+                        backgroundColor:theme.scrollBarColor,
+                    },
+                    '@media (max-device-width:767px)':{
+                        '&::-webkit-scrollbar':{
+                            width:4
+                        }, 
+                    }
+                },
+                })}>
                     <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
                     setFirstBatch={setFirstBatch} prevScrollHeight={prevScrollHeight}
                     parentRef={parentRef} wrapperRef={ref}/> 
@@ -371,15 +377,27 @@ function RoomContainer({roomData,match}){
 
 function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,wrapperRef}){
 
+    const listRef = useRef(null);
     const [imageWidth,setImageWidth] = useState(0);
+    const [height,setHeight] = useState(0);
     const [messageBoxes,setMessageBoxes] = useState([]);
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
     })
 
+    const sizeMap = useRef({});
+    const setSize = useCallback((index, size) => {
+        sizeMap.current = { ...sizeMap.current, [index]: size };
+    }, []);
+    const getSize = useCallback(index => sizeMap.current[index] || 20, []);
+    const [windowWidth] = useWindowSize();
+
     useEffect(() => {
         if(parentRef.current){
-            setImageWidth(parentRef.current.clientWidth)
+            setImageWidth(parentRef.current.clientWidth);
+            debugger;
+            console.log(parentRef.current.clientHeight,parentRef.current.getBoundingClientRect());
+            setHeight(parentRef.current.clientHeight);
         }
     },[parentRef])
 
@@ -415,16 +433,18 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
                 nextCreated = messages[i + 1].created
             }
 
-            let shouldUpdate = m.author_url !== nextAuthor || differenceInMinutes(new Date(nextCreated),new Date(m.created)) > 10
+            let shouldUpdate = m.author_url !== nextAuthor || 
+            differenceInMinutes(new Date(nextCreated),new Date(m.created)) > 10
+            || i >10
             if (shouldUpdate) {
-                var copy = Object.assign({}, chatBox);
+                let copy = Object.assign({}, chatBox);
                 chatBox.author_url = null;
                 chatBox.messages = [];
                 return copy;
             }
             return null;
         })
-        var filtered = messageBoxes.filter(function (el) {
+        let filtered = messageBoxes.filter(function (el) {
             return el != null;
         });
 
@@ -453,11 +473,26 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
     })
 
     return(
-        messageBoxes.map(box=>{
-            return <React.Fragment><MessageBox parentRef={parentRef} members={members} 
+        /*messageBoxes.map((box,i)=>{
+            return <React.Fragment key={i}><MessageBox parentRef={parentRef} members={members} 
             messageBox={box} branch={branch} imageWidth={imageWidth}/>
             </React.Fragment>
-        })
+        })*/
+        <List ref={listRef} 
+        height={height} 
+        width={imageWidth}
+        itemCount={messageBoxes.length}
+        itemSize={getSize}
+        >
+        {({index,style})=>(
+            <div style={style}>
+                <MessageBox style={style} parentRef={parentRef} members={members} 
+                messageBox={messageBoxes[index]} branch={branch} imageWidth={imageWidth}
+                    setSize={setSize} windowWidth={windowWidth} listRef={listRef} index={index}
+                />
+            </div>
+        )}
+        </List>
     )
 }
 
@@ -483,7 +518,17 @@ const scale_up_left = keyframes`
   }
 `
 
-function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
+function MessageBox({messageBox,members,branch,imageWidth,
+    setSize,listRef,windowWidth,index}){
+    const ref = useRef(null);
+    
+    useEffect(() => {
+        if(ref && listRef && listRef.current && ref.current){
+            setSize(index, ref.current.getBoundingClientRect().height);
+            listRef.current.resetAfterIndex(index);
+        }
+    },[windowWidth,ref,listRef,messageBox]);
+
     const theme = useTheme();
     let containerStyle={};
     let messageStyle={
@@ -543,11 +588,12 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
 
     return (
         <div style={{display:'inline-table',width:'100%'}}>
-            <div className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
+            <div ref={ref} className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
                 {messageBoxHeader}
                 <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>
                     <MessageBoxMessageList messages={messageBox.messages} containerStyle={containerStyle}
-                        messageStyle={messageStyle} imageWidth={imageWidth} animation={animation}
+                        messageStyle={messageStyle} imageWidth={imageWidth} animation={animation} 
+                        isSelfAuthor={messageBox.author_url == branch}
                     />
                 </div>
             </div>
@@ -555,7 +601,30 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     )
 }
 
-function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,animation}){
+function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,animation,isSelfAuthor}){
+    const springRef = useRef()
+    const { size, opacity, ...rest } = useSpring({
+        ref: springRef,
+        config: config.stiff,
+        from: { },
+        to: { }
+    })
+    // Build a transition and catch its ref
+    const transitionRef = useRef()
+
+
+    const transitions = useTransition(messages,item=>item.id,{
+        ref: transitionRef,
+        unique: true,
+        trail: 700 / messages.length,
+        from:{transform:`translateX(${isSelfAuthor?100:-100}px)`,opacity:0,willChange:'transform'},
+        enter:{transform:`0px)`,opacity:1,willChange:null},
+        leave:{transform:`translateX(${isSelfAuthor?100:-100}px)`,opacity:0},
+    })
+
+    // First run the spring, when it concludes run the transition
+    useChain([springRef, transitionRef])
+
     function getMediaWidth(m){
         let mediaWidth = 0;
 
@@ -578,7 +647,8 @@ function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,
     return ( 
         messages.map(m=>{
             return(
-                <React.Fragment key={m.created}>
+                transitions.map(({item,props,key})=>{
+                return item && <animated.div key={key} style={props}>
                     {m.message?
                     <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
                             <Message m={m} messageStyle={messageStyle} animation={animation}/>
@@ -590,7 +660,8 @@ function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,
                             <Images images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
                         </div>
                     :null}
-                </React.Fragment>
+                </animated.div>
+                })
         )})   
     )
 }
@@ -599,7 +670,7 @@ function Message({m,messageStyle, animation}){
     const didMount = useRef(null);
 
     return(
-        <div className="text-wrap" style={messageStyle} css={didMount.current?null:animation}>
+        <div className="text-wrap" style={messageStyle}>
             <Linkify>{m.message}</Linkify>
         </div>
     )

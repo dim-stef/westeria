@@ -12,7 +12,6 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.contrib.contenttypes.models import ContentType
 from push_notifications.models import APNSDevice, GCMDevice
 from notifications.models import Notification
-from core.utils import JPEGSaveWithTargetSize
 import uuid
 
 
@@ -30,7 +29,6 @@ class BranchChat(models.Model):
     owner = models.ForeignKey('branches.Branch', null=True, on_delete=models.CASCADE, related_name="chat")
     members = models.ManyToManyField('branches.Branch', null=True, related_name="chat_groups")
     personal = models.BooleanField(default=False)
-
 
     def __str__(self):
         return '%s' % self.name
@@ -52,7 +50,6 @@ class BranchChat(models.Model):
                 return ', '.join([image_message,video_message])
             else:
                 return video_message or image_message
-
 
         if latest.message and video_count == 0 and image_count==0:
             composed_message = latest.message
@@ -109,6 +106,7 @@ class ChatRequest(models.Model):
         if self.status == self.STATUS_ACCEPTED:
             self.branch_chat.members.add(self.request_to)
         super(ChatRequest, self).save()
+
 
 class BranchMessage(models.Model):
     branch_chat = models.ForeignKey(BranchChat, null=True, on_delete=models.CASCADE, related_name="messages")

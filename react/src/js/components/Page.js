@@ -1,4 +1,4 @@
-import React, {useContext,useState,useRef,useEffect} from "react";
+import React, {useContext,useState,useRef,useEffect,useLayoutEffect} from "react";
 import {css} from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
 import {ResponsiveNavigationBar} from "./presentational/Navigation"
@@ -29,7 +29,7 @@ export const Page = React.memo(function Page(props){
     const [contentHeight,setContentHeight] = useState(window.innerHeight);
     const [refresh,setRefresh] = useState(()=>{});
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(navBar.current){
             resizeContent();
         }
@@ -39,13 +39,15 @@ export const Page = React.memo(function Page(props){
         setContentHeight(window.innerHeight - navBar.current.firstElementChild.clientHeight);
     }
 
-    useEffect(()=>{
-        window.addEventListener('resize',resizeContent)
+    useLayoutEffect(()=>{
+        if(navBar.current){
+            window.addEventListener('resize',resizeContent)
 
-        return ()=>{
-            window.removeEventListener('resize',resizeContent)
+            return ()=>{
+                window.removeEventListener('resize',resizeContent)
+            }
         }
-    },[])
+    },[navBar])
 
     if(isMobileOrTablet){
         document.body.style.overflowY = 'auto';
