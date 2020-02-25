@@ -473,7 +473,7 @@ export function PopUp({shown,setShown,onEnter=()=>{},header,children}){
     }
     
     return(
-        <animated.div {...bind()} onMouseMove={()=>{}} onMouseDown={()=>{}}
+        <animated.div {...bind()} onMouseMove={()=>{}} onMouseDown={()=>{}} name="popUp"
         style={{willChange:'transform',transform: aniTo([props.y,props.x],(y,x) => {return `translateY(${y}px) translateX(${x}px)`})}}
         css={theme=>({position:'fixed',top:0,left:0,zIndex:1002,backgroundColor:theme.backgroundLightColor,
         width:'100%',height:'100%',overflow:'hidden'})} ref={containerRef}>
