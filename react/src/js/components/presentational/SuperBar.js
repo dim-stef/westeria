@@ -459,12 +459,12 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                     return <animated.div css={{width:'100%',height:'100%',position:'absolute'}}
                     style={{willChange:'transform',
                     transform:y.interpolate(y=>{return `translateY(${y}px)`})}}>
-                        {(i==0 && userContext.isAuth) || (i==1 && !userContext.isAuth)?
+                        {(i==0 && userContext.isAuth) || (i==1 && !userContext.isAuth) || (branch && !userContext.isAuth)?
                         <div css={{height:'100%',display:'flex',flexFlow:'column',maxWidth:'70%',margin:'0 auto',
                         justifyContent:'center',alignItems:'center','@media (max-device-width:767px)':{
                             maxWidth:'100%'
                         }}}>
-                            {(isFeed)?
+                            {isFeed?
                             <div css={{display:'flex',flexGrow:1,width:'100%',justifyContent:'center',width:'100%'}}>
                                 {userContext.isAuth?
                                 <>

@@ -487,7 +487,7 @@ function MessageBox({messageBox,members,branch,imageWidth,parentRef}){
     const theme = useTheme();
     let containerStyle={};
     let messageStyle={
-        fontSize:'1.6em',backgroundColor:theme.hoverColor,
+        fontSize:'1.6em',backgroundColor:theme.backgroundLightColor,
         padding:'8px 15px',borderRadius:25,margin:'1px 0',maxWidth:'70%'
     };
 

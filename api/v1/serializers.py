@@ -221,7 +221,7 @@ class BranchNodesBeneathSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Branch
-        fields = ('uri', 'name', 'nodes',)
+        fields = ('uri', 'name', 'branch_image', 'nodes',)
 
 
 class BranchesByTagsSerializer(serializers.Serializer):

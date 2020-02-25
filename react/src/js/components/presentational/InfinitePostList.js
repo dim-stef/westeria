@@ -3,10 +3,10 @@ import ReactDOM from "react-dom"
 import {css} from "@emotion/core";
 import {useTransition,useSpring,to,animated} from "react-spring/web.cjs";
 import {useDrag} from "react-use-gesture";
-import {useTheme as emotionTheme} from "emotion-theming"; 
-import { VariableSizeList as List } from "react-window";
+import { VariableSizeList as List , areEqual} from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
-import {PopUpPost} from "./PreviewPost"
+import {PopUpPost,PopUp} from "./PreviewPost"
+import {CircularBranch} from "./Branch"
 import {Post} from "./SingularPost"
 import {StatusUpdate} from "./StatusUpdate"
 import { useWindowSize } from "./useWindowResize";
@@ -14,6 +14,7 @@ import {UserContext} from "../container/ContextContainer"
 import {SkeletonPostList} from "./SkeletonPostList";
 import {Star,Dislike,useReactActions} from "./PostActions";
 import { CommentsSvg,PlusSvg,CloseSvg } from "./Svgs";
+import axios from "axios";
 import history from "../../history";
 
 const skeletonWrapper = theme =>css({
@@ -38,34 +39,24 @@ const buttonWrapper = (theme)=>({display:'flex',justifyContent:'center',alignIte
         height:40
     }
 })
+
+const TreeContext = React.createContext({ branch_tree:null,tree:null });
+
 export const InfinitePostList = React.memo(function InfinitePostList({postsContext,activeBranch,posts,fetchData,hasMore
     ,width,height,refresh,loading}){
 
+    const treeContext = useContext(TreeContext);
     const shouldPull = useRef(false);
     const margin = 30; // needed for height difference between posts
-    let header = '';
     let isFeed = false;
     if(postsContext.content=='all'){
         isFeed = true;
-        header = 'All leaves available to westeria'
     }else if(postsContext.content =='tree'){
         isFeed = true;
-        header = `A collection of leaves from communities similar 
-        to your follows`
-    }else if(postsContext.content == 'branch'){
-        isFeed = false;
-        header = `${activeBranch.name}'s leaves `
-    }else if(postsContext.content == 'branch_community'){
-        isFeed = false;
-        header = `Leaves posted to ${activeBranch.name}`
-    }else if(postsContext.content == 'branch_tree'){
-        isFeed = false;
-        header = `Leaves posted by communities similar to
-        ${activeBranch.name}`
-    }else{
+    }else if(!postsContext.content){
         isFeed = true;
-        header = 'Your feed'
     }
+
     const [props,set] = useSpring(()=>({y:0}))
 
     const bind = useDrag(({down,movement:[mx,my],cancel})=>{
@@ -112,6 +103,11 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
     useEffect(()=>{
         mounted.current = true;
     },[])
+
+    useEffect(()=>{
+        treeContext.tree = null;
+        treeContext.branch_tree = null;
+    },[activeBranch])
 
     useEffect(()=>{
         if(posts.length <= 10){
@@ -178,6 +174,22 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
     const loadMore = loading ? () => {} : fetchData;
     const isItemLoaded = index => !hasMore || index < posts.length;
 
+    function itemKey(index, data) {
+
+        // exclude header
+        if(index == 0){
+            return 0;
+        // also exlude placeholder item at the bottom of the list
+        }else if(index > posts.length){
+            return 1;
+        // return post's actual id
+        }else{
+            const item = data[index-1];
+        
+            return item.id;
+        }
+    }
+
     //index => index < posts.length
     return(
         <>
@@ -189,6 +201,9 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
             transform: to([props.y],(y) => `translateY(${y}px)`)
         }} css={theme=>({width:width,
         willChange:'transform',
+        '> div > div':{
+            pointerEvents:'all !important'
+        },
         '> div':{
             overflowY:'overlay !important',
             overflowX:'hidden !important',
@@ -215,8 +230,10 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
                 <List
                 ref={ref}
                 height={height}
+                itemData={posts}
                 itemCount={posts.length + 2}
                 itemSize={getSize}
+                estimatedItemSize={300}
                 onItemsRendered={onItemsRendered}
                 width={width}
                 onScroll={onScroll}
@@ -225,19 +242,19 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
                             {index==0?
                             <div css={{display:'flex',flexFlow:'column',width:'100%'}}>
                                 <Header index={index} setSize={setSize} windowWidth={windowWidth}
-                                    listRef={infiniteLoaderRef} header={header}
+                                    listRef={infiniteLoaderRef} keyword={postsContext.content}
+                                    activeBranch={activeBranch}
                                 />
                                 {loading && posts.length == 0?
                                 <div css={skeletonWrapper}>
                                     <SkeletonPostList count={4} branchSize={30} boxSize={200}/>
                                 </div>:null}
                             </div>:
-                            <React.Fragment key={index-1}>
-                                <ListItem style={style} index={index - 1} setSize={setSize} windowWidth={windowWidth}
-                                    {...pageProps} posts={posts} listRef={infiniteLoaderRef} 
-                                    isItemLoaded={isItemLoaded} loading={loading}
-                                />
-                            </React.Fragment>}
+                            <ListItem style={style} index={index - 1} setSize={setSize} windowWidth={windowWidth}
+                                {...pageProps} posts={posts} listRef={infiniteLoaderRef} 
+                                isItemLoaded={isItemLoaded} loading={loading}
+                            />
+                            }
                             
                         </div>
                     }}
@@ -259,8 +276,8 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
     )
 },(prevProps,nextProps)=>{
     return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
-    nextProps.postsContext.content && prevProps.hasMore ==nextProps.hasMore && 
-    prevProps.loading == nextProps.loading && prevProps.width==nextProps.width && nextProps.height == prevProps.height &&
+    nextProps.postsContext.content && prevProps.hasMore ==nextProps.hasMore && prevProps.loading == nextProps.loading &&
+    prevProps.width==nextProps.width && nextProps.height == prevProps.height &&
     ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
     nextProps.activeBranch.uri)
 })
@@ -293,9 +310,7 @@ const ListItem = React.memo(function ListItem({data,style,index,setSize,listRef,
         </div>
     )
     
-},(prevProps,nextProps)=>{
-    return prevProps.index==nextProps.index && prevProps.style.height == nextProps.style.height
-})
+},areEqual)
 
 const IndicatorItem = props =>{
     return(
@@ -418,8 +433,46 @@ const Reacts = ({post,starFuncRef,dislikeFuncRef}) =>{
     )
 }
 
-const Header = ({windowWidth,setSize,listRef,index,header=""}) =>{
+function getUniqueNodes(tree){
+    // gather all nodes from the tree in a single array of arrays
+    let allNodes = tree.map(t=>[...t.nodes])
+    // flatten the array
+    allNodes = allNodes.reduce((flatten, arr) => [...flatten, ...arr])
+    // remove duplicates
+    let unique = allNodes.filter((v, i, a) => a.findIndex(innerV=>innerV.uri==v.uri) === i); 
+    return unique
+}
+
+const Header = React.memo(({windowWidth,setSize,listRef,index,keyword,activeBranch}) =>{
     const ref = useRef(null);
+    const treeContext = useContext(TreeContext);
+    const [header,setHeader] = useState("");
+
+    let initTree;
+    if(keyword=='tree'){
+        initTree = treeContext.tree
+    }else if(keyword=='branch_tree'){
+        initTree = treeContext.branch_tree
+    }else{
+        initTree = []
+    }
+
+    const [tree,setTree] = useState(initTree);
+    const [showTree,setShowTree] = useState(false);
+
+    function getGenericFollowTreeHeader(nodeCount,blur){
+        return(
+            <span>A collection of leaves from <b css={{filter:`blur(${blur}px)`,transition:'filter 0.2s'}}>
+            {nodeCount}</b> communities similar to your follows</span>
+        )
+    }
+
+    function getGenericBranchTreeHeader(nodeCount,blur){
+        return(
+            <span>Leaves posted by <b css={{filter:`blur(${blur}px)`,transition:'filter 0.2s'}}>
+            {nodeCount}</b> communities similar to {activeBranch.name}</span>
+        )
+    }
 
     useEffect(() => {
         try{
@@ -429,16 +482,158 @@ const Header = ({windowWidth,setSize,listRef,index,header=""}) =>{
         }catch(e){
 
         }
-    }, [windowWidth]);
+    }, [windowWidth,header]);
+
+    async function getFollowingTreeRelations(){
+        let response = await axios.get(`/api/v1/branches/${activeBranch.uri}/tree_with_relations/`);
+        return response.data
+    }
+
+    async function getTreeRelations(){
+        let response = await axios.get(`/api/v1/branches/${activeBranch.uri}/nodes_beneath/`);
+        return response.data
+    }
+
+    async function getTreeHeader(){
+        let treeData;
+        if(keyword=='branch_tree'){
+            let _header;
+
+            // get data from context if it exists
+            if(treeContext.branch_tree){
+                _header = getGenericBranchTreeHeader(getUniqueNodes(treeContext.branch_tree).length,0)
+                setHeader(_header)
+
+            // else fetch it from api 
+            }else{
+
+                // loading indicator
+                _header = getGenericBranchTreeHeader(Math.round(Math.random()*10),3)
+                setHeader(_header)
+
+                // get and set the actual data
+                treeData = await getTreeRelations();
+                setTree(treeData);
+                treeContext.branch_tree = treeData;
+
+                _header = getGenericBranchTreeHeader(getUniqueNodes(treeContext.branch_tree).length,0)
+                setHeader(_header)
+            }
+        }else if(keyword=='tree'){
+            let _header;
+            if(treeContext.tree){
+                _header = getGenericFollowTreeHeader(getUniqueNodes(treeContext.tree).length,0)
+                setHeader(_header)
+            }else{
+                _header = getGenericFollowTreeHeader(Math.round(Math.random()*10),3)
+                setHeader(_header)
+    
+                treeData = await getFollowingTreeRelations();
+                setTree(treeData)
+                treeContext.tree = treeData;
+
+                _header = getGenericFollowTreeHeader(getUniqueNodes(treeContext.tree).length,0)
+                setHeader(_header)
+            }
+        }
+    }
+
+    useLayoutEffect(()=>{
+        if(keyword=='all'){
+            let _header = <span>All leaves available to westeria</span>
+            setHeader(_header)
+        }else if(keyword =='tree'){
+            getTreeHeader();
+        }else if(keyword == 'branch'){
+            let _header = <span>{activeBranch.name}'s leaves</span>
+            setHeader(_header)
+        }else if(keyword == 'branch_community'){
+            let _header = <span>Leaves posted to {activeBranch.name}</span>
+            setHeader(_header)
+        }else if(keyword == 'branch_tree'){
+            getTreeHeader();
+        }else{
+            let _header = <span>Your feed</span>
+            setHeader(_header)
+        }
+    },[keyword])
+
+    function handleOpenTree(){
+        if(keyword=='branch_tree' || keyword=='tree' && tree.length > 0){
+            setShowTree(true)
+        }
+    }
+
+    let popUpHeader = keyword=='tree'?'Your tree':activeBranch?`${activeBranch.name}'s tree`:null;
 
     return(
+        <>
         <div ref={ref} css={{margin:'0 10%','@media (max-device-width:767px)':{
             margin:'0 10px'
-        }}}>
-            <h1 css={theme=>({fontSize:'3rem',marginTop:10,marginBottom:0,fontWeight:500,color:theme.textLightColor,
+        }}} onClick={handleOpenTree}>
+            <h1 css={theme=>({cursor:keyword=='tree' || keyword=='branch_tree'?'pointer':null,
+            fontSize:'3rem',marginTop:10,marginBottom:0,
+            fontWeight:500,color:theme.textLightColor,
             '@media (max-device-width:767px)':{
                 fontSize:'2rem'
             }})}>{header}</h1>
+        </div>
+        {ReactDOM.createPortal(
+            showTree && tree.length>0?
+            <PopUp shown={showTree} setShown={setShowTree} header={popUpHeader}>
+                <Tree keyword={keyword} tree={tree} activeBranch={activeBranch}/>
+            </PopUp>
+        :null
+        ,document.getElementById("leaf-preview-root"))
+        }
+        </>
+    )
+},(prevProps,nextProps)=>{
+    return prevProps.keyword == nextProps.keyword && 
+    ((!prevProps.activeBranch && !nextProps.activeBranch) || prevProps.activeBranch.uri==nextProps.activeBranch.uri)
+})
+
+function Tree({keyword,tree}){
+    return(
+        keyword=='branch_tree'?
+        <BranchTree tree={tree}/>:<FollowTree tree={tree}/>
+    )
+}
+
+function BranchTree({tree}){
+    return(
+        <div>
+            <h1 css={{margin:10,fontWeight:400}}>Communities similar to <b>{tree[0].name}</b></h1>
+            <div css={{display:'flex',flexFlow:'row wrap',justifyContent:'space-between'}}>
+                {tree[0].nodes.map(b=>{
+                    return(
+                        <CircularBranch branch={b}/>
+                    )
+                })}
+            </div>
+        </div>
+    )
+}
+
+function FollowTree({tree}){
+    return(
+        <div css={{display:'flex',flexFlow:'column'}}>
+            {tree.map(t=>{
+                if(t.nodes.length == 0) return null;
+
+                return (
+                    <>
+                    <h1 css={{margin:10,fontWeight:400}}>Because you follow <b>{t.name}</b></h1>
+                    <div css={{display:'flex',flexFlow:'row wrap',justifyContent:'space-between'}}>
+                        {t.nodes.map(b=>{
+                            return(
+                                <CircularBranch branch={b}/>
+                            )
+                        })}
+                    </div>
+                    </>
+                )
+            })}
         </div>
     )
 }

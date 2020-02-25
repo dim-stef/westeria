@@ -193,14 +193,14 @@ export function Images(props){
                         {props.images.map(img=>{
                             return <div key={img.image} 
                             style={{width:'100%',height:'100%'}}>
-                            <ImageComponent width={props.imageWidth} key={img} src={img.image} imgHeight={img.height}
+                            <ImageComponent width={props.imageWidth} src={img.image} imgHeight={img.height}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft} imgWidth={img.width}
                             /></div>
                         })}
                         {props.videos.map(vid=>{
                             return <div key={vid.id} style={{width:'100%',height:'100%'}}
                              >
-                            <VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
+                            <VideoComponent width={props.imageWidth} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
                             /></div>
                         })}
