@@ -41,11 +41,14 @@ const buttonWrapper = (theme)=>({display:'flex',justifyContent:'center',alignIte
 })
 
 const TreeContext = React.createContext({ branch_tree:null,tree:null });
+const ListContext = React.createContext({data:{}});
 
 export const InfinitePostList = React.memo(function InfinitePostList({postsContext,activeBranch,posts,fetchData,hasMore
     ,width,height,refresh,loading}){
 
     const treeContext = useContext(TreeContext);
+    const listContext = useContext(ListContext);
+
     const shouldPull = useRef(false);
     const margin = 30; // needed for height difference between posts
     let isFeed = false;
@@ -61,9 +64,12 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
 
     const bind = useDrag(({down,movement:[mx,my],cancel})=>{
 
+        // popups like post or tree view
+        let popUps = document.getElementsByName('popUp');
+
         // should only pull if user is on top of the list
         // and not initial data fetching is happening
-        if(shouldPull.current && !loading && posts.length !=0){
+        if(shouldPull.current && popUps.length==0 && !loading && posts.length !=0){
 
             // adding !loading prevents duplicate requests
             if(my > 150 && !loading){
@@ -174,29 +180,27 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
     const loadMore = loading ? () => {} : fetchData;
     const isItemLoaded = index => !hasMore || index < posts.length;
 
-    function itemKey(index, data) {
-
-        // exclude header
-        if(index == 0){
-            return 0;
-        // also exlude placeholder item at the bottom of the list
-        }else if(index > posts.length){
-            return 1;
-        // return post's actual id
-        }else{
-            const item = data[index-1];
-        
-            return item.id;
-        }
+    //index => index < posts.length
+    let listItemProps={
+        setSize:setSize,
+        windowWidth:windowWidth,
+        listRef:infiniteLoaderRef,
+        keyword:postsContext.content,
+        activeBranch:activeBranch,
+        loading:loading,
+        posts:posts,
+        isItemLoaded:isItemLoaded,
+        pageProps:pageProps
     }
 
-    //index => index < posts.length
+    listContext.data = listItemProps;
     return(
         <>
         <animated.div
         {...bind()}
         onMouseDown={()=>{}}
         onMouseMove={()=>{}}
+        key={1}
         style={{
             transform: to([props.y],(y) => `translateY(${y}px)`)
         }} css={theme=>({width:width,
@@ -237,27 +241,7 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
                 onItemsRendered={onItemsRendered}
                 width={width}
                 onScroll={onScroll}
-                >{({ style,index }) => {
-                        return <div style={style} css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
-                            {index==0?
-                            <div css={{display:'flex',flexFlow:'column',width:'100%'}}>
-                                <Header index={index} setSize={setSize} windowWidth={windowWidth}
-                                    listRef={infiniteLoaderRef} keyword={postsContext.content}
-                                    activeBranch={activeBranch}
-                                />
-                                {loading && posts.length == 0?
-                                <div css={skeletonWrapper}>
-                                    <SkeletonPostList count={4} branchSize={30} boxSize={200}/>
-                                </div>:null}
-                            </div>:
-                            <ListItem style={style} index={index - 1} setSize={setSize} windowWidth={windowWidth}
-                                {...pageProps} posts={posts} listRef={infiniteLoaderRef} 
-                                isItemLoaded={isItemLoaded} loading={loading}
-                            />
-                            }
-                            
-                        </div>
-                    }}
+                >{Item}
                 </List>
                 )}
             </InfiniteLoader>
@@ -282,19 +266,43 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
     nextProps.activeBranch.uri)
 })
 
+const Item = ({index,style})=>{
+    const listContextData = useContext(ListContext);
+    const listContext = listContextData.data;
+
+    return(
+        <div style={style} css={{display:'flex',justifyContent:'center',alignItems:'center'}}>
+            {index==0?
+            <div css={{display:'flex',flexFlow:'column',width:'100%'}}>
+                <Header index={index} setSize={listContext.setSize} windowWidth={listContext.windowWidth}
+                    listRef={listContext.listRef} keyword={listContext.keyword}
+                    activeBranch={listContext.activeBranch}
+                />
+                {listContext.loading && listContext.posts.length == 0?
+                <div css={skeletonWrapper}>
+                    <SkeletonPostList count={4} branchSize={30} boxSize={200}/>
+                </div>:null}
+            </div>:
+            <ListItem style={style} index={index - 1} setSize={listContext.setSize} windowWidth={listContext.windowWidth}
+                {...listContext.pageProps} posts={listContext.posts} listRef={listContext.listRef} 
+                isItemLoaded={listContext.isItemLoaded} loading={listContext.loading}
+            />
+            }
+            
+        </div>
+    )
+}
+
 const ListItem = React.memo(function ListItem({data,style,index,setSize,listRef, 
     windowWidth,isItemLoaded,posts,...rest}){
-    const ref = useRef();
+    const ref = useRef(null);
 
     useEffect(() => {
-        try{
+        if(ref && listRef && listRef.current && ref.current){
             setSize(index + 1, ref.current.getBoundingClientRect().height);
             listRef.current._listRef.resetAfterIndex(index + 1);
-    
-        }catch(e){
-
         }
-    }, [windowWidth]);
+    },[windowWidth,ref.current,listRef]);
 
     return(
         
