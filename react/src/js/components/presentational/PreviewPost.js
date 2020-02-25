@@ -424,16 +424,9 @@ const arrowButton = theme =>css({
     marginTop:5
 })
 
-export function PopUpPost({postShown,setPostShown,post}){
+export function PopUp({shown,setShown,onEnter=()=>{},header,children}){
 
-    const postsContext = useContext(SingularPostContext);
-    const userContext = useContext(UserContext);
     const containerRef = useRef(null);
-
-    // only start loading comments once spring is done
-    // to prevent any fps lag
-    const [loadComments,setLoadComments] = useState(false);
-
     const shouldClose = useRef(false);
 
     const bind = useDrag(
@@ -456,22 +449,22 @@ export function PopUpPost({postShown,setPostShown,post}){
         onFrame:(f)=>{
             if((f.y >= window.innerHeight || f.x >=window.innerWidth ) && shouldClose.current){
                 stop();
-                setPostShown(false)
+                setShown(false)
             }
 
             if(f.y <= 10 && !shouldClose.current){
-                setLoadComments(true);
+                onEnter();
             }
         }
     }));
 
     useEffect(()=>{
-        if(postShown){
+        if(shown){
             set(()=>fullScreenTo())
         }else{
             set(()=>fullScreenFrom())
         }
-    },[postShown])
+    },[shown])
 
 
     function handleReturnClick(){
@@ -489,15 +482,29 @@ export function PopUpPost({postShown,setPostShown,post}){
                     <div css={commentHeader} onClick={handleReturnClick}>
                         <button css={arrowButton}><ArrowSvg 
                         css={theme=>({height:16,width:16,fill:theme.textHarshColor})}/></button>
-                        <h1>Comments</h1>
+                        <h1>{header}</h1>
                     </div>
-                    <SingularPost wholePost={post} postsContext={postsContext} noStyle noRoutedHeadline
-                    activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post" preview
-                    loadComments={loadComments}
-                    />
+                    {children}
                 </div>
             </div>
         </animated.div>
+    )
+}
+
+export function PopUpPost({postShown,setPostShown,post}){
+    const postsContext = useContext(SingularPostContext);
+    const userContext = useContext(UserContext);
+    // only start loading comments once spring is done
+    // to prevent any fps lag
+    const [loadComments,setLoadComments] = useState(false);
+
+    return (
+        <PopUp header="Comments" shown={postShown} setShown={setPostShown} onEnter={()=>setLoadComments(true)}>
+            <SingularPost wholePost={post} postsContext={postsContext} noStyle noRoutedHeadline
+                activeBranch={userContext?userContext.currentBranch:post.poster} viewAs="post" preview
+                loadComments={loadComments}
+            />
+        </PopUp>
     )
 }
 

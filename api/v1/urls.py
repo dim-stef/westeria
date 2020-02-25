@@ -26,6 +26,7 @@ branch_router.register(r'tags_above', views.TagsAboveViewSet,base_name='tags_abo
 branch_router.register(r'tags_beneath', views.TagsBeneathViewSet,base_name='tags_beneath')
 branch_router.register(r'related_tags', views.RelatedTagsViewSet,base_name='related_tags')
 branch_router.register(r'nodes_beneath', views.NodesBeneathViewSet, base_name="nodes_beneath")
+branch_router.register(r'tree_with_relations', views.TreeWithRelationsViewSet, base_name="tree_with_relations")
 
 
 branchchat_router = routers.NestedSimpleRouter(router, r'branches', lookup='branch')

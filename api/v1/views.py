@@ -215,6 +215,20 @@ class NodesBeneathViewSet(viewsets.GenericViewSet,
                                      self.kwargs['branch_uri']))
 
 
+class TreeWithRelationsViewSet(viewsets.GenericViewSet,
+                               mixins.ListModelMixin):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    serializer_class = serializers.BranchNodesBeneathSerializer
+
+    def get_queryset(self):
+        branch = Branch.objects.filter(uri__iexact=(self.kwargs['branch__uri'] if 'branch__uri' in self.kwargs else
+                                     self.kwargs['branch_uri'])).first()
+        if branch:
+            return branch.follows.all()
+        else:
+            return None
+
+
 class TopLevelBranchesViewSet(viewsets.GenericViewSet,
                               mixins.ListModelMixin):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

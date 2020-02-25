@@ -243,31 +243,6 @@ function TopLevelBranches(){
 }
 
 export function ExpandableBranch({branch}){
-    const [showOptions,setShowOptions] = useState(false);
-
-    const transitions = useTransition(showOptions, null, {
-        from: { opacity: 0, scale:0.8 },
-        enter: { opacity: 1, scale:1 },
-        leave: { opacity: 0, scale:0.8 },
-        config: {
-            duration: 200,
-        },
-    })
-
-    function handleProfileClick(e){
-        e.stopPropagation();
-        history.push(`/${branch.uri}`)
-    }
-
-    function handleRelatedClick(e){
-        e.stopPropagation();
-        history.push(`/${branch.uri}/branches`)
-    }
-
-    function handleCancelClick(e){
-        e.stopPropagation();
-        setShowOptions(false);
-    }
 
     function handleFollowClick(e){
         e.stopPropagation();
@@ -306,14 +281,6 @@ export function ExpandableBranch({branch}){
                 <span css={smallBubble} onClick={handleFollowClick}>{branch.followers_count} followers</span>
                 <span css={smallBubble} onClick={handleBranchesClick}>{branch.branch_count} branches</span>
             </div>
-            {/*transitions.map(({item, key, props})=>(
-                item && <animated.div key={key} style={props} css={{position:'absolute',height:'100%',width:'100%',
-                display:'flex',justifyContent:'center',alignItems:'center',flexFlow:'column',willChange:'opacity, scale'}}>
-                    <div role="button" css={theme=>button(theme)} onClick={handleProfileClick}>View profile</div>
-                    <div role="button" css={theme=>button(theme)} onClick={handleRelatedClick}>{branch.branch_count} Related</div>
-                    <div role="button" css={theme=>button(theme,'#f44336c4')} onClick={handleCancelClick}>Cancel</div>
-                </animated.div>
-            ))*/}
         </div>
     )
 }

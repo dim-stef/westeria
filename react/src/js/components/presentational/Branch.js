@@ -66,8 +66,8 @@ export function CircularBranch({branch,endpoint,connect=null}){
         connect?<div css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}>
             {body}
         </div>:
-        <Link css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}
-        to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
+        <Link css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1,textDecoration:'none'})}
+        to={!endpoint?`/${branch.uri}`:endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
             {body}
         </Link>
     )
