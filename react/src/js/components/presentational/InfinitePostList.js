@@ -49,7 +49,7 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
     const treeContext = useContext(TreeContext);
     const listContext = useContext(ListContext);
 
-    const shouldPull = useRef(false);
+    const shouldPull = useRef(true);
     const margin = 30; // needed for height difference between posts
     let isFeed = false;
     if(postsContext.content=='all'){
@@ -219,7 +219,7 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
             },
             '@media (max-device-width:767px)':{
                 '&::-webkit-scrollbar':{
-                    width:4
+                    width:0
                 }, 
             }
         }})}>
@@ -312,7 +312,7 @@ const ListItem = React.memo(function ListItem({data,style,index,setSize,listRef,
         </div>:
         <div ref={ref} css={{margin:'30px 10%',width:'100%',overflow:'visible',position:'relative',
         '@media (max-device-width:767px)':{
-            margin:'30px 10px'
+            margin:0
         }}}>
             <PostItem post={posts[index]} activeBranch={rest.activeBranch} postsContext={rest.postsContext}/>
         </div>
@@ -374,7 +374,9 @@ const PostItem = props =>{
         style={{transform:to([springProps.x],(x)=>`translateX(${x}px)`)}}
         css={theme=>({backgroundColor:theme.backgroundLightColor,boxShadow:`0 0.5px 0.8px rgba(0, 0, 0, 0.04), 
         0 1.6px 2.7px rgba(0, 0, 0, 0.06), 0 7px 12px rgba(0, 0, 0, 0.1)`,borderRadius:25,overflow:'hidden',
-        willChange:'transform'})}>
+        willChange:'transform','@media (max-device-width:767px)':{
+            borderRadius:0
+        }})}>
             <Post minimal isSingular
             {...getPostProps()}
             />
@@ -429,7 +431,10 @@ const Reacts = ({post,starFuncRef,dislikeFuncRef}) =>{
             </div>
         </div>
         <div css={{position:'absolute',width:'100%',height:'100%',borderRadius:30,display:'flex',
-        top:0,left:0,zIndex:-1,overflow:'hidden'}}>
+        top:0,left:0,zIndex:-1,overflow:'hidden',
+        '@media (max-device-width:767px)':{
+            borderRadius:0
+        }}}>
             <div css={{width:'50%',height:'100%',backgroundColor:'#ff3333'}}>
 
             </div>
@@ -647,7 +652,7 @@ function FollowTree({tree}){
 }
 
 const Actions = ({setShowActionButtons,...actionProps}) =>{
-    const [shown,setButtonsShown] = useState(false);
+    const [shown,setButtonsShown] = useState(true);
     setShowActionButtons.current = setButtonsShown;
 
     return ReactDOM.createPortal(

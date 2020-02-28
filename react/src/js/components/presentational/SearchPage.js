@@ -30,8 +30,6 @@ export function SearchPage(props){
             <Search/>
             <h1 style={{padding:10}}>Generic Branches</h1>
             <TopLevelBranches/>
-            <h1 style={{padding:10}}>Trending</h1>
-            <Trending/>
         </div>
     )
 }
@@ -75,7 +73,8 @@ const info = theme =>css({
 const smallBubble = theme =>css({
     padding:10,
     backgroundColor:theme.backgroundDarkColor,
-    borderRadius:50
+    borderRadius:50,
+    textAlign:'center'
 })
 
 const button = (theme,backgroundColor='#2196f3c4') =>css({
@@ -234,7 +233,7 @@ function TopLevelBranches(){
     },[])
 
     return(
-        branches?<div css={{display:'flex',flexFlow:'row wrap',justifyContnet:'center'}}>
+        branches?<div css={{display:'flex',flexFlow:'row wrap',justifyContent:'center'}}>
             {branches.map(b=>{
                 return <ExpandableBranch branch={b}/>
             })}

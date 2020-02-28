@@ -4,7 +4,7 @@ import { useTheme } from 'emotion-theming'
 import { css, keyframes } from "@emotion/core";
 import {useTransition,useChain,useSpring,config,animated} from "react-spring/web.cjs"
 import {useMediaQuery} from 'react-responsive'
-import {VariableSizeList as List} from "react-window";
+import {VariableSizeList as List,areEqual} from "react-window";
 import {useWindowSize} from "../presentational/useWindowResize"
 import formatRelative from 'date-fns/formatRelative';
 import differenceInMinutes from 'date-fns/differenceInMinutes'
@@ -23,6 +23,7 @@ import {CachedBranchesContext, ChatRoomsContext, UserContext} from "./ContextCon
 import axios from "axios";
 import {DropdownActionList} from "../presentational/DropdownActionList"
 
+const MessageBoxContext = React.createContext({data:null});
 
 export function ChatRoomsContainer({inBox,match}){
     const roomsContext = useContext(ChatRoomsContext)
@@ -116,7 +117,9 @@ function RoomContainer({roomData,match}){
     const [height,setHeight] = useState(window.innerHeight);
     const [prevContainerHeight,setContainerHeight] = useState(window.innerHeight); 
     const [prevScrollHeight,setScrollHeight] = useState(0);
+    const [loading,setLoading] = useState(true);
     const ref = useRef(null);
+    const listRef = useRef(null);
     const parentRef = useRef(null);
 
     async function getMembers(){
@@ -130,14 +133,18 @@ function RoomContainer({roomData,match}){
         setMembers(memberList);
     }
 
-    const getMessages = useCallback(async (messages)=>{
+    const getMessages = useCallback(async ()=>{
 
+        setLoading(true);
         if(!hasMore){
+            setLoading(false);
             return;
         }
         
         let uri = next?next:`/api/branches/${member}/chat_rooms/${data.room.id}/messages/`;
+        setLoading(true);
         let response = await axios.get(uri);
+        setLoading(false);
         if(response.data.previous){
             setFirstBatch(false);
         }
@@ -224,14 +231,13 @@ function RoomContainer({roomData,match}){
 
                 let mobileNavBar = document.getElementById('nav-container');
                 mobileNavBar.style.display = 'block';
-                //bigContainer.style.height = `${window.innerHeight - mobileNavBar.clientHeight}px !important`;
             }catch(e){
 
             }
         }
     },[])
     
-    useEffect(()=>{
+    /*useEffect(()=>{
         if(parentRef.current){
             parentRef.current.addEventListener('scroll',chatScrollListener)
         }
@@ -241,7 +247,7 @@ function RoomContainer({roomData,match}){
                 parentRef.current.removeEventListener('scroll',chatScrollListener)
             }
         }
-    },[messages])
+    },[messages])*/
 
     useEffect(()=>{
         setAuthor(context.currentBranch)
@@ -347,7 +353,7 @@ function RoomContainer({roomData,match}){
                 <div ref={parentRef} className="flex-fill" css={theme=>({flex:1,overflow:'hidden',            
                  '>div':{
                     overflowX:'hidden !important',
-                    padding:'10px',flex:1,
+                    boxSizing:'border-box',flex:1,
                     flexFlow:'column',
                     '&::-webkit-scrollbar':{
                         width:10
@@ -364,7 +370,7 @@ function RoomContainer({roomData,match}){
                 })}>
                     <Room messages={messages} members={members} branch={author.uri} isFirstBatch={isFirstBatch} 
                     setFirstBatch={setFirstBatch} prevScrollHeight={prevScrollHeight}
-                    parentRef={parentRef} wrapperRef={ref}/> 
+                    parentRef={parentRef} wrapperRef={ref} listRef={listRef} loadMoreMessages={getMessages} loading={loading}/>
                 </div>
                 <Messenger branch={author} ws={data.ws} room={data.room} roomId={data.room.id} scrollToBottom={scrollToBottom}
                     setHeightOnBlur={setHeightOnBlur} setHeightOnInput={setHeightOnInput} parentRef={parentRef}
@@ -375,17 +381,23 @@ function RoomContainer({roomData,match}){
     )
 }
 
-function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,wrapperRef}){
+function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef
+    ,wrapperRef,listRef,loadMoreMessages,loading}){
 
-    const listRef = useRef(null);
+    const messageBoxContext = useContext(MessageBoxContext);
     const [imageWidth,setImageWidth] = useState(0);
-    const [height,setHeight] = useState(0);
-    const [messageBoxes,setMessageBoxes] = useState([]);
+    const previousMessageBoxes = useRef([]);
+    const [messageBoxes,setMessageBoxes] = useState(getChatBoxes());
+    const autoScroll = useRef(true);
+    const lastScrollPosition = useRef(null);
+    const prevHeight = useRef(height);
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
     })
+    const [height,setHeight] = useState(parentRef.current? parentRef.current.clientHeight : window.innerHeight - 100);
 
     const sizeMap = useRef({});
+    const lastItemHeight = useRef(0);
     const setSize = useCallback((index, size) => {
         sizeMap.current = { ...sizeMap.current, [index]: size };
     }, []);
@@ -395,13 +407,11 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
     useEffect(() => {
         if(parentRef.current){
             setImageWidth(parentRef.current.clientWidth);
-            debugger;
-            console.log(parentRef.current.clientHeight,parentRef.current.getBoundingClientRect());
-            setHeight(parentRef.current.clientHeight);
+            setHeight(parentRef.current.clientHeight);         
         }
-    },[parentRef])
+    },[parentRef.current,wrapperRef])
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(wrapperRef.current){
             if(!isDesktopOrLaptop){
                 wrapperRef.current.classList.add('full-height');
@@ -412,7 +422,7 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
     },[messageBoxes])
 
     function getChatBoxes(){
-        var chatBox = {
+        let chatBox = {
             author: null,
             author_name: null,
             author_url: null,
@@ -420,11 +430,13 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
             messages: []
         };
         let messageBoxes = messages.map((m, i) => {
+
             let nextAuthor = null;
-            let nextCreated = null;
+            let nextCreated = null;            
             chatBox.author = m.author;
             chatBox.author_name = m.author_name;
             chatBox.author_url = m.author_url;
+            chatBox.author_image = m.author_image || null;
             chatBox.created = m.created;
             chatBox.messages.push(m)
 
@@ -433,9 +445,8 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
                 nextCreated = messages[i + 1].created
             }
 
-            let shouldUpdate = m.author_url !== nextAuthor || 
-            differenceInMinutes(new Date(nextCreated),new Date(m.created)) > 10
-            || i >10
+            let shouldUpdate = m.author_url != nextAuthor || 
+            differenceInMinutes(new Date(nextCreated),new Date(m.created)) > 10 //|| chatBox.messages.length > 8
             if (shouldUpdate) {
                 let copy = Object.assign({}, chatBox);
                 chatBox.author_url = null;
@@ -448,13 +459,26 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
             return el != null;
         });
 
+        try{
+            if(listRef && listRef.current && listRef.current._outerRef.scrollTop + listRef.current._outerRef.clientHeight == 
+                listRef.current._outerRef.scrollHeight){
+                autoScroll.current = true;
+            }
+
+            if(isFirstBatch){
+                previousMessageBoxes.current = filtered;
+            }
+        }catch(e){
+
+        }
+
+        
         return filtered;
     }
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         setMessageBoxes(getChatBoxes());
     },[messages])
-
 
     // handle automated scroll
     useLayoutEffect(()=>{
@@ -472,26 +496,78 @@ function Room({messages,members,branch,isFirstBatch,prevScrollHeight,parentRef,w
         }
     })
 
+    useLayoutEffect(()=>{
+        if(autoScroll.current || isFirstBatch){
+            listRef.current.scrollToItem(messageBoxes.length,'end')
+        }
+
+        if(!autoScroll.current){
+            listRef.current.scrollTo(lastScrollPosition.current)
+        }
+        
+        listRef.current.resetAfterIndex(messageBoxes.length-1)
+    },[messageBoxes])
+    
+    const messageBoxData = {
+        parentRef:parentRef,
+        members:members,
+        messageBoxes:messageBoxes,
+        branch:branch,
+        imageWidth:imageWidth,
+        setSize:setSize,
+        windowWidth:windowWidth,
+        listRef:listRef,
+        isFirstBatch:isFirstBatch,
+    }
+
+    messageBoxContext.data = messageBoxData;
+
+    function handleScroll({scrollOffset}){
+        autoScroll.current = false
+
+        if(scrollOffset < 100 && messageBoxes.length != 0 && !loading){
+            prevHeight.current =listRef.current._outerRef.scrollHeight - listRef.current._outerRef.clientHeight
+            loadMoreMessages();
+        }
+    }
+
+    function onItemsRendered({
+        overscanStartIndex,
+        overscanStopIndex,
+        visibleStartIndex,
+        visibleStopIndex
+    }) {
+        
+        let lastIndex = messageBoxes.findIndex(mBox=>mBox.created==previousMessageBoxes.current[0].created)
+        previousMessageBoxes.current = messageBoxes;
+        let newRowHeight = 0;
+        for(let i = 0;i<lastIndex;i++){
+            newRowHeight += getSize(i);
+        }
+
+        if(isFirstBatch){
+            lastItemHeight.current = getSize(lastIndex)
+        }
+
+        newRowHeight += getSize(lastIndex) - lastItemHeight.current
+        lastItemHeight.current = getSize(lastIndex);
+        lastScrollPosition.current = newRowHeight;
+        
+        // All index params are numbers.
+    }
+
     return(
-        /*messageBoxes.map((box,i)=>{
-            return <React.Fragment key={i}><MessageBox parentRef={parentRef} members={members} 
-            messageBox={box} branch={branch} imageWidth={imageWidth}/>
-            </React.Fragment>
-        })*/
-        <List ref={listRef} 
+        <List ref={listRef}
+        estimatedItemSize={300}
         height={height} 
         width={imageWidth}
+        itemData={messageBoxes}
         itemCount={messageBoxes.length}
         itemSize={getSize}
+        onScroll={handleScroll}
+        onItemsRendered={onItemsRendered}
         >
-        {({index,style})=>(
-            <div style={style}>
-                <MessageBox style={style} parentRef={parentRef} members={members} 
-                messageBox={messageBoxes[index]} branch={branch} imageWidth={imageWidth}
-                    setSize={setSize} windowWidth={windowWidth} listRef={listRef} index={index}
-                />
-            </div>
-        )}
+        {MessageBox}
         </List>
     )
 }
@@ -518,13 +594,17 @@ const scale_up_left = keyframes`
   }
 `
 
-function MessageBox({messageBox,members,branch,imageWidth,
-    setSize,listRef,windowWidth,index}){
+const MessageBox = React.memo(({data,index,style})=>{
+    const messageBoxContext = useContext(MessageBoxContext);
+    const {isFirstBatch,parentRef,members,messageBoxes,branch,imageWidth,setSize,windowWidth,
+    listRef} = {...messageBoxContext.data}
+    const messageBox = messageBoxes[index];
+
     const ref = useRef(null);
-    
-    useEffect(() => {
-        if(ref && listRef && listRef.current && ref.current){
-            setSize(index, ref.current.getBoundingClientRect().height);
+
+    useLayoutEffect(() => {
+        if(listRef.current && ref.current){
+            setSize(index, ref.current.getBoundingClientRect().height + 10);
             listRef.current.resetAfterIndex(index);
         }
     },[windowWidth,ref,listRef,messageBox]);
@@ -543,7 +623,7 @@ function MessageBox({messageBox,members,branch,imageWidth,
     }
 
     let member = members.find(m=>messageBox.author_url==m.uri)
-    let memberImage = member?member.branch_image:null
+    let memberImage = member?member.branch_image:messageBox.author_image
 
     let timeDifference = null;
 
@@ -587,43 +667,35 @@ function MessageBox({messageBox,members,branch,imageWidth,
     )
 
     return (
-        <div style={{display:'inline-table',width:'100%'}}>
-            <div ref={ref} className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
-                {messageBoxHeader}
-                <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>
-                    <MessageBoxMessageList messages={messageBox.messages} containerStyle={containerStyle}
-                        messageStyle={messageStyle} imageWidth={imageWidth} animation={animation} 
-                        isSelfAuthor={messageBox.author_url == branch}
-                    />
+        <div style={style}>
+            <div style={{display:'inline-table',width:'100%',padding:'0 10px',boxSizing:'border-box'}}>
+                <div ref={ref} className="flex-fill" style={{...containerStyle,flexFlow:'column',WebkitFlexFlow:'column'}}>
+                    {messageBoxHeader}
+                    <div className="flex-fill" style={{ padding:'10px 0',flexFlow:'column',WebkitFlexFlow:'column'}}>
+                        <MessageBoxMessageList messages={messageBox.messages} containerStyle={containerStyle}
+                            messageStyle={messageStyle} imageWidth={imageWidth} animation={animation} 
+                            isSelfAuthor={messageBox.author_url == branch} isFirstBatch={isFirstBatch} index={index}
+                        />
+                    </div>
                 </div>
             </div>
         </div>
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.data[prevProps.index].messages[0].created == nextProps.data[nextProps.index].messages[0].created &&
+    prevProps.index == nextProps.index && prevProps.data.length == nextProps.data.length 
+    && prevProps.data[prevProps.index].messages.length == nextProps.data[nextProps.index].messages.length
+    && prevProps.style.height == nextProps.style.height && prevProps.style.top == nextProps.style.top
+})
 
-function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,animation,isSelfAuthor}){
-    const springRef = useRef()
-    const { size, opacity, ...rest } = useSpring({
-        ref: springRef,
-        config: config.stiff,
-        from: { },
-        to: { }
-    })
-    // Build a transition and catch its ref
-    const transitionRef = useRef()
-
+const MessageBoxMessageList = React.memo(({messages,containerStyle,messageStyle,imageWidth,isSelfAuthor,isFirstBatch,index})=>{
 
     const transitions = useTransition(messages,item=>item.id,{
-        ref: transitionRef,
         unique: true,
-        trail: 700 / messages.length,
+        trail: 400 / messages.length,
         from:{transform:`translateX(${isSelfAuthor?100:-100}px)`,opacity:0,willChange:'transform'},
-        enter:{transform:`0px)`,opacity:1,willChange:null},
-        leave:{transform:`translateX(${isSelfAuthor?100:-100}px)`,opacity:0},
+        enter:{transform:`translateX(0px)`,opacity:1},
     })
-
-    // First run the spring, when it concludes run the transition
-    useChain([springRef, transitionRef])
 
     function getMediaWidth(m){
         let mediaWidth = 0;
@@ -645,26 +717,27 @@ function MessageBoxMessageList({messages,containerStyle,messageStyle,imageWidth,
     }
 
     return ( 
-        messages.map(m=>{
-            return(
-                transitions.map(({item,props,key})=>{
-                return item && <animated.div key={key} style={props}>
-                    {m.message?
-                    <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
-                            <Message m={m} messageStyle={messageStyle} animation={animation}/>
-                        </div>
-                    :null}
-                    
-                    {m.images.length>0 || m.videos.length>0?
-                        <div style={{...containerStyle,width:getMediaWidth(m)}} animation={animation}>
-                            <Images images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
-                        </div>
-                    :null}
-                </animated.div>
-                })
-        )})   
+        messages.map((m)=>{
+        return <animated.div >
+            {m.message?
+            <div className="flex-fill" style={{...containerStyle,width:'100%'}}>
+                    <Message m={m} messageStyle={messageStyle}/>
+                </div>
+            :null}
+            
+            {m.images.length>0 || m.videos.length>0?
+                <div style={{...containerStyle,width:getMediaWidth(m)}}>
+                    <Images images={m.images} videos={m.videos} viewAs="reply" imageWidth={imageWidth}/>
+                </div>
+            :null}
+        </animated.div>
+        })
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.messages.length == nextProps.messages.length && 
+    prevProps.messages[0].created == nextProps.messages[0].created
+    && prevProps.index == nextProps.index
+})
 
 function Message({m,messageStyle, animation}){
     const didMount = useRef(null);

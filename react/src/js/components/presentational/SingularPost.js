@@ -236,6 +236,7 @@ export const Post = React.memo(function Post({post,parentPost=null,down=0,
     measure=()=>{},postsContext,posts,setPosts,index,activeBranch,lastComment,
     viewAs="post",isSingular,movement,minimal=false,updateTree=()=>{}}){
 
+    minimal = viewAs=="embeddedPost"?true:minimal
     const [ref, inView] = useInView({
         threshold: 0,
     })
@@ -894,7 +895,12 @@ function PostActions({post,handleCommentClick,handleSpread,selfSpread}){
             </div>
             
             <Comments post={post} handleCommentClick={handleCommentClick}/>
-            <Share post={post} handleSpread={handleSpread} selfSpread={selfSpread} />
+
+            {/*
+            Needs updates
+            <Share post={post} handleSpread={handleSpread} selfSpread={selfSpread} /> 
+            */}
+            
         </div>
     )
 }

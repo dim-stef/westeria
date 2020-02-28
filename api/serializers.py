@@ -365,7 +365,7 @@ class BranchChatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BranchChat
-        fields = ['id', 'name', 'owner','members','latest_message','image','personal']
+        fields = ['id', 'name', 'owner','members','latest_message','image','personal','is_disabled']
 
 
 class ChatRequestWithRoomSerializer(serializers.ModelSerializer):
@@ -393,10 +393,11 @@ class BranchMessageSerializer(serializers.ModelSerializer):
     videos = ChatVideoSerializer(many=True)
     author_name = serializers.SerializerMethodField('author_name_field')
     author_url = serializers.SerializerMethodField('author_url_field')
+    author_image = serializers.SerializerMethodField('author_image_field')
 
     class Meta:
         model = BranchMessage
-        fields = ['author', 'author_name', 'author_url',
+        fields = ['author', 'author_name', 'author_url','author_image',
                   'message', 'created', 'updated', 'branch_chat','images','videos','id']
 
     def author_name_field(self, branchmessage):
@@ -408,6 +409,12 @@ class BranchMessageSerializer(serializers.ModelSerializer):
     def author_url_field(self, branchmessage):
         try:
             return branchmessage.author.uri
+        except AttributeError:
+            return 'deleted'
+
+    def author_image_field(self, branchmessage):
+        try:
+            return branchmessage.author.branch_image.url
         except AttributeError:
             return 'deleted'
 

@@ -61,6 +61,14 @@ class Branch(models.Model):
     class Meta:
         unique_together = ('owner', 'name')
 
+    FOLLOWING_ONLY = 'FO'
+    EVERYONE = 'EO'
+
+    DIRECT_MESSAGE_TYPE = (
+        (FOLLOWING_ONLY, 'Following only'),
+        (EVERYONE, 'Everyone')
+    )
+
     PUBLIC = 'PU'
     INVITE_ONLY = 'IO'
     ACCESSIBILITY = (
@@ -103,6 +111,7 @@ class Branch(models.Model):
     trending_score = models.DecimalField(max_digits=14, decimal_places=5,default=0.0)
     tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
     is_branchable = models.BooleanField(default=False)
+    direct_messages_accessibility = models.CharField(default=EVERYONE, choices=DIRECT_MESSAGE_TYPE,max_length=2)
 
     # Whether the branch can "host" tags
     # By default all posts tagged with "example_tag" will appear in the branches which contain
@@ -240,7 +249,6 @@ class BranchRequest(models.Model):
                     print(self.request_from, 'was successfully removed as parent from', self.request_to)
         super(BranchRequest, self).save()
 
-
     @staticmethod
     def pre_save(sender, **kwargs):
         instance = kwargs.get('instance')
@@ -361,7 +369,7 @@ def validate_default(sender, instance, created, **kwargs):
 
 
 @receiver(m2m_changed,sender=Branch.follows.through)
-def modify_chat_room(sender, instance, **kwargs):
+def modify_chat_room2(sender, instance, **kwargs):
     action = kwargs.pop('action', None)
     pk_set = kwargs.pop('pk_set', None)
 
@@ -391,13 +399,62 @@ def modify_chat_room(sender, instance, **kwargs):
                                                      personal=True)
                 new_room.members.add(*members)
 
-    # On unfollow delete direct chat
+    # On unfollow disable direct chat
     if action == "post_remove":
         for pk in pk_set:
             member = Branch.objects.get(pk=pk)
             chat = already_exists(member)
             if chat:
-                chat.delete()
+                chat.is_disabled = True
+
+
+@receiver(m2m_changed,sender=Branch.follows.through)
+def modify_chat_room(sender, instance, **kwargs):
+    action = kwargs.pop('action', None)
+    pk_set = kwargs.pop('pk_set', None)
+
+    # returns None or the object if it exists
+    def already_exists(query_member):
+        instance_personal_rooms = (
+            BranchChat.objects
+                .filter(personal=True)
+                .filter(members=query_member)
+                .filter(members=instance)
+        )
+
+        if not instance_personal_rooms.exists():
+            return None
+        return instance_personal_rooms[0]
+
+    def create_room(other_member, members):
+        new_room = BranchChat.objects.create(owner=instance, image=other_member.branch_image,
+                                             name=other_member.name,
+                                             personal=True)
+        new_room.members.add(*members)
+
+    # On follow create direct chat
+    if action == "post_add":
+        for pk in pk_set:
+            member = Branch.objects.get(pk=pk)
+            members = [instance, member]
+
+            if not already_exists(member):
+                if member.direct_messages_accessibility == Branch.EVERYONE:
+                    create_room(member, members)
+                else:
+                    if member.follows.filter(pk=instance.pk):
+                        create_room(member, members)
+
+    # On unfollow disable direct chat
+    if action == "post_remove":
+        for pk in pk_set:
+            member = Branch.objects.get(pk=pk)
+            chat = already_exists(member)
+
+            if chat:
+                chat.is_disabled = True
+                chat.save(update_fields=['is_disabled'])
+
 
 @receiver(m2m_changed,sender=Branch.follows.through)
 def create_follow_notification(sender, instance, **kwargs):
