@@ -65,6 +65,7 @@ function resetPostListContext(postsContext,props){
     postsContext.branchUri = props.branch;
     postsContext.paths.length = 0;
     postsContext.lastPage = 0
+    postsContext.useDefaultRoute = true;
 }
 
 const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
@@ -220,7 +221,6 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
         if(!response.data.next){
             postsContext.hasMore = false;
         }
-
 
         if(postsContext.loadedPosts == 0){
             postsContext.loadedPosts = [...response.data.results];

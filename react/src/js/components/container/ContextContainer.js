@@ -18,6 +18,7 @@ let frontPagePostList = {
     paths:[],
     previousUri:null,
     branchUri:'',
+    useDefaultRoute:true,
     params:{
         content: {
             value:'leaves',

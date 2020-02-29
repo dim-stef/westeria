@@ -1,4 +1,4 @@
-import React, {Component, useContext, useEffect, useState, useRef} from "react"
+import React, {Component, useContext, useEffect,useLayoutEffect, useState, useRef} from "react"
 import {Link, Redirect, Route, Switch, withRouter,useParams,useRouteMatch,useLocation } from 'react-router-dom'
 import { Global, css } from "@emotion/core";
 import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming';
@@ -46,6 +46,7 @@ import {DesktopProfile} from "./ProfileViewer"
 import {FollowPage} from "./FollowPage"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
+import history from "../../history";
 import axiosRetry from "axios-retry";
 import axios from 'axios';
 
@@ -408,22 +409,22 @@ function DesktopParentBranchWrapper(props){
 
 
 export const BranchPage = function(props){ 
-
-    return(
-        <ResponsiveBranchPage branch={props.branch}>
-            <Helmet>
-                <title>{props.branch.name} (@{props.branch.uri}) - Westeria</title>
-                <meta name="description" content={props.branch.description} />
-                <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
-            </Helmet>
-            <Switch>
-                <Route path={`/${props.match}/branches`} render={() => <DiscoverBranchesPage {...props} 
-                showTop={false} withHeadline endpoint="branches"/>}/>
-                <Route path={`/${props.match}/:keyword(community|tree)?/`} 
-                render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
-            </Switch>
-        </ResponsiveBranchPage>
-    )        
+  
+  return(
+      <ResponsiveBranchPage branch={props.branch}>
+          <Helmet>
+              <title>{props.branch.name} (@{props.branch.uri}) - Westeria</title>
+              <meta name="description" content={props.branch.description} />
+              <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
+          </Helmet>
+          <Switch>
+              <Route path={`/${props.match}/branches`} render={() => <DiscoverBranchesPage {...props} 
+              showTop={false} withHeadline endpoint="branches"/>}/>
+              <Route path={`/${props.match}/:keyword(self|community|tree)?/`} 
+              render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
+          </Switch>
+      </ResponsiveBranchPage>
+  )        
 }
 
 
@@ -432,13 +433,32 @@ function BranchFrontPage(props){
 
     const theme = useEmotionTheme();
     let keyword = props.keywordMatch.params.keyword
+    let defaultKeyword;
+    let defaultContext;
+    if(props.branch.branch_type=='US' || props.branch.branch_type=='HB'){
+      defaultKeyword = null;
+      defaultContext = BranchPostsContext;
+    }else if(props.branch.branch_type=='CM'){
+      defaultKeyword = 'community';
+      defaultContext = BranchCommunityPostsContext;
+    }
+
+    useLayoutEffect(()=>{
+      if(!keyword && postsContext.useDefaultRoute){
+        if(props.branch.branch_type=='CM'){
+          postsContext.useDefaultRoute = false;
+          history.push(`/${props.branch.uri}/community`)
+        }
+      }
+    },[])
+
     if(keyword == 'community'){
       _context = BranchCommunityPostsContext
     }else if(keyword == 'tree'){
       _context = BranchTreePostsContext
     }else{
       _context = BranchPostsContext;
-    }    
+    }
 
     const postsContext = useContext(_context)
     const userContext = useContext(UserContext);
@@ -446,7 +466,6 @@ function BranchFrontPage(props){
     var uri;
     
     uri = `/api/branches/${props.match}/posts/`;
-    
 
     useEffect(()=>{
         return ()=>{

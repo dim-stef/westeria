@@ -13,7 +13,7 @@ import {ArrowSvg} from "./Svgs"
 import axios from 'axios'
 import axiosRetry from 'axios-retry';
 import Toggle from 'react-toggle'
-import {CreateableTagSelector} from "./TagSelector";
+import {CreateableTagSelector,BranchTypeSelector} from "./TagSelector";
 import "react-toggle/style.css"
 import history from "../../history"
 
@@ -249,7 +249,7 @@ function PrivacySettingsWrapper({match}){
 
 function Setting({children}){
     return(
-        <div className="settings-option flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
+        <div className="settings-option flex-fill" css={{alignItems:'center'}}>
             {children}
         </div>
     )
@@ -346,13 +346,15 @@ function CreateNewBranch(){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
     const [tags,setTags] = useState([]);
+    const [type,setType] = useState('CM');
 
     let initialValues={
         name:'',
         uri:'',
         description:'',
         default:false,
-        tags:[]
+        tags:[],
+        branch_type:type
     }
 
     async function onSubmit(values){
@@ -393,7 +395,7 @@ function CreateNewBranch(){
 
     return(
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
-            createNew tags={tags} setTags={setTags}
+            createNew tags={tags} setTags={setTags} type={type} setType={setType}
         />
     )
 }
@@ -435,7 +437,7 @@ export function PostRegisterForm({onSubmit,initialValues,branch,submittionFunc,p
     )
 }
 
-function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null}){
+function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null,type,setType}){
     const theme = useTheme();
     const profileRef = useRef(null);
     const wrapperRef = useRef(null);
@@ -447,6 +449,11 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
 
     function handleChange(values){
         setTags(values);
+    }
+
+    function handleTypeChange(value){
+        console.log(value)
+        setType(value)
     }
 
     return(
@@ -499,7 +506,22 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                                 )}
                             </Field>
                         </div>
-                        {createNew?null:
+                        {createNew?
+                        <div style={{margin:'5px 0'}}>
+                            <Field
+                            name="branch_type">
+                            {({ input, ...rest  }) => {
+                            return <div>
+                                <label css={theme=>settingLabel(theme)}>Branch type</label>
+                                <span css={info}>Tags are used to identify your community.
+                                Your community members will be able to create content with these selected tags</span>
+                                <BranchTypeSelector type={type} setType={setType} onChange={handleTypeChange} 
+                                    {...input} {...rest}/>
+                                </div>
+                            }}
+                            </Field>
+                        </div>:
+                        
                         <div style={{margin:'5px 0'}}>
                             <Field
                             name="tags">
@@ -513,7 +535,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                                 </div>
                             }}
                             </Field>
-                        </div>}
+                        </div>
+                        }
                         
                         {submitSucceeded?<p className="form-succeed-message">{createNew?
                         'Successfully created branch':'Successfully saved changes'}</p>:null}

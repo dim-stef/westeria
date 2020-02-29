@@ -15,33 +15,34 @@ from notifications.models import Notification
 import uuid
 
 
+def should_be_disabled(instance):
+    if instance.personal and instance.members.first() and instance.members.last():
+
+        # if both people have dm's enabled chat is open for both
+        if instance.members.first().direct_messages_accessibility == 'EO' \
+                and instance.members.last().direct_messages_accessibility == 'EO':
+            return False
+        # make sure the person with private dm's follows the other person
+        else:
+            if instance.members.first().direct_messages_accessibility != 'EO':
+                # user doesn't follow the other person, disable the chat
+                if not instance.members.first().follows.filter(pk=instance.members.last().pk).exists():
+                    return True
+
+            # check for the other person
+            if instance.members.last().direct_messages_accessibility != 'EO':
+                # user doesn't follow the other person, disable the chat
+                if not instance.members.last().follows.filter(pk=instance.members.first().pk).exists():
+                    return True
+
+            return False
+    else:
+        return False
+
+
 class BranchChat(models.Model):
     class Meta:
         unique_together = ('owner', 'id')
-
-    def should_be_disabled(self):
-        if self.personal and self.members.first() and self.members.last():
-
-            # if both people have dm's enabled chat is open for both
-            if self.members.first().direct_messages_accessibility == 'EO' \
-                    and self.members.last().direct_messages_accessibility == 'EO':
-                return False
-            # make sure the person with private dm's follows the other person
-            else:
-                if self.members.first().direct_messages_accessibility != 'EO':
-                    # user doesn't follow the other person, disable the chat
-                    if not self.members.first().follows.filter(pk=self.members.last().pk).exists():
-                        return True
-
-                # check for the other person
-                if self.members.last().direct_messages_accessibility != 'EO':
-                    # user doesn't follow the other person, disable the chat
-                    if not self.members.last().follows.filter(pk=self.members.first().pk).exists():
-                        return True
-
-                return False
-        else:
-            return False
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     image = models.ImageField(upload_to='images/chat_groups/profile_image',
@@ -94,7 +95,7 @@ class BranchChat(models.Model):
         self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
                                               'image/jpeg', im_io.getbuffer().nbytes, None)
         if self.pk:
-            self.is_disabled = self.should_be_disabled()
+            self.is_disabled = should_be_disabled(self)
 
         '''try:
             icon,im_io = JPEGSaveWithTargetSize(self.image,"%s_icon.jpg" % self.image.name,3000)

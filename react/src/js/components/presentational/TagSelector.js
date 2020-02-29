@@ -1,6 +1,7 @@
 import React, {useState,useEffect,useLayoutEffect,useRef} from "react"
 import {useSprings,animated} from "react-spring/web.cjs";
 import Async from "react-select/async";
+import Select from "react-select";
 import AsyncCreatableSelect from 'react-select/async-creatable';
 import {useTheme} from "emotion-theming";
 import {css} from "@emotion/core";
@@ -12,11 +13,10 @@ const options = [
     {value:'tag2',label:'Tag2',icon:'cccc222'},
 ]
 
-const customStyles = theme => {
+const customStyles = (theme,width='70%') => {
     return {
         container: () => ({
-            // none of react-select's styles are passed to <Control />
-            width: '90%',
+            width: width,
             position:'relative',
         }),
         control: () => ({
@@ -422,6 +422,33 @@ export function CreateableTagSelector(props){
             isMulti
             onChange={handleChange}
             placeholder="Add or create your tags"
+        />
+    )
+}
+
+const branchTypeOptions = [
+    { value: 'CM', label: 'Community' },
+    { value: 'US', label: 'User' },
+]
+
+export function BranchTypeSelector(props){
+    const theme = useTheme();
+
+    function handleChange(values){
+        console.log(values)
+        props.setType(values);
+    }
+
+    return (
+        <Select
+            {...props}
+            isSearchable={false}
+            options={branchTypeOptions}
+            defaultValue={props.type}
+            styles={customStyles(theme,'max-content')}
+            closeMenuOnSelect={false}
+            onChange={handleChange}
+            placeholder="Select type"
         />
     )
 }

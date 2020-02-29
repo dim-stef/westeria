@@ -10,11 +10,10 @@ from taggit.managers import TaggableManager
 from io import BytesIO
 from PIL import Image
 from accounts.models import User
-from branchchat.models import BranchChat
+from branchchat.models import BranchChat, should_be_disabled
 from branchposts.models import Post
 from notifications.models import Notification
 from tags.models import GenericStringTaggedItem
-from core.utils import JPEGSaveWithTargetSize
 from .utils import generate_unique_uri
 import uuid
 import hashlib
@@ -281,7 +280,6 @@ def create_notification(sender, instance, created, **kwargs):
             description = "wants to become parent of"
             verb = "become_parent"
 
-
         notification = Notification.objects.create(recipient=instance.request_to.owner,actor=instance.request_from
                                     ,verb=verb,target=instance.request_to,
                                     action_object=instance,description=description)
@@ -438,12 +436,17 @@ def modify_chat_room(sender, instance, **kwargs):
             member = Branch.objects.get(pk=pk)
             members = [instance, member]
 
-            if not already_exists(member):
+            chat = already_exists(member)
+            if not chat:
                 if member.direct_messages_accessibility == Branch.EVERYONE:
                     create_room(member, members)
                 else:
                     if member.follows.filter(pk=instance.pk):
                         create_room(member, members)
+            else:
+                is_chat_disabled = should_be_disabled(chat)
+                chat.is_disabled = is_chat_disabled
+                chat.save(update_fields=['is_disabled'])
 
     # On unfollow disable direct chat
     if action == "post_remove":
@@ -452,7 +455,8 @@ def modify_chat_room(sender, instance, **kwargs):
             chat = already_exists(member)
 
             if chat:
-                chat.is_disabled = True
+                is_chat_disabled = should_be_disabled(chat)
+                chat.is_disabled = is_chat_disabled
                 chat.save(update_fields=['is_disabled'])
 
 

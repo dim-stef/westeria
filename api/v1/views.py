@@ -29,7 +29,7 @@ class AllTagsFilterSet(FilterSet):
         fields = ['name']
 
     def filter_tags(self, queryset, name, value):
-        return queryset.filter(name__contains=value).distinct()
+        return queryset.filter(name__icontains=value).distinct()
 
 
 class BranchByTagsFilterSet(FilterSet):
