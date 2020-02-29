@@ -902,7 +902,6 @@ button[disabled=disabled], button:disabled {
     .main-column{
         margin: 0;
         border: 0 !important;
-        padding-bottom: 60px;
         flex: 1 1 auto;
         -ms-flex: 1 1 auto;
         -webkit-flex: 1 1 auto;

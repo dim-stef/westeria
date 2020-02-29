@@ -294,7 +294,7 @@ class BranchUpdateSerializer(TaggitSerializer, serializers.ModelSerializer):
 class CreateNewBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ('owner','branch_image', 'branch_banner',
+        fields = ('owner','branch_image', 'branch_banner','branch_type',
                   'name', 'uri', 'accessibility', 'description', 'default')
         read_only_fields = ('owner','accessibility',)
 

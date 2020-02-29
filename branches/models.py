@@ -159,6 +159,7 @@ class Branch(models.Model):
 
     objects = BranchQuerySet.as_manager()
 
+
 # Remove previous uri and name from tags in case they changes
 @receiver(pre_save, sender=Branch)
 def remove_old_tags(sender, instance, **kwargs):
@@ -169,6 +170,15 @@ def remove_old_tags(sender, instance, **kwargs):
 @receiver(post_save, sender=Branch)
 def add_new_tags(sender, instance, **kwargs):
     instance.tags.add(instance.uri, instance.name)
+
+
+@receiver(post_save, sender=Branch)
+def create_followers_only_chat(sender,created,instance,**kwargs):
+    if created:
+        if instance.branch_type == Branch.COMMUNITY:
+            followers_only_chat = BranchChat.objects.create(owner=instance, image=instance.branch_image, name=instance.name,
+                                                 personal=False, auto_invite_followers=True,
+                                                 type=BranchChat.TYPE_FOLLOW_ONLY)
 
 
 def validate_manytomany(self,instance,target):

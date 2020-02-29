@@ -39,10 +39,32 @@ def should_be_disabled(instance):
     else:
         return False
 
-
+from django.db.models import Q
 class BranchChat(models.Model):
     class Meta:
         unique_together = ('owner', 'id')
+        constraints = [
+            models.UniqueConstraint(fields=['owner', 'auto_invite_followers'],
+                                    name='unique_auto_invite_followers_chat',
+                                    condition=Q(auto_invite_followers=True))
+        ]
+
+    TYPE_DIRECT = 'DR'
+    TYPE_FOLLOW_ONLY = 'FO'
+    TYPE_PUBLIC = 'PU'
+    TYPE_INVITE_ONLY = 'IO'
+    TYPE_CHOICES = (
+        (TYPE_DIRECT, 'Direct'),
+        (TYPE_FOLLOW_ONLY, 'Follow only'),
+        (TYPE_PUBLIC, 'Public'),
+        (TYPE_INVITE_ONLY, 'Invite only'),
+    )
+
+    type = models.CharField(
+        max_length=2,
+        choices=TYPE_CHOICES,
+        default=TYPE_DIRECT,
+    )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     image = models.ImageField(upload_to='images/chat_groups/profile_image',
@@ -55,9 +77,10 @@ class BranchChat(models.Model):
     members = models.ManyToManyField('branches.Branch', null=True, related_name="chat_groups")
     personal = models.BooleanField(default=False)
     is_disabled = models.BooleanField(default=False)
+    auto_invite_followers = models.BooleanField(default=False)
 
     def __str__(self):
-        return '%s' % self.name
+        return '%s - %s' % (self.name,self.type)
 
     @property
     def latest_message(self):
@@ -109,7 +132,7 @@ class BranchChat(models.Model):
 
 class ChatRequest(models.Model):
     class Meta:
-        unique_together = ('request_to','branch_chat')
+        unique_together = ('request_to', 'branch_chat')
 
     STATUS_ACCEPTED = 'accepted'
     STATUS_DECLINED = 'declined'

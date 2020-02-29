@@ -2,6 +2,7 @@ import React, {useContext, useEffect, useLayoutEffect, useRef, useState} from "r
 import {Link, Redirect, Route, Switch, withRouter} from "react-router-dom"
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
+import {useMediaQuery} from "react-responsive";
 import {Field, Form} from 'react-final-form'
 import {OnChange} from 'react-final-form-listeners'
 import {Helmet} from 'react-helmet'
@@ -61,6 +62,42 @@ const imageCss = theme =>css({
     }
 })
 
+const branchTypeCss = theme =>css({
+    width:'90%',
+    display:'flex',
+    flexFlow:'column',
+    alignItems:'center',
+    boxShadow:`
+    0 0.1px 0.2px rgba(0, 0, 0, 0.017),
+    0 0.1px 0.6px rgba(0, 0, 0, 0.024),
+    0 0.3px 1.1px rgba(0, 0, 0, 0.03),
+    0 0.4px 2px rgba(0, 0, 0, 0.036),
+    0 0.8px 3.8px rgba(0, 0, 0, 0.043),
+    0 2px 9px rgba(0, 0, 0, 0.06)`,
+    backgroundColor:theme.backgroundColor,
+    margin:10,
+    padding:10,
+    borderRadius:25
+})
+
+const branchTypeInfo = theme=>css({
+    color:theme.textLightColor,
+    fontSize:'2rem',
+    '@media (max-device-width:767px)':{
+        fontSize:'1.4rem'
+    }
+})
+
+const selectButton = theme =>css({
+    backgroundColor:theme.primaryColor,
+    border:0,
+    borderRadius:50,
+    padding:'10px 15px',
+    fontWeight:'bold',
+    fontSize:'1.4rem',
+    color:'white'
+})
+
 function validateImageSize(target,maxSize){
     var files = target.files;
     if(files[0].size>maxSize){
@@ -71,7 +108,25 @@ function validateImageSize(target,maxSize){
 
 export function SettingsPage(){
     const userContext = useContext(UserContext);
+    const [height,setHeight] = useState(0);
+    const ref = useRef(null);
     const theme = useTheme();
+
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    useLayoutEffect(()=>{
+        if(isMobile){
+            let navBar = document.getElementById('mobile-nav-bar');
+            setHeight(window.innerHeight - navBar.clientHeight);
+        }else{
+            if(ref){
+                let clientRect = ref.current.getBoundingClientRect();
+                setHeight(window.innerHeight -clientRect.top - 10);
+            }
+        }
+    },[ref])
 
     return (
         userContext.isAuth?
@@ -82,7 +137,7 @@ export function SettingsPage(){
             </Helmet>
             <div className="main-column" 
             style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0,border:`1px solid ${theme.borderColor}`}}>
-                <div>
+                <div ref={ref} css={{height:height,overflow:'auto',display:'flex',flexFlow:'column'}}>
                     <SettingsRoutes/>
                 </div>
             </div>
@@ -161,6 +216,8 @@ function BranchSettingsLayer(){
 }
 
 function CreateNewBranchWrapper(){
+    const [branchType,setBranchType] = useState(null);
+
     return(
         <>
         <Helmet>
@@ -170,9 +227,44 @@ function CreateNewBranchWrapper(){
 
         <RoutedHeadline to="/settings/branches" headline="Create new branch"/>
         <Setting>
-            <CreateNewBranch/>
+            {branchType? <CreateNewBranch branchType={branchType}/>:<BranchType branchType={branchType} 
+            setBranchType={setBranchType}/>}
         </Setting>
         </>
+    )
+}
+
+function BranchType({setBranchType}){
+
+    function handleCommunityClick(){
+        setBranchType('CM');
+    }
+
+    function handleUserClick(){
+        setBranchType('US');
+    }
+
+    return(
+        <div css={{height:'100%',display:'flex',flexFlow:'column',justifyContent:'space-evenly',alignItems:'center',
+        width:'100%'}}>
+            <div css={branchTypeCss}>
+                <h1 css={{fontSize:'2.3rem'}}>Community</h1>
+                <ul css={theme=>({alignSelf:'flex-start',flex:1})}>
+                    <li css={branchTypeInfo}>Anyone can post on communities and share their thoughts</li>
+                    <li css={branchTypeInfo}>Grow your community and its visibility by connecting with other communities</li>
+                    <li css={branchTypeInfo}>Let your audience interact easily with each other using the followers only conversation</li>
+                </ul>
+                <button css={selectButton} onClick={handleCommunityClick}>I want this!</button>
+            </div>
+            <div css={branchTypeCss}>
+                <h1 css={{fontSize:'2.3rem'}}>Personal profile</h1>
+                <ul css={theme=>({alignSelf:'flex-start',flex:1})}>
+                    <li css={branchTypeInfo}>Split your feed in multiple profiles</li>
+                    <li css={branchTypeInfo}>Create an alternate profile to hide secrets from your friends 😏</li>
+                </ul>
+                <button css={selectButton} onClick={handleUserClick}>I want this!</button>
+            </div>
+        </div>
     )
 }
 
@@ -249,7 +341,7 @@ function PrivacySettingsWrapper({match}){
 
 function Setting({children}){
     return(
-        <div className="settings-option flex-fill" css={{alignItems:'center'}}>
+        <div className="settings-option flex-fill" css={{alignItems:'center',flex:1}}>
             {children}
         </div>
     )
@@ -342,11 +434,10 @@ export function UpdateBranch({branch,postRegister=false,children,postRegisterAct
     )
 }
 
-function CreateNewBranch(){
+function CreateNewBranch({branchType}){
     const userContext = useContext(UserContext);
     const cachedBranches = useContext(CachedBranchesContext);
     const [tags,setTags] = useState([]);
-    const [type,setType] = useState('CM');
 
     let initialValues={
         name:'',
@@ -354,7 +445,7 @@ function CreateNewBranch(){
         description:'',
         default:false,
         tags:[],
-        branch_type:type
+        branch_type:branchType
     }
 
     async function onSubmit(values){
@@ -365,6 +456,7 @@ function CreateNewBranch(){
         var formData = new FormData(form);
         let newTags = tags.map(t=>t.label).join(", ");
         formData.append('tags',newTags)
+        formData.append('branch_type',branchType)
         let errors = {};
         let url = `/api/branches/new/`;
 
@@ -395,7 +487,7 @@ function CreateNewBranch(){
 
     return(
         <BranchForm onSubmit={onSubmit} initialValues={initialValues} validate={()=>{}}
-            createNew tags={tags} setTags={setTags} type={type} setType={setType}
+            createNew tags={tags} setTags={setTags} branchType={branchType}
         />
     )
 }
@@ -437,7 +529,7 @@ export function PostRegisterForm({onSubmit,initialValues,branch,submittionFunc,p
     )
 }
 
-function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null,type,setType}){
+function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags=null,setTags=null,branchType}){
     const theme = useTheme();
     const profileRef = useRef(null);
     const wrapperRef = useRef(null);
@@ -451,17 +543,13 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
         setTags(values);
     }
 
-    function handleTypeChange(value){
-        console.log(value)
-        setType(value)
-    }
-
     return(
         <Form onSubmit={onSubmit}
             initialValues={initialValues}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
                     <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
+                        {createNew?<h1>{branchType=='CM'?'New community':'NeW personal profile'}</h1>:null}
                         <div style={{margin:'5px 0'}}>
                             <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
                             <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
@@ -506,36 +594,22 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
                                 )}
                             </Field>
                         </div>
-                        {createNew?
-                        <div style={{margin:'5px 0'}}>
-                            <Field
-                            name="branch_type">
-                            {({ input, ...rest  }) => {
-                            return <div>
-                                <label css={theme=>settingLabel(theme)}>Branch type</label>
-                                <span css={info}>Tags are used to identify your community.
-                                Your community members will be able to create content with these selected tags</span>
-                                <BranchTypeSelector type={type} setType={setType} onChange={handleTypeChange} 
-                                    {...input} {...rest}/>
-                                </div>
-                            }}
-                            </Field>
-                        </div>:
-                        
-                        <div style={{margin:'5px 0'}}>
-                            <Field
-                            name="tags">
-                            {({ input, ...rest  }) => {
-                                return <div>
-                                    <label css={theme=>settingLabel(theme)}>Tags</label>
-                                    <span css={info}>Tags are used to identify your community.
-                                    Your community members will be able to create content with these selected tags</span>
-                                    <CreateableTagSelector tags={tags} setTags={setTags} onChange={handleChange} 
-                                    {...input} {...rest}/>
-                                </div>
-                            }}
-                            </Field>
-                        </div>
+                        {createNew?null:
+                        branchType=='CM'?
+                            <div style={{margin:'5px 0'}}>
+                                <Field
+                                name="tags">
+                                {({ input, ...rest  }) => {
+                                    return <div>
+                                        <label css={theme=>settingLabel(theme)}>Tags</label>
+                                        <span css={info}>Tags are used to identify your community.
+                                        Your community members will be able to create content with these selected tags</span>
+                                        <CreateableTagSelector tags={tags} setTags={setTags} onChange={handleChange} 
+                                        {...input} {...rest}/>
+                                    </div>
+                                }}
+                                </Field>
+                            </div>:null
                         }
                         
                         {submitSucceeded?<p className="form-succeed-message">{createNew?
