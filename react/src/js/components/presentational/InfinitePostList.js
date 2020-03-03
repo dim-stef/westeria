@@ -31,11 +31,11 @@ box-shadow:
   0 2px 4px -1px rgba(0, 0, 0, 0.82)
 ;
  */
-const buttonWrapper = (theme)=>({display:'flex',justifyContent:'center',alignItems:'center',borderRadius:100,padding:'10px 13px',
+const buttonWrapper = (theme)=>({display:'flex',justifyContent:'center',alignItems:'center',borderRadius:100,padding:'10px 15px',
     backgroundColor:theme.postFloatingButtonColor,cursor:'pointer',height:45,boxSizing:'border-box',
     boxShadow:theme.postFloatingButtonShadow,position:'relative',overflow:'hidden',
     '@media (max-device-width:767px)':{
-        padding:10,
+        padding:'10px 13px',
         height:40
     }
 })
@@ -153,9 +153,16 @@ export const InfinitePostList = React.memo(function InfinitePostList({postsConte
 
     useEffect(()=>{
         if(infiniteLoaderRef.current){
-            infiniteLoaderRef.current._listRef.scrollTo(postsContext.lastScrollPosition);
+            //infiniteLoaderRef.current._listRef.resetAfterIndex(posts.length);
         }
 
+    },[posts])
+
+    useEffect(()=>{
+        if(infiniteLoaderRef.current){
+            infiniteLoaderRef.current._listRef.resetAfterIndex(0);
+            infiniteLoaderRef.current._listRef.scrollTo(postsContext.lastScrollPosition);
+        }
     },[infiniteLoaderRef,postsContext.content])
 
     let pageProps = {
@@ -416,16 +423,16 @@ const Reacts = ({post,starFuncRef,dislikeFuncRef}) =>{
         <>
         <div css={{position:'absolute',bottom:-25,left:100}}>
             <div css={buttonWrapper} onClick={handleStarClick}>
-                <div css={{height:`${starHeight}%`,transition:'height 0.2s',
-                position:'absolute',bottom:0,left:0,backgroundColor:'#ff3333',width:'100%'}}></div>
+                <div css={theme=>({height:`${starHeight}%`,transition:'height 0.2s',opacity:react?1:0.4,
+                position:'absolute',bottom:0,left:0,backgroundColor:react?'#ff3333':theme.textLightColor,width:'100%'})}></div>
                 <Star post={post} react={react} changeReact={changeReact}
                 createOrDeleteReact={createOrDeleteReact} isDisabled={isDisabled} starClickRef={starFuncRef}/>
             </div>
         </div>
         <div css={{position:'absolute',bottom:-25,left:150}}>
             <div css={buttonWrapper} onClick={handleDislikeClick}>
-                <div css={{height:`${dislikeHeight}%`,transition:'height 0.2s',
-                position:'absolute',bottom:0,left:0,backgroundColor:'#3333ff',width:'100%'}}></div>
+                <div css={theme=>({height:`${dislikeHeight}%`,transition:'height 0.2s',opacity:react?1:0.4,
+                position:'absolute',bottom:0,left:0,backgroundColor:react?'#3333ff':theme.textLightColor,width:'100%'})}></div>
                 <Dislike post={post} react={react} changeReact={changeReact}
                 createOrDeleteReact={createOrDeleteReact} isDisabled={isDisabled} dislikeClickRef={dislikeFuncRef}/>
             </div>

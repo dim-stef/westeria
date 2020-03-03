@@ -25,7 +25,7 @@ export function SearchPage(props){
 
     return(
         <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',
-        margin:0,border:`1px solid ${theme.borderColor}`}}>
+        margin:0,border:`1px solid ${theme.borderColor}`,paddingBottom:60}}>
             <h1 style={{padding:10}}>Search</h1>
             <Search/>
             <h1 style={{padding:10}}>Generic Branches</h1>

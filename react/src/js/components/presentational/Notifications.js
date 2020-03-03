@@ -176,7 +176,7 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
             <title>Notifications - Westeria</title>
             <meta name="description" content="Your notifications." />
         </Helmet>
-        <div className="main-column" style={{border:`1px solid ${theme.borderColor}`}}>
+        <div className="main-column" style={{border:`1px solid ${theme.borderColor}`,paddingBottom:60}}>
             {!loaded?
             <div className="flex-fill load-spinner-wrapper">
                 <MoonLoader
@@ -465,11 +465,12 @@ function BranchNotification({notification}){
 function NotificationBranch({image,uri}){
     const theme = useTheme();
     return(
-        <div style={{display:'inline-block',backgroundColor:theme.notificationBranchColor,padding:10,borderRadius:50,margin:'3px 0'}}>
+        <div style={{display:'inline-block',backgroundColor:theme.notificationBranchColor,padding:'5px 10px',
+        borderRadius:50,margin:'3px 0'}}>
             <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
-                <div className="round-picture" style={{width:48,height:48,backgroundImage:`url('${image}')`,
+                <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${image}')`,
                 display:'inline-block'}}></div>
-                <span style={{padding:10}}>{uri}</span>
+                <span style={{padding:8,fontSize:'1.3rem'}}>{uri}</span>
             </div>
         </div>
     )

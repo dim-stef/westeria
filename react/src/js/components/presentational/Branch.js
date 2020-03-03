@@ -141,7 +141,7 @@ export function SmallBranch({branch,isLink=true,
         <SmallCard branch={branch} hoverable={hoverable}>
         <div
         onClick={onClick}
-        style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+        style={{position:'relative',width:'max-content'}} className="noselect small-branch-container flex-fill">
             <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
                 <div className="flex-fill center-items"
                 >

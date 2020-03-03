@@ -10,7 +10,7 @@ const COLORS = {
     darkBlue:'#202f3c',
     lightBlue:'#e2eaf1',
     darkGray:'#404040',
-    lightGray:'#9e9e9e',
+    lightGray:'#a9a9a9',
 }
 
 const darkMode = {
@@ -18,7 +18,9 @@ const darkMode = {
     backgroundColor:'#090a10',
     backgroundLightColor:'#151827',
     backgroundDarkColor: COLORS.black,
+    backgroundBoxColor:'#151827',
     backgroundLightOppositeColor:COLORS.white,
+    chatBubbleColor:'#090a10',
     postFloatingButtonColor:'#272727',
     postFloatingButtonShadow:`0 0.1px 0.2px -1px rgba(0, 0, 0, 0.273),
     0 0.3px 0.6px -1px rgba(0, 0, 0, 0.361),
@@ -45,6 +47,8 @@ const lightMode = {
     backgroundLightColor:'#fbfbfb',
     backgroundDarkColor:'#f5f5f5',
     backgroundLightOppositeColor:darkMode.backgroundLightColor,
+    backgroundBoxColor:COLORS.white,
+    chatBubbleColor:'#f5f5f5',
     postFloatingButtonColor:COLORS.white,
     postFloatingButtonShadow:`0 0.5px 0.8px rgba(0, 0, 0, 0.016),
     0 1.6px 2.7px rgba(0, 0, 0, 0.024),

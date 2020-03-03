@@ -74,7 +74,7 @@ const branchTypeCss = theme =>css({
     0 0.4px 2px rgba(0, 0, 0, 0.036),
     0 0.8px 3.8px rgba(0, 0, 0, 0.043),
     0 2px 9px rgba(0, 0, 0, 0.06)`,
-    backgroundColor:theme.backgroundColor,
+    backgroundColor:theme.backgroundLightColor,
     margin:10,
     padding:10,
     borderRadius:25
@@ -95,7 +95,8 @@ const selectButton = theme =>css({
     padding:'10px 15px',
     fontWeight:'bold',
     fontSize:'1.4rem',
-    color:'white'
+    color:'white',
+    margin:16
 })
 
 function validateImageSize(target,maxSize){
@@ -549,7 +550,8 @@ function BranchForm({onSubmit,initialValues,validate,createNew=false,branch,tags
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
                     <form id="branchForm" style={{padding:10}} onSubmit={handleSubmit}>
-                        {createNew?<h1>{branchType=='CM'?'New community':'NeW personal profile'}</h1>:null}
+                        {createNew?<h1 css={{borderBottom:`3px solid ${theme.primaryColor}`}}>
+                        {branchType=='CM'?'New community':'NeW personal profile'}</h1>:null}
                         <div style={{margin:'5px 0'}}>
                             <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
                             <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>

@@ -2,7 +2,7 @@ import React, {useEffect} from 'react'
 
 
 export function CustomEditor({onInput,onKeyDown,placeholder,className,style,editorRef=null,onBlur,
-    files,setFiles=()=>{},onFocus,autofocus=false}){
+    files,setFiles=()=>{},onFocus,autoFocus=false}){
 
     function handleInput(e){
 
@@ -35,7 +35,7 @@ export function CustomEditor({onInput,onKeyDown,placeholder,className,style,edit
     }
 
     useEffect(()=>{
-        if(editorRef.current && autofocus){
+        if(editorRef.current && autoFocus){
             editorRef.current.focus();
         }
     },[editorRef])

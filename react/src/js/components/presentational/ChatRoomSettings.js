@@ -61,7 +61,7 @@ export function ChatRoomSettings({match}){
                     <title>{room.name} Settings - Westeria</title>
                     <meta name="description" content="Change this rooms settings here." />
                 </Helmet>
-                <div className="main-column" style={{flexBasis:'100%',WebkitFlexBasis:'100%',margin:0}}>
+                <div className="main-column" css={theme=>({flexBasis:'100%',border:`1px solid ${theme.borderColor}`,margin:0})}>
                     <div>
                         <ChatRoomSettingsRoutes room={room}/>
                     </div>
@@ -130,7 +130,7 @@ function BasicSettings({room}){
                     placeholder="name">
                         {({ input, meta }) => (
                             <div style={{margin:'10px 0'}}>
-                                <label css={theme=>settingLabel(theme)}>Name</label>
+                                <label css={theme=>settingLabel(theme)}>Update the conversations name</label>
                                 <input {...input} id="name" css={theme=>settingInput(theme)}
                                 required/>
                                 {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
@@ -138,7 +138,7 @@ function BasicSettings({room}){
                         )}
                     </Field>
                     <div style={{margin:'10px 0'}}>
-                        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Image</label>
+                        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Update the conversations name image</label>
                         <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
                             <Profile showError src={room.image} wrapperRef={wrapperRef} profileRef={profileRef} name="image" createNew/>
                         </div>

@@ -435,7 +435,6 @@ export function BranchTypeSelector(props){
     const theme = useTheme();
 
     function handleChange(values){
-        console.log(values)
         props.setType(values);
     }
 

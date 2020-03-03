@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.signals import post_save
+from django.db.models import Q
 from django.dispatch import receiver
 from django.db.models import F
 from accounts.models import User
@@ -39,7 +40,7 @@ def should_be_disabled(instance):
     else:
         return False
 
-from django.db.models import Q
+
 class BranchChat(models.Model):
     class Meta:
         unique_together = ('owner', 'id')
@@ -235,7 +236,6 @@ def create_init_branch_chat(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=ChatRequest, dispatch_uid="chat_request_notification")
 def create_chat_request_notification(sender,instance,created,**kwargs):
-
     if created:
         description = "invited you to a conversation"
         verb = "conversation_invite"

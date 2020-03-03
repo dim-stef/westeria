@@ -60,7 +60,7 @@ export const Page = React.memo(function Page(props){
             <div>
                 <div id="main-wrapper" className="main-wrapper">
                     <div id={isMobileOrTablet?'mobile-content-container':'content-container'}
-                    className="wide-content-container" style={{height:isMobileOrTablet?contentHeight:null}}
+                    className="wide-content-container"
                     css={isMobileOrTablet?()=>contentContainer(contentHeight):null}>
                         {props.children}
                     </div>

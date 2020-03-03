@@ -10,7 +10,7 @@ from taggit.managers import TaggableManager
 from io import BytesIO
 from PIL import Image
 from accounts.models import User
-from branchchat.models import BranchChat, should_be_disabled
+from branchchat.models import BranchChat, ChatRequest, should_be_disabled
 from branchposts.models import Post
 from notifications.models import Notification
 from tags.models import GenericStringTaggedItem
@@ -176,9 +176,10 @@ def add_new_tags(sender, instance, **kwargs):
 def create_followers_only_chat(sender,created,instance,**kwargs):
     if created:
         if instance.branch_type == Branch.COMMUNITY:
-            followers_only_chat = BranchChat.objects.create(owner=instance, image=instance.branch_image, name=instance.name,
-                                                 personal=False, auto_invite_followers=True,
-                                                 type=BranchChat.TYPE_FOLLOW_ONLY)
+            followers_only_chat = BranchChat.objects.create(owner=instance, image=instance.branch_image,
+                                                            name="%s' followers conversation" % instance.name,
+                                                            personal=False, auto_invite_followers=True,
+                                                            type=BranchChat.TYPE_FOLLOW_ONLY)
 
 
 def validate_manytomany(self,instance,target):
@@ -193,7 +194,7 @@ class BranchRequest(models.Model):
     previous_state = None
 
     TYPE_ADD = 'add'
-    TYPE_REMOVE= 'remove'
+    TYPE_REMOVE = 'remove'
     TYPE_CHOICES = (
         (TYPE_ADD, 'Add'),
         (TYPE_REMOVE, 'Remove'),
@@ -377,46 +378,6 @@ def validate_default(sender, instance, created, **kwargs):
 
 
 @receiver(m2m_changed,sender=Branch.follows.through)
-def modify_chat_room2(sender, instance, **kwargs):
-    action = kwargs.pop('action', None)
-    pk_set = kwargs.pop('pk_set', None)
-
-    # returns None or the object if it exists
-    def already_exists(query_member):
-        instance_personal_rooms = (
-            BranchChat.objects
-                .annotate(num_members=Count("members"))
-                .filter(num_members=2)
-                .filter(members=query_member)
-                .filter(members=instance)
-        )
-
-        if not instance_personal_rooms.exists():
-            return None
-        return instance_personal_rooms[0]
-
-    # On follow create direct chat
-    if action == "post_add":
-        for pk in pk_set:
-            member = Branch.objects.get(pk=pk)
-            is_following = True if instance in member.follows.all() else False
-            is_being_followed_back = True if member in instance.follows.all() else False
-            if is_being_followed_back and is_following and not already_exists(member):
-                members = [member, instance]
-                new_room = BranchChat.objects.create(owner=instance,image=member.branch_image,name=member.name,
-                                                     personal=True)
-                new_room.members.add(*members)
-
-    # On unfollow disable direct chat
-    if action == "post_remove":
-        for pk in pk_set:
-            member = Branch.objects.get(pk=pk)
-            chat = already_exists(member)
-            if chat:
-                chat.is_disabled = True
-
-
-@receiver(m2m_changed,sender=Branch.follows.through)
 def modify_chat_room(sender, instance, **kwargs):
     action = kwargs.pop('action', None)
     pk_set = kwargs.pop('pk_set', None)
@@ -468,6 +429,34 @@ def modify_chat_room(sender, instance, **kwargs):
                 is_chat_disabled = should_be_disabled(chat)
                 chat.is_disabled = is_chat_disabled
                 chat.save(update_fields=['is_disabled'])
+
+
+@receiver(m2m_changed,sender=Branch.follows.through)
+def send_auto_follow_chat_invite(sender, instance, **kwargs):
+    action = kwargs.pop('action', None)
+    pk_set = kwargs.pop('pk_set', None)
+
+    if action == "post_add":
+        for pk in pk_set:
+            followed = Branch.objects.get(pk=pk)
+            auto_follow_chat = BranchChat.objects.filter(owner=followed,auto_invite_followers=True)
+            if auto_follow_chat.exists():
+                chat_request = ChatRequest.objects.filter(branch_chat=auto_follow_chat.first(), request_from=followed,
+                                                          request_to=instance)
+
+                # if request has already been sent then just join the chat
+                if chat_request.exists():
+                    auto_follow_chat.first().members.add(instance)
+                # else send request to user
+                else:
+                    request = ChatRequest.objects.create(branch_chat=auto_follow_chat.first(), request_from=followed,
+                                                         request_to=instance)
+    if action == "post_remove":
+        for pk in pk_set:
+            followed = Branch.objects.get(pk=pk)
+            auto_follow_chat = BranchChat.objects.filter(owner=followed, auto_invite_followers=True)
+            if auto_follow_chat.exists():
+                auto_follow_chat.first().members.remove(instance)
 
 
 @receiver(m2m_changed,sender=Branch.follows.through)

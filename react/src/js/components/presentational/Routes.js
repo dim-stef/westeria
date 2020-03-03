@@ -21,7 +21,8 @@ import {
     SingularPostContext,
     TourContext,
     UserContext,
-    RouteTransitionContext
+    RouteTransitionContext,
+    ParentBranchDrawerContext
 } from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import {ChatRoomSettings} from "./ChatRoomSettings"
@@ -410,6 +411,19 @@ function DesktopParentBranchWrapper(props){
 
 export const BranchPage = function(props){ 
   
+  const parentBranchDrawerContext = useContext(ParentBranchDrawerContext);
+
+  useLayoutEffect(()=>{
+    try{
+      parentBranchDrawerContext.setShow(true);
+      return ()=>{
+        parentBranchDrawerContext.setShow(false);
+      }
+    }catch(e){
+      
+    }
+  },[])
+
   return(
       <ResponsiveBranchPage branch={props.branch}>
           <Helmet>

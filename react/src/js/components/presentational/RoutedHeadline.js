@@ -3,9 +3,10 @@ import {withRouter} from "react-router-dom";
 import { css } from "@emotion/core";
 
 
-const headlineContainer = theme =>css({
+const headlineContainer = (theme,containerStyle) =>css({
     padding:'10px',borderBottom:`1px solid ${theme.borderColor}`,
-    backgroundColor:'transparent'
+    backgroundColor:'transparent',
+    ...containerStyle
 })
 
 const leftButtonSvg = theme =>css({
@@ -23,7 +24,7 @@ function RoutedHeadline({match,location,className='',history,headline,to,contain
     }
 
     return(
-        <div className={`flex-fill ${className}`} css={theme=>headlineContainer(theme)}>
+        <div className={`flex-fill ${className}`} css={theme=>headlineContainer(theme,containerStyle)}>
             <button className="flex-fill" 
             className="back-button" onClick={navigate}>
                 <LeftArrowSvg/>

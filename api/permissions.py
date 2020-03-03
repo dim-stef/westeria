@@ -24,20 +24,26 @@ class IsOwnerOfReply(permissions.BasePermission):
                 return True
         return False
 
+
 class IsOwnerOfBranch(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        lookup = 'branch__uri' if 'branch__uri' in request.resolver_match.kwargs else 'uri'
+
+        lookup = 'branch__uri' if 'branch__uri' in request.resolver_match.kwargs else 'branch_uri'
         print(request.resolver_match.kwargs)
         branch = Branch.objects.get(uri=request.resolver_match.kwargs.get(lookup))
         if request.user.owned_groups.filter(uri=branch).exists():
             return True
         return False
 
+
 class IsMemberOfChat(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get('branch__uri'))
-        branch_chat = BranchChat.objects.get(id=request.resolver_match.kwargs.get('id__pk'))
+        lookup_branch = 'branch__uri' if 'branch__uri' in request.resolver_match.kwargs else 'branch_uri'
+        lookup_id = 'id__pk' if 'id__pk' in request.resolver_match.kwargs else 'id_pk'
+
+        branch = Branch.objects.get(uri=request.resolver_match.kwargs.get(lookup_branch))
+        branch_chat = BranchChat.objects.get(id=request.resolver_match.kwargs.get(lookup_id))
         if branch_chat.members.filter(uri=branch).exists():
             return True
         return False

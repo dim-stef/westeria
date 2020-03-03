@@ -44,7 +44,7 @@ function isFileVideo(file) {
 }
 
 export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null,
-    redirect=false,postingTo=null,autofocus=false}){
+    redirect=false,postingTo=null,autoFocus=false}){
 
     const theme = useTheme();
     const [value,setValue] = useState('');
@@ -161,7 +161,7 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     editorRef={editorRef}
                     onInput={handleChange}
                     placeholder={placeholder}
-                    autofocus={autofocus}
+                    autoFocus={autoFocus}
                     className="editor flex-fill text-wrap"
                     value={value}
                     style={{padding:'5px 10px',backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,

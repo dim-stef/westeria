@@ -235,6 +235,9 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
         from: { opacity: 0 },
         enter: { opacity: 1 },
         leave: { opacity: 0 },
+        config:{
+            duration:100
+        }
     })
 
     let setTimeoutConst;
@@ -281,13 +284,11 @@ export function SmallCard({branch,hoverable=true,containerWidth=null,children}){
                 css={theme=>smallCardContainer(theme,containerWidth,
                 mousePosition?mousePosition[0]+20:0,mousePosition?mousePosition[1]+20:0)} onClick={onClick}
                 onMouseEnter={isMobile || !hoverable?null:handleMouseEnter} onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}>
-                <div
-                    style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+                <div style={{position:'relative'}} className="noselect small-branch-container flex-fill">
                     <Link to={`/${branch.uri}`} className="small-branch flex-fill" >
                         <img style={{width:48,height:48,borderRadius:'50%',objectFit:'cover'}} src={branch.branch_image}/>
-                        <div className="flex-fill" style={{flexDirection:'column',WebkitFlexDirection:'column',
-                        justifyContent:'center',WebkitJustifyContent:'center',marginLeft:10, flex:'1 1 auto',msFlex:'1 1 auto',
-                        WebkitFlex:'1 1 auto'}}>
+                        <div className="flex-fill" css={{flexDirection:'column',
+                        justifyContent:'center',marginLeft:10, flex:'1 1 auto'}}>
                             <p css={theme=>name(theme)}>{branch.name}</p>
                             <span css={theme=>uri(theme)}>@{branch.uri}</span>
                         </div>

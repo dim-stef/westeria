@@ -5,6 +5,12 @@ import {UserContext} from "./ContextContainer"
 import axios from 'axios'
 
 axios.defaults.withCredentials = true;
+axios.interceptors.request.use(function (config) {
+    const token = localStorage.getItem("token");
+    config.headers.Authorization =  "Bearer " + token;
+
+    return config;
+});
 
 class App extends Component {
     static contextType = UserContext
@@ -92,8 +98,28 @@ class App extends Component {
         this.unlisten();
     }
 
+    async refreshToken(){
+        let response = await axios.post(`/accounts/token-refresh/`,{
+            token:localStorage.getItem('token')
+        })
+        localStorage.setItem('token',response.data.token)
+    }
+
     componentDidMount(){
         if(localStorage.getItem("token")){
+            // refresh token once on initial load
+            this.refreshToken();
+
+            // then every hour
+            setInterval(async()=>{
+                try{
+                    this.refreshToken();
+                }catch(e){
+
+                }
+                
+            }, 1000 * 60 * 60);
+            
             this.getUserData();
         }else{
             if(!localStorage.getItem('has_seen_tour')){

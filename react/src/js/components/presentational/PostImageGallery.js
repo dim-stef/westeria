@@ -78,16 +78,16 @@ export const PreviewPostMedia = React.memo(function PreviewPostMedia({images,vid
     return true
 })
 
-export function Images(props){
+export const Images = React.memo(function Images({images,videos,imageWidth,viewAs,noMinHeight=false}){
     const theme = useTheme();
 
     function getTallerElement(){
-        let heights = props.images.map(im=>{
+        let heights = images.map(im=>{
             return im.height;
         })
 
         let max = Math.max(...heights);
-        return props.images.find(im=>im.height==max);
+        return images.find(im=>im.height==max);
     }
 
     function calcPadding(){
@@ -97,14 +97,14 @@ export function Images(props){
         let ratio = height/width;
         let paddingTop = height!=0 ?
         `${ratio*100}%` : 0;
-        if(props.videos.length>0 && ratio<0.56){
+        if(videos.length>0 && ratio<0.56){
             paddingTop = '56%';
         }
         return paddingTop;
     }
 
     let initStyle;
-    if(props.viewAs=="reply"){
+    if(viewAs=="reply"){
         initStyle = {
             border: `1px solid ${theme.borderColor}`,
             borderRadius: 10,
@@ -116,7 +116,7 @@ export function Images(props){
     }
 
 
-    const [paddTop,setPaddTop] = useState(props.images.length>0?calcPadding(props.images[0]):'56%');
+    const [paddTop,setPaddTop] = useState(images.length>0?calcPadding(images[0]):'56%');
     const [left,setLeft] = useState(0);
     const [swiping,setSwiping] = useState(false);
     const [style,setStyle] = useState(initStyle);
@@ -181,26 +181,26 @@ export function Images(props){
         <div ref={ref} style={{...style,overflow: 'hidden',maxHeight:maxHeight}}>
             <div style={{position:'relative',paddingTop:paddTop}} >
                 <div className="flex-fill post-image-wrapper" style={{maxHeight:maxHeight}}>
-                    {props.images.length + props.videos.length>1?
-                    <MediaButtons index={index} changeIndex={changeIndex} count={props.images.length + props.videos.length} 
-                    imageWidth={props.imageWidth} left={left}
+                    {images.length + videos.length>1?
+                    <MediaButtons index={index} changeIndex={changeIndex} count={images.length + videos.length} 
+                    imageWidth={imageWidth} left={left}
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
                     {/* <SwipeableViews> must be the last child of .post-image-wrapper in order to apply css*/}
                     <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading onSwitching={onSwitching}
                     slideStyle={{position:'relative',overflow:'hidden',alignItems:'center',WebkitAlignItems:'center'}} 
                     slideClassName="flex-fill">
-                        {props.images.map(img=>{
+                        {images.map(img=>{
                             return <div key={img.image} 
                             style={{width:'100%',height:'100%'}}>
-                            <ImageComponent width={props.imageWidth} src={img.image} imgHeight={img.height}
+                            <ImageComponent width={imageWidth} src={img.image} imgHeight={img.height} noMinHeight={noMinHeight}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft} imgWidth={img.width}
                             /></div>
                         })}
-                        {props.videos.map(vid=>{
+                        {videos.map(vid=>{
                             return <div key={vid.id} style={{width:'100%',height:'100%'}}
                              >
-                            <VideoComponent width={props.imageWidth} src={vid.video}
+                            <VideoComponent width={imageWidth} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
                             /></div>
                         })}
@@ -210,7 +210,10 @@ export function Images(props){
             </div>
         </div>
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.images.length == nextProps.images.length && prevProps.videos.length == nextProps.videos.length
+    && prevProps.imageWidth == nextProps.imageWidth
+})
 
 const videoContainer = () =>css({
     'video':{
@@ -256,7 +259,7 @@ function getScrollbarWidth() {
 }
 
 
-function ImageComponent({src,maxHeight,imgWidth,imgHeight}){
+function ImageComponent({src,maxHeight,imgWidth,imgHeight,noMinHeight}){
     const [open,setOpen] = useState(false);
 
     function handleModalOpen(e,show){
@@ -310,7 +313,7 @@ function ImageComponent({src,maxHeight,imgWidth,imgHeight}){
                         
                             <FadeImage draggable="false" onClick={e=>{
                                 handleModalOpen(e,show)
-                                }} style={{width:'100%',minHeight:'100%',
+                                }} style={{width:'100%',minHeight:noMinHeight?null:'100%',
                             objectFit:'cover',maxHeight:maxHeight}} src={src}/>
                     </LazyLoad>                    
                 </div>

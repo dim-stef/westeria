@@ -473,7 +473,6 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                                     <Route exact path="/" children={({ match }) => (
                                         <>
                                         <HomeSvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text="Feed" match={match}></LinkText>
                                         </>
                                     )} />
                                 </NavLink>
@@ -481,7 +480,6 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                                     <Route exact path="/tree" children={({ match }) => (
                                         <>
                                         <TreeSvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text="Tree" match={match}></LinkText>
                                         </>
                                     )} />
                                 </NavLink>
@@ -489,7 +487,6 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                                     <Route exact path="/all" children={({ match }) => (
                                         <>
                                         <EarthSvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text="All" match={match}></LinkText>
                                         </>
                                     )} />
                                 </NavLink>
@@ -498,7 +495,6 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                                     <Route path="/" children={({ match }) => (
                                         <>
                                         <EarthSvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text="All" match={match}></LinkText>
                                         </>
                                     )} />
                                     <Route>
@@ -510,7 +506,6 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                                     <Route exact path={`/${branch.uri}`} children={({ match }) => (
                                         <>
                                         <UserSvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text={branch.name} match={match}></LinkText>
                                         </>
                                     )} />
                                 </NavLink>
@@ -518,14 +513,12 @@ export const SwipeableBar = React.memo(function SwipeableBar({postsContext,refre
                                     <Route exact path={`/${branch.uri}/tree`} children={({ match }) => (
                                         <>
                                         <TreeSvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text="Tree" match={match}></LinkText>
                                         </>
                                     )} /></NavLink>
                                 <NavLink to={`/${branch.uri}/community`} css={linkCss}>
                                     <Route exact path={`/${branch.uri}/community`} children={({ match }) => (
                                         <>
                                         <CommunitySvg css={theme=>navIcon(theme,match)}/>
-                                        <LinkText text="Community" match={match}></LinkText>
                                         </>
                                     )} />
                                 </NavLink>

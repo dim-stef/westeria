@@ -134,7 +134,7 @@ export function useReactActions(post){
     return [react,starCount,dislikeCount,isDisabled,changeReact,createOrDeleteReact];
 }
 
-export function Star({react,isDisabled,changeReact,createOrDeleteReact,size=20,starClickRef}){
+export function Star({react,isDisabled,changeReact,createOrDeleteReact,size=15,starClickRef}){
     const [reacted,setReacted] = useState(false);
     const context = useContext(UserContext);
 
@@ -174,15 +174,15 @@ export function Star({react,isDisabled,changeReact,createOrDeleteReact,size=20,s
         <div css={{zIndex:1,justifyContent:'center',alignItems:'center',cursor:'pointer'}}>
             <button css={{border:0,backgroundColor:'transparent',padding:0}}>
                 <div css={{display:'flex',alignItems:'center'}}>
-                    <StarSvg css={theme=>({height:size,width:size,stroke:reacted?'white':theme.textHarshColor,strokeWidth:'5%',
-                    fill:reacted?'white':'transparent',overflow:'visible'})}/>
+                    <StarSvg css={theme=>({height:size,width:size,
+                    fill:theme.textColor,overflow:'visible'})}/>
                 </div>
             </button>
         </div>
     )
 }
 
-export function Dislike({react,changeReact,createOrDeleteReact,size=20,dislikeClickRef}){
+export function Dislike({react,changeReact,createOrDeleteReact,size=15,dislikeClickRef}){
     const [reacted,setReacted] = useState(false);
     const context = useContext(UserContext);
 
@@ -222,8 +222,8 @@ export function Dislike({react,changeReact,createOrDeleteReact,size=20,dislikeCl
         <div css={{zIndex:1,justifyContent:'center',alignItems:'center',cursor:'pointer'}}>
             <button css={{border:0,backgroundColor:'transparent',padding:0,paddingTop:5}}>
                 <div css={{display:'flex',alignItems:'center'}}>
-                    <DislikeSvg css={theme=>({height:size,width:size,stroke:reacted?'white':theme.textHarshColor,strokeWidth:'5%',
-                    fill:reacted?'white':'transparent',overflow:'visible'})}/>
+                    <DislikeSvg css={theme=>({height:size,width:size,
+                    fill:theme.textColor,overflow:'visible'})}/>
                 </div>
             </button>
         </div>
