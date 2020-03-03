@@ -2,11 +2,13 @@ import React, {useContext, useEffect, useState, useRef,useLayoutEffect} from "re
 import {Helmet} from 'react-helmet'
 import {useMediaQuery} from "react-responsive";
 import {useTheme} from "emotion-theming";
+import {css} from "@emotion/core";
 import {ChildBranch} from "./Branch"
 import {NavLink, Route, Switch} from 'react-router-dom'
 import {BranchesPageContainer, usePendingRequests} from '../container/BranchContainer'
 import BranchFooter from "./Temporary"
 import {TooltipChain,Tooltip} from "./Tooltip"
+import {CircularBranch} from "./Branch"
 import {UserContext,TourContext} from '../container/ContextContainer'
 import axios from 'axios';
 
@@ -17,6 +19,11 @@ function ownsBranch(branches,target){
     })
 }
 
+const add = theme =>css({
+    border:`1px solid ${theme.borderColor}`,
+    justifyContent:'center',
+    alignItems:'center'
+})
 
 export function BranchesPageRoutes(props){
     return(
@@ -48,7 +55,7 @@ export function BranchesPage(props){
     return(
         <>
         <Helmet>
-            <title>{props.branch.name} @({props.branch.uri}) {title} {' '} - Subranch</title>
+            <title>{props.branch.name} @({props.branch.uri}) {title} {' '} - Westeria</title>
             <meta name="description" content="Your messages." />
         </Helmet>
         <div>
@@ -129,7 +136,7 @@ function BranchTypeSelectionBar({activeTab,currentBranch,branch}){
 function BranchParents({currentBranch,count}){
     return(
         <NavLink exact to={{pathname:`/${currentBranch}/branches/parents`,state:'branch'}} activeStyle={{backgroundColor:'#1c87dc'}}
-        style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
+        style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}} replace>
             <div className="branch-selection flex-fill center-items">
                 <h1>{count>0?`${count} `:''}Parents</h1>
             </div>
@@ -140,7 +147,7 @@ function BranchParents({currentBranch,count}){
 function BranchSiblings({currentBranch,count}){
     return(
         <NavLink exact to={{pathname:`/${currentBranch}/branches/siblings`,state:'branch'}} activeStyle={{backgroundColor:'#1c87dc'}}
-        style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}}>
+        style={{height:'100%',width:'100%',color:'white',textDecoration:'none'}} replace>
             <div className="branch-selection flex-fill center-items">
                 <h1>{count>0?`${count} `:''}Siblings</h1>
             </div>
@@ -151,7 +158,7 @@ function BranchSiblings({currentBranch,count}){
 function BranchChildren({currentBranch,count,activeTab}){
     return(
         <NavLink exact to={{pathname:`/${currentBranch}/branches/children`,state:'branch'}} activeStyle={{backgroundColor:'#1c87dc'}}
-        style={{height:'100%',width:'100%',color:'white',textDecoration:'none',backgroundColor:activeTab?null:'#1c87dc'}}>
+        style={{height:'100%',width:'100%',color:'white',textDecoration:'none',backgroundColor:activeTab?null:'#1c87dc'}} replace>
             <div className="branch-selection flex-fill center-items">
                 <h1>{count>0?`${count} `:''}Children</h1>
             </div>
@@ -185,7 +192,7 @@ export function BranchList(props){
 
 }
 
-export function AddBranch({branch,type='children'}){
+export function AddBranch({branch,branches,type='children'}){
     const context = useContext(UserContext)
     const [sumbitted,setSubmitted] = useState(false);
     const [requestStatus,setRequestStatus] = useState(null);
@@ -194,10 +201,10 @@ export function AddBranch({branch,type='children'}){
     let relation_type;
 
     if(type=='children'){
-        text = 'Become child';
+        text = 'Connect as more specific';
         relation_type = 'child';
     }else if(type=='parents'){
-        text = 'Become parent';
+        text = 'Connect as more generic';
         relation_type = 'parent';
     }
 
@@ -213,7 +220,6 @@ export function AddBranch({branch,type='children'}){
         axios.post(
             uri,
             data,
-            
             {
                 withCredentials: true,
                 headers: {
@@ -244,30 +250,28 @@ export function AddBranch({branch,type='children'}){
         }
     },[])
 
+    let isAlreadyConnected = branches.some(b=>b.uri==context.currentBranch.uri);
+    
     return(
-        !requestStatus?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10,cursor:'pointer'}}
-            role="button" onClick={onClick}>  
-            <AddBranchSvg width={100} height={100}/>
-            <h1 className="branch-add-text">{text}</h1>
-            
+        !requestStatus && !isAlreadyConnected?
+        <div onClick={onClick} css={theme=>({backgroundColor:theme.backgroundDarkColor,borderRadius:25,padding:10,
+        display:'flex',justifyContent:'center',flexGrow:1,minWidth:120,margin:'0 10px'})}>
+            <CircularBranch branch={context.currentBranch} connect={text}/>
         </div>
         :sumbitted && requestStatus == 'accepted'?
-            <BranchList branches={[context.currentBranch]} ownsBranch={true} viewedBranch={branch} pending={false}/>
-            
+            <CircularBranch branch={context.currentBranch}/>
             :
             <>
                 <RequestOnHold status={requestStatus}/>
                 <RequestDeclined status={requestStatus}/>
             </>
-
     )
 }
 
 function RequestOnHold({status}){
     return(
         status=='on hold'?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10}} role="button">
+        <div className="branch-add-button branch-container flex-fill" style={{padding:10}} role="button" css={theme=>add(theme)}> 
             <p style={{fontSize:'2rem',color:'#7a8c9c'}}>Request has been sent. Waiting for approval</p>
         </div>:null
     )
@@ -276,7 +280,7 @@ function RequestOnHold({status}){
 function RequestDeclined({status}){
     return(
         status=='declined'?
-        <div className="branch-add-button branch-container flex-fill" style={{padding:10}}>
+        <div className="branch-add-button branch-container flex-fill" style={{padding:10}} css={theme=>add(theme)}>
             <p style={{fontSize:'2rem',color:'#7a8c9c'}}>Request has been declined.</p>
         </div>:null
     )

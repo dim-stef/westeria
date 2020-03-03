@@ -68,7 +68,7 @@ const FeedButton = ({branch}) => {
 
     return(
         <NavLink exact to={`/${branch.uri}`} style={{color:theme.textColor}} className="user-color branch-navigation-button flex-fill" 
-        activeClassName="clicked-navigation-button">
+        activeClassName="clicked-navigation-button" replace>
             
             <div className="navigation-button-text flex-fill center-items">
                 {/*<i className="material-icons navigation-icon">list</i>*/}

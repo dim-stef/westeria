@@ -31,7 +31,7 @@ class RegistrationSerializer(serializers.Serializer):
 
     def custom_signup(self, request, user):
         name = self.validated_data.get('name')
-        Branch.objects.create(owner=user,name=name,default=True)
+        Branch.objects.create(owner=user, branch_type=Branch.USER, name=name, default=True)
 
     def get_cleaned_data(self):
         return {

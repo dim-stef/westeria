@@ -57,10 +57,12 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_ALLOW_REFRESH': True,
 }
 
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-#DEFAULT_FILE_STORAGE = 'subranch.storage_backends.MediaStorage'
+#DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+DEFAULT_FILE_STORAGE = 'subranch.storage_backends.MediaStorage'
 GS_BUCKET_NAME = 'subranch_bucket_test'
 
 GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
@@ -75,7 +77,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 
 AWS_S3_CALLING_FORMAT = 'boto.s3.connection.OrdinaryCallingFormat'
 AWS_LOCATION = 'static'
-STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+STATIC_URL = 'd3u9nsvugag1ev.cloudfront.net'
 #STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 ###
 
@@ -124,6 +126,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.postgres',
+    'django_filters',
     'widget_tweaks',
     'django_extensions',
     'annoying',
@@ -135,6 +138,7 @@ INSTALLED_APPS = [
     'branchchat',
     'branchsettings',
     'branchposts',
+    'tags',
     'feedback',
     'settings',
     'notifications',
@@ -144,6 +148,8 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
     'rest_auth',
     'rest_auth.registration',
+    'taggit',
+    'taggit_serializer',
     'webpack_loader',
     'allauth',
     'accounts',
@@ -153,6 +159,8 @@ INSTALLED_APPS = [
 ]
 
 SITE_ID = 2
+TAGGIT_CASE_INSENSITIVE = True
+TAGGIT_FORCE_LOWERCASE = True
 
 MIDDLEWARE = [
     'django.middleware.gzip.GZipMiddleware',
@@ -167,12 +175,15 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'subranch.urls'
 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+'''
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'mail.privateemail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'contact@subranch.com'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER'''
 
 
 TEMPLATES = [
@@ -218,7 +229,6 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',

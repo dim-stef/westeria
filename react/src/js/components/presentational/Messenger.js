@@ -3,7 +3,7 @@ import {Redirect} from 'react-router-dom';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
 import {ChatRoomsContext, UserContext} from "../container/ContextContainer"
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import {CustomEditor} from "./Editor"
 import {MediaPreview} from './EditorMediaPreview'
 import axios from 'axios'
@@ -28,7 +28,9 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null,setHeightOnBlur,setHeightOnInput}){
+export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=null,setHeightOnBlur,
+isLoading,setLoading,updateMessages}){
+
     const theme = useTheme();
     const [value,setValue] = useState(null);
     const [files,setFiles] = useState([])
@@ -42,16 +44,12 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
     // could either be object or just uri, need to check for both
     let initIsMember = room.members.some(m=>m==branch || m==branch.uri);
     const [isMember,setIsMember] = useState(initIsMember);
-    const [isLoading,setLoading] = useState(false);
-
 
     const handleChange = (e) =>{
         setValue(e.target.innerText);
-        setHeightOnInput()
     }
 
     function handleSendMessage(e){
-        setLoading(true);
         let message = value;
         if(message==null){
             message='';
@@ -62,30 +60,31 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
         formData.append('author',branch.id);
 
         if(files.length>0){
+            let images = [];
+            let videos = [];
             for (var i = 0; i < files.length; i++)
             {
                 if(isFileImage(files[i])){
-                    formData.append('images',files[i])
+                    formData.append('images',files[i],files[i].fileName)
+                    images.push(files[i]);
                 }else if(isFileVideo(files[i])){
-                    formData.append('videos',files[i])
+                    formData.append('videos',files[i],files[i].fileName)
+                    videos.push(files[i])
                 }
             }
+            let bundle = {
+                message:message,
+                message_html:message,
+                author_name:branch.name,
+                author_url:branch.uri,
+                author:branch.id,
+                images:files,
+                videos:videos,
+                id:'loading'
+            }
+            updateMessages([bundle])
 
             let uri = `/api/branches/${branch.uri}/chat_rooms/${roomId}/messages/new/`;
-
-            /*fetch(uri, {
-                    method: 'POST',
-                    credentials: "include",
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-              }).then(function (response) {
-                    setLoading(false);
-                    scrollToBottom();
-              }).catch(e=>{
-              })*/
-
 
             axios.post(
                 uri,
@@ -97,11 +96,21 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
                         'X-CSRFToken': getCookie('csrftoken')
                     },
                 }).then(r=>{
-                    setLoading(false);
+                    setLoading(null);
                     scrollToBottom();
                 })
         }else{
-            setLoading(false);
+            let bundle = {
+                message:message,
+                message_html:message,
+                author_name:branch.name,
+                author_url:branch.uri,
+                author:branch.id,
+                images:[],
+                videos:[],
+                id:'loading'
+            }
+            updateMessages([bundle])
             ws.send(JSON.stringify({
                 'message': message,
                 'room_name': roomId,
@@ -198,9 +207,10 @@ export default function Messenger({ws,branch,room,roomId,scrollToBottom,style=nu
             {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
             {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
             {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-            <div className="flex-fill messenger messenger-editor" id="messenger-editor" style={{backgroundColor:theme.backgroundColor}}>
+            <div className="flex-fill messenger messenger-editor" id="messenger-editor" 
+            style={{backgroundColor:theme.backgroundBoxColor,zIndex:1002}}>
                 <div className="flex-fill center-items" style={{padding:10,fontSize:'1.5rem',
-                justifyContent:'stretch',WebkitJustifyContent:'strech',borderTop:`1px solid ${theme.borderColor}`,...style}}>
+                justifyContent:'stretch',WebkitJustifyContent:'strech',borderTop:`0`,...style}}>
                     <div>
                         <img src={context.currentBranch.branch_image} className="profile-picture" 
                         style={{width:48,height:48,marginRight:10,display:'block',objectFit:'cover'}}/>

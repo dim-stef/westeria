@@ -3,9 +3,10 @@ import {withRouter} from "react-router-dom";
 import { css } from "@emotion/core";
 
 
-const headlineContainer = theme =>css({
+const headlineContainer = (theme,containerStyle) =>css({
     padding:'10px',borderBottom:`1px solid ${theme.borderColor}`,
-    backgroundColor:theme.backgroundColor
+    backgroundColor:'transparent',
+    ...containerStyle
 })
 
 const leftButtonSvg = theme =>css({
@@ -23,7 +24,7 @@ function RoutedHeadline({match,location,className='',history,headline,to,contain
     }
 
     return(
-        <div className={`flex-fill ${className}`} css={theme=>headlineContainer(theme)}>
+        <div className={`flex-fill ${className}`} css={theme=>headlineContainer(theme,containerStyle)}>
             <button className="flex-fill" 
             className="back-button" onClick={navigate}>
                 <LeftArrowSvg/>
@@ -35,21 +36,25 @@ function RoutedHeadline({match,location,className='',history,headline,to,contain
 }
 
 
-function LeftArrowSvg(){
+const LeftArrowSvg = props =>{
     return(
         <svg
+        xmlns="http://www.w3.org/2000/svg"
         xmlnsXlink="http://www.w3.org/1999/xlink"
         version="1.1"
         x="0px"
         y="0px"
-        viewBox="0 0 492 492"
+        viewBox="0 0 31.494 31.494"
+        style={{ enableBackground: "new 0 0 31.494 31.494" }}
+        css={theme=>leftButtonSvg(theme)}        
         xmlSpace="preserve"
-        css={theme=>leftButtonSvg(theme)}
         >
-        <path d="M464.344 207.418l.768.168H135.888l103.496-103.724c5.068-5.064 7.848-11.924 7.848-19.124 0-7.2-2.78-14.012-7.848-19.088L223.28 49.538c-5.064-5.064-11.812-7.864-19.008-7.864-7.2 0-13.952 2.78-19.016 7.844L7.844 226.914C2.76 231.998-.02 238.77 0 245.974c-.02 7.244 2.76 14.02 7.844 19.096l177.412 177.412c5.064 5.06 11.812 7.844 19.016 7.844 7.196 0 13.944-2.788 19.008-7.844l16.104-16.112c5.068-5.056 7.848-11.808 7.848-19.008 0-7.196-2.78-13.592-7.848-18.652L134.72 284.406h329.992c14.828 0 27.288-12.78 27.288-27.6v-22.788c0-14.82-12.828-26.6-27.656-26.6z" />
+        <path
+            d="M10.273,5.009c0.444-0.444,1.143-0.444,1.587,0c0.429,0.429,0.429,1.143,0,1.571l-8.047,8.047h26.554  c0.619,0,1.127,0.492,1.127,1.111c0,0.619-0.508,1.127-1.127,1.127H3.813l8.047,8.032c0.429,0.444,0.429,1.159,0,1.587  c-0.444,0.444-1.143,0.444-1.587,0l-9.952-9.952c-0.429-0.429-0.429-1.143,0-1.571L10.273,5.009z"
+        />
         </svg>
-
     )
 }
+
 
 export default withRouter(RoutedHeadline);

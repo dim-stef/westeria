@@ -1,15 +1,18 @@
-import React, {useEffect} from "react";
+import React, {useEffect,useState} from "react";
 import {withRouter} from 'react-router-dom'
 import {Form} from 'react-final-form'
 import {Helmet} from 'react-helmet'
-import {AuthFormWrapper, Password, Save} from "./Forms"
+import MoonLoader from 'react-spinners/MoonLoader';
+import {AuthFormWrapper, Password, Save,AuthenticationInput,AuthenicationSave,AuthenticationWrapper} from "./Forms"
 import axios from 'axios'
 
 //"reset/:uid/:token"
 function PasswordResetConfirm({match}){
+    const [loading,setLoading] = useState(false);
+
     async function handlePasswordResetConfirm(values){
         let errors = {};
-
+        setLoading(true);
         try{
             let url = '/rest-auth/password/reset/confirm/';
             let response = await axios.post(
@@ -27,12 +30,14 @@ function PasswordResetConfirm({match}){
                     }
                 }
             );
+            setLoading(false);
              
         }catch(error){
              
             if(error.response.data.email){
                 errors.email = error.response.data.email[0]
             }
+            setLoading(false);
         }
 
         return errors;
@@ -57,25 +62,37 @@ function PasswordResetConfirm({match}){
     return(
         <>
         <Helmet>
-            <title>Password reset confirm - Subranch</title>
+            <title>Password reset confirm - Westeria</title>
             <meta name="description" content="Confirm password reset" />
         </Helmet>
-        <AuthFormWrapper>
+        <AuthenticationWrapper header="Set your new password">
             <Form onSubmit={handlePasswordResetConfirm} validate={validate}
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return (
-                    <form id="passwordResetConfirmForm" style={{padding:10}} onSubmit={handleSubmit}>
-                        <Password name="new_password1" className="text password auth-input" placeholder="New password"/>
-                        <Password name="new_password2" className="text password auth-input" placeholder="Confirm new password"/>
+                    <form id="passwordResetConfirmForm" css={{padding:10,display:'flex',flexFlow:'column',alignItems:'center'}} 
+                    onSubmit={handleSubmit}>
+                        <AuthenticationInput name="new_password1" className="text password auth-input"
+                        placeholder="New password" type="password" label="New password"/>
+                        <AuthenticationInput name="new_password2" className="text password auth-input" 
+                        placeholder="New password" type="password" label="Confirm new password"/>
 
                         {submitSucceeded?<p className="form-succeed-message">Password successfully changed</p>:null}
-                        <Save submitting={submitting} submitSucceeded={submitSucceeded}
-                        className="login-btn" value="Change" pristine={pristine} invalid={invalid}/>
+                        {loading?
+                            <MoonLoader
+                            sizeUnit={"px"}
+                            size={20}
+                            color={'#123abc'}
+                            loading={true}
+                            />
+                            :<AuthenicationSave submitting={submitting} submitSucceeded={submitSucceeded}
+                            className="login-btn" value="Change" pristine={pristine} invalid={invalid}/>
+                        }
+                        
 
                     </form>
                 )
             }}/>
-        </AuthFormWrapper>
+        </AuthenticationWrapper>
         </>
         
     )

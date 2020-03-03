@@ -1,8 +1,9 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import {Link, NavLink} from "react-router-dom"
 import { css } from "@emotion/core";
-import {useTheme as useEmotionTheme} from "emotion-theming";
-import {NotificationsContext, UserContext} from "../container/ContextContainer"
+import {useTheme as useEmotionTheme} from "emotion-theming"
+import { createRipples } from 'react-ripples';
+import {NotificationsContext, UserContext,LandingPageContext} from "../container/ContextContainer"
 import {NotificationsContainer} from "./Notifications"
 import {SideDrawer} from "./SideDrawer"
 import {Messages} from "./Messages";
@@ -13,6 +14,34 @@ import {useTheme} from "../container/ThemeContainer";
 import {askForPermissionToReceiveNotifications} from '../../push-notification';
 import history from "../../history"
 import axios from 'axios'
+
+function getScrollbarWidth() {
+
+    // Creating invisible container
+    const outer = document.createElement('div');
+    outer.style.visibility = 'hidden';
+    outer.style.overflow = 'scroll'; // forcing scrollbar to appear
+    outer.style.msOverflowStyle = 'scrollbar'; // needed for WinJS apps
+    document.body.appendChild(outer);
+  
+    // Creating inner element and placing it in the container
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+  
+    // Calculating difference between container's full width and the child width
+    const scrollbarWidth = (outer.offsetWidth - inner.offsetWidth);
+  
+    // Removing temporary elements from the DOM
+    outer.parentNode.removeChild(outer);
+  
+    return scrollbarWidth;
+  
+  }
+
+const Ripple = createRipples({
+    color: '#607d8b21',
+    during: 600,
+})
 
 export function ResponsiveNavigationBar(){
     const notificationsContext = useContext(NotificationsContext);
@@ -87,24 +116,35 @@ export function ResponsiveNavigationBar(){
 }
 
 const navBarContainer = theme => css({
-    borderBottom:`2px solid ${theme.borderColor}`,
+    borderBottom:`2px solid transparent`,
     justifyContent:'center',
     height:'100%'
 })
 
-const navBarPositioner = theme => css({
+//0px 0px 4px 0px #0000004d
+
+const navBarPositioner = (theme,isDark) => css({
     height: 50,
     position: "fixed",
     width: "100%",
-    backgroundColor: theme.backgroundColor,
+    backgroundColor: theme.navBarColor,
+    boxShadow:isDark?null:'0px 0px 4px 0px #0000004d',
     maxWidth:1200,
-    zIndex: 5,
-    top:0
+    zIndex: 1001,
+    top:0,
+    left:0,
+    right:0,
+    marginLeft:'auto',
+    marginRight:'auto',
+    paddingRight:getScrollbarWidth(),
+    borderBottomRightRadius:15,
+    borderBottomLeftRadius:15
 })
 
 
 export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
 
+    const getTheme = useTheme();
     const context = useContext(UserContext);
     const notificationsContext = useContext(NotificationsContext);
 
@@ -115,47 +155,54 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
         justifyContent:'center',WebkitJustifyContent:'center',alignItems:'center',WebkitAlignItems:'center',height:'100%',width:'100%'
     }
     return(
-        <div css={theme=>navBarPositioner(theme)}
+        <div css={theme=>navBarPositioner(theme,getTheme.isDark)}
         >
             <div className="flex-fill" css={theme=>navBarContainer(theme)}>
-                <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill nav-icon-container center-items"
-                activeStyle={activeStyle} activeClassName="active-tab-route"
-                style={style}>
-                    <Home/>
-                </NavLink>
-                <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" activeClassName="active-tab-route"
-                style={style} activeStyle={activeStyle}>
-                    <SearchSvg/>
-                </NavLink>
+                <Ripple>
+                    <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill nav-icon-container center-items"
+                    activeStyle={activeStyle} activeClassName="active-tab-route"
+                    style={style}>
+                        <Home/>
+                    </NavLink>
+                </Ripple>
+                <Ripple>
+                    <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill nav-icon-container center-items" 
+                    activeClassName="active-tab-route"
+                    style={style} activeStyle={activeStyle}>
+                        <SearchSvg/>
+                    </NavLink>
+                </Ripple>
                 {context.isAuth?
-                    <NavLink to={{pathname:"/notifications",state:'notifications'}}
-                    activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
-                    style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
-                        <NotificationsContainer inBox/>
-                    </NavLink>:null
+                    <Ripple>
+                        <NavLink to={{pathname:"/notifications",state:'notifications'}}
+                        activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
+                        style={style} activeStyle={activeStyle} onClick={readAllNotifications}>
+                            <NotificationsContainer inBox/>
+                        </NavLink>
+                    </Ripple>:null
                 }
 
                 {context.isAuth?
-                    <NavLink to={{pathname:"/messages",state:'messages'}} 
-                    activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
-                    style={style} activeStyle={activeStyle} onClick={readAllMessages}>
-                    <div style={{position:'relative'}}>
-                    <Messages/>
-                    {notificationsContext.messages.filter(n=>n.unread==true).length>0?
-                        <span className="new-circle">
+                    <Ripple>
+                        <NavLink to={{pathname:"/messages",state:'messages'}} 
+                        activeClassName="active-tab-route" className="flex-fill nav-icon-container center-items"
+                        style={style} activeStyle={activeStyle} onClick={readAllMessages}>
+                        <div style={{position:'relative'}}>
+                        <Messages/>
+                        {notificationsContext.messages.filter(n=>n.unread==true).length>0?
+                            <span className="new-circle">
 
-                        </span>:null}
-                    </div>
-                        
-                    </NavLink>:null
+                            </span>:null}
+                        </div>
+                            
+                        </NavLink>
+                    </Ripple>:null
                 }
-                
+                {!context.isAuth?
                 <div className="flex-fill center-items"
                 style={style}>
                     <Profile/>
-                </div>
-                
-   
+                </div>:null}
             </div>
         </div>
     )
@@ -163,17 +210,19 @@ export function DesktopNavigationBar({readAllMessages,readAllNotifications}){
 
 
 const mobileNavBarPositioner = theme => css({
-    height: 60,
+    height: 50,
     position: 'fixed',
     width: '100%',
-    backgroundColor: theme.backgroundColor,
-    zIndex: 5,
+    backgroundColor: theme.navBarColor,
+    boxShadow:'0px 0px 4px 0px #0000004d',
+    zIndex: 1001,
     alignItems: 'center',
     bottom: 0
 })
 
 const mobileNavBarContainer = theme => css({
-    borderTop:`2px solid ${theme.borderColor}`,
+    boxSizing:'border-box',
+    borderTop:`2px solid transparent`,
     height:'100%',
     width:'100%',
     textDecoration:'none',
@@ -192,123 +241,80 @@ export function MobileNavigationBar({readAllMessages,readAllNotifications}){
     const [touchCoordinates,setCoordinates] = useState(null)
     let activeStyle={borderTop:'2px solid #2397f3'};
 
+
     function handleSendToTop(){
-        if(window.scrollY > 0){
+        if(location.pathname==='/'){
+            let scrollElement = document.getElementById('mobile-content-container')
             try{
-                // safari browsers crash here
-                window.scrollTo({top:0,behavior:'smooth'})
+                scrollElement.scrollTo({top:0,behavior:'smooth'})
             }catch(e){
-                window.scroll(0,0)
+                scrollElement.scrollTop = 0
             }
         }
     }
-
-    function listenForNavTouches(e){
-        let x = e.changedTouches[0].clientX;
-        let y = e.changedTouches[0].clientY
-        let coordinates = {
-            x:x,
-            y:y
-        }
-        // 
-        // 
-        // 
-        setCoordinates({...coordinates})
-    }
-
-    useEffect(()=>{
-
-        if(touchCoordinates && touchCoordinates.y > window.innerHeight - navRef.current.clientHeight){
-            let homeRect = homeRef.current.getBoundingClientRect();
-            let messRect = null;
-            let notRect = null;
-            if(messRef.current && notRef.current){
-                messRect = messRef.current.getBoundingClientRect();
-                notRect = notRef.current.getBoundingClientRect();
-            }
-           
-            let searchRect = searchRef.current.getBoundingClientRect();
-            let profRect = profRef.current.getBoundingClientRect();
-
-            /*if(touchCoordinates.x >= homeRect.left && touchCoordinates.x <= homeRect.right){
-                //history.push(homeRef.current.parentElement.getAttribute("href"))
-            }
-            if(messRef.current){
-                if(touchCoordinates.x >= messRect.left && touchCoordinates.x <=messRect.right){
-                    history.push(messRef.current.parentElement.getAttribute("href"))
-                }
-            }
-            
-            if(notRef.current){
-                if(touchCoordinates.x >= notRect.left && touchCoordinates.x <=notRect.right){
-                    history.push(notRef.current.parentElement.getAttribute("href"))
-                }
-            }
-            
-            if(touchCoordinates.x >= searchRect.left && touchCoordinates.x <=searchRect.right){
-                history.push(searchRef.current.parentElement.getAttribute("href"))
-            }
-            if(touchCoordinates.x >= profRect.left && touchCoordinates.x <=profRect.right){
-                //history.push(profRef.current.parentElement.getAttribute("href"))
-                setDrawerOpen(true);
-            }*/
-        }
-    },[touchCoordinates]);
-
 
     return(
         <div ref={navRef} className="flex-fill" id="mobile-nav-bar" css={theme=>mobileNavBarPositioner(theme)}>
-            <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
-            activeClassName="active-tab-route"
-            activeStyle={activeStyle}
-            css={theme=>mobileNavBarContainer(theme)}>
-                <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                    <Home/>
-                </div>
-            </NavLink>
-            <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill center-items"
-            activeClassName="active-tab-route" activeStyle={activeStyle}
-            css={theme=>mobileNavBarContainer(theme)}>
-                <div ref={searchRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                    <SearchSvg/>
-                </div>
-            </NavLink>
-            {context.isAuth?
-                <NavLink to={{pathname:"/notifications",state:'notifications'}}
-                className="flex-fill center-items"
-                activeClassName="active-tab-route"
-                activeStyle={activeStyle}
-                css={theme=>mobileNavBarContainer(theme)} 
-                onClick={readAllNotifications}>
-                    <div ref={notRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                        <NotificationsContainer inBox/>
-                    </div>
-                </NavLink>:null
-            }
-
-            {context.isAuth?
-                <NavLink to={{pathname:"/messages",state:'messages'}}
-                activeClassName="active-tab-route"
-                className="flex-fill center-items"
-                activeStyle={activeStyle}
-                css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
-                    <div ref={messRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                        <div style={{position:'relative'}}>
-                            <Messages/>
-                            {notificationsContext.messages.filter(n=>n.unread==true).length>0?
-                            <span className="new-circle">
-
-                            </span>:null}
+            <div style={{width:'100%',height:'100%'}} onClick={handleSendToTop}>
+                <Ripple>
+                    <NavLink exact to={{pathname:"/",state:'front'}} className="flex-fill center-items"
+                    activeClassName="active-tab-route"
+                    activeStyle={activeStyle}
+                    css={theme=>mobileNavBarContainer(theme)}>
+                        <div ref={homeRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                            <Home/>
                         </div>
+                    </NavLink>
+                </Ripple>
+            </div>
+            <Ripple>
+                <NavLink to={{pathname:"/search",state:'search'}} className="flex-fill center-items"
+                activeClassName="active-tab-route" activeStyle={activeStyle}
+                css={theme=>mobileNavBarContainer(theme)}>
+                    <div ref={searchRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                        <SearchSvg/>
                     </div>
-                </NavLink>:null
+                </NavLink>
+            </Ripple>
+            {context.isAuth?
+                <Ripple>
+                    <NavLink to={{pathname:"/notifications",state:'notifications'}}
+                    className="flex-fill center-items"
+                    activeClassName="active-tab-route"
+                    activeStyle={activeStyle}
+                    css={theme=>mobileNavBarContainer(theme)} 
+                    onClick={readAllNotifications}>
+                        <div ref={notRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                            <NotificationsContainer inBox/>
+                        </div>
+                    </NavLink>
+                </Ripple>:null
             }
 
-            <SideDrawer open={drawerOpen} setOpen={setDrawerOpen}>
-                <div ref={profRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
-                    <Profile/>
-                </div>
-            </SideDrawer>
+            {context.isAuth?
+                <Ripple>
+                    <NavLink to={{pathname:"/messages",state:'messages'}}
+                    activeClassName="active-tab-route"
+                    className="flex-fill center-items"
+                    activeStyle={activeStyle}
+                    css={theme=>mobileNavBarContainer(theme)} onClick={readAllMessages}>
+                        <div ref={messRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                            <div style={{position:'relative'}}>
+                                <Messages/>
+                                {notificationsContext.messages.filter(n=>n.unread==true).length>0?
+                                <span className="new-circle">
+
+                                </span>:null}
+                            </div>
+                        </div>
+                    </NavLink>
+                </Ripple>:null
+            }
+            {!context.isAuth?
+            <div ref={profRef} className="flex-fill center-items" style={{width:'100%',height:'100%'}}>
+                <Profile/>
+            </div>
+            :null}
         </div>
     )  
 }
@@ -325,7 +331,7 @@ function ProfileDropDown({setFocused}){
     return(
         <div className="hoverable-box" style={{width:150,borderRadius:15}}>
             <div className="flex-fill" 
-            style={{backgroundColor:emotionTheme.backgroundColor,
+            style={{backgroundColor:emotionTheme.backgroundDarkColor,
             boxShadow:'0px 0px 1px 1px #0000001a',flexFlow:'column',WebkitFlexFlow:'column',borderRadius:5,
             overflow:'hidden'}}>
 
@@ -377,12 +383,12 @@ function Home(props){
 
 function Profile(){
     const context = useContext(UserContext);
+    const landingPageContext = useContext(LandingPageContext);
     const [focused,setFocused] = useState(false);
     const ref = useRef(null)
-    let imageUrl = context.isAuth?context.currentBranch.branch_image:'https://icon-library.net//images/default-user-icon/default-user-icon-8.jpg';
     
     function handleClick(){
-        setFocused(!focused);
+        landingPageContext.setOpen(true);
     }
 
     useEffect(()=>{
@@ -400,13 +406,16 @@ function Profile(){
     };
 
     return(
-        <div ref={ref} style={{position:'relative',cursor:'pointer'}}>
-            <div onClick={handleClick} className="round-picture" style={{
+        <div ref={ref} style={{position:'relative',cursor:'pointer',width:'100%',height:'100%'}} className="flex-fill center-items" 
+        onClick={handleClick}>
+        {context.isAuth?
+            <div className="round-picture" style={{
                 width:32,
                 height:32,
-                backgroundImage:`url(${imageUrl})`}}>
-            </div>
-            {focused && !isMobile?<ProfileDropDown setFocused={setFocused}/>:null}
+                backgroundImage:`url(${context.currentBranch.branch_image})`}}>
+        </div>:<UserSvg css={theme=>({fill:theme.textColor,width:32,height:32,'@media (max-device-width:767px)':{
+            height:28,width:28
+        }})}/>}
         </div>
     )
 }
@@ -546,3 +555,17 @@ const SearchSvg = props => (
         </svg>
     </div>
 );
+
+function UserSvg(props) {
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 480 480"
+        className="nav-icon"
+        {...props}
+      >
+        <path d="M240 0C107.453 0 0 107.453 0 240s107.453 240 240 240c7.23 0 14.434-.324 21.602-.969 6.664-.597 13.27-1.511 19.824-2.656l2.52-.445c121.863-22.743 206.359-134.551 194.96-257.996C467.508 94.488 363.97.039 240 0zm-19.281 463.152h-.567a221.883 221.883 0 01-18.52-2.449c-.35-.062-.702-.101-1.046-.168a223.092 223.092 0 01-17.77-3.95l-1.418-.362a223.244 223.244 0 01-16.949-5.352c-.578-.207-1.16-.39-1.738-.605-5.465-2.008-10.832-4.258-16.117-6.692-.656-.293-1.313-.574-1.969-.887-5.184-2.398-10.266-5.101-15.25-7.945-.703-.398-1.414-.797-2.117-1.191a226.827 226.827 0 01-14.403-9.176c-.71-.496-1.43-.977-2.136-1.473a224.986 224.986 0 01-13.512-10.398L96 411.449V344c.059-48.578 39.422-87.941 88-88h112c48.578.059 87.941 39.422 88 88v67.457l-1.063.887a217.439 217.439 0 01-13.777 10.601c-.625.438-1.258.856-1.879 1.285a223.69 223.69 0 01-14.625 9.336c-.625.364-1.265.707-1.886 1.067-5.06 2.879-10.204 5.597-15.45 8.047-.601.28-1.207.543-1.816.8a220.521 220.521 0 01-16.246 6.743c-.547.203-1.098.379-1.602.57-5.601 2.008-11.281 3.824-17.031 5.383l-1.379.344a225.353 225.353 0 01-17.789 3.96c-.344.063-.687.106-1.031.16a222.58 222.58 0 01-18.54 2.458h-.566c-6.398.55-12.8.847-19.28.847-6.481 0-12.935-.242-19.321-.793zM400 396.625V344c-.066-57.41-46.59-103.934-104-104H184c-57.41.066-103.934 46.59-104 104v52.617C-6.164 308.676-5.203 167.68 82.148 80.918 169.5-5.84 310.5-5.84 397.852 80.918c87.351 86.762 88.312 227.758 2.148 315.7zm0 0"></path>
+        <path d="M240 64c-44.184 0-80 35.816-80 80s35.816 80 80 80 80-35.816 80-80c-.047-44.164-35.836-79.953-80-80zm0 144c-35.348 0-64-28.652-64-64s28.652-64 64-64 64 28.652 64 64c-.04 35.328-28.672 63.96-64 64zm0 0"></path>
+      </svg>
+    );
+}

@@ -1,7 +1,6 @@
 import React, {useContext, useEffect, useState, useRef, useLayoutEffect} from "react"
 import ReactDOM from 'react-dom';
 import { css } from "@emotion/core";
-import {useTheme} from "emotion-theming";
 import {useMediaQuery} from "react-responsive";
 import {FollowingBranchesColumnContainer} from "../container/FollowingBranchesContainer";
 import MyBranchesColumnContainer from "./MyBranchesColumn";
@@ -11,14 +10,18 @@ import {
     TreePostsContext,
     UserActionsContext,
     UserContext,
-    TourContext
+    TourContext,
+    AppContext
 } from "../container/ContextContainer";
 import {TrendingWithWrapper as Trending} from "../container/TrendingContainer";
 import {TooltipChain,Tooltip} from "./Tooltip"
 import FeedPosts, {AllPosts, TreePosts} from "./BranchPosts"
+import {DesktopProfile} from "./ProfileViewer"
+import {MobileParentBranch2} from "./MobileParentBranch"
 import {Helmet} from "react-helmet";
 import {Link, NavLink, Redirect, Route, Switch,useLocation} from 'react-router-dom'
 import {Desktop, Mobile, Tablet} from "./Responsive"
+import history from "../../history"
 
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render/dist/no-classes-transpile/umd/whyDidYouRender.min.js');
@@ -70,7 +73,7 @@ function FrontPageList(){
 
     return(
         <div className="flex-fill" css={{justifyContent:'space-around',backgroundColor:'#08aeff',position:'sticky',
-        top:isDesktopOrLaptop?52:0,zIndex:4}} ref={ref}>
+        top:0,zIndex:4}} ref={ref}>
             {userContext.isAuth?
             <NavLink to={{pathname:"/",state:'front'}} exact 
             activeStyle={{backgroundColor:'#1b83d6'}} className="front-page-list-item flex-fill">
@@ -99,13 +102,13 @@ function FrontPageList(){
                     </Tooltip>
                     <Tooltip position={{left:isMobile?0:listWidth/3 * 2,top:top}}>
                         <p css={{fontWeight:400,width:isMobile?listWidth-20:width}}>
-                        <b>All</b>. You can see the content from all the branches of Subranch here</p>
+                        <b>All</b>. You can see the content from all the branches of Westeria here</p>
                     </Tooltip>
                 </TooltipChain>
                 :<TooltipChain delay={12000} onLeave={onLeave}>
                 <Tooltip position={{left:0,top:top}}>
                         <p css={{fontWeight:400,width:width}}>
-                        You can see the content from <b>all</b> the branches of Subranch here</p>
+                        You can see the content from <b>all</b> the branches of Westeria here</p>
                 </Tooltip>
                 <Tooltip position={{left:0,top:top}}>
                         <p css={{fontWeight:400,width:width}}>
@@ -185,33 +188,39 @@ const postList = (theme,isMobile) => css({
 
 export const FrontPage = React.memo(function FrontPage(props){
     const actionContext = useContext(UserActionsContext);
+    const appContext = useContext(AppContext);
     const userContext = useContext(UserContext);
-     
 
     useEffect(()=>{
-        actionContext.lastPostListType = 'front'
+        actionContext.lastPostListType = 'front';
+        appContext.isFeed = true;
     },[])
 
     return(
         <>
             <Desktop>
-                <FrontPageLeftBar/>
-                <FrontPagePostList/> 
-                <Trending/>
+                <div css={{flexBasis:'22%'}}>
+                    <DesktopProfile branch={userContext.currentBranch}/>
+                </div>
+                <FrontPagePostList match={props.match}/> 
             </Desktop>
 
             <Tablet>
-                <FrontPagePostList/> 
+                <MobileParentBranch2 branch={userContext.currentBranch}>
+                    <FrontPagePostList match={props.match}/> 
+                </MobileParentBranch2>
             </Tablet>
 
             <Mobile>
-                <FrontPagePostList/>       
+                <MobileParentBranch2 branch={userContext.currentBranch}>
+                    <FrontPagePostList match={props.match}/>
+                </MobileParentBranch2>
             </Mobile>
         </>
     )
 })
 
-const FrontPagePostList = React.memo(function FrontPagePostList({page}){
+const FrontPagePostList = React.memo(function FrontPagePostList({match}){
     const userContext = useContext(UserContext);
     const isMobile = useMediaQuery({
         query:'(max-device-width: 767px)'
@@ -219,22 +228,61 @@ const FrontPagePostList = React.memo(function FrontPagePostList({page}){
 
     return(
         <div className="post-list" css={theme=>postList(theme,isMobile)}>
-            <FrontPageList/>
-            <Switch>
-                <Route exact path="/" render={
-                    () => userContext.isAuth?<FrontPageFeed />:
-                    <FrontPageAllPosts/>
-                }/>
-                <Route exact path="/all" render={()=> <FrontPageAllPosts/>}/>
-                <Route exact path="/tree" render={()=> userContext.isAuth?
-                <FrontPageTreePosts/>:<Redirect to="/login"/>}/>
-            </Switch>
+            {/*<FrontPageList/>*/}
+            <FrontPagePostListMatcher match={match}/>
         </div>
     )
 })
 
-FrontPagePostList.whyDidYouRender = true
+export function FrontPagePostListMatcher({match}){
+    let _context;
+    let title;
+    let description;
+    let href;
+    let keyword;
 
+    const context = useContext(UserContext);
+
+    if(!match.params.page && context.isAuth){
+        keyword="feed";
+        title = 'Home - Westeria'
+        description = 'Your personal feed created from the communities you follow.'
+        href = 'https://subranch.com'
+        _context = PostsContext;
+    }else if(match.params.page=='tree' && context.isAuth){
+        keyword="following_tree";
+        title = 'Tree - Westeria'
+        description = 'Browse all the leaves created by the westeria community.'
+        href = 'https://subranch.com/tree'
+        _context = TreePostsContext;
+    }else{
+        keyword="all";
+        title = 'Westeria'
+        description = 'Browse all the leaves created by the westeria community.'
+        href = 'https://subranch.com/'
+        _context = AllPostsContext;
+    }
+    const postsContext = useContext(_context);
+    const [uri,setUri] = useState('initialUri')
+    const branch = context.isAuth?context.currentBranch.uri:null;
+    const [params,setParams] = useState(null);
+
+    return(
+        <>
+        <Helmet>
+            <title>{title}</title>
+            <meta name="description" content={description}/>
+            <link rel="canonical" href={href}/>
+        </Helmet>
+        <FeedPosts uri={uri} setUri={setUri} activeBranch={context.isAuth?context.currentBranch:null}
+        postedId={context.isAuth?context.currentBranch.id:null} 
+        postingTo={context.isAuth?context.currentBranch:null} postsContext={postsContext} showPostedTo 
+        branch={branch} params={params} setParams={setParams} isFeed keyword={keyword}
+        />
+        </>
+    )
+    
+}
 
 export const FrontPageFeed = React.memo(function FrontPageFeed(props){
     const context = useContext(UserContext);
@@ -260,12 +308,12 @@ export const FrontPageFeed = React.memo(function FrontPageFeed(props){
         return(
             <>
             <Helmet>
-                <title>Home - Subranch</title>
+                <title>Home - Westeria</title>
                 <meta name="description" content="Your personal feed created from the communities you follow." />
                 <link rel="canonical" href="https://subranch.com"/>
             </Helmet>
             <FeedPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
-            postedId={context.currentBranch.id} usePostsContext showPostedTo 
+            postedId={context.currentBranch.id} postingTo={context.currentBranch} usePostsContext showPostedTo 
             branch={branch} params={params} setParams={setParams} isFeed
             />
             </>
@@ -294,14 +342,14 @@ export const FrontPageAllPosts = React.memo(function FrontPageAllPosts(props){
     return(
         <>
         <Helmet>
-            <title>Subranch</title>
+            <title>Westeria</title>
             <meta name="description" content="Browse all the leaves created 
-            by the subranch community."/>
+            by the westeria community."/>
             <link rel="canonical" href="https://subranch.com"/>
         </Helmet>
         <AllPosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
         postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 
-        branch={branch} params={params} setParams={setParams} isFeed
+        branch={branch} params={params} setParams={setParams} isFeed postingTo={context.isAuth?context.currentBranch:null}
         />
         </>
     )
@@ -326,14 +374,15 @@ export const FrontPageTreePosts = React.memo(function FrontPageTreePosts(props){
     return(
         <>
         <Helmet>
-            <title>Tree - Subranch</title>
+            <title>Tree - Westeria</title>
             <meta name="description" content="Browse all the leaves created 
-            by the subranch community." />
+            by the westeria community." />
             <link rel="canonical" href="https://subranch.com/tree"/>
 
         </Helmet>
         <TreePosts uri={uri} setUri={setUri} activeBranch={context.currentBranch}
-        postedId={context.isAuth?context.currentBranch.id:null} usePostsContext showPostedTo 
+        postedId={context.isAuth?context.currentBranch.id:null} 
+        postingTo={context.isAuth?context.currentBranch:null} usePostsContext showPostedTo 
         branch={branch} params={params} setParams={setParams} isFeed
         />
         </>

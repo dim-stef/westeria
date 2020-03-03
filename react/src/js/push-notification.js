@@ -27,9 +27,7 @@ export const initializeFirebase = () =>{
 
     });
     
-    firebase.messaging().usePublicVapidKey("BE3fUDBmBvJuspuXNcZDriZVdBpET_y3IJQna0vyXK6o1Aoo7FGLj5MiXnmmXUd6tY9b7OLSDjK1jHuYgO4X6UY");
-
-    
+    firebase.messaging().usePublicVapidKey("BE3fUDBmBvJuspuXNcZDriZVdBpET_y3IJQna0vyXK6o1Aoo7FGLj5MiXnmmXUd6tY9b7OLSDjK1jHuYgO4X6UY"); 
 }
 
 export const askForPermissionToReceiveNotifications = async () => {
@@ -50,6 +48,29 @@ export const askForPermissionToReceiveNotifications = async () => {
     } catch (error) {
         //console.error(error);
     }
+}
+
+export function listenForUpdates(){
+    /*navigator.serviceWorker.addEventListener('message', async (event) => {
+        debugger;
+        // Optional: ensure the message came from workbox-broadcast-update
+        if (event.meta === 'workbox-broadcast-update') {
+          const {cacheName, updatedUrl} = event.data.payload;
+      
+          // Do something with cacheName and updatedUrl.
+          // For example, get the cached content and update
+          // the content on the page.
+          const cache = await caches.open(cacheName);
+          const updatedResponse = await cache.match(updatedUrl);
+          const updatedText = await updatedResponse.text();
+        }
+      });*/
+
+    let updateBox = document.getElementById("update-box");
+    updateBox.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        window.location.reload();
+    })
 }
 
 function createOrUpdateToken(action='create',token,uri){

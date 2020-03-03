@@ -10,24 +10,50 @@ const COLORS = {
     darkBlue:'#202f3c',
     lightBlue:'#e2eaf1',
     darkGray:'#404040',
-    lightGray:'#9e9e9e',
+    lightGray:'#a9a9a9',
 }
 
 const darkMode = {
-    backgroundColor:COLORS.black,
+    primaryColor:'rgb(33, 150, 243)',
+    backgroundColor:'#090a10',
+    backgroundLightColor:'#151827',
+    backgroundDarkColor: COLORS.black,
+    backgroundBoxColor:'#151827',
+    backgroundLightOppositeColor:COLORS.white,
+    chatBubbleColor:'#090a10',
+    postFloatingButtonColor:'#272727',
+    postFloatingButtonShadow:`0 0.1px 0.2px -1px rgba(0, 0, 0, 0.273),
+    0 0.3px 0.6px -1px rgba(0, 0, 0, 0.361),
+    0 0.6px 1.5px -1px rgba(0, 0, 0, 0.481),
+    0 2px 5px -1px rgba(0, 0, 0, 0.97)`,
+    navBarColor:'#090a10',
     textColor:COLORS.semiWhite,
     textLightColor:COLORS.lightGray,
     textHarshColor:COLORS.lightWhite,
     borderColor:COLORS.darkBlue,
-    hoverColor:'#202f3c',
+    hoverColor:'#090a10',
     embeddedHoverColor:'#121b23',
     notificationBranchColor:'#121b23',
-    skeletonColor:'#555f69',
-    skeletonHighlightColor:'#46525f'
+    skeletonColor:'#151827',
+    skeletonHighlightColor:'#0d0f1b',
+    landingPageButtonColor:'#33364a',
+    scrollBarColor:'#22232d',
+
 }
 
 const lightMode = {
+    primaryColor:'rgb(33, 150, 243)',
     backgroundColor:COLORS.white,
+    backgroundLightColor:'#fbfbfb',
+    backgroundDarkColor:'#f5f5f5',
+    backgroundLightOppositeColor:darkMode.backgroundLightColor,
+    backgroundBoxColor:COLORS.white,
+    chatBubbleColor:'#f5f5f5',
+    postFloatingButtonColor:COLORS.white,
+    postFloatingButtonShadow:`0 0.5px 0.8px rgba(0, 0, 0, 0.016),
+    0 1.6px 2.7px rgba(0, 0, 0, 0.024),
+    0 7px 12px rgba(0, 0, 0, 0.04)`,
+    navBarColor:COLORS.white,
     textColor:COLORS.lightBlack,
     textLightColor:COLORS.darkGray,
     textHarshColor:COLORS.black,
@@ -35,8 +61,10 @@ const lightMode = {
     hoverColor:'#f4f6f9',
     embeddedHoverColor:'#e1e7ef',
     notificationBranchColor:'#e1e7ef',
-    skeletonColor:'#ceddea',
-    skeletonHighlightColor:'#e1eaf3'
+    skeletonColor:'#f0f3f5',
+    skeletonHighlightColor:'#e2e7ea',
+    landingPageButtonColor:'#d0d3d6',
+    scrollBarColor:'#dfe4ec',
 }
 
 const theme = mode => (mode=='dark'?darkMode:lightMode)
@@ -50,8 +78,14 @@ const ThemeContext = React.createContext(defaultContextData);
 const useTheme = () => React.useContext(ThemeContext)
 
 const useDarkMode = () =>{
+    let defaultDark = false;
+
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem('dark')) {
+        defaultDark = true;
+        localStorage.setItem("dark",'true');
+    }
     const [themeState,setThemeState] = React.useState({
-        dark:false,
+        dark:defaultDark,
         hasThemeMounted:false
     });
     React.useEffect(()=>{

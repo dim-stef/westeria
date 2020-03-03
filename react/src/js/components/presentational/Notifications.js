@@ -3,7 +3,7 @@ import { css } from "@emotion/core";
 import {useTheme} from "emotion-theming";
 import {Link} from "react-router-dom"
 import {isMobile} from 'react-device-detect';
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import formatRelative from 'date-fns/formatRelative';
 import ReconnectingWebSocket from 'reconnecting-websocket';
@@ -12,6 +12,7 @@ import {NotificationsContext, SingularPostContext, UserContext} from "../contain
 import {FrontPageLeftBar} from "./FrontPage"
 import {Post} from "./SingularPost"
 import {Desktop, Mobile, Tablet} from "./Responsive"
+import {DesktopProfileWrapper} from "./ProfileViewer"
 import axios from 'axios'
 import axiosRetry from 'axios-retry';
 
@@ -58,6 +59,9 @@ export function NotificationsContainer({inBox}){
             ws_scheme + '://' + window.location.host +
             '/ws/notifications/' + context.currentBranch.uri + '/');
     
+        chatSocket.reconnectDecay = false;
+        chatSocket.debug = true;
+        chatSocket.reconnectInterval = 2000
         chatSocket.onmessage = function(e) {
             let data = JSON.parse(e.data);
             let id = data['id'];
@@ -169,10 +173,10 @@ function PageNotifications({notifications,loaded,hasMore,getMoreNotifications}){
     return(
         <>
         <Helmet>
-            <title>Notifications - Subranch</title>
+            <title>Notifications - Westeria</title>
             <meta name="description" content="Your notifications." />
         </Helmet>
-        <div className="main-column" style={{border:`1px solid ${theme.borderColor}`}}>
+        <div className="main-column" style={{border:`1px solid ${theme.borderColor}`,paddingBottom:60}}>
             {!loaded?
             <div className="flex-fill load-spinner-wrapper">
                 <MoonLoader
@@ -217,8 +221,9 @@ function ResponsiveNotifications({children}){
     return(
         <>
         <Desktop>
-            <FrontPageLeftBar/>
-            {children}
+            <DesktopProfileWrapper>
+                {children}
+            </DesktopProfileWrapper>
         </Desktop>
         <Tablet>
             {children}
@@ -232,6 +237,10 @@ function ResponsiveNotifications({children}){
 
 function NotificationMatcher({notification}){
 
+    if(notification.actor === null){
+        return null;
+    }
+    
     if(notification.verb=="become_child" || notification.verb=="become_parent"){
         return <BranchNotification notification={notification}/>
     }else if(notification.verb=='react' || notification.verb=="add_leaf"){
@@ -456,11 +465,12 @@ function BranchNotification({notification}){
 function NotificationBranch({image,uri}){
     const theme = useTheme();
     return(
-        <div style={{display:'inline-block',backgroundColor:theme.notificationBranchColor,padding:10,borderRadius:50,margin:'3px 0'}}>
+        <div style={{display:'inline-block',backgroundColor:theme.notificationBranchColor,padding:'5px 10px',
+        borderRadius:50,margin:'3px 0'}}>
             <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
-                <div className="round-picture" style={{width:48,height:48,backgroundImage:`url('${image}')`,
+                <div className="round-picture" style={{width:24,height:24,backgroundImage:`url('${image}')`,
                 display:'inline-block'}}></div>
-                <span style={{padding:10}}>{uri}</span>
+                <span style={{padding:8,fontSize:'1.3rem'}}>{uri}</span>
             </div>
         </div>
     )

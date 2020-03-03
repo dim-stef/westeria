@@ -1,10 +1,9 @@
-import React, {useContext,useState,useRef,useEffect} from "react";
+import React, {useContext,useState,useRef,useEffect,useLayoutEffect} from "react";
 import {css} from "@emotion/core";
 import {useMediaQuery} from 'react-responsive'
-import Pullable from 'react-pullable';
 import {ResponsiveNavigationBar} from "./presentational/Navigation"
 import {RefreshContext} from "./container/ContextContainer"
-
+import {LandingPage} from "./presentational/LandingPage"
 
 if (process.env.NODE_ENV !== 'production') {
     const whyDidYouRender = require('@welldone-software/why-did-you-render');
@@ -18,19 +17,19 @@ const contentContainer = (contentHeight) =>css({
     display:'flex',
     flexFlow:'column',
     paddingBottom:0,
-    height:contentHeight
+    height:'100vh',
 })
 
 export const Page = React.memo(function Page(props){
-    const isMobile = useMediaQuery({
-        query: '(max-device-width: 767px)'
+    const isMobileOrTablet = useMediaQuery({
+        query: '(max-device-width: 1223px)'
     })
     const context = useContext(RefreshContext);
     const navBar = useRef(null);
     const [contentHeight,setContentHeight] = useState(window.innerHeight);
     const [refresh,setRefresh] = useState(()=>{});
 
-    useEffect(()=>{
+    useLayoutEffect(()=>{
         if(navBar.current){
             resizeContent();
         }
@@ -40,15 +39,17 @@ export const Page = React.memo(function Page(props){
         setContentHeight(window.innerHeight - navBar.current.firstElementChild.clientHeight);
     }
 
-    useEffect(()=>{
-        window.addEventListener('resize',resizeContent)
+    useLayoutEffect(()=>{
+        if(navBar.current){
+            window.addEventListener('resize',resizeContent)
 
-        return ()=>{
-            window.removeEventListener('resize',resizeContent)
+            return ()=>{
+                window.removeEventListener('resize',resizeContent)
+            }
         }
-    },[])
+    },[navBar])
 
-    if(isMobile){
+    if(isMobileOrTablet){
         document.body.style.overflowY = 'auto';
     }else{
         document.body.style.overflowY = 'scroll';
@@ -58,17 +59,18 @@ export const Page = React.memo(function Page(props){
         <div className="root-wrapper">
             <div>
                 <div id="main-wrapper" className="main-wrapper">
-                    <div id={isMobile?'mobile-content-container':'content-container'}
-                    className="wide-content-container" css={isMobile?()=>contentContainer(contentHeight):null}>
+                    <div id={isMobileOrTablet?'mobile-content-container':'content-container'}
+                    className="wide-content-container"
+                    css={isMobileOrTablet?()=>contentContainer(contentHeight):null}>
                         {props.children}
                     </div>
                     <div ref={navBar} id="nav-container" className="flex-fill center-items" 
-                    style={{display:isMobile?'block':null}}>
+                    style={{display:isMobileOrTablet?'block':null}}>
                         <ResponsiveNavigationBar/>
                     </div>
                 </div>
             </div>
-
+            <LandingPage/>
             <div className="success-message-container" style={{ display: 'none' }}>
                 <p id="success-message" />
             </div>

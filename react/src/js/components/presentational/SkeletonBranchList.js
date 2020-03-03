@@ -14,12 +14,25 @@ export function SkeletonBranchList(){
         return branches;
     }
 
-    let branches=  getSkeletonBranches()
+    let branches = getSkeletonBranches()
      
     return(
         <div>
             {branches}
         </div>
+    )
+}
+
+export function CircularSkeletonList({count=0,dimensions}){
+    const theme = useTheme()
+    
+    return(
+        [...Array(count)].map((e, i) =><React.Fragment key={i}>
+                <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
+                    <Skeleton circle={true} width={dimensions} height={dimensions}/>
+                </SkeletonTheme> 
+            </React.Fragment>
+        )
     )
 }
 
@@ -48,3 +61,4 @@ function SkeletonBranch(){
         </div>
     )
 }
+

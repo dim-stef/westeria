@@ -27,20 +27,24 @@ body {
 }
 
 .main-column{
+    height: auto;
     flex-basis: 56%;
     -webkit-flex-basis: 56%;
     margin: 0 10px;
     border: 1px solid #e2eaf1;
     overflow-x: hidden;
+    border-radius:15px;
 }
 
 .big-main-column{
-    flex: 1 1 auto;
-    -webkit-flex: 1 1 auto;
-    -ms-flex: 1 1 auto;
+    height: auto;
+    flex: 1;
+    -webkit-flex: 1;
+    -ms-flex: 1;
     margin: 0 10px;
     border: 1px solid #e2eaf1;
     overflow-x: hidden;
+    border-radius:15px;
 }
 
 .full-height{
@@ -68,6 +72,13 @@ body {
     width: 32px;
     height: 32px;
     padding: 4px;
+}
+
+@media all and (max-device-width: 767px){
+    .nav-icon{
+        width: 28px;
+        height: 28px;
+    }
 }
 
 .nav-icon-container:hover svg{
@@ -149,7 +160,7 @@ body {
 
 .main-wrapper{
     display: inherit;
-    margin-top: 60px;
+    padding-top: 60px;
 }
 
 .form-succeed-message{
@@ -202,20 +213,22 @@ body {
     background-color: #219ef3;
     border: 0;
     color: white;
-    padding: 10px;
+    padding: 10px 20px;
     border-radius: 50px;
-    font-size: 2rem;
+    font-size: 1.6rem;
     margin: 10px;
+    font-weight: bold;
 }
 
 .decline-btn{
     border: 1px solid #717171;
     color: #717171;
-    padding: 10px;
+    padding: 10px 20px;
     border-radius: 50px;
-    font-size: 2rem;
+    font-size: 1.6rem;
     margin: 10px;
     background-color: transparent;
+    font-weight: bold;
 }
 
 .accept-btn, .decline-btn{
@@ -470,12 +483,6 @@ div[data-placeholder]{
 .search-button:hover{
     /*border: 2px solid #2196F3 !important;*/
     box-shadow: 0 0 1px 2px #2196F3;
-}
-
-@media all and (min-device-width: 1224px) {
-    .search-button{
-        width:200px;
-    }
 }
 
 .search-small-result:hover{
@@ -777,7 +784,7 @@ button[disabled=disabled], button:disabled {
 .branch-profile-setting{
     height:100%;
     object-fit: cover;
-    border: 1px solid white;
+    border: 1px solid transparent !important;
 }
 
 .branch-banner-setting{
@@ -865,11 +872,38 @@ button[disabled=disabled], button:disabled {
     background-color: #f7f7f7;
 }
 
+.update-notification{
+    position: fixed;
+    top: -100px;
+    transform: translateY(0px);
+    left: 0;
+    width: 100%;
+    z-index: 23423423423432;
+    transition: 0.3s transform ease-out;
+}
+
+.show-update-notification{
+    transform: translateY(150px);
+}
+
+.update-box{
+    width:200px;
+    height:60px;
+    padding: 10px;
+    background-color: #1d1d1d;
+    border-radius: 50px;
+    color:white;
+    font-size: 1.4rem;
+    font-weight: bold;
+    margin:0 auto;
+    cursor: pointer;
+    text-align: center;
+}
+
 @media all and (max-device-width: 1223px){
     .main-column{
         margin: 0;
         border: 0 !important;
-        padding-bottom: 60px;
         flex: 1 1 auto;
         -ms-flex: 1 1 auto;
         -webkit-flex: 1 1 auto;
@@ -888,6 +922,7 @@ button[disabled=disabled], button:disabled {
 
     .main-wrapper{
         margin-top: 0;
+        padding-top: 0;
     }
 
     .settings-wrapper{
@@ -902,7 +937,7 @@ button[disabled=disabled], button:disabled {
 }
 
 @media all and (max-device-width: 767px){
-    .avatar-banner-wrapper{
+    .avatar-banner-wrapper {
         height: 80px;
     }
 }
@@ -1063,11 +1098,27 @@ button[disabled=disabled], button:disabled {
     width:100%;
 }
 
+.infinite-scroll-component > div:first-child{
+    width: auto !important;
+}
+
+.spin360{
+    -webkit-transition: transform 0.5s;
+    -moz-transition: transform 0.5s;
+    -ms-transition: transform 0.5s;
+    -o-transition: transform 0.5s;
+    transition: transform 0.5s;
+
+    -webkit-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+}
+
 a,button::-moz-focus-inner { /* removes dotted outline firefox */
     border: 0;
   }
-  
-  
 
 a,button { /* removes outline */
     cursor: pointer;
@@ -1084,4 +1135,12 @@ input,button {
 
 input,textarea{
     background-color:transparent;
+}
+
+* {
+    -webkit-tap-highlight-color: transparent; /* for removing the highlight */
+}
+[contenteditable] {
+    -webkit-user-select: text;
+    user-select: text;
 }

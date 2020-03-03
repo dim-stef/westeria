@@ -43,7 +43,7 @@ function useMutualFollows(){
 }
 
 
-export function CreateNewChat(){
+export function CreateNewChat({noHeadline=false}){
     const mutualFollows = useMutualFollows();
     const [invited,setInvited] = useState([]);
     const userContext = useContext(UserContext);
@@ -95,16 +95,16 @@ export function CreateNewChat(){
     }
 
     return(
-        <div className="big-main-column">
-            <RoutedHeadline to="/messages" headline="Create conversation"/>
+        <div className="big-main-column" css={theme=>({border:0,backgroundColor:theme.backgroundLightColor})}>
+            {noHeadline?null:<RoutedHeadline to="/messages" headline="Create conversation" containerStyle={{border:0}}/>}
             <Form onSubmit={onSubmit} 
             render={({ handleSubmit,submitting,submitSucceeded,submitFailed, pristine, invalid, errors }) => {
                 return <form id="createConversationForm" style={{padding:10}} onSubmit={handleSubmit}>
                     <Field name="name"
-                    placeholder="name">
+                    placeholder="Group project">
                         {({ input, meta }) => (
                             <div style={{margin:'10px 0'}}>
-                                <label css={theme=>settingLabel(theme)}>Name</label>
+                                <label css={theme=>settingLabel(theme)}>A name for your conversation</label>
                                 <input {...input} id="name" css={theme=>settingInput(theme)}
                                 required/>
                                 {meta.error && meta.touched && <span className="setting-error">{meta.error}</span>}
@@ -112,7 +112,7 @@ export function CreateNewChat(){
                         )}
                     </Field>
                     <div style={{margin:'10px 0'}}>
-                        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>Profile Image</label>
+                        <label style={{height:'100%'}} css={theme=>settingLabel(theme)}>An image for your conversation</label>
                         <div className="flex-fill avatar-banner-wrapper" ref={wrapperRef}>
                             <Profile showError wrapperRef={wrapperRef} profileRef={profileRef} name="image" createNew/>
                         </div>
@@ -120,12 +120,15 @@ export function CreateNewChat(){
                     
                     {mutualFollows.map(f=>{
                         let isInvited = invited.some(b=>b==f.id)
-                        return <div key={f.id}>
-                            <SmallBranch branch={f} hoverable={false}>
-                                {!isInvited?
-                                <button className="accept-btn" onClick={(e)=>handleInvite(e,f)}>Invite</button>:
-                                <button className="decline-btn" onClick={(e)=>cancelInvite(e,f)}>Cancel invite</button>}
-                            </SmallBranch>
+                        return <div key={f.id} css={{display:'flex',justifyContent:'center',maxWidth:400}}>
+                            <div css={{flex:1}}>
+                                <SmallBranch branch={f} hoverable={false}>
+                                </SmallBranch>
+                            </div>
+                            {!isInvited?
+                            <button className="accept-btn" onClick={(e)=>handleInvite(e,f)}>Invite</button>:
+                            <button className="decline-btn" onClick={(e)=>cancelInvite(e,f)}>Cancel invite</button>}
+
                         </div>
                     })}
                     <Save submitting={submitting} pristine={pristine} invalid={invalid}

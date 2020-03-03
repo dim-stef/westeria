@@ -2,25 +2,18 @@ import React, {useContext, useEffect, useRef, useState} from 'react'
 import ReactDOM from 'react-dom';
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
+import history from "../../history"
 import {UserContext} from "../container/ContextContainer"
-import {SmallBranch} from "./Branch"
-import {Tab, TabList, TabPanel, Tabs} from 'react-tabs';
-import {SkeletonBranchList} from "./SkeletonBranchList";
 import {CustomEditor} from './Editor'
 import {ToggleContent} from './Temporary'
 import {BranchSwitcher} from './BranchSwitcher'
 //import EmojiPicker from 'emoji-picker-react';
 import {MediaPreview} from './EditorMediaPreview'
-import {MoonLoader} from 'react-spinners';
+import MoonLoader from 'react-spinners/MoonLoader';
+import {Modal} from "./Temporary"
+import {TagSelector,SerialTagSelector} from "./TagSelector";
 import axios from 'axios'
 
-const schema  = {
-	blocks: {
-		text: {
-			isVoid: true
-		}
-	}
-};
 export default function StatusUpdateAuthWrapper(props){
     const userContext = useContext(UserContext);
 
@@ -29,6 +22,18 @@ export default function StatusUpdateAuthWrapper(props){
     )
 }
 
+const serialTagSelector = theme =>({
+    backgroundColor:theme.backgroundLightColor,
+    borderRadius:25,
+    padding:15,width:'50%',
+    height:'70%',
+    boxSizing:'border-box',
+    overflow:'auto',
+    '@media (max-width:767px)':{
+        width:'90%',
+        height:'90%',
+    }
+})
 
 function isFileImage(file) {
     return file && file['type'].split('/')[0] === 'image';
@@ -38,26 +43,8 @@ function isFileVideo(file) {
     return file && file['type'].split('/')[0] === 'video';
 }
 
-export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null}){
-    /*const plugins = [
-        SlateReactPlaceholder({
-            placeholder: "placeholder text",
-            when: (editor, node) => {
-              return editor.value.document.text === '';
-            }
-        })
-    ]*/
-
-    function renderNode(props, editor, next) {
-        const { node, attributes, children } = props
-      
-        switch (node.type) {
-            case 'emoji':
-                return <p {...attributes}>{children}</p>
-            default:
-            return next()
-        }
-    }
+export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure=null,updateFeed,postedId,replyTo=null,style=null,
+    redirect=false,postingTo=null,autoFocus=false}){
 
     const theme = useTheme();
     const [value,setValue] = useState('');
@@ -113,16 +100,6 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
         setValue('');
         setFiles([]);
     }
-    
-    const onBlur = (event, editor, next) => {
-        next();
-        setTimeout(() => setMinimized(true), 0);
-    };
-
-    const onFocus = (event, editor, next) => {
-        next();
-        setTimeout(() => setMinimized(false), 0);
-    };
 
     function handleClickOutside(event) {
         if (wrapperRef.current && !wrapperRef.current.contains(event.target)
@@ -159,8 +136,17 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
         padding:'0 10px'
     }
 
+    let placeholder = 'Add a leaf';
+    if(activeBranch){
+        placeholder = `Add a leaf to ${activeBranch.name}`
+    }
+    if(currentPost){
+        placeholder = `Reply to ${currentPost.poster_name}`
+    }
+
     return(
-            <div ref={wrapperRef} className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
+            <div ref={wrapperRef} name="statusUpdate" 
+            className="flex-fill" style={{padding:10,fontSize:'1.5rem',backgroundColor:theme.hoverColor,
             justifyContent:'stretch',WebkitJustifyContent:'strech',position:'relative',zIndex:3,...style}}>
                 <BranchSwitcher defaultBranch={branch} changeCurrentBranch={false} 
                 setBranch={setBranch} preview={false} previewClassName="branch-switcher-preview" 
@@ -174,7 +160,8 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     setFiles={setFiles}
                     editorRef={editorRef}
                     onInput={handleChange}
-                    placeholder="Add a leaf"
+                    placeholder={placeholder}
+                    autoFocus={autoFocus}
                     className="editor flex-fill text-wrap"
                     value={value}
                     style={{padding:'5px 10px',backgroundColor:'transparent',minWidth:0,borderRadius:25,color:theme.textColor,
@@ -182,65 +169,32 @@ export function StatusUpdate({activeBranch=null,currentPost,isFeed=false,measure
                     alignItems:'center',backgroundColor:theme.backgroundColor,
                     WebkitAlignItems:'center',display:'block'}}/>
                     {files.length>0?<MediaPreview files={files} setFiles={setFiles}/>:null}
-                    {minimized?
-                    null:
-                    <>
                     <Toolbar editor={ref} resetEditor={resetEditor} files={files} branch={branch} 
                     postedId={postedId} currentPost={currentPost} isFeed={isFeed} activeBranch={activeBranch}
                     updateFeed={updateFeed} replyTo={replyTo} value={value} setValue={setValue} handleImageClick={handleImageClick}
-                        {...postToProps}
+                        redirect={redirect} {...postToProps}
                     />
                     {imageError?<p style={warningStyle}>One of the images you entered exceeds the 15mb size limit</p>:null}
                     {videoError?<p style={warningStyle}>One of the videos you entered exceeds the 512mb size limit</p>:null}
-                    </>
-                    }
                 </div>
             </div>
     )
 }
 
-/*function CustomEditor({onInput,placeholder,className,style}){
-    const ref = useRef(null);
 
-    function handleInput(e){
+function Toolbar({resetEditor,files,branch,currentPost=null,updateFeed,value,replyTo=null,handleImageClick,
+    activeBranch,redirect}){
 
-        if (e.target.innerText) {
-			e.target.dataset.divPlaceholderContent = 'true';
-		}
-		else {
-			delete(e.target.dataset.divPlaceholderContent);
-		}
-        onInput(e);
-    }
+    // using branch prop instead of userContext.currentBranch because
+    // the user can switch accounts on the go without fetching new data
 
-    return(
-        <div
-        contentEditable
-        className={className}
-        ref={ref}
-        onInput={handleInput}
-        data-placeholder={placeholder}
-        style={style}/>
-    )
-}*/
-
-function CodeNode(props) {
-    return (
-        <pre {...props.attributes}>
-            <code>{props.children}</code>
-        </pre>
-    )
-}
-
-
-function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,updateFeed,value,isFeed=false,replyTo=null,handleImageClick,
-    parents,setParents,siblings,setSiblings,children,setChildren,checkedBranches,setCheckedBranches,activeBranch}){
     const [isLoading,setLoading] = useState(false);
-    const userContext = useContext(UserContext);
-
+    const [tags,setTags] = useState([]);
+    const [postToBranches,setPostToBranches] = useState([]);
+    const [showTags,setShowTags] = useState(false);
     const inputRef = useRef(null)
+
     const handleClick = (e)=>{
-        
         let post = value;
         //let post = value;
         let type = replyTo?'reply':'post';
@@ -250,39 +204,35 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             for (var i = 0; i < files.length; i++)
             {
                 if(isFileImage(files[i])){
-                    formData.append('images',files[i])
+                    formData.append('images',files[i],files[i].fileName)
                 }else if(isFileVideo(files[i])){
-                    formData.append('videos',files[i])
+                    formData.append('videos',files[i],files[i].fileName)
                 }
                 
             }
         }
-
-        // if not feed get postedId from props else get from branch switcher
-        if(!isFeed && postedId){
-            formData.append('posted_to',postedId);
-        }
-
-        let postedTo = [ ...checkedBranches];
-        
-        for(var id of postedTo){
-            formData.append('posted_to',id);
-        }
-
-        //if(postedTo.length>0){
-        //    formData.append('posted_to',postedTo);
-        //}
         
         formData.append('type',type);
         formData.append('text',post);
         
-        if(replyTo){
-            formData.append('posted_to',branch.id);
-            formData.append('replied_to',replyTo)
+        formData.append('posted_to',branch.id); // always post to self
+        formData.append('posted',branch.id);  // always post to self
+
+        let postTo = postToBranches.map(b=>b.id)
+
+        for(let id of postTo){
+            formData.append('posted_to',id)
         }
 
-        formData.append('posted_to',branch.id); // add self
-        formData.append('posted',branch.id);  // add self
+        if(replyTo){
+            formData.append('replied_to',replyTo)
+            formData.append('posted_to',currentPost.poster_full.id)
+        }else{
+            formData.append('posted_to',activeBranch.id)
+        }
+
+        let newTags = tags.map(t=>t.label).join(", ");
+        formData.append('tags',newTags)
 
         let uri = `/api/branches/${branch.uri}/posts/new/`
         setLoading(true);
@@ -296,68 +246,18 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
+                if(redirect){
+                    history.push(`/${branch.uri}/leaves/${response.data.id}`)
+                }
                 resetEditor();
                 axios.get(`/api/branches/${branch.uri}/posts/${response.data.id}`).then(response =>{
                     updateFeed(response.data);
                 })
             }).catch(error => {
+                console.log(error.response)
         }).finally(()=>{
             setLoading(false);
         })
-    }
-    
-    async function onSelect(index,lastIndex,event){
-        let endpoint = "parents";
-        if(index===0){
-            endpoint = "parents";
-        }else if(index===1){
-            endpoint = "siblings";
-        }else if(index===2){
-            endpoint = "children";
-        }
-
-        let target = currentPost?currentPost.poster:activeBranch.uri
-        let response = await axios.get(`/api/branches/${target}/${endpoint}/`)
-        let branches = await response.data.results;
-        if(index===0){
-            setParents(branches);
-        }else if(index===1){
-            setSiblings(branches);
-        }else if(index===2){
-            setChildren(branches);
-        }
-    }
-
-    let renderParents,renderChildren,renderSiblings;
-    if(parents){
-        renderParents = parents.length>0?parents.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
-        </SmallBranch>}):null;
-    }else{
-        renderParents = <SkeletonBranchList/>
-    }
-
-    if(siblings){
-        renderSiblings = siblings.length>0?siblings.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
-        </SmallBranch>}):null;
-    }else{
-        renderSiblings = <SkeletonBranchList/>
-    }
-
-    if(children){
-        renderChildren = children.length>0?children.map(b=>{return <SmallBranch branch={b}>
-            <CheckBox value={b.id} checkedBranches={checkedBranches} setCheckedBranches={setCheckedBranches}/>
-        </SmallBranch>}):null;
-    }else{
-        renderChildren = <SkeletonBranchList/>
-    }
-
-
-    function handleOpenModal(e,show){
-        e.stopPropagation();
-        show();
-        onSelect(0);
     }
 
     useEffect(()=>{
@@ -379,12 +279,12 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
             toggle={show=>(
             <div className="flex-fill" style={{marginTop:5}}>
                 <div className="flex-fill" style={{flex:'1 1 auto',WebkitFlex:'1 1 auto'}}>
-                    <input type="file" multiple className="inputfile" id="media"
+                    <input type="file" multiple className="inputfile" id={currentPost?`media_${currentPost.id}`:'media'}
                     accept="image/*|video/*" style={{display:'block'}} ref={inputRef}></input>
-                    <label for="media" style={{display:'inherit'}}><MediaSvg/></label>
+                    <label for={currentPost?`media_${currentPost.id}`:'media'} style={{display:'inherit',marginRight:5}}><MediaSvg/></label>
+                    <button onClick={()=>{setShowTags(true);show();}} className="editor-btn">
+                    {tags.length > 0?`${tags.length} tags`:'Add tags'}</button>
                 </div>
-                <button style={{marginRight:10}} className="editor-btn"
-                onClick={e=>{handleOpenModal(e,show)}}>Crosspost</button>
                 {isLoading?
                 <div style={{alignSelf:'center',WebkitAlignItems:'center'}}>
                     <MoonLoader
@@ -393,58 +293,26 @@ function Toolbar({editor,resetEditor,files,branch,postedId,currentPost=null,upda
                         color={'#123abc'}
                         loading={isLoading}
                     />
-                </div>:<button onClick={handleClick} className="editor-btn">Add</button>}
+                </div>:<button onClick={handleClick} className="editor-btn">Post</button>}
             </div>
         )}
         content={hide => (
-        <Modal>
-            <PostToBranches parents={renderParents} siblings={renderSiblings} children={renderChildren}
-                onSelect={onSelect}
-            />
+        <Modal onClick={()=>setShowTags(false)} hide={hide} isOpen={showTags} portalElement="disable-slide-swipe">
+            <div style={{position:'fixed',top:0,width:'100vw',height:'100%',display:'flex'
+            ,justifyContent:'center',alignItems:'center'}}>
+                <div css={serialTagSelector} onClick={e=>e.stopPropagation()}>
+                    <SerialTagSelector selectedTags={tags} setSelectedTags={setTags} hide={()=>setShowTags(false)}
+                    selectedBranches={postToBranches} setSelectedBranches={setPostToBranches} branch={activeBranch}/>
+                </div>
+            </div>
         </Modal>    
         )}/>
     )
 }
 
-function PostToBranches({parents,siblings,children,onSelect}){
-    const theme = useTheme();
-    return(
-        <div id="modal-post-to" className="post-to-branch-container" style={{backgroundColor:theme.hoverColor}}>
-            <div>
-                <Tabs onSelect={onSelect} defaultFocus={true}>
-                    <TabList className="post-to-branch-tab-list" >
-                        <Tab className="post-to-branch-tab"
-                        selectedClassName="post-to-branch-tab-list-selected">Parents</Tab>
-                        <Tab className="post-to-branch-tab"
-                        selectedClassName="post-to-branch-tab-list-selected">Siblings</Tab>
-                        <Tab className="post-to-branch-tab"
-                        selectedClassName="post-to-branch-tab-list-selected">Children</Tab>
-                    </TabList>
-
-                    <TabPanel>
-                        <div className="post-to-branch-tab-panel">
-                            {parents}
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <div className="post-to-branch-tab-panel">
-                            {siblings}
-                        </div>
-                    </TabPanel>
-                    <TabPanel>
-                        <div className="post-to-branch-tab-panel">
-                            {children}
-                        </div>
-                    </TabPanel>
-                </Tabs>
-            </div>
-        </div>
-    )
-}
-
 export function CheckBox({value,checkedBranches,setCheckedBranches}){
     const ref = useRef(null)
-    
+
     useEffect(()=>{
         for(var value of checkedBranches){
             if(value==ref.current.value){
@@ -542,11 +410,17 @@ const MediaSvg = props => {
     </svg>
 };
 
-const Modal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
+const TagSvg = props =>{
+    return(
+        <svg
+        xmlns="http://www.w3.org/2000/svg"
+        xmlnsXlink="http://www.w3.org/1999/xlink"
+        version="1.1"
+        viewBox="0 0 59.998 59.998"
+        style={{ enableBackground: "new 0 0 59.998 59.998" }}
+        xmlSpace="preserve"
+        >
+        <path d="M59.206,0.293c-0.391-0.391-1.023-0.391-1.414,0L54.085,4H30.802L1.532,33.511c-0.666,0.666-1.033,1.553-1.033,2.495  s0.367,1.829,1.033,2.495l20.466,20.466c0.687,0.687,1.588,1.031,2.491,1.031c0.907,0,1.814-0.347,2.509-1.041l28.501-29.271V5.414  l3.707-3.707C59.597,1.316,59.597,0.684,59.206,0.293z M53.499,28.874L25.574,57.553c-0.596,0.596-1.566,0.596-2.162,0L2.946,37.087  c-0.596-0.596-0.596-1.566,0.003-2.165L31.636,6h20.449l-4.833,4.833C46.461,10.309,45.516,10,44.499,10c-2.757,0-5,2.243-5,5  s2.243,5,5,5s5-2.243,5-5c0-1.017-0.309-1.962-0.833-2.753l4.833-4.833V28.874z M47.499,15c0,1.654-1.346,3-3,3s-3-1.346-3-3  s1.346-3,3-3c0.462,0,0.894,0.114,1.285,0.301l-1.992,1.992c-0.391,0.391-0.391,1.023,0,1.414C43.987,15.902,44.243,16,44.499,16  s0.512-0.098,0.707-0.293l1.992-1.992C47.386,14.106,47.499,14.538,47.499,15z" />
+        </svg>
     )
-);
+}

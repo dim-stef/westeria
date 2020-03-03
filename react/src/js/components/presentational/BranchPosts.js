@@ -1,13 +1,8 @@
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {AutoSizer, CellMeasurer, CellMeasurerCache, List, WindowScroller} from 'react-virtualized';
-import {useLocation} from "react-router-dom"
 import { useTheme } from 'emotion-theming'
 import { css } from "@emotion/core";
-import Pullable from 'react-pullable';
 import {CSSTransition} from 'react-transition-group';
 import {isMobile} from 'react-device-detect';
-import {NavLink} from 'react-router-dom';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import {
     AllPostsContext,
     BranchCommunityPostsContext,
@@ -17,18 +12,25 @@ import {
     RefreshContext,
     TreePostsContext,
     UserContext,
-    RouteTransitionContext
+    RouteTransitionContext,
+    SwipeablePostGridContext
 } from "../container/ContextContainer"
 import {MobileModal} from "./MobileModal"
-import {Tooltip, TooltipChain} from "./Tooltip";
 import {Modal, ToggleContent} from "./Temporary"
 import {SmallBranch} from "./Branch"
 import Skeleton, {SkeletonTheme} from 'react-loading-skeleton';
-import {Post} from './SingularPost';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import StatusUpdate from "./StatusUpdate";
+import {InfinitePostList} from "./InfinitePostList"
+import {SuperBar, SwipeableBar} from "./SuperBar"
+import {SkeletonFixedGrid} from "./SkeletonGrid"
 import {useMediaQuery} from 'react-responsive'
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
 
 axiosRetry(axios, 
     {
@@ -38,6 +40,18 @@ axiosRetry(axios,
 
 let CancelToken = axios.CancelToken;
 let source = CancelToken.source();
+
+
+const postsContainer = () =>css({
+    transition:'filter 0.2s ease',
+    position:'relative'
+})
+
+function cssPropertyValueSupported(prop, value) {
+    var d = document.createElement('div');
+    d.style[prop] = value;
+    return d.style[prop] === value;
+}
 
 function resetPostListContext(postsContext,props){
     postsContext.hasMore = true;
@@ -49,274 +63,120 @@ function resetPostListContext(postsContext,props){
     postsContext.openPosts.length = 0;
     postsContext.uniqueCached.length = 0;
     postsContext.branchUri = props.branch;
+    postsContext.paths.length = 0;
+    postsContext.lastPage = 0
+    postsContext.useDefaultRoute = true;
 }
 
-function resetBranchPostsContext(postsContext,props){
-    postsContext.hasMore = true;
-    postsContext.next = null;
-    postsContext.lastVisibleElement = null;
-    postsContext.lastVisibleIndex = 0;
-    postsContext.loadedPosts.length = 0;
-    postsContext.cachedPosts.length = 0;
-    postsContext.openPosts.length = 0;
-    postsContext.uniqueCached.length = 0;
-    postsContext.branchUri = props.branch;
-}
-
-function DisplayPosts({isFeed,posts,setPosts,
-    postsContext,resetPostsContext,
-    updateFeed,postedId,fetchData,hasMore,
-    showPostedTo,activeBranch,refresh,target,keyword}){
+const DisplayPosts = React.memo(function DisplayPosts({isFeed,posts,
+    postsContext,loading,
+    updateFeed,postedId,fetchData,hasMore,activeBranch,refresh}){
     
-    const theme = useTheme();
+    const isMobileOrTablet = useMediaQuery({
+        query: '(max-device-width: 1223px)'
+    })
 
-    function shouldPullToRefresh(){
-        try{
-            return document.getElementById('mobile-content-container').scrollTop <=0
-        }catch(e){
-            return true
+    const ref = useRef(null);
+
+    const [height,setHeight] = useState(0);
+    const [width,setWidth] = useState(0);
+
+    function handleWidth(){
+        if(ref.current){
+            let statusUpdateActive = document.getElementsByName("statusUpdate");
+            if(statusUpdateActive.length > 1){
+                return;
+            }
+            let mobileNavBar = null;
+            try{
+                mobileNavBar = document.getElementById('mobile-nav-bar');
+            }catch(e){
+
+            }
+
+            setWidth(ref.current.clientWidth);
+            let refRect = ref.current.getBoundingClientRect();
+            
+            setHeight(isMobileOrTablet?window.innerHeight - document.getElementById('super-bar').clientHeight -
+                (mobileNavBar?mobileNavBar.clientHeight:0):window.innerHeight - refRect.top)
         }
-        
     }
+
+    useLayoutEffect(()=>{
+        handleWidth();
+    },[ref])
+
+    useEffect(()=>{
+        window.addEventListener('resize',handleWidth);
+
+        return ()=>{
+            window.removeEventListener('resize',handleWidth);
+        }
+    },[])
 
     return(
         <>
-        <Pullable
-        onRefresh={refresh}
-        shouldPullToRefresh={shouldPullToRefresh}
-        centerSpinner={false}
-        spinnerColor="#2196F3"
-        >
-        <FilterPosts postsContext={postsContext} refreshFunction={refresh} setPosts={setPosts} 
-        resetPostsContext={resetPostsContext} fetchData={fetchData}/>
-        <StatusUpdate activeBranch={activeBranch} postsContext={postsContext} updateFeed={updateFeed} 
-        postedId={postedId} key={postedId} isFeed={isFeed}/>
-        {posts.length>0?
-            
-        <InfiniteScroll
-            dataLength={posts.length}
-            next={fetchData}
-            hasMore={hasMore}
-            scrollableTarget={document.getElementById('mobile-content-container')?'mobile-content-container':null}
-            endMessage={
-                <p style={{textAlign: 'center'}}>
-                    <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-                </p>
-            }
 
-            loader={[...Array(3)].map((e, i) => 
-            <div key={i} style={{width:'100%',marginTop:10}}>
-                <div style={{padding:'10px'}}>
-                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                        <Skeleton circle={true} width={48} height={48}/>
-                    </SkeletonTheme>
-                    <div style={{marginTop:10,lineHeight:'2em'}}>
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={2} width="100%" height={10}/>
-                        </SkeletonTheme>
-
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={1} width="30%" height={10}/>
-                        </SkeletonTheme>
-                    </div>
-                </div>
-            </div>
-            )}>
-            <VirtualizedPosts isFeed={isFeed} postsContext={postsContext} activeBranch={activeBranch}
-                showPostedTo={showPostedTo} posts={posts} setPosts={setPosts} keyword={keyword} 
-                scrollTarget={document.getElementById('mobile-content-container')?document.getElementById('mobile-content-container'):window}
-            />
-        </InfiniteScroll>
-        :
-            hasMore?[...Array(8)].map((e, i) => 
-            <div key={i} style={{width:'100%',marginTop:10}}>
-                <div style={{padding:'10px'}}>
-                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                        <Skeleton circle={true} width={48} height={48}/>
-                    </SkeletonTheme>
-                    <div style={{marginTop:10,lineHeight:'2em'}}>
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={2} width="100%" height={10}/>
-                        </SkeletonTheme>
-
-                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
-                            <Skeleton count={1} width="30%" height={10}/>
-                        </SkeletonTheme>
-                    </div>
-                </div>
-            </div>
-            ):<p style={{textAlign:'center'}}>
-                <b style={{fontSize:'2rem'}}>Nothing more to see</b>
-            </p>}
-            </Pullable>
+        <SwipeableBar postsContext={postsContext} refresh={refresh} branch={activeBranch}
+            updateFeed={updateFeed} postedId={postedId} isFeed={isFeed} width={width}
+        />
+        <div style={{width:'100%',overflow:'hidden'}} ref={ref}>
+        <InfinitePostList postsContext={postsContext} activeBranch={activeBranch} posts={posts} fetchData={fetchData}
+            width={width} height={height} hasMore={hasMore} refresh={refresh}
+            updateFeed={updateFeed} isFeed={isFeed} loading={loading}
+        />
+        </div>
     </>
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.posts.length == nextProps.posts.length && prevProps.postsContext.content == 
+    nextProps.postsContext.content && prevProps.loading == nextProps.loading &&
+    prevProps.width == nextProps.width && prevProps.height==nextProps.height &&
+    ((!prevProps.activeBranch || !nextProps.activeBranch) || prevProps.activeBranch.uri == 
+    nextProps.activeBranch.uri)
+})
 
-const genericCache = {
-    fixedWidth: true,
-    minHeight: 25,
-    defaultHeight: 500 //currently, this is the height the cell sizes to after calling 'toggleHeight'
-}
+DisplayPosts.whyDidYouRender = true;
 
-const cache = new CellMeasurerCache(genericCache)
-const branchPostsCache = new CellMeasurerCache(genericCache)
-const branchTreePostsCache = new CellMeasurerCache(genericCache)
-const branchCommunityPostsCache = new CellMeasurerCache(genericCache)
-const allPostsCache = new CellMeasurerCache(genericCache)
-const treePostsCache = new CellMeasurerCache(genericCache)
+function ResponsiveSkeleton({height}){
+    let supportsGrid = cssPropertyValueSupported('display', 'grid');
+    const theme = useTheme();
 
-function VirtualizedPosts({isFeed,keyword,scrollTarget,posts,setPosts,postsContext,activeBranch,showPostedTo}){
-    const ref = useRef(null);
-    const cellRef = useRef(null);
-    const [previousWidth,setPreviousWidth] = useState(0);
-    let usingCache = cache //default;
-    const [listLength,setListLength] = useState(1);
-    if(postsContext.content=="feed"){
-        usingCache = cache;
-    }else if(postsContext.content=="all"){
-        usingCache = allPostsCache;
-    }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
-    }else if(postsContext.content=="branch_community"){
-        usingCache = branchCommunityPostsCache
-    }else if(postsContext.content=="branch_tree"){
-        usingCache = branchTreePostsCache
-    }
-
-    useEffect(()=>{
-         
-        if(ref){
-             
-            ref.current.scrollToRow(postsContext.lastVisibleIndex);
-            ref.current.scrollToPosition(postsContext.scroll);
-        }
-    },[keyword])
-
-    useEffect(()=>{
-        let lists = document.getElementsByClassName("ReactVirtualized__List");
-         
-        if(lists.length != listLength){
-            //setListLength(lists.length)
-        }
-    })
-
-    function onScroll(scroll){
-         
-        postsContext.scroll = scroll.scrollTop;
-    }
-
-    //let lastVisibleIndex = Math.ceil(postsContext.lastVisibleIndex);
     return(
-        <WindowScroller
-        scrollElement={scrollTarget}
-        onScroll={onScroll}>
-            {({ height, isScrolling, onChildScroll, scrollTop }) => (
-                <AutoSizer 
-                disableHeight
-                onResize={({ width }) => {
-                    if(ref){
-                        if(previousWidth!=0){
-                            cache.clearAll();
-                            allPostsCache.clearAll();
-                            treePostsCache.clearAll();
-                            branchPostsCache.clearAll();
-                            branchCommunityPostsCache.clearAll();
-                            branchTreePostsCache.clearAll();
-                            
-                            ref.current.recomputeRowHeights();
-                        }
-                        setPreviousWidth(width);
-                    }
-                }}>
-                { ({ width }) =>
-                <List
-                autoHeight
-                width={width}
-                height={height}
-                isScrolling={isScrolling}
-                onScroll={onChildScroll}
-                scrollTop={scrollTop}
-                rowCount={posts.length}
-                deferredMeasurementCache={usingCache}
-                rowHeight={usingCache.rowHeight}
-                ref={ref}
-                rowRenderer={
-                    ({ index, key, style, parent }) =>{
-                    let post = posts[index];
-                    let isOpen = postsContext.openPosts.some(id=> id == post.id)
-                    let props = {
-                        isOpen:isOpen,
-                        post:post,
-                        posts:posts,
-                        setPosts:setPosts,
-                        key:[post.id,post.spreaders,postsContext.content],
-                        removeFromEmphasized:null,
-                        showPostedTo:showPostedTo?true:false,
-                        viewAs:"post",
-                        activeBranch:activeBranch,
-                        postsContext:postsContext
-                        };
-                    return(
-                        <CellMeasurer
-                        ref={cellRef}
-                        key={[post.id,post.spreaders,postsContext.content]}
-                        cache={usingCache}
-                        parent={parent}
-                        width={width}
-                        columnIndex={0}
-                        rowIndex={index}>
-                        {({ measure }) => (
-                            <div
-                            key={key}
-                            style={style}
-                            >
-                                <li><Post {...props} index={index} measure={measure} minimized/></li>
-                            </div>
-                        )}
-                    </CellMeasurer>
+        supportsGrid?<div style={{height:height}}><SkeletonFixedGrid/></div>:
+        [...Array(8)].map((e, i) => 
+            <div key={i} style={{width:'100%',marginTop:10}}>
+                <div style={{padding:'10px'}}>
+                    <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
+                        <Skeleton circle={true} width={48} height={48}/>
+                    </SkeletonTheme>
+                    <div style={{marginTop:10,lineHeight:'2em'}}>
+                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
+                            <Skeleton count={2} width="100%" height={10}/>
+                        </SkeletonTheme>
                         
-                    )
-                }}
-                />
-            
-            }</AutoSizer>
-        )}
-        </WindowScroller>
+
+                        <SkeletonTheme color={theme.skeletonColor} highlightColor={theme.skeletonHighlightColor}>
+                            <Skeleton count={1} width="30%" height={10}/>
+                        </SkeletonTheme>
+                    </div>
+                </div>
+            </div>
+        )
     )
 }
 
-if (process.env.NODE_ENV !== 'production') {
-    const whyDidYouRender = require('@welldone-software/why-did-you-render');
-    whyDidYouRender(React);
-}
 
-
-export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId,externalId=null})=>{
+export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPostsContext,activeBranch,postedId})=>{
+    const swipeablePostGridContext = useContext(SwipeablePostGridContext)
     const [posts,setPosts] = useState(postsContext.loadedPosts);
+    const [loading,setLoading] = useState(false);
     const refreshContext = useContext(RefreshContext);
     const userContext = useContext(UserContext);
     const scrollableTarget = useRef(null);
     const isMobile = useMediaQuery({
         query: '(max-device-width: 767px)'
     })
-    let usingCache = cache //default;
-
-    if(postsContext.content=="feed"){
-        usingCache = cache;
-    }else if(postsContext.content=="all"){
-        usingCache = allPostsCache;
-    }else if(postsContext.content=="tree"){
-        usingCache = treePostsCache
-    }else if(postsContext.content=="branch"){
-        usingCache = branchPostsCache;
-    }else if(postsContext.content=="branch_community"){
-        usingCache = branchCommunityPostsCache
-    }else if(postsContext.content=="branch_tree"){
-        usingCache = branchTreePostsCache
-    }
 
     function buildQuery(baseUri,params){
         if(params){
@@ -331,7 +191,9 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
     }
 
     const fetchData = async () =>{
+        setLoading(true);
         if(!postsContext.hasMore){
+            setLoading(false);
             return;
         }
 
@@ -360,13 +222,14 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
             postsContext.hasMore = false;
         }
 
-
         if(postsContext.loadedPosts == 0){
             postsContext.loadedPosts = [...response.data.results];
-            setPosts([...response.data.results]); 
+            setPosts([...response.data.results]);
+            setLoading(false);
         }else{
             postsContext.loadedPosts = [...posts,...response.data.results];
             setPosts([...posts,...response.data.results]);
+            setLoading(false);
         }
         
         //setNext(response.data.next);
@@ -375,70 +238,49 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
 
     useEffect(()=>{
         if(postsContext.loadedPosts.length==0 || postsContext.branchUri != branch){
+            source.cancel('Operation canceled by the user.');
+            CancelToken = axios.CancelToken;
+            source = CancelToken.source();
             resetPostsContext();
             setPosts([])
             fetchData();
         }
-
-        if(isFeed){
-            refreshContext.feedRefresh = () =>{
-                source.cancel('Operation canceled by the user.');
-                CancelToken = axios.CancelToken;
-                source = CancelToken.source();
-                resetPostsContext(branch);
-                fetchData();
-                setPosts([]);
-            };
-        }else{
-            refreshContext.branchPostsRefresh = function(){
-                source.cancel('Operation canceled by the user.');
-                CancelToken = axios.CancelToken;
-                source = CancelToken.source();
-                resetPostsContext(branch);
-                fetchData();
-                setPosts([]);
-                //branchPostsCache.clearAll()
-            };
-        }
-    },[branch,keyword])
+    },[postsContext,branch,keyword])
 
     useEffect(()=>{
         refreshContext.page = isFeed?'feed':'branch';
     },[])
 
     const refresh = useCallback(()=>{
-        usingCache.clearAll();
+        if(swipeablePostGridContext.setIndex){
+            swipeablePostGridContext.setIndex(0);
+        }
+
         source.cancel('Operation canceled by the user.');
         CancelToken = axios.CancelToken;
         source = CancelToken.source();
         resetPostsContext(branch);
         setPosts([]);
         fetchData();
-    },[postsContext]);
+    },[postsContext,branch,keyword]);
 
     const updateFeed = useCallback(
         (newPost) => {
             postsContext.loadedPosts = [newPost,...postsContext.loadedPosts];
-            usingCache.clearAll();
             setPosts([newPost,...posts])
         },
         [posts],
     );
-    // 
-
-    useEffect(()=>{
-        // 
-    },[scrollableTarget])
 
     refreshContext.refresh = refresh;
 
     return(
-        <div ref={scrollableTarget}>
+        <div ref={scrollableTarget} css={postsContainer} id="posts-container">
             <DisplayPosts isFeed={isFeed} refresh={refresh} keyword={keyword}
             updateFeed={updateFeed} postedId={postedId} postsContext={postsContext}
             posts={postsContext.loadedPosts} setPosts={setPosts} hasMore={postsContext.hasMore}
             activeBranch={activeBranch} fetchData={fetchData} resetPostsContext={resetPostsContext}
-            target={isMobile?scrollableTarget.current:null}
+            target={isMobile?scrollableTarget.current:null} loading={loading}
             />
             
         </div>
@@ -447,20 +289,19 @@ export const FinalDisplayPosts = ({postsContext,branch,isFeed,keyword,resetPosts
 
 
 export default function FeedPosts(props){
-    const postsContext = useContext(PostsContext);
     const branchPostsContext = useContext(BranchPostsContext);
     const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
-        resetBranchPostsContext(branchPostsContext,props);
-        resetBranchPostsContext(branchCommunityPostsContext,props);
-        resetBranchPostsContext(branchTreePostsContext,props);
+        resetPostListContext(branchPostsContext,props);
+        resetPostListContext(branchCommunityPostsContext,props);
+        resetPostListContext(branchTreePostsContext,props);
     },[])
 
     return(
-        <FinalDisplayPosts {...props} keyword="feed" isFeed postsContext={postsContext} 
-        resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
+        <FinalDisplayPosts {...props} keyword={props.keyword} isFeed postsContext={props.postsContext} 
+        resetPostsContext={()=>resetPostListContext(props.postsContext,props)}/>
     )
 }
 
@@ -471,9 +312,9 @@ export function AllPosts(props){
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
-        resetBranchPostsContext(branchPostsContext,props);
-        resetBranchPostsContext(branchCommunityPostsContext,props);
-        resetBranchPostsContext(branchTreePostsContext,props);
+        resetPostListContext(branchPostsContext,props);
+        resetPostListContext(branchCommunityPostsContext,props);
+        resetPostListContext(branchTreePostsContext,props);
     },[])
 
     return(
@@ -490,9 +331,9 @@ export function TreePosts(props){
     const branchTreePostsContext = useContext(BranchTreePostsContext);
 
     useEffect(()=>{
-        resetBranchPostsContext(branchPostsContext,props);
-        resetBranchPostsContext(branchCommunityPostsContext,props);
-        resetBranchPostsContext(branchTreePostsContext,props);
+        resetPostListContext(branchPostsContext,props);
+        resetPostListContext(branchCommunityPostsContext,props);
+        resetPostListContext(branchTreePostsContext,props);
     },[])
 
     return(
@@ -508,21 +349,19 @@ export function BranchPosts(props){
 
     useEffect(()=>{
         if(postsContext.branchUri != props.branch){
-            resetBranchPostsContext(postsContext,props);
-            resetBranchPostsContext(branchCommunityPostsContext,props);
-            resetBranchPostsContext(branchTreePostsContext,props);
+            resetPostListContext(postsContext,props);
+            resetPostListContext(branchCommunityPostsContext,props);
+            resetPostListContext(branchTreePostsContext,props);
         }
     },[postsContext.branchUri])
 
     return(
-        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetBranchPostsContext(postsContext,props)}/>
+        <FinalDisplayPosts {...props} postsContext={postsContext} resetPostsContext={()=>resetPostListContext(postsContext,props)}/>
     )
 }
 
 export function GenericBranchPosts(props){
     let context = props.postsContext;
-
-     
 
     const branchPostsContext = useContext(BranchPostsContext);
     const branchCommunityPostsContext = useContext(BranchCommunityPostsContext);
@@ -539,7 +378,7 @@ export function GenericBranchPosts(props){
 
     return(
         <FinalDisplayPosts {...props} keyword={props.keyword} postsContext={context}
-        resetPostsContext={()=>resetBranchPostsContext(context,props)}/>
+        resetPostsContext={()=>resetPostListContext(context,props)}/>
     )
 }
 
@@ -700,10 +539,11 @@ const previewCss = theme => css({
 })
 
 export function DropdownList({type="text",component=null,options,defaultOption,name,
-setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassName='',children}){
+setParams,params,label,changeCurrentBranch,setBranch,preview=true,showOnTop,children}){
     const isDesktopOrLaptop = useMediaQuery({
         query: '(min-device-width: 1224px)'
       })
+    const didMountRef = useRef(false);
     const [selected,setSelected] = useState(defaultOption)
     const [isOpen,setOpen] = useState(false);
     const ref = useRef(null);
@@ -727,13 +567,6 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
 
     function handleOutsideClick(e){
         if(ref.current){
-            /*let childNodes = [...ref.current.childNodes]
-            if(childNodes.every(c=>{
-                return e.target!=c 
-            }) && e.target !=ref.current){
-                 
-                setOpen(false);
-            }*/
             if(!ref.current.contains(e.target)){
                 setOpen(false);
             }
@@ -741,15 +574,20 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     }
 
     useEffect(()=>{
-        if(type=="text"){
-            setParams({...params,[label]:selected})
-        }else{
-            if(changeCurrentBranch){
-                userContext.changeCurrentBranch(selected);
+        if(didMountRef.current){
+            if(type=="text"){
+                setParams({...params,[label]:selected})
             }else{
-                setBranch(selected)
+                if(changeCurrentBranch){
+                    userContext.changeCurrentBranch(selected);
+                }else{
+                    setBranch(selected)
+                }
             }
+        }else{
+            didMountRef.current = true;
         }
+        
     },[selected])
 
     useEffect(()=>{
@@ -768,20 +606,20 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
     return (
         <ToggleContent 
             toggle={show=>(
-                <div ref={ref} onClick={e=>handleClick(e,show)} className={previewClassName!=''?previewClassName:'filter-selector-wrapper'}
-                css={theme=>previewCss(theme)}>
+                <div style={{position:'relative',display:'table'}} ref={ref} onClick={e=>handleClick(e,show)}>
                     {preview?
                     <div 
                     id={`${name}-filter`} className="flex-fill filter-selector" 
                     >
                         {type=="text"?<span style={{color:theme.textLightColor}}>{selected.label}</span>:
-                        <SmallBranch branch={selected} isLink={false}/>}
+                        <SmallBranch branch={selected} isLink={false} hoverable={false}/>}
                         <DownArrowSvg/>
                     </div>:
                     <div>{children}</div>}
                     
                     {isOpen && isDesktopOrLaptop?<div className="flex-fill filter-dropdown" 
-                    style={{backgroundColor:theme.backgroundColor}}>
+                    style={{backgroundColor:theme.backgroundColor,top:showOnTop?0:null,
+                        bottom:showOnTop?null:0}}>
                         {options.map(op=>{
                             let props = {handleSelect:handleSelect,setSelected:setSelected, selected:selected, option:op}
                             return type=="text"?<DropdownItem {...props}/>:<Component {...props}/>
@@ -790,7 +628,7 @@ setParams,params,label,changeCurrentBranch,setBranch,preview=true,previewClassNa
                 </div>
             )}
             content={hide => (
-            <Modal onClick={handleHide}>
+            <Modal onClick={handleHide} isOpen={isOpen}>
                 <CSSTransition in={isOpen} timeout={200} classNames="side-drawer" onExited={()=>hide()} appear>
                     <MobileModal>
                         {options.map(op=>{

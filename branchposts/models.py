@@ -8,7 +8,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils.translation import ugettext_lazy as _
 from django.core.exceptions import ValidationError
 from push_notifications.models import APNSDevice, GCMDevice
+from taggit.managers import TaggableManager
 from accounts.models import User
+from tags.models import GenericBigIntTaggedItem
 from notifications.models import Notification
 import uuid
 from datetime import datetime
@@ -19,22 +21,26 @@ import shutil
 
 epoch = datetime(1970, 1, 1)
 
+
 def sigmoid(x):
-  return 1 / (1 + exp(-log(max(x*0.1,1),20)))
+    return 1 / (1 + exp(-log(max(x*0.1,1),20)))
+
 
 def epoch_seconds(date):
     td = date - epoch
     return td.days * 86400 + td.seconds + (float(td.microseconds) / 1000000)
 
+
 def score(ups, downs):
     return ups - downs
+
 
 def hot(ups, downs, spreads, date):
     s = score(ups, downs)
     spread_s = sigmoid(spreads) + 0.5
     sign = 1 if s > 0 else -1 if s < 0 else 0
-    if sign>0:
-        order = log(max(abs(s), 1), 10) * max(spread_s,1)
+    if sign > 0:
+        order = log(max(abs(s), 1), 10) * max(spread_s, 1)
     else:
         order = log(max(abs(s), 1), 10)
 
@@ -47,6 +53,7 @@ def calculate_score(votes,spreads, item_hour_age, gravity=1.8):
     vote_points = log(max(votes,1),10)
     weight = spread_points + vote_points
     return weight / pow((item_hour_age+2), gravity)
+
 
 def uuid_int():
     uid = uuid.uuid4()
@@ -84,10 +91,11 @@ class Post(models.Model):
             MinValueValidator(0)
         ]
     )
-    text = models.TextField(_("Text"),null=True,blank=True, max_length=3000)
+    text = models.TextField(_("Text"),null=True,blank=True, max_length=30000)
     hot_score = models.DecimalField(max_digits=19,decimal_places=10,default=0.0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+    tags = TaggableManager(through=GenericBigIntTaggedItem, blank=True)
 
     @property
     def description(self):
@@ -111,9 +119,9 @@ class Post(models.Model):
     def clean(self):
         super().clean()
         if not self.text:
-            print("None")
+            pass
         if not self.images.exists():
-            print("not exists")
+            pass
         if not self.text and not self.images.exists():
             raise ValidationError('Field1 or field2 are both None')
 
@@ -134,15 +142,21 @@ class PostImage(models.Model):
             self.original_image = self.image
 
         im = Image.open(self.image)
-        im.load()
-        rbg_img = im.convert('RGB')
-        rbg_img.load()
-        # create a BytesIO object
-        im_io = BytesIO()
-        # save image to BytesIO object
-        rbg_img.save(im_io, 'JPEG', quality=75)
-        self.image = InMemoryUploadedFile(im_io,'ImageField', "%s.jpg" %self.image.name.split('.')[0],
-                                          'image/jpeg', im_io.getbuffer().nbytes, None)
+
+        def convert_image():
+            im.load()
+            rbg_img = im.convert('RGB')
+            rbg_img.load()
+            im_io = BytesIO()
+            rbg_img.save(im_io, 'JPEG', quality=75)
+            self.image = InMemoryUploadedFile(im_io, 'ImageField', "%s.jpg" % self.image.name.split('.')[0],
+                                              'image/jpeg', im_io.getbuffer().nbytes, None)
+
+        try:
+            if not im.is_animated:
+                convert_image()
+        except Exception:
+            convert_image()
         super().save(*args, **kwargs)
 
 

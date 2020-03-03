@@ -6,23 +6,105 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+importScripts('https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js');
 
-var version = 1;
+var version = 14;
+
+if (workbox) {
+    workbox.setConfig({debug: false});
+    workbox.routing.registerRoute(
+      new RegExp('/.*'),
+      new workbox.strategies.NetworkFirst({
+        // Use a custom cache name.
+        cacheName: 'page-cache',
+          plugins: [
+             new workbox.broadcastUpdate.Plugin(),
+          ],
+      })
+    );
+
+    workbox.routing.registerRoute(
+      new RegExp('https://d3u9nsvugag1ev\\.cloudfront\\.net.*/static/.*\\.js'),
+      new workbox.strategies.StaleWhileRevalidate({
+          plugins: [
+             new workbox.broadcastUpdate.Plugin(),
+          ],
+      })
+    );
+
+    workbox.routing.registerRoute(
+      // Cache CSS files.
+        new RegExp('https://d3u9nsvugag1ev\\.cloudfront\\.net.*/static/.*\\.css'),
+      // Use cache but update in the background.
+      new workbox.strategies.StaleWhileRevalidate({
+        // Use a custom cache name.
+          cacheName: 'css-cache',
+          plugins: [
+             new workbox.broadcastUpdate.Plugin(),
+          ],
+
+      })
+    );
+
+    workbox.routing.registerRoute(
+      // Cache image files.
+        new RegExp('https://d3u9nsvugag1ev\\.cloudfront\\.net.*/media/.*\\.(?:png|jpg|jpeg|svg|gif)'),
+      // Use the cache if it's available.
+      new workbox.strategies.StaleWhileRevalidate({
+        // Use a custom cache name.
+        cacheName: 'external-image-cache',
+        plugins: [
+          new workbox.expiration.Plugin({
+            // Cache only 20 images.
+            maxEntries: 20,
+            // Cache for a maximum of a week.
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          })
+        ],
+      })
+    );
+
+    workbox.routing.registerRoute(
+      // Cache image files.
+        /\.(?:png|jpg|jpeg|svg|gif)$/,
+      // Use the cache if it's available.
+      new workbox.strategies.StaleWhileRevalidate({
+        // Use a custom cache name.
+        cacheName: 'image-cache',
+        plugins: [
+          new workbox.expiration.Plugin({
+            // Cache only 20 images.
+            maxEntries: 20,
+            // Cache for a maximum of a week.
+            maxAgeSeconds: 7 * 24 * 60 * 60,
+          })
+        ],
+      })
+    );
+} else {
+  console.log(`Workbox could not be loaded :(`);
+}
+
+self.addEventListener('install',  e => {
+  self.skipWaiting();
+});
+
+/*var version = 1;
 var staticCacheName = 'v1';
 
 const staticAssets = [
     './',
     './index.html',
-    'https://sb-static.s3.amazonaws.com/static/css/index.css',
-    'https://sb-static.s3.amazonaws.com/static/accounts/auth.css',
-    'https://sb-static.s3.amazonaws.com/static/css/errors.css',
-    'https://sb-static.s3.amazonaws.com/static/core/css/modal.css',
-    'https://sb-static.s3.amazonaws.com/static/groups/css/creategroup.css',
-    'https://sb-static.s3.amazonaws.com/static/groups/css/index.css',
-    'https://sb-static.s3.amazonaws.com/static/groupchat/css/groupchat.css',
-    'https://sb-static.s3.amazonaws.com/static/js/csrf.js',
-    'https://sb-static.s3.amazonaws.com/static/js/app.bundle.js',
-    'https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/css/index.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/accounts/auth.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/css/errors.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/core/css/modal.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/groups/css/creategroup.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/groups/css/index.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/groupchat/css/groupchat.css',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/js/csrf.js',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/js/app.bundle.js',
+    'https://d3u9nsvugag1ev.cloudfront.net/static/logo_full.png',
 ];
 
 self.addEventListener('install', async e => {
@@ -68,3 +150,4 @@ self.addEventListener('activate', function(event) {
   );
 });
 
+*/

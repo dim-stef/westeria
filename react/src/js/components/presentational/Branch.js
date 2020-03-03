@@ -1,11 +1,90 @@
 import React, {Component, useState} from "react";
 import { css } from "@emotion/core";
 import {Link} from 'react-router-dom'
-import {isMobile} from 'react-device-detect';
 import {BranchBanner} from "./BranchBanner"
 import {UserContext} from '../container/ContextContainer'
 import {SmallCard} from "./Card"
+import {FadeImage} from "./FadeImage"
+import {useMediaQuery} from "react-responsive"
 
+const imageContainer = theme =>css({
+    display:'flex',
+    flexFlow:'column',
+    justifyContent:'center',
+    alignItems:'center',
+    position:'relative',
+    padding:'5px 0',
+    borderRadius:25,
+    '&:hover':{
+        backgroundColor:theme.backgroundDarkColor
+    }
+})
+
+const circularBranchName = (theme,isMobile) =>css({
+    color: theme.textColor,
+    fontSize:isMobile?'1.3rem':'1.5rem',
+    margin:'5px 0',
+    fontWeight:400,
+    textAlign:'center',
+    width:'100%',
+    whiteSpace:'nowrap',
+    overflow:'hidden',
+    textOverflow:'ellipsis'
+ })
+
+const squareBranchName = theme =>css({
+    color:'white',
+    fontSize:'1.5rem',
+    fontWeight:500,
+    position:'absolute',
+    bottom:0,
+    paddingBottom:10,
+    textAlign:'center',
+    background:`linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0),
+        rgba(0, 0, 0, 0.6)
+      )`,
+    textShadow:'0 1px 2px #0000008a',
+    width:'100%'
+})
+
+export function CircularBranch({branch,endpoint,connect=null}){
+    const isMobile = useMediaQuery({
+        query: '(max-width: 767px)'
+    })
+
+    const body = <div css={imageContainer} style={{margin:'0 5px'}} key={branch.id}>
+        <FadeImage className="round-picture branch-profile-setting" 
+        style={{height:isMobile?70:100,width:isMobile?70:100,display:'block',
+        objectFit:'cover',margin:2,boxSizing:'border-box'}}
+        src={branch.branch_image}/>
+        <span css={theme=>circularBranchName(theme,isMobile)}>{connect?connect:branch.name}</span>
+    </div>
+
+    return(
+        connect?<div css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1})}>
+            {body}
+        </div>:
+        <Link css={theme=>({width:isMobile?80:180,display:'block',margin:'10px 0',flexGrow:1,textDecoration:'none'})}
+        to={!endpoint?`/${branch.uri}`:endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
+            {body}
+        </Link>
+    )
+}
+
+export function SquareBranch({branch,endpoint}){
+    return(
+        <Link to={endpoint=='branches'?`/${branch.uri}/branches`:`/${endpoint}/${branch.uri}`}>
+            <div css={imageContainer} key={branch.id}>
+                <FadeImage className="branch-profile-setting" style={{height:80,width:80,display:'block',
+                objectFit:'cover',boxSizing:'border-box'}}
+                src={branch.branch_image}/>
+                <span css={squareBranchName}>{branch.name}</span>
+            </div>
+        </Link>
+    )
+}
 
 export function ChildBranch({styleName='', style=null, branch, editMode, children}){
 
@@ -13,7 +92,7 @@ export function ChildBranch({styleName='', style=null, branch, editMode, childre
         <>
         <div className="flex-fill" style={{marginTop:style.marginTop,
         marginBottom:style.marginBottom,
-        flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis}}>
+        flexBasis:style.flexBasis,WebkitFlexBasis:style.flexBasis,zIndex:1}}>
             <Link to={"/" + branch.uri} className={`${ styleName }`} style={{width:style.width}}>
                 <BranchBanner branch={branch} dimensions={style.branchDimensions} className="branch-child-picture"/>
             </Link>
@@ -22,6 +101,24 @@ export function ChildBranch({styleName='', style=null, branch, editMode, childre
         </>  
     )
     
+}
+
+export function BubbleBranch({branch,clickable=null,clicked=false}){
+    return(
+        <div css={theme=>({display:'flex',margin:'10px 0',alignItems:'center',
+        backgroundColor:clicked?'#219ef3 !important':'transparent',cursor:'pointer',transition:'background-color 0.15s ease',
+        padding:10,margin:7,borderRadius:50,border:`1px solid ${theme.borderColor}`})} onClick={clickable?clickable:null}>
+            <img src={branch.branch_image} css={{width:32,height:32,objectFit:'cover',borderRadius:'50%'}}/>
+            <div css={{display:'flex',flexFlow:'column',marginLeft:5}}>
+                <span css={theme=>({color:clicked?'white':theme.textColor,fontSize:'1.5rem',fontWeight:500})}>
+                    {branch.name}
+                </span>
+                <span css={theme=>({color:clicked?'white':theme.textLightColor,fontSize:'1.2rem'})}>
+                    @{branch.uri}
+                </span>
+            </div>
+        </div>
+    )
 }
 
 const name = theme => css({
@@ -37,33 +134,14 @@ const uri = theme => css({
 
 export function SmallBranch({branch,isLink=true,
     onClick=()=>{},hoverable=true,style=null,children}){
-    const [showCard,setShowCard] = useState(false);
-    let setTimeoutConst;
-    let setTimeoutConst2;
 
-    function handleMouseEnter(){
-        clearTimeout(setTimeoutConst2)
-
-        setTimeoutConst = setTimeout(()=>{
-            setShowCard(true);
-        },500)
-    }
-
-    function handleMouseLeave(){
-        clearTimeout(setTimeoutConst)
-
-        setTimeoutConst2 = setTimeout(()=>{
-            setShowCard(false);
-        },500)
-    }
 
     return(
         <>
+        <SmallCard branch={branch} hoverable={hoverable}>
         <div
         onClick={onClick}
-        onMouseEnter={isMobile || !hoverable?null:handleMouseEnter}
-        onMouseLeave={isMobile || !hoverable?null:handleMouseLeave}
-         style={{position:'relative'}} className="noselect small-branch-container flex-fill">
+        style={{position:'relative',width:'max-content'}} className="noselect small-branch-container flex-fill">
             <SmallBranchWrapper uri={branch.uri} isLink={isLink}>
                 <div className="flex-fill center-items"
                 >
@@ -78,10 +156,9 @@ export function SmallBranch({branch,isLink=true,
                 </div>
                 
             </SmallBranchWrapper>
-            {showCard?<SmallCard branch={branch}/>:null}
             {children}
         </div>
-        
+        </SmallCard>
         </>
     )
 }

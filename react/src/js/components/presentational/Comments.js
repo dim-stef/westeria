@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Post} from './SingularPost'
 import StatusUpdate from './StatusUpdate'
+import {useTheme} from "emotion-theming";
 import axios from 'axios';
 
 
@@ -8,6 +9,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
     const [comments,setComments] = useState([]);
     const [justGotCached,setGotCached] = useState(false);
     const didMount = useRef(null)
+    const theme = useTheme();
     //const postsContext = useContext(PostsContext);
 
     let inCache = postsContext.cachedPosts.some(post=>{
@@ -17,7 +19,6 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
     useEffect(()=>{
          
         if(!inCache){
-             
             measure();
         }
 
@@ -37,10 +38,6 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
         };
 
         // try to find post in cached posts
-        
-
-         
-
         if(inCache.length>0){
             setComments(inCache)
         }else{
@@ -86,7 +83,7 @@ export function CommentSection({currentPost,postsContext,activeBranch,commentIds
                         marginLeft = 0
                     }else{
                         marginLeft = 33;
-                        borderLeft='3px solid #e2eaf1';
+                        borderLeft=`3px solid ${theme.borderColor}`;
                     }
 
                     return (
@@ -110,8 +107,10 @@ export function ReplyTree({currentPost,topPost,
     const [hasMore,setHasMore] = useState(true);
     const [next,setNext] = useState(null);
     const [viewAll,setViewAll] = useState(false);
+    const theme = useTheme();
 
     const didMount = useRef(null)
+
     function measure(){
         return
     }
@@ -148,26 +147,19 @@ export function ReplyTree({currentPost,topPost,
     };
 
     useEffect(()=>{
-         
         if(!inCache){
-             
             measure();
         }
-
-         
 
         if(inCache.length>0){
             //setComments(inCache)
         }else{
-             
-             
             fetchData();
         }
     },[])
 
     useEffect(()=>{
         if(justGotCached){
-             
             measure()
             setGotCached(false);
         }
@@ -175,7 +167,6 @@ export function ReplyTree({currentPost,topPost,
 
     useEffect(()=>{
         if(viewAll && next != null){
-             
             fetchData();
         }
     },[comments,viewAll])
@@ -196,12 +187,9 @@ export function ReplyTree({currentPost,topPost,
         marginLeft = 0;
     }else{
         marginLeft = 15;
-        borderLeft='3px solid #e2eaf1';
+        borderLeft=`3px solid ${theme.borderColor}`;
     }
      
-/*{isStatusUpdateActive?<StatusUpdate replyTo={currentPost.id} postsContext={postsContext} currentPost={currentPost} 
-            measure={measure} replyTo={post.id}
-            style={{borderTop:'1px solid rgb(199, 210, 219)',borderBottom:'1px solid rgb(199, 210, 219)'}}/>:null}*/
     return(
         <div ref={didMount} style={{marginTop:10}} key={currentPost.id}>
             

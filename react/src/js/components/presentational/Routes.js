@@ -1,15 +1,15 @@
-import React, {Component, useContext, useEffect, useState} from "react"
+import React, {Component, useContext, useEffect,useLayoutEffect, useState, useRef} from "react"
 import {Link, Redirect, Route, Switch, withRouter,useParams,useRouteMatch,useLocation } from 'react-router-dom'
 import { Global, css } from "@emotion/core";
-import styled from '@emotion/styled'
-import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming'
+import { withTheme, useTheme as useEmotionTheme } from 'emotion-theming';
+import {useTheme} from "../container/ThemeContainer"
 import {useMediaQuery} from 'react-responsive';
-//import { useBeforeunload } from 'react-beforeunload';
 import {Helmet} from "react-helmet";
 import {Page} from '../Page'
 import Login from "./Login"
 import Logout from "./Logout"
 import Register from "./Register"
+import PostRegister from "./PostRegister"
 import PasswordReset from "./PasswordReset"
 import PasswordResetConfirm from "./PasswordResetConfirm"
 import EmailConfirm from "./EmailConfirm"
@@ -21,16 +21,14 @@ import {
     SingularPostContext,
     TourContext,
     UserContext,
-    RouteTransitionContext
+    RouteTransitionContext,
+    ParentBranchDrawerContext
 } from "../container/ContextContainer"
 import {ChatRoomsContainer} from "../container/ChatRoomsContainer"
 import {ChatRoomSettings} from "./ChatRoomSettings"
 import {CreateNewChat} from "./CreateNewChat"
 import {GenericBranchPosts} from "./BranchPosts"
-import {ParentBranch} from "./Branch"
 import {BranchContainer} from "../container/BranchContainer"
-import {BranchesPageRoutes} from "./BranchesPage"
-import {BranchNavigation} from "./BranchNavigation"
 import {TrendingContainer, TrendingWithWrapper as Trending} from "../container/TrendingContainer"
 import Card from "./Card"
 import Responsive from 'react-responsive';
@@ -40,46 +38,25 @@ import {SearchPage} from "./SearchPage"
 import {SettingsPage} from "./SettingsPage"
 import {SingularPost} from "./SingularPost"
 import {CSSTransition,TransitionGroup,Transition} from "react-transition-group";
-import MyBranchesColumnContainer from "./MyBranchesColumn"
-//const MyBranchesColumnContainer = lazy(() => import('./MyBranchesColumn'));
-//const FeedPosts = lazy(() => import('./BranchPosts'));
 import {FrontPage, FrontPageLeftBar} from "./FrontPage"
-import {MobileBranchPageWrapper} from "./MobileParentBranch"
+import {MobileBranchPageWrapper, MobileParentBranch2} from "./MobileParentBranch"
 import {BranchLinks,PostLinks} from "./GoogleLinks"
 import {FeedbackPage} from "./FeedbackPage";
+import {DiscoverBranchesPage} from "./NavigateBranchesPage"
+import {DesktopProfile} from "./ProfileViewer"
+import {FollowPage} from "./FollowPage"
 import {matchPath} from "react-router";
 import pathToRegexp from 'path-to-regexp'
+import history from "../../history";
+import axiosRetry from "axios-retry";
 import axios from 'axios';
 
 const Desktop = props => <Responsive {...props} minDeviceWidth={1224} />;
 const Tablet = props => <Responsive {...props} minDeviceWidth={768} maxDeviceWidth={1223} />;
 const Mobile = props => <Responsive {...props} maxDeviceWidth={767} />;
 
-function RouteTransition({location,children}){
-    return(
-        <CSSTransition key={location.key}
-        timeout={{ enter: 300, exit: 300 }} classNames={'pages'}>
-            {children}
-        </CSSTransition>
-    )
-}
-/*<TransitionGroup style={{display:'inherit',width:'100%',position:'relative'}} className="transition-group">
-                            <CSSTransition
-                            key={location.key}
-                            timeout={{ enter: 300, exit: 300 }} classNames={'pages'}
-                            >
-                                <div className="route-section flex-fill" style={{width:'100%'}}>
 
-</div>
-                                </CSSTransition>
-                            </TransitionGroup>*/
 const Routes = () =>{
-
-  /*function beforeUnload(e){
-    localStorage.setItem('has_seen_tour',true)
-  }
-
-  useBeforeunload(beforeUnload)*/
 
   function updateTour(){
     localStorage.setItem('has_seen_tour',true)
@@ -97,6 +74,7 @@ const Routes = () =>{
           <Route exact path='/logout/:instant(instant)?' component={(props) => <Logout {...props} />} />
           <Route exact path='/login' component={(props) => <Login {...props} />} />
           <Route exact path='/register' component={(props) => <Register {...props} />} />
+          <Route exact path='/register/edit' render={(props) => <PostRegister {...props} />} />
           <Route exact path='/password/reset' component={PasswordReset} />
           <Route exact path='/reset/:uid/:token' component={(props) => <PasswordResetConfirm {...props} />} />
           <Route path='/accounts/confirm-email/:token' component={(props) => <EmailConfirm {...props} />} />
@@ -109,25 +87,38 @@ const Routes = () =>{
 }
 
 
-
-/*const GlobalStyle = createGlobalStyle`
-  body {
-    color: ${props => props.theme.textColor};
-    backgroundColor: ${props => props.theme.backgroundColor};
+const makeGlobalStyles = (theme,isMobileOrTablet) => css`
+  html{
+    overflow:auto;
+    overscroll-behavior: none;
   }
-`*/
-
-const makeGlobalStyles = theme => css`
+  
   body {
     background: ${theme.backgroundColor};
     color: ${theme.textColor};
     -webkit-overflow-scrolling: touch;
   }
+  
+  /**::-webkit-scrollbar{
+    width:10px;
+  }
+
+  @media all and (max-device-width:767px){
+    *::-webkit-scrollbar{
+      width:4px;
+    }
+  }
+  *::-webkit-scrollbar-thumb{
+    background-color:${theme.scrollBarColor};
+  }*/
 `
 
-const GlobalStyles = withTheme(({ theme }) => (
-  <Global styles={makeGlobalStyles(theme)} />
-))
+const GlobalStyles = withTheme(({ theme }) => {
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
+  })
+  return <Global styles={makeGlobalStyles(theme,isMobileOrTablet)} />
+})
 
 const RoutesWrapper = (props) =>{
   const [messages,setMessages] = useState([]);
@@ -136,7 +127,6 @@ const RoutesWrapper = (props) =>{
   return(
     <NotificationsProvider value={{messages:messages,setMessages:setMessages,
     notifications:notifications,setNotifications:setNotifications}}>
-      {/*<GlobalStyle/>*/}
       <GlobalStyles/>
       <Routes/>
     </NotificationsProvider>
@@ -145,11 +135,12 @@ const RoutesWrapper = (props) =>{
 
 
 const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeout, children }){
-  const isMobile = useMediaQuery({
-    query: '(max-device-width: 767px)'
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
   })
 
   const location = useLocation();
+  const prevPath = useRef(null);
   const transitionContext = useContext(RouteTransitionContext);
   
   // This prevents static routes like "/notifications" to be remounted when clicked from the navigation bar
@@ -175,11 +166,16 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
   }
 
   React.useEffect(() => {
-    window.scrollTo(0, 0);
+    try{
+      window.scrollTo({top:0,behavior:'smooth'})
+    }catch(e){
+      window.scrollTo(0,0)
+    }
   }, [location]);
 
   return(
-    isMobile?<TransitionGroup component={null}>
+    isMobileOrTablet?
+    <TransitionGroup component={null}>
       <CSSTransition
         key={key}
         timeout={animationTimeout}
@@ -202,12 +198,19 @@ const AnimatedSwitch = React.memo (function({ animationClassName, animationTimeo
 
 });
 
+if (process.env.NODE_ENV !== 'production') {
+  const whyDidYouRender = require('@welldone-software/why-did-you-render');
+  whyDidYouRender(React);
+}
+
+//AnimatedSwitch.whyDidYouRender = true;
+
 const AnimatedRoute = (props) => {
-  const isMobile = useMediaQuery({
-    query: '(max-device-width: 767px)'
+  const isMobileOrTablet = useMediaQuery({
+    query: '(max-device-width: 1223px)'
   })
 
-  let mobileCss = isMobile?{
+  let mobileCss = isMobileOrTablet?{
       position:'absolute',
       top:0,
       bottom:0,
@@ -215,14 +218,15 @@ const AnimatedRoute = (props) => {
       right:0,
   }:{}
   return (
-  <div id="transition-container" className={isMobile?"mobile-transition-container":''} css={{
+  <div id="transition-container" className={isMobileOrTablet?"mobile-transition-container":''} css={{
       ...mobileCss,
-      display:isMobile?'block':'flex',
+      display:isMobileOrTablet?'block':'flex',
       width:'100%',
     }}>
       <Route {...props} />
     </div>
 )};
+
 export default withRouter(RoutesWrapper);
 
 function NonAuthenticationRoutes(){
@@ -253,20 +257,24 @@ function NonAuthenticationRoutes(){
 
     return(
       <>
-      <AnimatedSwitch 
-        animationClassName="pages" 
+      <Switch 
+        animationClassName="pages"
         animationTimeout={{enter: 300, exit: 300}}
       >
             <AnimatedRoute exact path='/google/links/branches/:pageNumber?' component={(props)=><BranchLinks {...props}/>}/>
             <AnimatedRoute exact path='/google/links/posts/:pageNumber?' component={(props)=><PostLinks {...props}/>}/>
             <AnimatedRoute path='/settings' render={()=>userContext.isAuth?<SettingsPage/>:<Redirect to="/login"/>}/>
             <AnimatedRoute exact path='/:page(all|tree)?' render={(props)=><FrontPage {...props}/>}/>
+            <AnimatedRoute path='/search/:uri' render={(props)=><DiscoverBranchesPage {...props} endpoint="search"/>} />
             <AnimatedRoute path='/search' component={SearchPage} />
-            <AnimatedRoute path='/about' component={FeedbackPage} />
+            <AnimatedRoute path='/feedback' component={FeedbackPage} />
             <AnimatedRoute path='/notifications' render={()=>userContext.isAuth?<NotificationsContainer/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/messages/create_conversation' render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
-            <AnimatedRoute path='/messages/:roomName?' render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/create_conversation' 
+            render={(props)=>userContext.isAuth?<CreateNewChat {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute exact path='/messages/:roomName/:page(invite|settings)' 
+            render={(props)=>userContext.isAuth?<ChatRoomSettings {...props}/>:<Redirect to="/login"/>}/>
+            <AnimatedRoute path='/messages/:roomName?' 
+            render={(props)=>userContext.isAuth?<ChatRoomsContainer {...props}/>:<Redirect to="/login"/>}/>
               
             <AnimatedRoute exact path='/:uri/leaves/:externalId' render={({match}) => 
             
@@ -275,7 +283,7 @@ function NonAuthenticationRoutes(){
             <AnimatedRoute exact path={`/:uri/followers`} component={(props) => <FollowPage {...props} type="followed_by"/>}/>
             <AnimatedRoute exact path={`/:uri/following`} component={(props) => <FollowPage {...props} type="following"/>}/>
             <AnimatedRoute path="/:uri?" render={(props)=><BranchContainer {...props}/>}/>
-        </AnimatedSwitch>
+        </Switch>
         </>
     )
 }
@@ -308,26 +316,26 @@ function SingularPostWrapper({externalPostId}){
     return(
         <>
             <Desktop>
-                <FrontPageLeftBar/>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
-                    <SingularPost postId={externalPostId} postsContext={singularPostContext}
-                    activeBranch={userContext.currentBranch}
-                /></ul>
-                <Trending/>
+                <DesktopParentBranchWrapper branch={userContext.currentBranch}>
+                  <div className="post-list" css={theme=>postWrapper(theme)}>
+                      <SingularPost postId={externalPostId} postsContext={singularPostContext}
+                      activeBranch={userContext.currentBranch}
+                  /></div>
+                </DesktopParentBranchWrapper>
             </Desktop>
 
             <Tablet>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
+                <div className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
-                /></ul>
+                /></div>
             </Tablet>
 
             <Mobile>
-                <ul className="post-list" css={theme=>postWrapper(theme)}>
+                <div className="post-list" css={theme=>postWrapper(theme)}>
                     <SingularPost postId={externalPostId} postsContext={singularPostContext}
                     activeBranch={userContext.currentBranch}
-                /></ul>
+                /></div>
             </Mobile>
             
         </>
@@ -375,14 +383,14 @@ function ResponsiveBranchPage({branch,children}){
                 </DesktopParentBranchWrapper>
             </Desktop>
             <Tablet>
-                <MobileBranchPageWrapper branch={branch}>
+                <MobileParentBranch2 branch={branch}>
                     {children}
-                </MobileBranchPageWrapper>
+                </MobileParentBranch2>
             </Tablet>
             <Mobile>
-                <MobileBranchPageWrapper branch={branch}>
+                <MobileParentBranch2 branch={branch}>
                     {children}
-                </MobileBranchPageWrapper>
+                </MobileParentBranch2>
             </Mobile>    
             </>
     )
@@ -391,43 +399,46 @@ function ResponsiveBranchPage({branch,children}){
 function DesktopParentBranchWrapper(props){
 
     return(
-        <div className="flex-fill" style={{flexFlow:'row wrap',width:'100%'}}>
-            <div style={{flexBasis:'100%',WebkitFlexBasis:'100%'}}>
-                <div>
-                    <ParentBranch
-                        styleName="parent"
-                        style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%'}} 
-                        branch={props.branch}
-                        branchNavigation
-                        editMode={false}
-                    ></ParentBranch>
-                </div>
-                <Card branch={props.branch}/>
-                <BranchNavigation branch={props.branch} refresh={props.refresh}/>
-                {props.children}
+        <div className="flex-fill" style={{flexFlow:'row',width:'100%'}}>
+            <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
+              <DesktopProfile branch={props.branch}/>
             </div>
+            {props.children}
         </div>
     )
 }
 
-import {FollowPage} from "./FollowPage"
 
-export const BranchPage = function(props){
+export const BranchPage = function(props){ 
+  
+  const parentBranchDrawerContext = useContext(ParentBranchDrawerContext);
 
-    return(
-        <ResponsiveBranchPage branch={props.branch}>
-            <Helmet>
-                <title>{props.branch.name} (@{props.branch.uri}) - Subranch</title>
-                <meta name="description" content={props.branch.description} />
-                <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
-            </Helmet>
-            <Switch>
-                <Route path={`/${props.match}/branches`} render={() => <BranchesPageRoutes {...props}/>}/>
-                <Route path={`/${props.match}/:keyword(community|tree)?/`} 
-                render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
-            </Switch>
-        </ResponsiveBranchPage>
-    )        
+  useLayoutEffect(()=>{
+    try{
+      parentBranchDrawerContext.setShow(true);
+      return ()=>{
+        parentBranchDrawerContext.setShow(false);
+      }
+    }catch(e){
+      
+    }
+  },[])
+
+  return(
+      <ResponsiveBranchPage branch={props.branch}>
+          <Helmet>
+              <title>{props.branch.name} (@{props.branch.uri}) - Westeria</title>
+              <meta name="description" content={props.branch.description} />
+              <link rel="canonical" href={`${window.location.origin}/${props.branch.uri}`}></link>
+          </Helmet>
+          <Switch>
+              <Route path={`/${props.match}/branches`} render={() => <DiscoverBranchesPage {...props} 
+              showTop={false} withHeadline endpoint="branches"/>}/>
+              <Route path={`/${props.match}/:keyword(self|community|tree)?/`} 
+              render={({match})=> <BranchFrontPage {...props} keywordMatch={match}/>}/>
+          </Switch>
+      </ResponsiveBranchPage>
+  )        
 }
 
 
@@ -436,13 +447,32 @@ function BranchFrontPage(props){
 
     const theme = useEmotionTheme();
     let keyword = props.keywordMatch.params.keyword
+    let defaultKeyword;
+    let defaultContext;
+    if(props.branch.branch_type=='US' || props.branch.branch_type=='HB'){
+      defaultKeyword = null;
+      defaultContext = BranchPostsContext;
+    }else if(props.branch.branch_type=='CM'){
+      defaultKeyword = 'community';
+      defaultContext = BranchCommunityPostsContext;
+    }
+
+    useLayoutEffect(()=>{
+      if(!keyword && postsContext.useDefaultRoute){
+        if(props.branch.branch_type=='CM'){
+          postsContext.useDefaultRoute = false;
+          history.push(`/${props.branch.uri}/community`)
+        }
+      }
+    },[])
+
     if(keyword == 'community'){
       _context = BranchCommunityPostsContext
     }else if(keyword == 'tree'){
       _context = BranchTreePostsContext
     }else{
       _context = BranchPostsContext;
-    }    
+    }
 
     const postsContext = useContext(_context)
     const userContext = useContext(UserContext);
@@ -450,7 +480,6 @@ function BranchFrontPage(props){
     var uri;
     
     uri = `/api/branches/${props.match}/posts/`;
-    
 
     useEffect(()=>{
         return ()=>{
@@ -464,21 +493,9 @@ function BranchFrontPage(props){
     return(
         <>
         <Desktop>
-            <div>
-                <div style={{marginTop:10}}>
+            <div css={{flex:1}}>
+                <div>
                     <div className="flex-fill" style={{width:'100%'}}>
-                        <div style={{flexBasis:'22%',WebkitFlexBasis:'22%'}}>
-                        {userContext.isAuth?
-                            <div style={{backgroundColor:theme.backgroundColor,
-                            padding:'10px 20px',border:`1px solid ${theme.borderColor}`}}>
-                                <div className="flex-fill" style={{alignItems:'center',WebkitAlignItems:'center'}}>
-                                    <img src="https://sb-static.s3.eu-west-2.amazonaws.com/static/logo_full.png"/>
-                                </div>
-                                    <MyBranchesColumnContainer/>
-                            </div>
-                            :<NonAuthenticationColumn/>
-                        }
-                        </div>
                         {props.externalPostId?<SingularPost postId={props.externalPostId} postsContext={postsContext}
                         activeBranch={userContext.currentBranch}
                         />:<BranchPosts {...props}
@@ -487,10 +504,9 @@ function BranchFrontPage(props){
                         branch={props.match}
                         activeBranch={props.branch}
                         postedId={props.branch.id}
+                        postingTo={props.branch}
                         uri={uri}
-                        />}
-                        
-                        <Trending/>
+                        />}                        
                     </div>
                 </div>
             </div>
@@ -502,6 +518,7 @@ function BranchFrontPage(props){
             branch={props.match}
             activeBranch={props.branch}
             postedId={props.branch.id}
+            postingTo={props.branch}
             uri={uri}
             />
         </Tablet>
@@ -512,15 +529,13 @@ function BranchFrontPage(props){
             branch={props.match}
             activeBranch={props.branch}
             postedId={props.branch.id}
+            postingTo={props.branch}
             uri={uri}
             />
         </Mobile>
         </>
     )
 }
-
-import {BranchPagePostList} from "./BranchPagePostList"
-import axiosRetry from "axios-retry";
 
 const postList = theme => css({
   flexBasis:'56%',
@@ -533,7 +548,7 @@ const postList = theme => css({
 function BranchPosts(props){
   return(
     <div className="post-list" id="post-list" css={theme=>postList(theme)}>
-      <BranchPagePostList branch={props.activeBranch}/>
+      {/*<BranchPagePostList branch={props.activeBranch}/>*/}
       <GenericBranchPosts {...props}/>
     </div>
   )

@@ -1,5 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react";
 import ReactDOM from 'react-dom';
+import { useTransition, animated, config } from 'react-spring/web.cjs'
 import {FollowButton} from "./Card"
 import {RefreshContext} from "../container/ContextContainer"
 import axios from "axios"
@@ -31,9 +32,7 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
                     'X-CSRFToken': getCookie('csrftoken')
                 },
             }).then(response => {
-                 
             }).catch(error => {
-             
         })
     }
 
@@ -42,8 +41,8 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
             <TopBar branch={branch}/>
             <DescriptionBox description={branch.description}/>
             <div className="flex-fill" style={{margin:10,width:'100%',justifyContent:'space-around',WebkitJustifyContent:'space-around',
-            height:140}}>
-                <FollowButton uri={branch.uri} id={branch.id}/>
+            maxHeight:140,minHeight:36}}>
+                <FollowButton branch={branch}/>
                 {pendingStatus?
                     pendingStatus=='accepted'?<div>
                                 <p className="form-succeed-message" >Request accepted</p>
@@ -64,7 +63,7 @@ export default function BranchFooter({branch,pending,requestId,viewedBranch}){
 function TopBar({branch}){
     let left = 100 + 6 + 20 +10; //picture dimension + border x2 + picture left position +empty space
     return(
-        <div style={{height:180,width:'100%', position:'relative'}}>
+        <div style={{height:160,width:'100%', position:'relative'}}>
             <div style={{position:'absolute',left:left}}>
                 <NameBox name={branch.name} uri={branch.uri}/>
             </div>
@@ -95,7 +94,7 @@ export const ToggleContent = ({ toggle, content }) => {
     const [isShown, setIsShown] = useState(false);
     const hide = () => setIsShown(false);
     const show = () => setIsShown(true);
-  
+
     return (
         <>
             {toggle(show)}
@@ -104,20 +103,29 @@ export const ToggleContent = ({ toggle, content }) => {
     );
 };
 
-export function Modal({children ,onClick}){
+export function Modal({children ,onClick, isOpen,hide=()=>{},portalElement="modal-root"}){
+
+    const transitions = useTransition(isOpen, null, {
+        from: { opacity: 0 },
+        enter: { opacity: 1 },
+        leave: { opacity: 0 },
+        config: {duration:200},
+        onDestroyed:()=>{
+            hide()
+        }
+    })
 
     // prevents background scroll events
     function preventScrollEvents(e){
         e.stopPropagation();
     }
 
-    return(
-        ReactDOM.createPortal(
-            <div className="modal" onClick={onClick} onTouchMove={preventScrollEvents}>
-                {children}
-            </div>,
-            document.getElementById('modal-root')
-        )
+    return  ReactDOM.createPortal(
+            transitions.map(({ item, key, props }) =>
+                item && <animated.div className="modal" style={props} key={key} onClick={onClick}>
+                    {children}
+                </animated.div>),
+            document.getElementById(portalElement)   
     )
 };
 

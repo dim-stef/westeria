@@ -1,23 +1,15 @@
-import React, {useRef, useState,useEffect} from "react"
-import { Prompt } from "react-router"
+import React, {useRef, useState,useEffect,useLayoutEffect} from "react"
+import {css} from "@emotion/core"
 import history from "../../history"
 import {useTheme} from "emotion-theming";
 import {ToggleContent} from './Temporary'
 import LazyLoad from 'react-lazy-load';
 import ReactPlayer from 'react-player'
-import ReactDOM from 'react-dom';
 import SwipeableViews from 'react-swipeable-views';
-import PinchToZoom from 'react-pinch-and-zoom';
-
-const Modal = ({ children ,onClick}) => (
-    ReactDOM.createPortal(
-        <div className="modal" onClick={onClick}>
-            {children}
-        </div>,
-        document.getElementById('modal-root')
-    )
-);
-
+import { useSpring, animated , to } from 'react-spring/web.cjs'
+import { useGesture } from 'react-use-gesture'
+import {FadeImage} from "./FadeImage"
+import {Modal} from "./Temporary"
 
 Number.prototype.roundTo = function(num) {
     var resto = this%num;
@@ -28,16 +20,74 @@ Number.prototype.roundTo = function(num) {
     }
 }
 
-export function Images(props){
+const previewImage = () =>css({
+    objectFit:'cover',
+    width:'100%',
+    height:0,
+    minHeight:'100%',
+    maxHeight:'100%',
+    display:'flex',
+})
+
+const mediaContainer = (image=null) =>css({
+    height:'100%',
+    width:'100%',
+    position:'relative',
+    '&:after':{
+        content:'" "',
+        position:'absolute',
+        top:0,
+        right:0,
+        left:0,
+        bottom:0,
+        zIndex:99
+    }
+})
+
+export const PreviewPostMedia = React.memo(function PreviewPostMedia({images,videos}){
+
+    return(
+        <div css={mediaContainer}>
+            {videos.length>0?<VideoComponent key={videos[0].id} src={videos[0].video}
+                thumbnail={videos[0].thumbnail} controls={false} playing
+            />:images.length>0?<FadeImage className="noselect" css={previewImage} src={images[0].image} draggable="false"/>:null
+            }
+        </div>
+    )
+},(prevProps,nextProps)=>{
+    if(prevProps.images.length != nextProps.images.length || prevProps.videos.length != nextProps.videos.length){
+        return false;
+    }else{
+        if(prevProps.images.length > 0){
+            // if images are different rerender
+            for(let i = 0;i<prevProps.images.length;i++){
+                if(prevProps.images[i].image != nextProps.images[i].image){
+                    return false;
+                }
+            }
+        }
+        if(prevProps.videos.length > 0){
+            // if videos are different rerender
+            for(let i = 0;i<prevProps.videos.length;i++){
+                if(prevProps.videos[i].video != nextProps.videos[i].video){
+                    return false;
+                }
+            }
+        }
+    }
+    return true
+})
+
+export const Images = React.memo(function Images({images,videos,imageWidth,viewAs,noMinHeight=false}){
     const theme = useTheme();
 
     function getTallerElement(){
-        let heights = props.images.map(im=>{
+        let heights = images.map(im=>{
             return im.height;
         })
 
         let max = Math.max(...heights);
-        return props.images.find(im=>im.height==max);
+        return images.find(im=>im.height==max);
     }
 
     function calcPadding(){
@@ -47,26 +97,26 @@ export function Images(props){
         let ratio = height/width;
         let paddingTop = height!=0 ?
         `${ratio*100}%` : 0;
-        if(props.videos.length>0 && ratio<0.56){
+        if(videos.length>0 && ratio<0.56){
             paddingTop = '56%';
         }
         return paddingTop;
     }
 
     let initStyle;
-    if(props.viewAs=="reply"){
+    if(viewAs=="reply"){
         initStyle = {
             border: `1px solid ${theme.borderColor}`,
             borderRadius: 10,
         }
     }else{
         initStyle = {
-            margin: '0 -10px'
+            margin: '-10px'
         }
     }
 
 
-    const [paddTop,setPaddTop] = useState(props.images.length>0?calcPadding(props.images[0]):'56%');
+    const [paddTop,setPaddTop] = useState(images.length>0?calcPadding(images[0]):'56%');
     const [left,setLeft] = useState(0);
     const [swiping,setSwiping] = useState(false);
     const [style,setStyle] = useState(initStyle);
@@ -105,6 +155,13 @@ export function Images(props){
         }
     }
 
+    useLayoutEffect(()=>{
+        let swipeContainers = document.getElementsByClassName('react-swipeable-view-container');
+        for(let i = 0; i < swipeContainers.length; i++) {
+            swipeContainers[i].style.transition = null;
+        }
+    },[index])
+
     useEffect(()=>{
         window.addEventListener('touchend',handleResetTransition)
 
@@ -124,26 +181,26 @@ export function Images(props){
         <div ref={ref} style={{...style,overflow: 'hidden',maxHeight:maxHeight}}>
             <div style={{position:'relative',paddingTop:paddTop}} >
                 <div className="flex-fill post-image-wrapper" style={{maxHeight:maxHeight}}>
-                    {props.images.length + props.videos.length>1?
-                    <MediaButtons index={index} changeIndex={changeIndex} count={props.images.length + props.videos.length} 
-                    imageWidth={props.imageWidth} left={left}
+                    {images.length + videos.length>1?
+                    <MediaButtons index={index} changeIndex={changeIndex} count={images.length + videos.length} 
+                    imageWidth={imageWidth} left={left}
                     setLeft={setLeft} incrementIndex={incrementIndex} decrementIndex={decrementIndex}/>:null}
 
                     {/* <SwipeableViews> must be the last child of .post-image-wrapper in order to apply css*/}
                     <SwipeableViews index={index} onChangeIndex={handleChangeIndex} disableLazyLoading onSwitching={onSwitching}
                     slideStyle={{position:'relative',overflow:'hidden',alignItems:'center',WebkitAlignItems:'center'}} 
                     slideClassName="flex-fill">
-                        {props.images.map(img=>{
+                        {images.map(img=>{
                             return <div key={img.image} 
                             style={{width:'100%',height:'100%'}}>
-                            <ImageComponent width={props.imageWidth} key={img} src={img.image} height={img.height}
+                            <ImageComponent width={imageWidth} src={img.image} imgHeight={img.height} noMinHeight={noMinHeight}
                                 maxHeight={maxHeight} isSwiping={swiping} setLeft={setLeft} imgWidth={img.width}
                             /></div>
                         })}
-                        {props.videos.map(vid=>{
+                        {videos.map(vid=>{
                             return <div key={vid.id} style={{width:'100%',height:'100%'}}
                              >
-                            <VideoComponent width={props.imageWidth} key={vid.id} src={vid.video}
+                            <VideoComponent width={imageWidth} src={vid.video}
                                 thumbnail={vid.thumbnail} maxHeight={maxHeight}
                             /></div>
                         })}
@@ -153,16 +210,24 @@ export function Images(props){
             </div>
         </div>
     )
-}
+},(prevProps,nextProps)=>{
+    return prevProps.images.length == nextProps.images.length && prevProps.videos.length == nextProps.videos.length
+    && prevProps.imageWidth == nextProps.imageWidth
+})
 
+const videoContainer = () =>css({
+    'video':{
+        objectFit:'cover'
+    }
+})
 //disablepictureinpicture controlslist="nodownload"
-function VideoComponent({src,thumbnail,width}){
-    let height = width / (16/9);
+function VideoComponent({src,thumbnail,autoplay=true,controls=true,playing=true}){
 
     return(
-        <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container">
+        <div onClick={e=>{e.stopPropagation()}} className="flex-fill video-container" css={videoContainer}>
             <ReactPlayer pip={false} 
-             width="100%" height="100%" url={src} volume={0} muted controls playing light={thumbnail}
+             width="100%" height="100%" url={src} volume={0} muted controls={controls} playing={playing}
+             playsinline light={autoplay?false:thumbnail}
              config={{ file: { attributes: { controlsList: 'nodownload',disablepictureinpicture: 'true' } } }}>
             </ReactPlayer>
         </div>
@@ -194,10 +259,12 @@ function getScrollbarWidth() {
 }
 
 
-function ImageComponent({src,maxHeight,width,imgWidth,height}){
+function ImageComponent({src,maxHeight,imgWidth,imgHeight,noMinHeight}){
+    const [open,setOpen] = useState(false);
 
     function handleModalOpen(e,show){
         e.stopPropagation();
+        setOpen(true);
         show();
         document.body.style.overflowY = 'hidden';
         document.body.style.paddingRight = `${getScrollbarWidth()}px`
@@ -205,21 +272,20 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
         {
             window.history.pushState({urlPath:"#"},"",'#')
         }
-        //history.push(history.location.pathname)
     }
 
     function handleModalClose(e,hide){
+        setOpen(false);
 
         if(e){
             e.stopPropagation();
         }
         
-        hide();
         document.body.style.overflowY = 'scroll';
         document.body.style.paddingRight = 0;
     }
 
-    let borders = imgWidth>height?{
+    let borders = imgWidth>imgHeight?{
         height:'auto',
         width:'100%'
     }:{
@@ -230,7 +296,7 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
     function listenHistory(hide){
         history.listen((location, action) => {
             if(action==='POP'){
-                hide();
+                setOpen(false);
             }
         });
     }
@@ -245,42 +311,110 @@ function ImageComponent({src,maxHeight,width,imgWidth,height}){
                         height="100%"
                         >
                         
-                            <img onClick={e=>{
+                            <FadeImage draggable="false" onClick={e=>{
                                 handleModalOpen(e,show)
-                                }} style={{width:'100%',
-                            objectFit:'cover',maxHeight:maxHeight,backgroundColor:'#607d8b'}} src={src}/>
-                            {/*,position:'absolute',
-                            top:'50%',right:'50%',transform:'translate(50%,-50%)' */}
-                    </LazyLoad>
-                    
+                                }} style={{width:'100%',minHeight:noMinHeight?null:'100%',
+                            objectFit:'cover',maxHeight:maxHeight}} src={src}/>
+                    </LazyLoad>                    
                 </div>
             )}
             content={hide => {
                 
                 listenHistory(()=>handleModalClose(null,hide));
-                return <>
-                 <Modal onClick={e=>handleModalClose(e,hide)}>
-                        <div className="flex-fill" style={{height:'100%',overflowY:'scroll'}}>
-                            <div style={{margin:'auto',width:'100%'}}>
-                                <div className="close-button" onClick={e=>handleModalClose(e,hide)}>
-                                    <CloseSvg/>
-                                </div>
-                                <PinchToZoom>
-                                    <div className="zoom-container flex-fill center-items" onClick={e=>handleModalClose(e,hide)}>
-                                        <img style={{objectFit:'contain',height:'100vh',width:'100%',backgroundColor:'#59686f'}} 
-                                        onClick={(e)=>e.stopPropagation()} src={src}/>
-                                    </div>
-                                </PinchToZoom>
-                            </div>
-                        </div>
-                </Modal>
-                </>
+                return (
+                    <Modal isOpen={open} hide={hide} onClick={e=>handleModalClose(e,hide)} 
+                    portalElement="disable-slide-swipe">
+                        <SmartImage src={src} setOpen={setOpen} width={imgWidth} height={imgHeight}/>
+                    </Modal>
+                )
             }}/>
     )
 }
 
+function setLimit(value){
 
+    if(value > 5){
+      value = 5;
+    }
+    if(value < 0.4){
+      value = 0.4
+    }
+  
+    return value
+}
 
+function SmartImage({src,setOpen,width,height}){
+    const gone = useRef(false);
+    const imgRef = useRef(null);
+    const domTarget = useRef(null)
+    const pinching = useRef(false);
+
+    const [{ x, y, rotateX, rotateY, rotateZ, zoom, scale }, set,stop] = useSpring(() => (
+        {
+            rotateX: 0,
+            rotateY: 0,
+            rotateZ: 0,
+            scale: 1,
+            zoom: 0,
+            x: 0,
+            y: 0,
+            config: { mass: 1, tension: 350, friction: 40 },
+            onFrame:(f)=>{
+                if(Math.abs(f.y) > window.innerHeight){
+                    setOpen(false);
+                }
+            }
+        }
+    ))
+
+    const bind = useGesture(
+        {
+        onDrag: ({event, movement: [mx, my], direction:[xDir,yDir], velocity, down,cancel}) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const trigger = !down && velocity > 0.3 && Math.abs(my) > 60;
+            gone.current = trigger;
+            set(()=>{
+                if(gone.current){
+                    if(yDir < 0){
+                        return {y:-window.innerHeight - imgRef.current.clientHeight}
+                    }else{
+                        return {y:window.innerHeight + imgRef.current.clientHeight}
+                    }
+                }
+                if(!down){
+                    return {x:0,y:0}
+                }
+                return { x:mx, y:my, rotateX: 0, rotateY: 0 }
+            })
+        },
+        onPinch: ({ offset: [d, a] }) => {
+            set({ zoom: d / 200, rotateZ: a })
+        },
+        onPinchStart:()=>pinching.current=true,
+        onPinchEnd:()=>setTimeout(()=>pinching.current=false,5),
+        onHover: ({ hovering }) => !hovering && set({ rotateX: 0, rotateY: 0 }),
+        onWheel: ({ offset: [, y] }) => set({ zoom: y / 200})
+        },
+        { domTarget }
+    )
+
+    useEffect(bind, [bind])
+
+    return(
+        <animated.div css={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',width:'100vw'}}
+        ref={domTarget}>
+            <animated.div
+            style={{ x, y, scale: to([scale, zoom], (s, z) => s + z), rotateX, rotateY, rotateZ }}
+            >
+                <img ref={imgRef} onClick={e=>e.stopPropagation()} 
+                src={src} style={{height:height > width?'100vh':null,width:width > height?'100vw':null}} 
+                className="noselect" draggable="false"/>
+            </animated.div>
+
+        </animated.div>
+    )
+}
 
 function MediaButtons({index,changeIndex,count,imageWidth,setIndex,incrementIndex,decrementIndex}){
 

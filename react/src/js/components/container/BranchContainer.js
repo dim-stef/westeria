@@ -61,6 +61,7 @@ export function BranchesPageContainer(props){
     }
 }
 
+
 export function usePendingRequests(branch){
     const userContext = useContext(UserContext);
     const [requests,setPendingRequests] = useState([]);
@@ -85,9 +86,8 @@ export function usePendingRequests(branch){
     return requests;
 }
 
-export function BranchContainer(props){
-    const location = useLocation();
-    
+export const BranchContainer = React.memo(function BranchContainer(props){
+
     const actionContext = useContext(UserActionsContext)
     const [branch,setBranch] = useState(null);
     const [loaded,setLoaded] = useState(false);
@@ -116,15 +116,13 @@ export function BranchContainer(props){
         getBranch(branchUri);
     },[branchUri])
 
-    location.state = 'branch';
-
     if(loaded){
         if(branch){
             return <BranchPage externalPostId={props.match.params.externalPostId} branch={branch} match={branchUri}/>
         }else{
             return <>
             <Helmet>
-                <title>Branch not found - Subranch</title>
+                <title>Branch not found - Westeria</title>
                 <meta name="description" content="Branch not found." />
             </Helmet>
             <p style={{margin:'0 auto',fontSize:'3rem',fontWeight:'bold',textAlign:'center'}}>Nothing seems to be here</p></>
@@ -132,8 +130,13 @@ export function BranchContainer(props){
     }else{
         return null;
     }
-}
+});
 
+
+if (process.env.NODE_ENV !== 'production') {
+    const whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(React);
+}
 
 export function useMyBranches(){
     const context = useContext(UserContext);
@@ -160,6 +163,53 @@ export function useMyBranches(){
             populateBranches();
         }
     },[])
+
+    return branches
+}
+
+export function useFollowingBranches(){
+    const cachedBranches = useContext(CachedBranchesContext);
+    const context = useContext(UserContext);
+    const branches = useGenericBranchRequest([cachedBranches.following,context.currentFollowing],
+        `/api/v1/branches/${context.currentBranch.uri}/follows/`)
+    context.currentFollowing = branches;
+    cachedBranches.following = branches;
+    return branches
+}
+
+export function useTopLevelBranches(){
+    const cachedBranches = useContext(CachedBranchesContext);
+    const branches = useGenericBranchRequest([cachedBranches.topLevel],
+        `/api/v1/top_level_branches/`)
+    cachedBranches.topLevel = branches;
+    return branches
+}
+
+function useGenericBranchRequest(caches,uri){
+    const [gotData,setGotData] = useState(false);
+    const [branches,setBranches] = useState(caches[0])
+
+    async function getBranches(){
+        let response = await axios.get(uri);
+        let data = await response.data;
+        setGotData(true);
+        return data
+    }
+
+    async function populateBranches(){
+        let branches = await getBranches();
+        setBranches(branches);
+    }
+
+    useEffect(()=>{
+        if(branches.length == 0 && !gotData){
+            populateBranches();
+        }
+    },[])
+
+    useEffect(()=>{
+        populateBranches();
+    },[uri])
 
     return branches
 }

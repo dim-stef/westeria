@@ -1,15 +1,6 @@
 import React, {useContext, useEffect, useRef, useState} from "react"
-import {Link} from "react-router-dom"
 import { css, keyframes } from "@emotion/core";
-import {useTheme as useEmotionTheme} from "emotion-theming";
-import {ToggleContent} from './Temporary'
-import {UserContext} from "../container/ContextContainer"
-import {SmallBranch} from "./Branch"
-import {useMyBranches} from "../container/BranchContainer"
-import {CreateNewBranch} from "./CreateNewBranch"
-import {CSSTransition} from 'react-transition-group';
-import {useTheme} from "../container/ThemeContainer";
-import ReactDOM from 'react-dom';
+import {useMediaQuery} from 'react-responsive'
 
 const scale_up_left = keyframes`
   0% {
@@ -43,6 +34,52 @@ let gotIt = css`
     padding: 3px 6px;
     border-radius: 10px;
 `
+
+export const HoverableTooltip = ({text="",position,children})=>{
+    const isMobile = useMediaQuery({
+        query: '(max-device-width: 767px)'
+    })
+
+    const [showTooltip,setShowTooltip] = useState(false);
+    let setTimeoutConst;
+    let setTimeoutConst2;
+
+    function handleMouseEnter(){
+        clearTimeout(setTimeoutConst2)
+
+        setTimeoutConst = setTimeout(()=>{
+            setShowTooltip(true);
+        },500)
+    }
+
+    function handleMouseLeave(){
+        clearTimeout(setTimeoutConst)
+
+        setTimeoutConst2 = setTimeout(()=>{
+            setShowTooltip(false);
+        },500)
+    }
+
+    function handleClick(){
+        setShowTooltip(false);
+    }
+
+    return (
+        <div>
+            {React.Children.map(children, (child, i) => {
+                return React.cloneElement(child, { onMouseEnter:isMobile?null:handleMouseEnter,
+                onMouseLeave:isMobile?null:handleMouseLeave})
+            })}
+            {showTooltip?
+            <div style={{position:'absolute',left:position.left, top:position.top,zIndex:231}}
+            onMouseEnter={isMobile?null:handleMouseEnter} onMouseLeave={isMobile?null:handleMouseLeave}>
+                <div css={tooltipCss}>
+                    <span>{text}</span>
+                </div>
+            </div>:null}
+        </div>
+    )
+}
 
 export const TooltipChain = React.memo(({delay,onLeave=null,children})=>{
 
@@ -94,7 +131,7 @@ export function Tooltip({index,setIndex,position,children}){
     }
 
     return(
-        <div style={{position:'absolute',left:position.left, top:position.top,zIndex:231231231323123123}}>
+        <div style={{position:'absolute',left:position.left, top:position.top,zIndex:231}} name="tooltip">
             <div css={tooltipCss}>
                 {children}
                 <button onClick={handleClick} css={gotIt}>Got it</button>

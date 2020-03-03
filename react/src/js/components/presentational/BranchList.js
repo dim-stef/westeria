@@ -5,6 +5,7 @@ import {useTheme} from "emotion-theming";
 import {ChildBranch} from "./Branch"
 import BranchFooter from "./Temporary"
 import {FollowButton} from "./Card"
+import {ExpandableBranch} from "./SearchPage"
 
 export function SmallBranchList({branches}){
 
@@ -20,7 +21,7 @@ export function SmallBranchList({branches}){
                         </div> 
                     </Link>
                 </div>
-                <FollowButton id={b.id} uri={b.uri}/>
+                <FollowButton branch={b}/>
             </div>
         )
     })
@@ -44,7 +45,7 @@ function BranchPicture(props){
 const searchContainer = () => css({
     display:'flex',
     flexFlow:'row wrap', 
-    justifyContent:'space-between'
+    justifyContent:'center'
 })
 
 const searchList = theme => css({
@@ -62,13 +63,7 @@ export function BigBranchList({branches}){
         <div className="flex-fill" css={searchContainer} >
             {branches.length>0?
                 branches.map(b=>{
-                return  <div className="branch-container flex-fill" 
-                        css={theme=>searchList(theme)} key={b.id}>
-                            <ChildBranch style={{marginTop:0,marginBottom:0,width:'100%',bannerWidth:'100%', branchDimensions:96}} 
-                            branch={b}/>
-                            <BranchFooter branch={b}/>
-                        </div>
-                        
+                return <ExpandableBranch branch={b}/>
             }):null}
         </div>
     )

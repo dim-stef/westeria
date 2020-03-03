@@ -6,17 +6,31 @@ from django.core.exceptions import ValidationError,SuspiciousOperation
 from django.dispatch import receiver
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from push_notifications.models import APNSDevice, GCMDevice
+from taggit.managers import TaggableManager
 from io import BytesIO
 from PIL import Image
 from accounts.models import User
-from branchchat.models import BranchChat
+from branchchat.models import BranchChat, ChatRequest, should_be_disabled
 from branchposts.models import Post
 from notifications.models import Notification
-from core.utils import JPEGSaveWithTargetSize
+from tags.models import GenericStringTaggedItem
 from .utils import generate_unique_uri
 import uuid
+import hashlib
 import datetime
 
+def generate_sha(file):
+    sha = hashlib.sha1()
+    file.seek(0)
+    while True:
+        buf = file.read(104857600)
+        if not buf:
+            break
+        sha.update(buf)
+    sha1 = sha.hexdigest()
+    file.seek(0)
+
+    return sha1
 
 def uuid_int():
     uid = uuid.uuid4()
@@ -27,18 +41,32 @@ def calculate_trending_score(posts):
     spread_count = 0
     for post in posts:
         spread_count+=post.spreads.count()
-    '''if posts.count()==0:
-        avg = 0
-    else:
-        avg = spread_count/posts.count()'''
     return spread_count
 
 def deEmojify(inputString):
     return inputString.encode('ascii', 'ignore').decode('ascii')
 
+
+class BranchQuerySet(models.QuerySet):
+    def siblings(self, uri):
+        parents = Branch.objects.get(uri__iexact=uri).parents.all()
+        siblings = Branch.objects.filter(parents__in=parents) \
+            .exclude(uri__iexact=uri) \
+            .distinct()
+        return siblings
+
+
 class Branch(models.Model):
     class Meta:
         unique_together = ('owner', 'name')
+
+    FOLLOWING_ONLY = 'FO'
+    EVERYONE = 'EO'
+
+    DIRECT_MESSAGE_TYPE = (
+        (FOLLOWING_ONLY, 'Following only'),
+        (EVERYONE, 'Everyone')
+    )
 
     PUBLIC = 'PU'
     INVITE_ONLY = 'IO'
@@ -47,9 +75,20 @@ class Branch(models.Model):
         (INVITE_ONLY, 'Invite only'),
     )
 
+    USER = 'US'
+    COMMUNITY = 'CM'
+    HUB = 'HB'
+
+    TYPE = (
+        (USER, 'User'),
+        (COMMUNITY, 'Community'),
+        (HUB, 'Hub')
+    )
+
     branch_image = models.ImageField(upload_to='images/group_images/profile',
                                     default='images/group_images/profile/default.jpeg',
                                     blank=False)
+    #branch_image_sha1 = models.CharField(max_length=40)
     branch_banner = models.ImageField(upload_to='images/group_images/banner',
                                      default='images/group_images/banner/default.png',
                                      blank=False)
@@ -58,20 +97,28 @@ class Branch(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=True)
     owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='owned_groups')
+    branch_type = models.CharField(default=USER, choices=TYPE, max_length=2)
     parents = models.ManyToManyField('self', blank=True, symmetrical=False, related_name="children")
     follows = models.ManyToManyField('self', blank=True, null=True, symmetrical=False, related_name='followed_by')
     name = models.CharField(blank=False, null=False, default='unnamed', max_length=30)
     accessibility = models.CharField(default=PUBLIC, choices=ACCESSIBILITY, max_length=2)
     description = models.TextField(blank=True, null=True, max_length=140)
     over_18 = models.BooleanField(default=False)
-    uri = models.CharField(blank=False, null=False, default=uuid.uuid4,unique=True, max_length=60)
+    uri = models.CharField(blank=False, null=False, default=uuid.uuid4, unique=True, max_length=60, db_index=True)
     default = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
-    trending_score = models.DecimalField(max_digits=14,decimal_places=5,default=0.0)
+    trending_score = models.DecimalField(max_digits=14, decimal_places=5,default=0.0)
+    tags = TaggableManager(through=GenericStringTaggedItem, blank=True)
+    is_branchable = models.BooleanField(default=False)
+    direct_messages_accessibility = models.CharField(default=EVERYONE, choices=DIRECT_MESSAGE_TYPE,max_length=2)
+
+    # Whether the branch can "host" tags
+    # By default all posts tagged with "example_tag" will appear in the branches which contain
+    # the tag "example_tag"
+    is_hostable = models.BooleanField(default=True)
 
     def __str__(self):
         return self.uri
-
 
     def clean(self, *args, **kwargs):
         self.uri = deEmojify(self.uri)
@@ -80,7 +127,6 @@ class Branch(models.Model):
             for branch in owned_branches:
                 branch.default = False
                 branch.save()
-
 
     def encode_image(self,image):
         try:
@@ -99,10 +145,9 @@ class Branch(models.Model):
         except OSError as e:
             return None
 
-
     def save(self, *args, **kwargs):
         if not Branch.objects.filter(pk=self.pk).exists():  #in case of new model instance
-            self.uri = generate_unique_uri(self.name)
+            self.uri = generate_unique_uri(self.name,self.uri)
         '''else:
             branch = Branch.objects.get(pk=self.pk)
             if branch.uri != self.uri:                     #need validation if uri updated
@@ -110,18 +155,34 @@ class Branch(models.Model):
         if self.pk:
             self.full_clean()
 
-        self.branch_image = self.encode_image(self.branch_image)
-        self.branch_banner = self.encode_image(self.branch_banner)
-
-        '''icon, im_io = JPEGSaveWithTargetSize(self.branch_image, "%s_icon.jpg" % self.branch_image.name, 3000)
-        self.icon = InMemoryUploadedFile(im_io, 'ImageField', "%s_icon.jpg" % self.branch_image.name.split('.')[0],
-                                             'image/jpeg', im_io.getbuffer().nbytes, None)
-            # File too big to be compressed to 3kb
-        pass'''
         super().save(*args, **kwargs)
 
+    objects = BranchQuerySet.as_manager()
+
+
+# Remove previous uri and name from tags in case they changes
+@receiver(pre_save, sender=Branch)
+def remove_old_tags(sender, instance, **kwargs):
+    instance.tags.remove(instance.uri)
+    instance.tags.remove(instance.name)
+
+# Add the new uri and name to tags in case they changes
+@receiver(post_save, sender=Branch)
+def add_new_tags(sender, instance, **kwargs):
+    instance.tags.add(instance.uri, instance.name)
+
+
+@receiver(post_save, sender=Branch)
+def create_followers_only_chat(sender,created,instance,**kwargs):
+    if created:
+        if instance.branch_type == Branch.COMMUNITY:
+            followers_only_chat = BranchChat.objects.create(owner=instance, image=instance.branch_image,
+                                                            name="%s' followers conversation" % instance.name,
+                                                            personal=False, auto_invite_followers=True,
+                                                            type=BranchChat.TYPE_FOLLOW_ONLY)
+
+
 def validate_manytomany(self,instance,target):
-    #self.delete()
     if instance == target:
         raise ValidationError('Cannot branch to the same branch')
 
@@ -133,7 +194,7 @@ class BranchRequest(models.Model):
     previous_state = None
 
     TYPE_ADD = 'add'
-    TYPE_REMOVE= 'remove'
+    TYPE_REMOVE = 'remove'
     TYPE_CHOICES = (
         (TYPE_ADD, 'Add'),
         (TYPE_REMOVE, 'Remove'),
@@ -198,7 +259,6 @@ class BranchRequest(models.Model):
                     print(self.request_from, 'was successfully removed as parent from', self.request_to)
         super(BranchRequest, self).save()
 
-
     @staticmethod
     def pre_save(sender, **kwargs):
         instance = kwargs.get('instance')
@@ -218,9 +278,6 @@ from asgiref.sync import async_to_sync
 from django.core import serializers
 
 # assuming obj is a model instance
-
-
-
 @receiver(post_save, sender=BranchRequest)
 def create_notification(sender, instance, created, **kwargs):
     if created and instance.request_from is not instance.request_to:
@@ -233,7 +290,6 @@ def create_notification(sender, instance, created, **kwargs):
         else:
             description = "wants to become parent of"
             verb = "become_parent"
-
 
         notification = Notification.objects.create(recipient=instance.request_to.owner,actor=instance.request_from
                                     ,verb=verb,target=instance.request_to,
@@ -330,8 +386,7 @@ def modify_chat_room(sender, instance, **kwargs):
     def already_exists(query_member):
         instance_personal_rooms = (
             BranchChat.objects
-                .annotate(num_members=Count("members"))
-                .filter(num_members=2)
+                .filter(personal=True)
                 .filter(members=query_member)
                 .filter(members=instance)
         )
@@ -340,25 +395,69 @@ def modify_chat_room(sender, instance, **kwargs):
             return None
         return instance_personal_rooms[0]
 
+    def create_room(other_member, members):
+        new_room = BranchChat.objects.create(owner=instance, image=other_member.branch_image,
+                                             name=other_member.name,
+                                             personal=True)
+        new_room.members.add(*members)
+
     # On follow create direct chat
     if action == "post_add":
         for pk in pk_set:
             member = Branch.objects.get(pk=pk)
-            is_following = True if instance in member.follows.all() else False
-            is_being_followed_back = True if member in instance.follows.all() else False
-            if is_being_followed_back and is_following and not already_exists(member):
-                members = [member, instance]
-                new_room = BranchChat.objects.create(owner=instance,image=member.branch_image,name=member.name,
-                                                     personal=True)
-                new_room.members.add(*members)
+            members = [instance, member]
 
-    # On unfollow delete direct chat
+            chat = already_exists(member)
+            if not chat:
+                if member.direct_messages_accessibility == Branch.EVERYONE:
+                    create_room(member, members)
+                else:
+                    if member.follows.filter(pk=instance.pk):
+                        create_room(member, members)
+            else:
+                is_chat_disabled = should_be_disabled(chat)
+                chat.is_disabled = is_chat_disabled
+                chat.save(update_fields=['is_disabled'])
+
+    # On unfollow disable direct chat
     if action == "post_remove":
         for pk in pk_set:
             member = Branch.objects.get(pk=pk)
             chat = already_exists(member)
+
             if chat:
-                chat.delete()
+                is_chat_disabled = should_be_disabled(chat)
+                chat.is_disabled = is_chat_disabled
+                chat.save(update_fields=['is_disabled'])
+
+
+@receiver(m2m_changed,sender=Branch.follows.through)
+def send_auto_follow_chat_invite(sender, instance, **kwargs):
+    action = kwargs.pop('action', None)
+    pk_set = kwargs.pop('pk_set', None)
+
+    if action == "post_add":
+        for pk in pk_set:
+            followed = Branch.objects.get(pk=pk)
+            auto_follow_chat = BranchChat.objects.filter(owner=followed,auto_invite_followers=True)
+            if auto_follow_chat.exists():
+                chat_request = ChatRequest.objects.filter(branch_chat=auto_follow_chat.first(), request_from=followed,
+                                                          request_to=instance)
+
+                # if request has already been sent then just join the chat
+                if chat_request.exists():
+                    auto_follow_chat.first().members.add(instance)
+                # else send request to user
+                else:
+                    request = ChatRequest.objects.create(branch_chat=auto_follow_chat.first(), request_from=followed,
+                                                         request_to=instance)
+    if action == "post_remove":
+        for pk in pk_set:
+            followed = Branch.objects.get(pk=pk)
+            auto_follow_chat = BranchChat.objects.filter(owner=followed, auto_invite_followers=True)
+            if auto_follow_chat.exists():
+                auto_follow_chat.first().members.remove(instance)
+
 
 @receiver(m2m_changed,sender=Branch.follows.through)
 def create_follow_notification(sender, instance, **kwargs):
